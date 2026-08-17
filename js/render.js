@@ -44,10 +44,11 @@ class Renderer {
     const { ctx } = this;
     // One-shot impact sprites (slash/strike/punch/slam art).
     for (const fx of this.battle.effectSprites) {
-      if (fx.rotate) {
+      if (fx.rotate || fx.flipY) {
         ctx.save();
         ctx.translate(fx.x, fx.y);
-        ctx.rotate(fx.rotate);
+        if (fx.flipY) ctx.scale(1, -1); // vertical mirror of the final image
+        if (fx.rotate) ctx.rotate(fx.rotate);
         fx.player.draw(ctx, 0, 0, false);
         ctx.restore();
       } else {
