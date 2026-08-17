@@ -194,7 +194,10 @@ const HEROES = {
     sprite: {
       displayH: 88,
       strips: {
-        idle:   { src: 'assets/heroes/florence/idle.png',   frames: 9, fps: 8,  loop: true  },
+        idle:   { src: 'assets/heroes/florence/KnightIdle.png',  frames: 9, fps: 8, loop: true },
+        // Timed fidget: helmet adjust, plays once every 7-14s of idling.
+        idle2:  { src: 'assets/heroes/florence/Knightidle2.png', frames: 9, fps: 8, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
         attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
       },
     },
