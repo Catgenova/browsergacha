@@ -218,7 +218,13 @@ class Battle {
   spawnImpact(effectId, x, y, opts = {}) {
     const sheet = this.effectSheets[effectId];
     if (!sheet) return;
-    const fx = { x, y, rotate: opts.rotate || 0, player: new AnimationPlayer(sheet), done: false };
+    const fx = {
+      x, y,
+      rotate: opts.rotate || 0,
+      flipY: !!opts.flipY,
+      player: new AnimationPlayer(sheet),
+      done: false,
+    };
     fx.player.play('play', () => { fx.done = true; });
     this.effectSprites.push(fx);
   }
@@ -292,7 +298,7 @@ class Battle {
       if (wantImpact && res.target.slot && !impacted.has(res.target)) {
         impacted.add(res.target);
         this.spawnImpact(wantImpact, res.target.slot.x, res.target.slot.y - 14,
-          { rotate: (ability.impactRotate || 0) * Math.PI / 180 });
+          { rotate: (ability.impactRotate || 0) * Math.PI / 180, flipY: !!ability.impactFlipY });
       }
     }
     for (const res of results) {
