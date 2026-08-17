@@ -275,32 +275,34 @@ class TeamScreen {
       ctx.fillStyle = 'rgba(232, 228, 216, 0.35)';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(slot.position.toUpperCase(), slot.x, slot.y + 40);
+      ctx.fillText(slot.position.toUpperCase(), slot.x, slot.y + 24);
 
-      // Placed hero.
+      // Placed hero, feet standing on the tile.
       const heroId = team[slot.index];
       if (heroId && HEROES[heroId]) {
         const def = HEROES[heroId];
         const animator = this.animators.get(heroId);
-        if (animator) animator.draw(ctx, slot.x, slot.y - 4, false);
+        const dh = animator ? animator.sheet.displayH : 48;
+        const yc = slot.y - dh / 2 + 14;
+        if (animator) animator.draw(ctx, slot.x, yc, false);
 
         ctx.fillStyle = '#bcd6ff';
         ctx.font = '10px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(def.name, slot.x, slot.y - 32);
+        ctx.fillText(def.name, slot.x, yc - dh / 2 - 6);
 
-        // Gold ring when this hero's positional bonus is live here.
+        // Gold star when this hero's positional bonus is live here.
         if (def.positional.position === slot.position) {
           ctx.fillStyle = '#ffd76a';
-          ctx.fillText('★', slot.x + 26, slot.y - 30);
+          ctx.fillText('★', slot.x + 26, yc - dh / 2 - 4);
         }
 
-        // Selection ring.
+        // Selection ring at the feet.
         if (this.selection && this.selection.heroId === heroId) {
           ctx.strokeStyle = '#ffd76a';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.ellipse(slot.x, slot.y + 22, 26, 10, 0, 0, Math.PI * 2);
+          ctx.ellipse(slot.x, slot.y + 16, 26, 8, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
       }

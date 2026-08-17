@@ -136,14 +136,23 @@ class Renderer {
     }
   }
 
+  // Sprite center so the unit's feet stand on its tile (slightly below
+  // the tile center, body rising above the grid).
+  spriteCenterY(unit, tileY) {
+    const dh = unit.animator ? unit.animator.sheet.displayH : 48;
+    return tileY - dh / 2 + 14;
+  }
+
   drawUnit(unit) {
     const { ctx } = this;
     const { x, y } = this.battle.motionPos(unit);
+    const dh = unit.animator ? unit.animator.sheet.displayH : 48;
+    const yc = this.spriteCenterY(unit, y);
 
     if (!unit.alive) {
       if (unit.animator && unit.animator.current === 'death') {
         // Death animation plays out and freezes on its final frame.
-        unit.animator.draw(ctx, x, y, unit.team === TEAM.ENEMY);
+        unit.animator.draw(ctx, x, yc, unit.team === TEAM.ENEMY);
       } else {
         // Fallback for units without death art: faded grave marker.
         ctx.save();
@@ -158,12 +167,12 @@ class Renderer {
     const isActive = this.battle.activeUnit === unit;
     const flipX = unit.team === TEAM.ENEMY; // enemies face left
 
-    // Active-turn ring under the unit.
+    // Active-turn ring at the unit's feet.
     if (isActive) {
       ctx.strokeStyle = '#ffd76a';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(x, y + 22, 26, 10, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + 16, 26, 8, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -180,7 +189,7 @@ class Renderer {
         ctx.strokeStyle = hovered ? '#ff5a5a' : 'rgba(255, 138, 138, 0.5)';
         ctx.lineWidth = hovered ? 3 : 1.5;
         ctx.beginPath();
-        ctx.ellipse(x, y + 22, 28, 11, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + 16, 28, 9, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
@@ -188,27 +197,26 @@ class Renderer {
     // Sprite; recently-hit units flash white along their own silhouette.
     if (unit.animator) {
       const flash = unit.hitFlash > 0 ? Math.min(1, unit.hitFlash * 5) * 0.85 : 0;
-      unit.animator.draw(ctx, x, y, flipX, flash);
+      unit.animator.draw(ctx, x, yc, flipX, flash);
     }
 
-    this.drawBars(unit, x, y);
+    this.drawBars(unit, x, yc - dh / 2);
 
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
-      const dh = unit.animator ? unit.animator.sheet.displayH : 48;
       ctx.fillStyle = '#ffd76a';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, y - dh / 2 - 10);
+      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, yc - dh / 2 - 10);
     }
   }
 
-  drawBars(unit, x, y) {
+  // spriteTop: the y of the unit sprite's top edge; bars stack above it.
+  drawBars(unit, x, spriteTop) {
     const { ctx } = this;
     const w = CONFIG.BAR_W;
     const h = CONFIG.BAR_H;
-    const dh = unit.animator ? unit.animator.sheet.displayH : 48;
-    const top = y - dh / 2 - 16;
+    const top = spriteTop - 16;
 
     // Health bar
     const hpFrac = unit.hp / unit.maxHp;
