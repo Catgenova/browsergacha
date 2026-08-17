@@ -8,10 +8,13 @@ class Renderer {
     this.hoveredUnit = null;   // set by UI for target highlighting
     this.targetingMode = null; // 'enemy' | 'ally' | null
     this.rowMode = false;      // highlight the hovered enemy's whole row
-    this.bgImage = null;       // battle backdrop (gradient until loaded)
-    if (CONFIG.BATTLE_BG) {
-      Sprites.loadImage(CONFIG.BATTLE_BG).then((img) => { this.bgImage = img; });
-    }
+    // Battle backdrops: all loaded up front; each new battle rotates to
+    // the next (gradient fallback until loaded / when missing).
+    this.bgImages = (CONFIG.BATTLE_BGS || []).map(() => null);
+    (CONFIG.BATTLE_BGS || []).forEach((src, i) => {
+      Sprites.loadImage(src).then((img) => { this.bgImages[i] = img; });
+    });
+    this.bgIndex = 0;
   }
 
   setBattle(battle) {
@@ -19,6 +22,11 @@ class Renderer {
     this.hoveredUnit = null;
     this.targetingMode = null;
     this.rowMode = false;
+    // Rotate the arena for each new battle.
+    if (this.bgImages.length > 0) {
+      Renderer.bgRotation = ((Renderer.bgRotation ?? -1) + 1) % this.bgImages.length;
+      this.bgIndex = Renderer.bgRotation;
+    }
   }
 
   draw() {
@@ -109,9 +117,10 @@ class Renderer {
 
   drawBackground() {
     const { ctx } = this;
-    if (this.bgImage) {
+    const bg = this.bgImages[this.bgIndex];
+    if (bg) {
       // Cover-fit: fill the canvas, cropping overflow, centered.
-      const img = this.bgImage;
+      const img = bg;
       const scale = Math.max(CONFIG.CANVAS_W / img.width, CONFIG.CANVAS_H / img.height);
       const w = img.width * scale;
       const h = img.height * scale;
