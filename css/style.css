@@ -53,6 +53,12 @@ body {
   color: #6a6288;
 }
 
+#version-tag.update-available {
+  color: #ffd76a;
+  cursor: pointer;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 #nav-tabs {
   display: flex;
   gap: 6px;

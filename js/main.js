@@ -59,6 +59,24 @@ const App = {
   const versionTag = document.getElementById('version-tag');
   if (versionTag.textContent.includes('__')) versionTag.textContent = 'dev';
 
+  // Pages caches index.html for up to 10 minutes, so a fresh deploy can
+  // lag behind. Poll for a newer stamped version and offer a reload.
+  if (location.protocol.startsWith('http') && versionTag.textContent !== 'dev') {
+    const current = versionTag.textContent;
+    setInterval(async () => {
+      try {
+        const res = await fetch(location.href, { cache: 'no-store' });
+        const html = await res.text();
+        const match = html.match(/v\d+ · [0-9a-f]{8}/);
+        if (match && match[0] !== current) {
+          versionTag.textContent = `${match[0]} available — click to update`;
+          versionTag.classList.add('update-available');
+          versionTag.onclick = () => location.reload(true);
+        }
+      } catch (e) { /* offline etc. — try again next tick */ }
+    }, 60000);
+  }
+
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
   App.screens.battle = new BattleScreen(App);
