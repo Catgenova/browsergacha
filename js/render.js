@@ -8,6 +8,10 @@ class Renderer {
     this.hoveredUnit = null;   // set by UI for target highlighting
     this.targetingMode = null; // 'enemy' | 'ally' | null
     this.rowMode = false;      // highlight the hovered enemy's whole row
+    this.bgImage = null;       // battle backdrop (gradient until loaded)
+    if (CONFIG.BATTLE_BG) {
+      Sprites.loadImage(CONFIG.BATTLE_BG).then((img) => { this.bgImage = img; });
+    }
   }
 
   setBattle(battle) {
@@ -27,8 +31,9 @@ class Renderer {
     ctx.clearRect(0, 0, CONFIG.CANVAS_W, CONFIG.CANVAS_H);
 
     this.drawBackground();
-    this.drawFormation(this.battle.playerSlots, '#3a4a6a', '#22293d');
-    this.drawFormation(this.battle.enemySlots, '#6a3a3a', '#3d2222');
+    // Translucent tile fills let the field art show through.
+    this.drawFormation(this.battle.playerSlots, 'rgba(120, 150, 220, 0.55)', 'rgba(34, 41, 61, 0.45)');
+    this.drawFormation(this.battle.enemySlots, 'rgba(220, 120, 110, 0.55)', 'rgba(61, 34, 34, 0.45)');
 
     // Draw units back-to-front by y; units mid-attack-motion draw last
     // so they pass in front of everything they fly over.
@@ -105,6 +110,17 @@ class Renderer {
 
   drawBackground() {
     const { ctx } = this;
+    if (this.bgImage) {
+      // Cover-fit: fill the canvas, cropping overflow, centered.
+      const img = this.bgImage;
+      const scale = Math.max(CONFIG.CANVAS_W / img.width, CONFIG.CANVAS_H / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(img, (CONFIG.CANVAS_W - w) / 2, (CONFIG.CANVAS_H - h) / 2, w, h);
+      return;
+    }
+
     const grad = ctx.createLinearGradient(0, 0, 0, CONFIG.CANVAS_H);
     grad.addColorStop(0, '#221e30');
     grad.addColorStop(1, '#161320');
@@ -241,11 +257,15 @@ class Renderer {
     ctx.fillStyle = tmFrac >= 1 ? '#ffd76a' : '#8ecbff';
     ctx.fillRect(x - w / 2, tmTop, w * tmFrac, h - 1);
 
-    // Name
+    // Name (shadowed for readability over bright field art)
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    ctx.shadowBlur = 3;
     ctx.fillStyle = unit.team === TEAM.PLAYER ? '#bcd6ff' : '#ffc4b8';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(unit.name, x, top - 5);
+    ctx.restore();
   }
 
   drawFloatingTexts() {
@@ -255,6 +275,8 @@ class Renderer {
       const alpha = ft.age < 0.8 ? 1 : 1 - (ft.age - 0.8) / 0.3;
       ctx.save();
       ctx.globalAlpha = Math.max(0, alpha);
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+      ctx.shadowBlur = 3;
       ctx.fillStyle = ft.color;
       ctx.font = ft.big ? 'bold 20px monospace' : 'bold 15px monospace';
       ctx.textAlign = 'center';
