@@ -271,8 +271,9 @@ const HEROES = {
       {
         id: 'crystal_slash', name: 'Crystal Slash',
         description: 'Leap to an enemy and slash clean through for 100% ATK.',
-        // Slash impact rotated to sweep left-to-right with the sword tip.
-        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash', impactRotate: -90,
+        // Slash impact rotated so its travel reads flat left-to-right
+        // (bottom-left to bottom-right) following the sword tip.
+        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash', impactRotate: -64,
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
