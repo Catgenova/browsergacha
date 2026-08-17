@@ -24,4 +24,5 @@ function ratEnemy(heroId, statScale) {
 const ENEMIES = {
   rat_archer: ratEnemy('rat_archer', 1.4),
   rat_brawler: ratEnemy('rat_brawler', 1.4),
+  rat_assassin: ratEnemy('rat_assassin', 1.3),
 };

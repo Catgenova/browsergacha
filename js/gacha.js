@@ -12,7 +12,8 @@ const Gacha = (() => {
   const RATES = [
     { rarity: 5, p: 0.05 },
     { rarity: 4, p: 0.25 },
-    { rarity: 1, p: 0.70 },
+    { rarity: 2, p: 0.20 },
+    { rarity: 1, p: 0.50 },
   ];
 
   function poolByRarity(rarity) {
