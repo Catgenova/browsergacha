@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browser Gacha — Hero Battler</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="game-root">
+    <canvas id="battle-canvas" width="960" height="540"></canvas>
+
+    <!-- Ability bar: shown when it's a player hero's turn -->
+    <div id="ability-bar" class="hidden">
+      <div id="active-hero-name"></div>
+      <div id="ability-buttons"></div>
+      <div id="target-hint" class="hidden">Select a target…</div>
+    </div>
+
+    <!-- Battle log -->
+    <div id="battle-log"></div>
+
+    <!-- End-of-battle banner -->
+    <div id="battle-banner" class="hidden"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/hex.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/abilities.js"></script>
+  <script src="js/hero.js"></script>
+  <script src="js/data/heroes.js"></script>
+  <script src="js/data/enemies.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

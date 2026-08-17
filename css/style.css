@@ -1,0 +1,149 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #14121a;
+  color: #e8e4d8;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#game-root {
+  position: relative;
+  width: 960px;
+}
+
+#battle-canvas {
+  display: block;
+  width: 960px;
+  height: 540px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
+  image-rendering: pixelated;
+  cursor: default;
+}
+
+/* ---- Ability bar ---- */
+#ability-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 118px; /* anchored just above the canvas bottom edge, clear of the log */
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(20, 18, 30, 0.92);
+  border: 1px solid #5a5078;
+  border-radius: 8px;
+}
+
+#active-hero-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffd76a;
+  letter-spacing: 1px;
+}
+
+#ability-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.ability-btn {
+  position: relative;
+  min-width: 110px;
+  padding: 8px 10px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #6a5f96;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.1s, transform 0.05s;
+}
+
+.ability-btn:hover:not(:disabled) {
+  background: #3d3760;
+  transform: translateY(-1px);
+}
+
+.ability-btn.selected {
+  background: #4d4578;
+  border-color: #ffd76a;
+}
+
+.ability-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ability-btn .cd-label {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  color: #9a92b8;
+}
+
+.ability-btn .cd-remaining {
+  color: #ff8a8a;
+}
+
+#target-hint {
+  font-size: 11px;
+  color: #8ecbff;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.4; }
+}
+
+/* ---- Battle log ---- */
+#battle-log {
+  margin-top: 8px;
+  height: 96px;
+  overflow-y: auto;
+  padding: 6px 10px;
+  background: #1c1926;
+  border: 1px solid #3a3450;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #b8b2cc;
+}
+
+#battle-log .log-player { color: #8ecbff; }
+#battle-log .log-enemy  { color: #ff9a8a; }
+#battle-log .log-system { color: #ffd76a; }
+
+/* ---- End banner ---- */
+#battle-banner {
+  position: absolute;
+  top: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 18px 48px;
+  background: rgba(20, 18, 30, 0.95);
+  border: 2px solid #ffd76a;
+  border-radius: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #ffd76a;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
