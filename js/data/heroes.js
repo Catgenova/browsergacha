@@ -240,6 +240,11 @@ const HEROES = {
             { frames: [22, 22], from: 'originAir', to: 'origin' },
             { frames: [23, 25], from: 'origin',    to: 'origin' },
           ],
+          // Dust on liftoff, and again as she touches back down.
+          frameEffects: [
+            { frame: 8,  effect: 'jump_cloud', at: 'origin', dy: 28 },
+            { frame: 23, effect: 'land_cloud', at: 'origin', dy: 28 },
+          ],
         },
         // Skill 1 — leap to the target and slash through them:
         //   1-7   windup on her hex, holding frame 7 as she tenses
@@ -280,7 +285,7 @@ const HEROES = {
       {
         id: 'crystal_resonance', name: 'Crystal Resonance',
         description: 'Attune to the blade: +50% crit chance and +50% crit damage for 3 turns.',
-        cooldown: 5, targeting: 'self', animation: 'buff', impact: 'slam',
+        cooldown: 5, targeting: 'self', animation: 'buff',
         effects: [
           { type: 'buff', stat: 'critChance', add: 0.5, turns: 3 },
           { type: 'buff', stat: 'critDamage', add: 0.5, turns: 3 },
