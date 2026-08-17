@@ -30,7 +30,15 @@ const Gacha = (() => {
   }
 
   function pickHero(rarity) {
-    const pool = poolByRarity(rarity);
+    let pool = poolByRarity(rarity);
+    // A rolled rarity may have no heroes yet (small early pool): fall back
+    // to the nearest populated rarity, preferring lower.
+    if (pool.length === 0) {
+      const available = [...new Set(Object.values(HEROES).map((h) => h.rarity))]
+        .sort((a, b) => Math.abs(a - rarity) - Math.abs(b - rarity) || a - b);
+      if (available.length === 0) return null;
+      pool = poolByRarity(available[0]);
+    }
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -40,11 +48,12 @@ const Gacha = (() => {
     if (GameState.pity + 1 >= PITY_LIMIT) rarity = 5; // pity break
     if (rarity < forceMinRarity) rarity = forceMinRarity;
 
-    GameState.setPity(rarity === 5 ? 0 : GameState.pity + 1);
-
     const def = pickHero(rarity);
+    // Pity and display track what was actually pulled (the roll may have
+    // fallen back to a populated rarity).
+    GameState.setPity(def.rarity === 5 ? 0 : GameState.pity + 1);
     const { isNew, copies } = GameState.addHero(def.id);
-    return { def, rarity, isNew, copies };
+    return { def, rarity: def.rarity, isNew, copies };
   }
 
   function pullOne() {
