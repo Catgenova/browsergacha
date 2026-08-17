@@ -276,35 +276,40 @@ class TeamScreen {
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(slot.position.toUpperCase(), slot.x, slot.y + 24);
+    }
 
-      // Placed hero, feet standing on the tile.
+    // Placed heroes, back-to-front by row so front rows overlap correctly.
+    const placed = this.slots
+      .filter((slot) => team[slot.index] && HEROES[team[slot.index]])
+      .sort((a, b) => a.y - b.y);
+    for (const slot of placed) {
       const heroId = team[slot.index];
-      if (heroId && HEROES[heroId]) {
-        const def = HEROES[heroId];
-        const animator = this.animators.get(heroId);
-        const dh = animator ? animator.sheet.displayH : 48;
-        const yc = slot.y - dh / 2 + 5;
-        if (animator) animator.draw(ctx, slot.x, yc, false);
+      const def = HEROES[heroId];
+      const animator = this.animators.get(heroId);
+      const sheet = animator && animator.sheet;
+      const dh = sheet ? sheet.displayH : 48;
+      const yc = slot.y - dh / 2 + 5 + ((sheet && sheet.footPad) || 0);
+      if (animator) animator.draw(ctx, slot.x, yc, false);
 
-        ctx.fillStyle = '#bcd6ff';
-        ctx.font = '10px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(def.name, slot.x, yc - dh / 2 - 6);
+      const visualTop = yc - dh / 2 + ((sheet && sheet.headPad) || 0);
+      ctx.fillStyle = '#bcd6ff';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(def.name, slot.x, visualTop - 6);
 
-        // Gold star when this hero's positional bonus is live here.
-        if (def.positional.position === slot.position) {
-          ctx.fillStyle = '#ffd76a';
-          ctx.fillText('★', slot.x + 26, yc - dh / 2 - 4);
-        }
+      // Gold star when this hero's positional bonus is live here.
+      if (def.positional.position === slot.position) {
+        ctx.fillStyle = '#ffd76a';
+        ctx.fillText('★', slot.x + 26, visualTop - 4);
+      }
 
-        // Selection ring at the feet.
-        if (this.selection && this.selection.heroId === heroId) {
-          ctx.strokeStyle = '#ffd76a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.ellipse(slot.x, slot.y + 7, 26, 8, 0, 0, Math.PI * 2);
-          ctx.stroke();
-        }
+      // Selection ring at the feet.
+      if (this.selection && this.selection.heroId === heroId) {
+        ctx.strokeStyle = '#ffd76a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(slot.x, slot.y + 7, 26, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
       }
     }
 
@@ -317,7 +322,7 @@ class TeamScreen {
         this.selection.from === 'roster'
           ? `Placing ${HEROES[this.selection.heroId].name} — click a hex`
           : `Moving ${HEROES[this.selection.heroId].name} — click a destination hex`,
-        this.canvas.width / 2, 24
+        this.logicalW / 2, 24
       );
     }
   }

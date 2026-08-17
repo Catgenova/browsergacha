@@ -250,7 +250,9 @@ const Sprites = (() => {
         };
       }
       if (animations.idle) {
-        return new SpriteSheet(animations, spriteDef.displayH || 88);
+        const sheet = new SpriteSheet(animations, spriteDef.displayH || 88);
+        measureContentBounds(sheet);
+        return sheet;
       }
       // No usable idle: fall through to placeholder.
     }
@@ -277,6 +279,38 @@ const Sprites = (() => {
     }
 
     return makePlaceholderSheet(tint);
+  }
+
+  // Measure the transparent padding above and below the character in the
+  // idle art, so units can be anchored by their actual feet rather than
+  // the frame edge (sheets pad differently per artist). Stored on the
+  // sheet in display pixels: footPad (below feet), headPad (above head).
+  function measureContentBounds(sheet) {
+    sheet.footPad = 0;
+    sheet.headPad = 0;
+    try {
+      const anim = sheet.animations.idle;
+      const c = document.createElement('canvas');
+      c.width = anim.frameW;
+      c.height = anim.frameH;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(anim.image, 0, anim.row * anim.frameH, anim.frameW, anim.frameH,
+        0, 0, anim.frameW, anim.frameH);
+      const data = ctx.getImageData(0, 0, c.width, c.height).data;
+      const rowOpaque = (y) => {
+        for (let x = 0; x < c.width; x += 2) {
+          if (data[(y * c.width + x) * 4 + 3] > 40) return true;
+        }
+        return false;
+      };
+      let bottom = c.height - 1;
+      while (bottom > 0 && !rowOpaque(bottom)) bottom--;
+      let top = 0;
+      while (top < bottom && !rowOpaque(top)) top++;
+      const scale = sheet.displayH / anim.frameH;
+      sheet.footPad = Math.round((c.height - 1 - bottom) * scale);
+      sheet.headPad = Math.round(top * scale);
+    } catch (e) { /* tainted canvas on file:// — keep zero padding */ }
   }
 
   // ---- Placeholder generation -------------------------------------------
