@@ -290,6 +290,86 @@ const HEROES = {
     },
   },
 
+  emily: {
+    id: 'emily',
+    name: 'Emily',
+    title: 'Dawn Cleric',
+    rarity: 4,
+    stats: { hp: 1300, atk: 190, def: 115, speed: 105 },
+    tint: { body: '#e8e0d0', helm: '#4a6ac8', weapon: '#e8c84a', shield: '#f0ead8' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle:   { src: 'assets/heroes/emily/emilyidle.png',  frames: 9,  fps: 4, loop: true },
+        // Timed fidget variations.
+        idle2:  { src: 'assets/heroes/emily/emilyidle1.png', frames: 16, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle3:  { src: 'assets/heroes/emily/emilyidle2.png', frames: 9,  fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        ready:  { src: 'assets/heroes/emily/emilyready.png', frames: 9, fps: 6, loop: true },
+        // Single-target blessing.
+        cast:   { src: 'assets/heroes/emily/emilyskill1.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // Team chorus.
+        cast2:  { src: 'assets/heroes/emily/emilyskill2.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // Radiant halo — the revival lands as the light peaks.
+        revive: { src: 'assets/heroes/emily/emilyskill3.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        death:  { src: 'assets/heroes/emily/emilydeath.png', frames: 9, fps: 6, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'lightmend', name: 'Lightmend',
+        description: 'Bathe one ally in light, healing 130% ATK.',
+        cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_gold',
+        effects: [{ type: 'heal', mult: 1.3 }],
+      },
+      {
+        id: 'purifying_chorus', name: 'Purifying Chorus',
+        description: 'Heal ALL allies for 80% ATK and cleanse their debuffs.',
+        cooldown: 5, targeting: 'all-allies', animation: 'cast2', impact: 'heal_gold',
+        effects: [
+          { type: 'heal', mult: 0.8 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'second_dawn', name: 'Second Dawn',
+        description: 'Call a fallen ally back to the fight with 40% of their max HP.',
+        cooldown: 7, targeting: 'dead-ally', animation: 'revive', impact: 'heal_gold',
+        effects: [{ type: 'revive', pct: 0.4 }],
+      },
+    ],
+    passive: {
+      name: 'Serenity',
+      description: 'At the start of her turn, removes one debuff from the most afflicted ally.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const afflicted = battle.livingUnits(unit.team)
+            .map((u) => ({ u, n: u.statusEffects.filter((fx) => fx.kind === 'debuff').length }))
+            .filter((e) => e.n > 0)
+            .sort((a, b) => b.n - a.n);
+          if (afflicted.length === 0) return null;
+          const target = afflicted[0].u;
+          const idx = target.statusEffects.findIndex((fx) => fx.kind === 'debuff');
+          target.statusEffects.splice(idx, 1);
+          return {
+            label: 'Serenity',
+            message: `${unit.name}'s Serenity lifts a debuff from ${target.name}.`,
+            floats: [{ target, text: 'CLEANSED', color: '#ffe8a8' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
+      description: 'Choir Heart: +20% ATK (and stronger heals) in the center hex.',
+    },
+  },
+
   coral: {
     id: 'coral',
     name: 'Coral',

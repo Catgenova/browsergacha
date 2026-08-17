@@ -57,4 +57,9 @@ const EFFECTS = {
     src: 'assets/strike_effect_spritesheet.png',
     frames: 5, fps: 15, displayH: 95, hue: 100,
   },
+  // Golden holy glow for Emily's blessings.
+  heal_gold: {
+    src: 'assets/charge effect_spritesheets.png',
+    grid: { cols: 5, rows: 2 }, fps: 16, displayH: 96, hue: -130,
+  },
 };

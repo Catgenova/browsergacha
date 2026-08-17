@@ -70,7 +70,10 @@ class UI {
           : `<span class="cd-label">${a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD'}</span>`;
       btn.innerHTML = `${a.name}${cdText}`;
 
-      btn.disabled = abilityState.cooldownRemaining > 0;
+      // Revives need a fallen ally to exist.
+      const needsDead = a.targeting === 'dead-ally' &&
+        !this.battle.units.some((u) => !u.alive && u.team === TEAM.PLAYER);
+      btn.disabled = abilityState.cooldownRemaining > 0 || needsDead;
       btn.addEventListener('click', () => this.selectAbility(abilityState, btn));
       this.buttonsEl.appendChild(btn);
     });
@@ -98,8 +101,11 @@ class UI {
         targeting === 'back-enemies') {
       this.commit(null); // no target needed — fire immediately
     } else {
-      // 'enemy', 'enemy-row' (pick any enemy in the row), or 'ally'
-      this.renderer.targetingMode = targeting === 'ally' ? 'ally' : 'enemy';
+      // 'enemy', 'enemy-row' (pick any enemy in the row), 'ally', or
+      // 'dead-ally' (pick a fallen teammate).
+      this.renderer.targetingMode =
+        targeting === 'ally' ? 'ally' :
+        targeting === 'dead-ally' ? 'dead-ally' : 'enemy';
       this.renderer.rowMode = targeting === 'enemy-row';
       this.targetHint.classList.remove('hidden');
     }
@@ -116,14 +122,15 @@ class UI {
 
   onCanvasClick(e) {
     if (!this.battle || !this.selectedAbility || !this.renderer.targetingMode) return;
+    const mode = this.renderer.targetingMode;
     const { x, y } = this.canvasPoint(e);
-    const unit = this.battle.unitAt(x, y);
+    const unit = this.battle.unitAt(x, y, mode === 'dead-ally');
     if (!unit) return;
 
-    const mode = this.renderer.targetingMode;
     const valid =
-      (mode === 'enemy' && unit.team === TEAM.ENEMY) ||
-      (mode === 'ally' && unit.team === TEAM.PLAYER);
+      (mode === 'enemy' && unit.team === TEAM.ENEMY && unit.alive) ||
+      (mode === 'ally' && unit.team === TEAM.PLAYER && unit.alive) ||
+      (mode === 'dead-ally' && unit.team === TEAM.PLAYER && !unit.alive);
     if (valid) this.commit(unit);
   }
 
@@ -133,7 +140,7 @@ class UI {
       return;
     }
     const { x, y } = this.canvasPoint(e);
-    const unit = this.battle.unitAt(x, y);
+    const unit = this.battle.unitAt(x, y, this.renderer.targetingMode === 'dead-ally');
     this.renderer.hoveredUnit = unit;
     this.canvas.style.cursor = unit ? 'pointer' : 'default';
   }

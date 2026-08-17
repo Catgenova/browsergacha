@@ -197,6 +197,15 @@ class Renderer {
     const yc = this.spriteCenterY(unit, y);
 
     if (!unit.alive) {
+      // Revive targeting: fallen allies glow as valid targets.
+      if (this.targetingMode === 'dead-ally' && unit.team === TEAM.PLAYER) {
+        const hovered = this.hoveredUnit === unit;
+        ctx.strokeStyle = hovered ? '#ffe8a8' : 'rgba(255, 232, 168, 0.5)';
+        ctx.lineWidth = hovered ? 3 : 1.5;
+        ctx.beginPath();
+        ctx.ellipse(this.feetX(unit, x), y + 7, 28, 9, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       if (unit.animator && unit.animator.current === 'death') {
         // Death animation plays out and freezes on its final frame.
         this.drawShadow(unit);
