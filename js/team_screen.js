@@ -264,10 +264,12 @@ class TeamScreen {
       ctx.closePath();
 
       const bonusHex = selDef && slot.position === selDef.positional.position;
-      ctx.fillStyle = bonusHex ? 'rgba(255, 215, 106, 0.12)' : '#22293d';
-      ctx.fill();
+      if (bonusHex) {
+        ctx.fillStyle = 'rgba(255, 215, 106, 0.12)';
+        ctx.fill();
+      }
       ctx.strokeStyle =
-        this.hoveredSlot === slot ? '#8ecbff' : bonusHex ? '#ffd76a' : '#3a4a6a';
+        this.hoveredSlot === slot ? '#8ecbff' : bonusHex ? '#ffd76a' : 'rgba(120, 150, 220, 0.6)';
       ctx.lineWidth = this.hoveredSlot === slot || bonusHex ? 2 : 1.5;
       ctx.stroke();
 
@@ -289,6 +291,12 @@ class TeamScreen {
       const sheet = animator && animator.sheet;
       const dh = sheet ? sheet.displayH : 48;
       const yc = slot.y - dh / 2 + 5 + ((sheet && sheet.footPad) || 0);
+      // Ground shadow orb.
+      const rx = Math.min(34, (sheet ? sheet.size().w : 48) * 0.3);
+      ctx.fillStyle = 'rgba(8, 14, 8, 0.32)';
+      ctx.beginPath();
+      ctx.ellipse(slot.x, slot.y + 10, rx, rx * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
       if (animator) animator.draw(ctx, slot.x, yc, false);
 
       const visualTop = yc - dh / 2 + ((sheet && sheet.headPad) || 0);

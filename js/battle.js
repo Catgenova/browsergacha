@@ -280,6 +280,28 @@ class Battle {
     this.visualEffects.push(fx);
   }
 
+  // Ground point directly beneath a unit and its current height above it
+  // (0 when standing). Air anchors map to their ground equivalents and
+  // arcs are ignored, so jumps report real altitude for shadow shrink.
+  motionGround(unit) {
+    const pos = this.motionPos(unit);
+    const ms = unit.motionState;
+    if (!ms || !unit.animator || unit.animator.current !== ms.anim) {
+      return { x: pos.x, groundY: unit.slot.y, height: 0 };
+    }
+    const f = unit.animator.frame + 1;
+    let phase = ms.phases[ms.phases.length - 1];
+    for (const p of ms.phases) {
+      if (f <= p.frames[1]) { phase = p; break; }
+    }
+    const t = unit.animator.progressIn(phase.frames);
+    const grounded = (name) => name === 'originAir' ? 'origin' : name;
+    const from = ms.anchors[grounded(phase.from)];
+    const to = ms.anchors[grounded(phase.to)];
+    const groundY = from.y + (to.y - from.y) * t;
+    return { x: pos.x, groundY, height: Math.max(0, groundY - pos.y) };
+  }
+
   // Current draw position for a unit moving through an attack animation.
   motionPos(unit) {
     const ms = unit.motionState;

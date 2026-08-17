@@ -31,9 +31,8 @@ class Renderer {
     ctx.clearRect(0, 0, CONFIG.CANVAS_W, CONFIG.CANVAS_H);
 
     this.drawBackground();
-    // Translucent tile fills let the field art show through.
-    this.drawFormation(this.battle.playerSlots, 'rgba(120, 150, 220, 0.55)', 'rgba(34, 41, 61, 0.45)');
-    this.drawFormation(this.battle.enemySlots, 'rgba(220, 120, 110, 0.55)', 'rgba(61, 34, 34, 0.45)');
+    this.drawFormation(this.battle.playerSlots, 'rgba(120, 150, 220, 0.6)');
+    this.drawFormation(this.battle.enemySlots, 'rgba(220, 120, 110, 0.6)');
 
     // Draw units back-to-front by y; units mid-attack-motion draw last
     // so they pass in front of everything they fly over.
@@ -137,15 +136,14 @@ class Renderer {
     ctx.setLineDash([]);
   }
 
-  drawFormation(slots, strokeColor, fillColor) {
+  // Outline-only tiles: the field art shows through untinted.
+  drawFormation(slots, strokeColor) {
     const { ctx } = this;
     for (const slot of slots) {
       const pts = Hex.corners(slot.x, slot.y, CONFIG.HEX_SIZE - 3);
       ctx.beginPath();
       pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
       ctx.closePath();
-      ctx.fillStyle = fillColor;
-      ctx.fill();
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 1.5;
       ctx.stroke();
@@ -160,6 +158,22 @@ class Renderer {
     return tileY - dh / 2 + 5 + (sheet && sheet.footPad || 0);
   }
 
+  // Soft shadow orb on the ground beneath a unit; shrinks and fades as
+  // the character gains altitude (jumps).
+  drawShadow(unit) {
+    const { ctx } = this;
+    const g = this.battle.motionGround(unit);
+    const size = unit.animator ? unit.animator.sheet.size() : { w: 48 };
+    const s = Math.max(0.35, Math.min(1, 1 - g.height / 220));
+    const rx = Math.min(34, size.w * 0.3) * s;
+    ctx.save();
+    ctx.fillStyle = `rgba(8, 14, 8, ${0.32 * (0.55 + 0.45 * s)})`;
+    ctx.beginPath();
+    ctx.ellipse(g.x, g.groundY + 10, rx, rx * 0.34, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   drawUnit(unit) {
     const { ctx } = this;
     const { x, y } = this.battle.motionPos(unit);
@@ -169,6 +183,7 @@ class Renderer {
     if (!unit.alive) {
       if (unit.animator && unit.animator.current === 'death') {
         // Death animation plays out and freezes on its final frame.
+        this.drawShadow(unit);
         unit.animator.draw(ctx, x, yc, unit.team === TEAM.ENEMY);
       } else {
         // Fallback for units without death art: faded grave marker.
@@ -184,12 +199,16 @@ class Renderer {
     const isActive = this.battle.activeUnit === unit;
     const flipX = unit.team === TEAM.ENEMY; // enemies face left
 
-    // Active-turn ring at the unit's feet.
+    this.drawShadow(unit);
+
+    // Active-turn ring stays on the ground (with the shadow) even while
+    // the unit is airborne mid-attack.
     if (isActive) {
+      const g = this.battle.motionGround(unit);
       ctx.strokeStyle = '#ffd76a';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(x, y + 7, 26, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(g.x, g.groundY + 7, 26, 8, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
