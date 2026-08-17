@@ -394,7 +394,13 @@ class Battle {
       const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies'].includes(a.def.targeting);
       return !(defensiveOnly && targetsAllies && !anyWounded);
     });
-    const pool = usable.length > 0 ? usable : ready;
+    // Skip group-target abilities whose target set is currently empty
+    // (e.g. a back-row nuke when no enemy holds a back hex).
+    const groupTargetings = ['all-enemies', 'back-enemies', 'front-allies', 'all-allies'];
+    const withTargets = (usable.length > 0 ? usable : ready).filter((a) =>
+      !groupTargetings.includes(a.def.targeting) ||
+      Abilities.resolveTargets(a.def, unit, null, this).length > 0);
+    const pool = withTargets.length > 0 ? withTargets : ready;
 
     // Prefer the longest-cooldown ready ability; fall back to basics.
     const choice = pool.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];

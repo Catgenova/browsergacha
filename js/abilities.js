@@ -27,7 +27,7 @@ const Abilities = (() => {
   function applyEffect(effect, caster, target) {
     switch (effect.type) {
       case 'damage': {
-        const raw = caster.effectiveStat('atk') * effect.mult;
+        const raw = caster.effectiveStat('atk') * effect.mult * caster.damageDealtMult(target);
         let dmg = damageFormula(raw, target.effectiveStat('def'));
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
@@ -59,7 +59,7 @@ const Abilities = (() => {
       }
       case 'damageHpPct': {
         // Flat damage scaled off the caster's max HP (ignores DEF).
-        const dmg = Math.round(caster.maxHp * effect.pct);
+        const dmg = Math.round(caster.maxHp * effect.pct * caster.damageDealtMult(target));
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit: false };
       }
@@ -104,6 +104,10 @@ const Abilities = (() => {
         // Every living ally standing in a front-position hex.
         return battle.livingUnits(caster.team)
           .filter((u) => u.slot.position === POSITION.FRONT);
+      case 'back-enemies':
+        // Every living enemy standing in a back-position hex.
+        return battle.livingUnits(caster.enemyTeam())
+          .filter((u) => u.slot.position === POSITION.BACK);
       case 'ally':
       case 'enemy':
       default:

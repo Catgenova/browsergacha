@@ -88,6 +88,18 @@ class Unit {
     return Math.round(value);
   }
 
+  // Outgoing damage multiplier: positional 'damage' bonuses and passive
+  // damageDealtMult hooks (e.g. bonus vs front-row targets) stack here.
+  damageDealtMult(target) {
+    let m = 1;
+    if (this.positionalActive() && this.positional.stat === 'damage') {
+      m *= this.positional.mult;
+    }
+    const hook = this.passive && this.passive.hooks && this.passive.hooks.damageDealtMult;
+    if (hook) m *= hook(this, target) || 1;
+    return m;
+  }
+
   // ---- Health ------------------------------------------------------------
 
   takeDamage(amount) {
