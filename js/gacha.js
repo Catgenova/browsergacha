@@ -1,8 +1,7 @@
 // Gacha summon logic: rates, pity, pull resolution.
 //
-// Rates: 3★ 70% / 4★ 25% / 5★ 5%.
+// Rates: 1★ 50% / 2★ 20% / 4★ 25% / 5★ 5%.
 // Pity: a 5★ is guaranteed within PITY_LIMIT pulls.
-// ×10 pulls guarantee at least one 4★-or-better.
 
 const Gacha = (() => {
   const COST_SINGLE = 100;
@@ -46,10 +45,9 @@ const Gacha = (() => {
   }
 
   // One pull. Handles pity bookkeeping and roster insertion.
-  function resolvePull(forceMinRarity = 0) {
+  function resolvePull() {
     let rarity = rollRarity();
     if (GameState.pity + 1 >= PITY_LIMIT) rarity = 5; // pity break
-    if (rarity < forceMinRarity) rarity = forceMinRarity;
 
     const def = pickHero(rarity);
     // Pity and display track what was actually pulled (the roll may have
@@ -67,10 +65,7 @@ const Gacha = (() => {
   function pullTen() {
     if (!GameState.spendGems(COST_TEN)) return null;
     const results = [];
-    for (let i = 0; i < 9; i++) results.push(resolvePull());
-    // Slot 10: guaranteed 4★+ if the first nine were all 3★.
-    const hasGood = results.some((r) => r.rarity >= 4);
-    results.push(resolvePull(hasGood ? 0 : 4));
+    for (let i = 0; i < 10; i++) results.push(resolvePull());
     return results;
   }
 
