@@ -37,6 +37,7 @@ class Unit {
 
     // Rendering state (set once sprites load)
     this.animator = null;
+    this.motionState = null; // active attack-movement (see Battle.motionPos)
     this.spriteTint = def.tint || {};
     this.hitFlash = 0; // seconds of white flash remaining after taking damage
   }

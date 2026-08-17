@@ -208,14 +208,31 @@ const HEROES = {
         // rests on frame 16 as the crystals flare.
         buff:   { src: 'assets/heroes/florence/Knightbuff.png', frames: 20, fps: 12, loop: false,
                   holds: { 16: 5 } },
-        attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
+        // Skill 1 — leap to the target and slash through them:
+        //   1-7   windup on her hex, holding frame 7 as she tenses
+        //   8-15  airborne arc to just in front of the target
+        //   16-21 fast sweeping slash carrying her behind the target,
+        //         damage lands on 17, skid-stop pause held on 21
+        //   22-23 recover, then snap back to her hex
+        jumpslash: {
+          src: 'assets/heroes/florence/Knightjumpslash.png',
+          frames: 23, fps: 10, loop: false,
+          holds: { 7: 4, 16: 0.5, 17: 0.5, 18: 0.5, 19: 0.5, 20: 0.5, 21: 5 },
+          hitFrame: 17,
+          motion: [
+            { frames: [1, 7],   from: 'origin',       to: 'origin' },
+            { frames: [8, 15],  from: 'origin',       to: 'targetFront', arc: 90 },
+            { frames: [16, 20], from: 'targetFront',  to: 'targetBehind' },
+            { frames: [21, 23], from: 'targetBehind', to: 'targetBehind' },
+          ],
+        },
       },
     },
     abilities: [
       {
         id: 'crystal_slash', name: 'Crystal Slash',
-        description: 'Slash one enemy for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        description: 'Leap to an enemy and slash clean through for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'jumpslash',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
