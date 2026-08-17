@@ -283,7 +283,7 @@ class TeamScreen {
         const def = HEROES[heroId];
         const animator = this.animators.get(heroId);
         const dh = animator ? animator.sheet.displayH : 48;
-        const yc = slot.y - dh / 2 + 14;
+        const yc = slot.y - dh / 2 + 5;
         if (animator) animator.draw(ctx, slot.x, yc, false);
 
         ctx.fillStyle = '#bcd6ff';
@@ -302,7 +302,7 @@ class TeamScreen {
           ctx.strokeStyle = '#ffd76a';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.ellipse(slot.x, slot.y + 16, 26, 8, 0, 0, Math.PI * 2);
+          ctx.ellipse(slot.x, slot.y + 7, 26, 8, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
