@@ -199,9 +199,9 @@ const HEROES = {
         // helmet adjust — rests on frames 4, 6, and 8 for 3 ticks each.
         idle2:  { src: 'assets/heroes/florence/Knightidle2.png', frames: 9, fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14], holds: { 4: 3, 6: 3, 8: 3 } },
-        // kneeling rest — holds the kneel (frame 7) for 5 ticks.
+        // kneeling rest — holds the kneel (frame 7) for 15 ticks.
         idle3:  { src: 'assets/heroes/florence/Knightidle3.png', frames: 9, fps: 6, loop: false,
-                  variantOf: 'idle', every: [7, 14], holds: { 7: 5 } },
+                  variantOf: 'idle', every: [7, 14], holds: { 7: 15 } },
         attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
       },
     },
