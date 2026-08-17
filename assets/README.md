@@ -53,10 +53,23 @@ idle2: { src: '.../Knightidle2.png', frames: 9, fps: 8, loop: false,
          variantOf: 'idle', every: [7, 14] },
 ```
 
+With several variants declared, each firing picks one at random.
+
+### Per-frame holds
+
+`holds` maps 1-based frame numbers to a duration multiplier — use it to
+make a pose linger without duplicating frames in the strip:
+
+```js
+holds: { 7: 5 },       // frame 7 lasts 5 ticks
+holds: { 6: 3, 9: 3 }, // frames 6 and 9 last 3 ticks each
+```
+
 ### Florence — current status
 
 - `KnightIdle.png` — ✅ standard idle loop (9 frames, 256×256)
-- `Knightidle2.png` — ✅ timed variation (helmet adjust)
+- `Knightidle2.png` — ✅ timed variation (helmet adjust, holds on 6 & 9)
+- `Knightidle3.png` — ✅ timed variation (kneeling rest, hold on 7)
 - `attack.png` — pending
 
 ### Legacy single-sheet format
