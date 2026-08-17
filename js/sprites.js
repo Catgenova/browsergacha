@@ -98,10 +98,13 @@ class AnimationPlayer {
     }
 
     this.elapsed += dt;
-    const frameDuration = 1 / anim.fps;
+    // Per-frame holds: anim.holds maps 1-based frame numbers to a
+    // multiplier, e.g. { 7: 5 } keeps frame 7 up for 5 ticks.
+    let frameDuration = (1 / anim.fps) * ((anim.holds && anim.holds[this.frame + 1]) || 1);
     while (this.elapsed >= frameDuration) {
       this.elapsed -= frameDuration;
       this.frame++;
+      frameDuration = (1 / anim.fps) * ((anim.holds && anim.holds[this.frame + 1]) || 1);
       if (this.frame >= anim.frames) {
         if (anim.loop) {
           this.frame = 0;
@@ -170,6 +173,7 @@ const Sprites = (() => {
           frameH: img.height,
           variantOf: strip.variantOf || null,
           every: strip.every || null,
+          holds: strip.holds || null,
         };
       }
       if (animations.idle) {
