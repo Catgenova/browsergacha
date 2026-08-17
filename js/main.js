@@ -40,6 +40,13 @@ const App = {
     });
   });
 
+  // Testing helper: free gems.
+  document.getElementById('dev-gems-btn').addEventListener('click', () => {
+    GameState.addGems(1000);
+    // Refresh summon-button enabled states if that screen is showing.
+    if (App.active === App.screens.summon) App.screens.summon.updateInfo();
+  });
+
   GameState.onChange(() => App.updateGems());
   App.updateGems();
   App.showScreen('team');
