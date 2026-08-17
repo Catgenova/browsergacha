@@ -6,13 +6,13 @@ const GameState = (() => {
 
   const DEFAULTS = {
     gems: 3000,
-    roster: { sir_pixel: { copies: 1 } }, // heroId -> { copies }
-    team: { 1: 'sir_pixel' },             // slotIndex (0-6) -> heroId
-    pity: 0,                              // pulls since last 5★
+    roster: { florence: { copies: 1 } }, // heroId -> { copies }
+    team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
+    pity: 0,                             // pulls since last 5★
   };
 
   // Heroes every player owns, granted retroactively to existing saves too.
-  const STARTERS = ['sir_pixel', 'florence', 'vivian', 'coral'];
+  const STARTERS = ['florence', 'vivian', 'coral'];
 
   let state = load();
   const listeners = [];
