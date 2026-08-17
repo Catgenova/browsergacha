@@ -318,6 +318,71 @@ const HEROES = {
     },
   },
 
+  vivian: {
+    id: 'vivian',
+    name: 'Vivian',
+    title: 'Hedge Mage',
+    rarity: 4,
+    stats: { hp: 1650, atk: 140, def: 120, speed: 100 },
+    // Placeholder tint (leafy greens) until her strips are uploaded.
+    tint: { body: '#4a8a4a', helm: '#7ab86a', weapon: '#a8e888', shield: '#5a4a30' },
+    sprite: {
+      displayH: 88,
+      // Anticipated uploads (assets/heroes/vivian/) — frame counts will be
+      // corrected when the sheets land; placeholder art until then.
+      strips: {
+        idle:   { src: 'assets/heroes/vivian/hedgeidle.png',  frames: 9, fps: 4, loop: true },
+        idle2:  { src: 'assets/heroes/vivian/hedgeidle2.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle3:  { src: 'assets/heroes/vivian/hedgeidle3.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        ready:  { src: 'assets/heroes/vivian/hedgeready.png', frames: 9, fps: 6, loop: true },
+        cast:   { src: 'assets/heroes/vivian/hedgeskill1.png', frames: 9, fps: 10, loop: false },
+        attack3: { src: 'assets/heroes/vivian/hedgeskill3.png', frames: 9, fps: 10, loop: false },
+        death:  { src: 'assets/heroes/vivian/hedgedeath.png', frames: 9, fps: 6, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'verdant_mend', name: 'Verdant Mend',
+        description: 'Heal an ally for 10% of Vivian\'s max HP — 20% if they hold a front hex.',
+        cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_green',
+        effects: [{ type: 'healHpPct', pct: 0.10, frontPct: 0.20 }],
+      },
+      {
+        id: 'thicket_blessing', name: 'Thicket Blessing',
+        description: 'Bless the entire front row with regrowth: heal 5% of Vivian\'s max HP per turn for 4 turns.',
+        cooldown: 5, targeting: 'front-allies', animation: 'cast', impact: 'heal_green',
+        effects: [{ type: 'hot', pct: 0.05, turns: 4 }],
+      },
+      {
+        id: 'briar_burst', name: 'Briar Burst',
+        description: 'Lash an enemy with thorns for 20% of Vivian\'s max HP and cut their action bar by 50%.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack3', impact: 'strike_green',
+        effects: [
+          { type: 'damageHpPct', pct: 0.20 },
+          { type: 'turnMeter', amount: -0.5 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sympathetic Growth',
+      description: 'Gains 5% action bar whenever an ally is healed.',
+      hooks: {
+        onAllyHealed(unit) {
+          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.05);
+          return { floats: [{ target: unit, text: '▲', color: '#7ae87a' }] };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.2,
+      description: 'Rooted: +20% max HP while in a back hex.',
+    },
+  },
+
   sir_pixel: {
     id: 'sir_pixel',
     name: 'Sir Pixel',

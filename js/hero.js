@@ -106,7 +106,12 @@ class Unit {
   heal(amount) {
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
-    return this.hp - before;
+    const healed = this.hp - before;
+    // Heal event bus: lets passives react to any ally being healed.
+    if (healed > 0 && typeof Battle !== 'undefined' && Battle.active) {
+      Battle.active.onUnitHealed(this, healed);
+    }
+    return healed;
   }
 
   // ---- Status effects ----------------------------------------------------
@@ -126,19 +131,36 @@ class Unit {
     return this.abilities.filter((a) => a.cooldownRemaining === 0);
   }
 
+  // Returns an array of display results:
+  //   { label, message, floats: [{ target, text, color }] }
   startTurn(battle) {
     // Cooldowns tick down at the start of this unit's own turn.
     for (const a of this.abilities) {
       if (a.cooldownRemaining > 0) a.cooldownRemaining--;
     }
+
+    const results = [];
+
+    // Heal-over-time ticks (before durations decrement).
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'hot') continue;
+      const healed = this.heal(fx.amount);
+      if (healed > 0) {
+        results.push({
+          label: 'Regrowth',
+          message: `${this.name} regrows ${healed} HP.`,
+          floats: [{ target: this, text: `+${healed}`, color: '#7ae87a' }],
+        });
+      }
+    }
+
     this.tickStatusEffects();
 
-    // Passive hook: onTurnStart. Returns null or a display result:
-    //   { label, message, floats: [{ target, text, color }] }
     if (this.passive && this.passive.hooks && this.passive.hooks.onTurnStart) {
-      return this.passive.hooks.onTurnStart(this, battle) || null;
+      const r = this.passive.hooks.onTurnStart(this, battle);
+      if (r) results.push(r);
     }
-    return null;
+    return results;
   }
 
   useAbility(abilityState) {

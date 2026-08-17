@@ -42,4 +42,14 @@ const EFFECTS = {
     seq: { pattern: 'assets/land_##.png', count: 8 },
     fps: 16, displayH: 48,
   },
+  // Nature-green healing glow (charge effect recolored) — Vivian's spells.
+  heal_green: {
+    src: 'assets/charge effect_spritesheets.png',
+    grid: { cols: 5, rows: 2 }, fps: 16, displayH: 96, hue: -60,
+  },
+  // Green impact burst for Vivian's briar attack.
+  strike_green: {
+    src: 'assets/strike_effect_spritesheet.png',
+    frames: 5, fps: 15, displayH: 95, hue: -60,
+  },
 };

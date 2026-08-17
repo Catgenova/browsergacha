@@ -39,6 +39,36 @@ const Abilities = (() => {
         const healed = target.heal(amount);
         return { kind: 'heal', target, amount: healed };
       }
+      case 'healHpPct': {
+        // Heal scaled off the CASTER's max HP; optional bigger cut for
+        // front-row targets.
+        const front = target.slot && target.slot.position === POSITION.FRONT;
+        const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
+        const healed = target.heal(Math.round(caster.maxHp * pct));
+        return { kind: 'heal', target, amount: healed };
+      }
+      case 'hot': {
+        // Heal-over-time: fixed amount (locked at cast) at the start of
+        // each of the target's turns.
+        target.addStatusEffect({
+          kind: 'hot',
+          amount: Math.round(caster.maxHp * effect.pct),
+          turns: effect.turns,
+        });
+        return { kind: 'hot', target, turns: effect.turns };
+      }
+      case 'damageHpPct': {
+        // Flat damage scaled off the caster's max HP (ignores DEF).
+        const dmg = Math.round(caster.maxHp * effect.pct);
+        target.takeDamage(dmg);
+        return { kind: 'damage', target, amount: dmg, crit: false };
+      }
+      case 'turnMeter': {
+        // Push the target's action bar by a fraction of max (negative cuts).
+        target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
+          target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX));
+        return { kind: 'meter', target, amount: effect.amount };
+      }
       case 'buff':
       case 'debuff': {
         target.addStatusEffect({
@@ -70,6 +100,10 @@ const Abilities = (() => {
         if (!chosenTarget) return [];
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
+      case 'front-allies':
+        // Every living ally standing in a front-position hex.
+        return battle.livingUnits(caster.team)
+          .filter((u) => u.slot.position === POSITION.FRONT);
       case 'ally':
       case 'enemy':
       default:
