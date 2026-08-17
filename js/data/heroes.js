@@ -362,6 +362,56 @@ const HEROES = {
     },
   },
 
+  // ---- 3★ rat cohort ------------------------------------------------------
+
+  rat_samurai: {
+    id: 'rat_samurai',
+    name: 'Rat Samurai',
+    title: 'Ronin of the Drain',
+    rarity: 3,
+    stats: { hp: 1150, atk: 175, def: 90, speed: 105 },
+    tint: { body: '#8a2a2a', helm: '#3a3a3a', weapon: '#d8d8e0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_samurai/ratsamuraiidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'iai_cut', name: 'Iai Cut',
+        description: 'A lightning draw-cut for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'cross_slash', name: 'Cross Slash',
+        description: 'Two crossing cuts for 155% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.55 }],
+      },
+      {
+        id: 'crescent_moon', name: 'Crescent Moon',
+        description: 'One sweeping cut along a hex row for 120% ATK.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.2 }],
+      },
+    ],
+    passive: {
+      name: 'Iaijutsu',
+      description: 'Deals 25% extra damage to enemies at full HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
+      description: 'Standard Bearer: +20% ATK while in the center hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     name: 'Florence',

@@ -1,6 +1,6 @@
 // Gacha summon logic: rates, pity, pull resolution.
 //
-// Rates: 1★ 50% / 2★ 20% / 4★ 25% / 5★ 5%.
+// Rates: 1★ 40% / 2★ 20% / 3★ 10% / 4★ 25% / 5★ 5%.
 // Pity: a 5★ is guaranteed within PITY_LIMIT pulls.
 
 const Gacha = (() => {
@@ -11,8 +11,9 @@ const Gacha = (() => {
   const RATES = [
     { rarity: 5, p: 0.05 },
     { rarity: 4, p: 0.25 },
+    { rarity: 3, p: 0.10 },
     { rarity: 2, p: 0.20 },
-    { rarity: 1, p: 0.50 },
+    { rarity: 1, p: 0.40 },
   ];
 
   function poolByRarity(rarity) {
