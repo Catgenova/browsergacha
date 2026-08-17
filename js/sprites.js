@@ -551,5 +551,5 @@ const Sprites = (() => {
     );
   }
 
-  return { load, getSheet, getEffectSheet, drawPortrait, loadImage };
+  return { load, getSheet, getEffectSheet, drawPortrait, loadImage, assetUrl };
 })();

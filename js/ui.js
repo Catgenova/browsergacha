@@ -68,7 +68,10 @@ class UI {
         abilityState.cooldownRemaining > 0
           ? `<span class="cd-label cd-remaining">CD: ${abilityState.cooldownRemaining} turns</span>`
           : `<span class="cd-label">${a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD'}</span>`;
-      btn.innerHTML = `${a.name}${cdText}`;
+      const iconHtml = a.icon
+        ? `<img class="ability-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
+        : '';
+      btn.innerHTML = `${iconHtml}${a.name}${cdText}`;
 
       // Revives need a fallen ally to exist.
       const needsDead = a.targeting === 'dead-ally' &&

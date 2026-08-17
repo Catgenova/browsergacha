@@ -198,6 +198,22 @@ body {
   cursor: not-allowed;
 }
 
+.ability-btn .ability-icon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 3px;
+  image-rendering: pixelated;
+}
+
+.detail-ability .detail-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  vertical-align: -4px;
+  image-rendering: pixelated;
+}
+
 .ability-btn .cd-label {
   display: block;
   margin-top: 3px;
