@@ -96,6 +96,10 @@ class Unit {
     if (!this.alive) {
       this.turnMeter = 0;
       this.statusEffects = [];
+      // Death animation (freezes on its last frame) when the hero has one.
+      if (this.animator && this.animator.sheet.animations.death) {
+        this.animator.play('death');
+      }
     }
   }
 

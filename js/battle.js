@@ -283,8 +283,11 @@ class Battle {
     };
     // Impact effects: one per affected unit. Damage defaults to 'strike';
     // non-damage abilities show one only when they declare an impact.
+    // Enemy casters spawn no impact vfx for now — the hero's white hit
+    // flash carries the feedback.
     const impacted = new Set();
     for (const res of results) {
+      if (caster.team !== TEAM.PLAYER) break;
       const wantImpact = res.kind === 'damage' ? (ability.impact || 'strike') : ability.impact;
       if (wantImpact && res.target.slot && !impacted.has(res.target)) {
         impacted.add(res.target);
