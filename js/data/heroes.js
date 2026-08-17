@@ -221,7 +221,7 @@ const HEROES = {
     stats: { hp: 1250, atk: 200, def: 105, speed: 115 },
     tint: { body: '#5a3a7a', helm: '#7a4a9a', weapon: '#c8a86a', shield: '#3a2a4a' },
     sprite: {
-      displayH: 88,
+      displayH: 66, // 25% smaller than standard — her art is a crouched pose
       strips: {
         idle:   { src: 'assets/heroes/vex/vexidle.png',  frames: 9,  fps: 4, loop: true },
         // Timed fidget variations.
