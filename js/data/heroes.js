@@ -328,18 +328,22 @@ const HEROES = {
     tint: { body: '#4a8a4a', helm: '#7ab86a', weapon: '#a8e888', shield: '#5a4a30' },
     sprite: {
       displayH: 88,
-      // Anticipated uploads (assets/heroes/vivian/) — frame counts will be
-      // corrected when the sheets land; placeholder art until then.
       strips: {
-        idle:   { src: 'assets/heroes/vivian/hedgeidle.png',  frames: 9, fps: 4, loop: true },
-        idle2:  { src: 'assets/heroes/vivian/hedgeidle2.png', frames: 9, fps: 6, loop: false,
+        idle:   { src: 'assets/heroes/vivian/hedgeidlepng.png', frames: 9, fps: 4, loop: true },
+        // Timed fidget variations.
+        idle2:  { src: 'assets/heroes/vivian/hedgeidle1.png', frames: 9, fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14] },
-        idle3:  { src: 'assets/heroes/vivian/hedgeidle3.png', frames: 9, fps: 6, loop: false,
+        idle3:  { src: 'assets/heroes/vivian/hedgeidle2.png', frames: 8, fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14] },
         ready:  { src: 'assets/heroes/vivian/hedgeready.png', frames: 9, fps: 6, loop: true },
-        cast:   { src: 'assets/heroes/vivian/hedgeskill1.png', frames: 9, fps: 10, loop: false },
-        attack3: { src: 'assets/heroes/vivian/hedgeskill3.png', frames: 9, fps: 10, loop: false },
-        death:  { src: 'assets/heroes/vivian/hedgedeath.png', frames: 9, fps: 6, loop: false,
+        // Staff channel — used by both Verdant Mend and Thicket Blessing;
+        // the heal lands as the channel peaks.
+        cast:   { src: 'assets/heroes/vivian/hedgeskill1.png', frames: 8, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // Briar Burst — energy gathers in her outstretched hand.
+        attack3: { src: 'assets/heroes/vivian/hedgeskill3.png', frames: 8, fps: 10, loop: false,
+                   hitFrame: 5 },
+        death:  { src: 'assets/heroes/vivian/hedgedeath.png', frames: 25, fps: 6, loop: false,
                   freeze: true },
       },
     },
