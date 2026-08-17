@@ -45,9 +45,14 @@ const Gacha = (() => {
   }
 
   // One pull. Handles pity bookkeeping and roster insertion.
+  // The pity break only fires while a 5★ hero actually exists — otherwise
+  // an over-limit counter would force every roll into the fallback path
+  // (which downgrades to 4★) and lock the low rarities out entirely.
   function resolvePull() {
     let rarity = rollRarity();
-    if (GameState.pity + 1 >= PITY_LIMIT) rarity = 5; // pity break
+    if (GameState.pity + 1 >= PITY_LIMIT && poolByRarity(5).length > 0) {
+      rarity = 5; // pity break
+    }
 
     const def = pickHero(rarity);
     // Pity and display track what was actually pulled (the roll may have
