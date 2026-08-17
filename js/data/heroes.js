@@ -213,6 +213,80 @@ const HEROES = {
     },
   },
 
+  vex: {
+    id: 'vex',
+    name: 'Vex',
+    title: 'Doll Witch',
+    rarity: 4,
+    stats: { hp: 1250, atk: 200, def: 105, speed: 115 },
+    tint: { body: '#5a3a7a', helm: '#7a4a9a', weapon: '#c8a86a', shield: '#3a2a4a' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle:   { src: 'assets/heroes/vex/vexidle.png',  frames: 9,  fps: 4, loop: true },
+        // Timed fidget variations.
+        idle2:  { src: 'assets/heroes/vex/vexidle1.png', frames: 9,  fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle3:  { src: 'assets/heroes/vex/vexidle2.png', frames: 9,  fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle4:  { src: 'assets/heroes/vex/vexidle3.png', frames: 16, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        ready:  { src: 'assets/heroes/vex/vexready.png', frames: 9, fps: 6, loop: true },
+        // Doll rattle — the pin goes in mid-shake.
+        attack: { src: 'assets/heroes/vex/vexskill1.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // Wide curse over the enemy team.
+        cast:   { src: 'assets/heroes/vex/vexskill2.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // The doll ignites with hexfire — the mark lands on the burst.
+        attack3: { src: 'assets/heroes/vex/vexskill3.png', frames: 9, fps: 10, loop: false,
+                   hitFrame: 8 },
+        death:  { src: 'assets/heroes/vex/vexdeath.png', frames: 8, fps: 6, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pinprick', name: 'Pinprick',
+        description: 'Stab the doll: 90% ATK to one enemy and -15% ATK for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'creeping_malaise', name: 'Creeping Malaise',
+        description: 'Curse ALL enemies: -25% DEF and -15% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'cast', impact: 'strike_purple',
+        effects: [
+          { type: 'debuff', stat: 'def', mult: 0.75, turns: 2 },
+          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'doom_mark', name: 'Doom Mark',
+        description: 'Condemn one enemy: takes 40% more damage and loses 30% ATK for 3 turns.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike_purple',
+        effects: [
+          { type: 'debuff', stat: 'damageTaken', mult: 1.4, turns: 3 },
+          { type: 'debuff', stat: 'atk', mult: 0.7, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Vile Persistence',
+      description: 'Her debuffs last 1 extra turn.',
+      hooks: {
+        debuffExtraTurns: 1,
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.15,
+      description: 'Skulker: +15% SPD while in a back hex.',
+    },
+  },
+
   coral: {
     id: 'coral',
     name: 'Coral',

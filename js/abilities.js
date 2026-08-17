@@ -31,6 +31,7 @@ const Abilities = (() => {
         let dmg = damageFormula(raw, target.effectiveStat('def'));
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
+        dmg = Math.round(dmg * target.damageTakenMult());
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit };
       }
@@ -59,7 +60,8 @@ const Abilities = (() => {
       }
       case 'damageHpPct': {
         // Flat damage scaled off the caster's max HP (ignores DEF).
-        const dmg = Math.round(caster.maxHp * effect.pct * caster.damageDealtMult(target));
+        const dmg = Math.round(caster.maxHp * effect.pct * caster.damageDealtMult(target)
+          * target.damageTakenMult());
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit: false };
       }
@@ -71,14 +73,20 @@ const Abilities = (() => {
       }
       case 'buff':
       case 'debuff': {
+        // Debuffer passives can extend the duration of applied debuffs.
+        let turns = effect.turns;
+        if (effect.type === 'debuff' && caster.passive && caster.passive.hooks &&
+            caster.passive.hooks.debuffExtraTurns) {
+          turns += caster.passive.hooks.debuffExtraTurns;
+        }
         target.addStatusEffect({
           kind: effect.type,
           stat: effect.stat,
           mult: effect.mult,
           add: effect.add,
-          turns: effect.turns,
+          turns,
         });
-        return { kind: effect.type, target, stat: effect.stat, turns: effect.turns };
+        return { kind: effect.type, target, stat: effect.stat, turns };
       }
       default:
         console.warn('Unknown effect type', effect.type);

@@ -362,10 +362,16 @@ class Battle {
         this.addFloatingText(res.target, 'METER ▼', '#d78aff');
         this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
-        const label = statLabel[res.stat] || res.stat.toUpperCase();
-        const arrow = res.kind === 'buff' ? '▲' : '▼';
-        this.addFloatingText(res.target, `${label} ${arrow}`, res.kind === 'buff' ? '#8ecbff' : '#d78aff');
-        this.log(`${res.target.name}'s ${label} ${res.kind === 'buff' ? 'rises' : 'falls'} for ${res.turns} turns.`, cls);
+        if (res.stat === 'damageTaken') {
+          // Vulnerability mark: more damage taken.
+          this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
+          this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
+        } else {
+          const label = statLabel[res.stat] || res.stat.toUpperCase();
+          const arrow = res.kind === 'buff' ? '▲' : '▼';
+          this.addFloatingText(res.target, `${label} ${arrow}`, res.kind === 'buff' ? '#8ecbff' : '#d78aff');
+          this.log(`${res.target.name}'s ${label} ${res.kind === 'buff' ? 'rises' : 'falls'} for ${res.turns} turns.`, cls);
+        }
       }
     }
   }
