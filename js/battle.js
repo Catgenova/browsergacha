@@ -11,6 +11,7 @@ const BattleState = {
 
 class Battle {
   constructor() {
+    Battle.active = this; // heal event bus target (one battle at a time)
     this.playerSlots = Hex.buildFormation(
       TEAM.PLAYER, CONFIG.PLAYER_FORMATION_X, CONFIG.FORMATION_Y, CONFIG.HEX_SIZE
     );
@@ -44,7 +45,25 @@ class Battle {
     if (slot.unit) throw new Error(`Slot ${slotIndex} on ${unit.team} side is occupied`);
     slot.unit = unit;
     unit.slot = slot;
+    // Max-HP positional bonuses apply once, at placement.
+    if (unit.positional && unit.positional.stat === 'hp' &&
+        slot.position === unit.positional.position) {
+      unit.maxHp = Math.round(unit.maxHp * unit.positional.mult);
+      unit.hp = unit.maxHp;
+    }
     this.units.push(unit);
+  }
+
+  // Called (via the heal event bus) whenever any unit is actually healed.
+  onUnitHealed(healedUnit, amount) {
+    for (const u of this.livingUnits(healedUnit.team)) {
+      const hook = u.passive && u.passive.hooks && u.passive.hooks.onAllyHealed;
+      if (!hook) continue;
+      const res = hook(u, healedUnit, this);
+      if (res && res.floats) {
+        res.floats.forEach((f) => this.addFloatingText(f.target, f.text, f.color));
+      }
+    }
   }
 
   livingUnits(team = null) {
@@ -96,12 +115,12 @@ class Battle {
     // hero has no ready animation).
     if (unit.animator) unit.animator.play('ready');
 
-    const passiveResult = unit.startTurn(this);
-    if (passiveResult) {
-      (passiveResult.floats || []).forEach((f) =>
+    for (const res of unit.startTurn(this)) {
+      (res.floats || []).forEach((f) =>
         this.addFloatingText(f.target, f.text, f.color));
-      this.log(passiveResult.message,
-        unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+      if (res.message) {
+        this.log(res.message, unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+      }
     }
 
     // A damaging passive may have just ended the battle.
@@ -314,6 +333,12 @@ class Battle {
       } else if (res.kind === 'heal') {
         this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
         this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
+      } else if (res.kind === 'hot') {
+        this.addFloatingText(res.target, 'HoT ▲', '#7ae87a');
+        this.log(`${res.target.name} is blessed with regrowth for ${res.turns} turns.`, cls);
+      } else if (res.kind === 'meter') {
+        this.addFloatingText(res.target, 'METER ▼', '#d78aff');
+        this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
         const label = statLabel[res.stat] || res.stat.toUpperCase();
         const arrow = res.kind === 'buff' ? '▲' : '▼';
@@ -358,13 +383,15 @@ class Battle {
       return;
     }
 
-    // Hold defensive support (heals / DEF buffs on allies) while nobody is
-    // hurt. Offensive buffs (ATK, crit, speed) are worth using anytime.
+    // Hold defensive support (heals / HoTs / DEF buffs on allies) while
+    // nobody is hurt. Offensive buffs (ATK, crit, speed) are worth using
+    // anytime.
     const anyWounded = this.livingUnits(unit.team).some((u) => u.hp / u.maxHp < 0.8);
     const usable = ready.filter((a) => {
       const defensiveOnly = a.def.effects.every((e) =>
-        e.type === 'heal' || (e.type === 'buff' && e.stat === 'def'));
-      const targetsAllies = ['ally', 'all-allies', 'self'].includes(a.def.targeting);
+        e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||
+        (e.type === 'buff' && e.stat === 'def'));
+      const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies'].includes(a.def.targeting);
       return !(defensiveOnly && targetsAllies && !anyWounded);
     });
     const pool = usable.length > 0 ? usable : ready;

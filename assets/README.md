@@ -87,3 +87,17 @@ in `js/data/effects.js` (frames, fps, `vertical: true` for stacked strips).
 Abilities reference them via `impact: '<id>'`; damage abilities default to
 `strike`. Current set: `slash`, `strike`, `punch`, `slam`,
 `windshear_wave` (Prism Break's projectile).
+
+### Vivian — expected uploads (assets/heroes/vivian/)
+
+| File | Purpose |
+|---|---|
+| `hedgeidle.png` | standard idle loop |
+| `hedgeidle2.png` / `hedgeidle3.png` | timed idle variations |
+| `hedgeready.png` | ready pose (her turn) |
+| `hedgeskill1.png` | cast animation (skills 1 and 2) |
+| `hedgeskill3.png` | attack animation (skill 3) |
+| `hedgedeath.png` | death (freezes on last frame) |
+
+Defs assume 9 frames per strip until the real sheets land — tell Claude
+the frame counts (or they'll be read from the upload) and any holds.

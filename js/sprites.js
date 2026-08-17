@@ -163,8 +163,17 @@ class AnimationPlayer {
     const h = anim.frameH * scale;
     // Map playback index -> sheet frame (identity unless order remaps it).
     const sheetFrame = anim.order ? anim.order[this.frame] - 1 : this.frame;
-    const sx = anim.vertical ? 0 : sheetFrame * anim.frameW;
-    const sy = anim.vertical ? sheetFrame * anim.frameH : anim.row * anim.frameH;
+    let sx, sy;
+    if (anim.cols) { // grid layout (left-right, top-bottom)
+      sx = (sheetFrame % anim.cols) * anim.frameW;
+      sy = Math.floor(sheetFrame / anim.cols) * anim.frameH;
+    } else if (anim.vertical) {
+      sx = 0;
+      sy = sheetFrame * anim.frameH;
+    } else {
+      sx = sheetFrame * anim.frameW;
+      sy = anim.row * anim.frameH;
+    }
 
     ctx.save();
     // High-res art shrinking down gets quality resampling; low-res pixel
@@ -399,9 +408,11 @@ const Sprites = (() => {
   }
 
   // Standalone effect sheets (see js/data/effects.js): one 'play'
-  // animation per sheet. Resolves to null if the image is missing.
+  // animation per sheet. Supports single-row, vertical, and grid layouts
+  // plus an optional hue rotation (degrees) baked in at load — e.g.
+  // recoloring the cyan effect pack green. Resolves to null if missing.
   async function loadEffectSheet(fx) {
-    let image, frameW, frameH, frames;
+    let image, frameW, frameH, frames, cols = null;
     if (fx.seq) {
       const stitched = await loadSequenceImage(fx.seq);
       if (!stitched) return null;
@@ -410,14 +421,32 @@ const Sprites = (() => {
       const img = await loadImage(fx.src);
       if (!img) return null;
       image = img;
-      frames = fx.frames;
-      frameW = fx.vertical ? img.width : Math.floor(img.width / fx.frames);
-      frameH = fx.vertical ? Math.floor(img.height / fx.frames) : img.height;
+      if (fx.grid) {
+        cols = fx.grid.cols;
+        frames = fx.frames || fx.grid.cols * fx.grid.rows;
+        frameW = Math.floor(img.width / fx.grid.cols);
+        frameH = Math.floor(img.height / fx.grid.rows);
+      } else {
+        frames = fx.frames;
+        frameW = fx.vertical ? img.width : Math.floor(img.width / fx.frames);
+        frameH = fx.vertical ? Math.floor(img.height / fx.frames) : img.height;
+      }
+    }
+    if (fx.hue) {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d');
+      ctx.filter = `hue-rotate(${fx.hue}deg)`;
+      ctx.drawImage(image, 0, 0);
+      image = canvas;
     }
     const animations = {
       play: {
         image, row: 0, frames, fps: fx.fps, loop: false,
-        frameW, frameH, vertical: !fx.seq && !!fx.vertical,
+        frameW, frameH,
+        vertical: !fx.seq && !fx.grid && !!fx.vertical,
+        cols,
       },
     };
     return new SpriteSheet(animations, fx.displayH || frameH);
