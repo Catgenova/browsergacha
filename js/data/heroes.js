@@ -387,6 +387,70 @@ const HEROES = {
     },
   },
 
+  coral: {
+    id: 'coral',
+    name: 'Coral',
+    title: 'Tide Caller',
+    rarity: 4,
+    stats: { hp: 1150, atk: 260, def: 95, speed: 110 },
+    tint: { body: '#3a6ac8', helm: '#e8d88a', weapon: '#4ac8e8', shield: '#e8e8f0' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle:   { src: 'assets/heroes/coral/coralidle.png',  frames: 9,  fps: 4, loop: true },
+        // Timed fidget variations.
+        idle2:  { src: 'assets/heroes/coral/coralidle1.png', frames: 16, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle3:  { src: 'assets/heroes/coral/coralidle2.png', frames: 14, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        idle4:  { src: 'assets/heroes/coral/coralidle3.png', frames: 15, fps: 6, loop: false,
+                  variantOf: 'idle', every: [7, 14] },
+        ready:  { src: 'assets/heroes/coral/coralready.png', frames: 9, fps: 6, loop: true },
+        // Staff sweep cast — skills 1 and 2; the surge lands mid-sweep.
+        attack: { src: 'assets/heroes/coral/coralskill1.png', frames: 11, fps: 10, loop: false,
+                  hitFrame: 6 },
+        // Spinning burst — skill 3.
+        attack3: { src: 'assets/heroes/coral/coralskill3.png', frames: 6, fps: 10, loop: false,
+                   hitFrame: 4 },
+        death:  { src: 'assets/heroes/coral/coraldeath.png', frames: 9, fps: 6, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tide_lash', name: 'Tide Lash',
+        description: 'Strike one enemy with a surging wave for 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+      {
+        id: 'undertow', name: 'Undertow',
+        description: 'Drag the enemy back row under for 90% ATK.',
+        cooldown: 6, targeting: 'back-enemies', animation: 'attack', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.9 }],
+      },
+      {
+        id: 'maelstrom_spear', name: 'Maelstrom Spear',
+        description: 'Skewer one enemy with a focused torrent for 240% ATK.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike',
+        effects: [{ type: 'damage', mult: 2.4 }],
+      },
+    ],
+    passive: {
+      name: 'Riptide',
+      description: 'Deals 25% extra damage to enemies holding front hexes.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.slot && target.slot.position === POSITION.FRONT ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'damage', mult: 1.2,
+      description: 'Tidal Focus: +20% damage dealt while in the center hex.',
+    },
+  },
+
   sir_pixel: {
     id: 'sir_pixel',
     name: 'Sir Pixel',
