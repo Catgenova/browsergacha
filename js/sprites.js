@@ -251,6 +251,9 @@ const Sprites = (() => {
       }
       if (animations.idle) {
         const sheet = new SpriteSheet(animations, spriteDef.displayH || 88);
+        // Horizontal offset (display px) of the character's feet from the
+        // frame center — for art where the body sits off-center.
+        sheet.shadowOffsetX = spriteDef.shadowOffsetX || 0;
         measureContentBounds(sheet);
         return sheet;
       }
@@ -314,6 +317,25 @@ const Sprites = (() => {
       const scale = sheet.displayH / anim.frameH;
       sheet.footPad = Math.round((c.height - 1 - bottom) * scale);
       sheet.headPad = Math.round(top * scale);
+
+      // Feet centroid: where the character actually stands horizontally.
+      // Averaged over the lowest content rows (mid 70% of columns), so
+      // off-center bodies get their shadow under the boots, not the frame
+      // center. A def-provided shadowOffsetX overrides the measurement.
+      if (sheet.shadowOffsetX === 0) {
+        const rows = Math.max(2, Math.round(c.height * 0.05));
+        let sx = 0, n = 0;
+        const cx0 = Math.floor(c.width * 0.15);
+        const cx1 = Math.ceil(c.width * 0.85);
+        for (let y = Math.max(0, bottom - rows); y <= bottom; y++) {
+          for (let x = cx0; x < cx1; x += 2) {
+            if (data[(y * c.width + x) * 4 + 3] > 40) { sx += x; n++; }
+          }
+        }
+        if (n > 0) {
+          sheet.shadowOffsetX = Math.round((sx / n - c.width / 2) * scale);
+        }
+      }
     } catch (e) { /* tainted canvas on file:// — keep zero padding */ }
   }
 

@@ -19,6 +19,9 @@ const HEROES = {
     tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#a83a3a' },
     sprite: {
       displayH: 88,
+      // Manual: her body is in the right half of the frame, and the low
+      // sword blade fools the automatic feet-centroid measurement.
+      shadowOffsetX: 12,
       strips: {
         idle:   { src: 'assets/heroes/florence/KnightIdle.png',  frames: 9, fps: 4, loop: true },
         // Timed fidgets, played once every 7-14s of idling (random pick):
