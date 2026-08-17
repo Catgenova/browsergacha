@@ -277,7 +277,7 @@ class TeamScreen {
       if (heroId && HEROES[heroId]) {
         const def = HEROES[heroId];
         const animator = this.animators.get(heroId);
-        if (animator) animator.draw(ctx, slot.x, slot.y - 4, CONFIG.SPRITE_SCALE, false);
+        if (animator) animator.draw(ctx, slot.x, slot.y - 4, false);
 
         ctx.fillStyle = '#bcd6ff';
         ctx.font = '10px monospace';
