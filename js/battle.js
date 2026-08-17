@@ -232,8 +232,10 @@ class Battle {
   unitAt(px, py) {
     // Hit test against a box around each living unit's sprite.
     for (const u of this.livingUnits()) {
-      const half = (16 * CONFIG.SPRITE_SCALE) / 2 + 6;
-      if (Math.abs(px - u.slot.x) <= half && Math.abs(py - u.slot.y) <= half) {
+      const size = u.animator ? u.animator.sheet.size() : { w: 48, h: 48 };
+      const halfW = size.w / 2 + 6;
+      const halfH = size.h / 2 + 6;
+      if (Math.abs(px - u.slot.x) <= halfW && Math.abs(py - u.slot.y) <= halfH) {
         return u;
       }
     }

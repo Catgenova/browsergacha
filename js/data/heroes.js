@@ -183,6 +183,65 @@ const HEROES = {
 
   // ---- 4★ ---------------------------------------------------------------
 
+  florence: {
+    id: 'florence',
+    name: 'Florence',
+    title: 'Crystal Blade',
+    rarity: 4,
+    stats: { hp: 1450, atk: 240, def: 130, speed: 105 },
+    // Placeholder tint (silver armor, crystal sword) until strips load.
+    tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#a83a3a' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle:   { src: 'assets/heroes/florence/idle.png',   frames: 9, fps: 8,  loop: true  },
+        attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
+      },
+    },
+    abilities: [
+      {
+        id: 'crystal_slash', name: 'Crystal Slash',
+        description: 'Slash one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'gleaming_edge', name: 'Gleaming Edge',
+        description: 'Strike for 130% ATK and raise own ATK by 20% for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.3 }],
+        selfEffects: [{ type: 'buff', stat: 'atk', mult: 1.2, turns: 2 }],
+      },
+      {
+        id: 'prism_break', name: 'Prism Break',
+        description: 'Shatter one enemy for 200% ATK and lower its DEF by 25% for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.0 },
+          { type: 'debuff', stat: 'def', mult: 0.75, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Blade Dance',
+      description: 'Gains +15% SPD for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.15, turns: 1 });
+          return {
+            label: 'Blade Dance',
+            message: `${unit.name} flows into the next stance (+15% SPD).`,
+            floats: [{ target: unit, text: 'SPD ▲', color: '#8ad8ff' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.2,
+      description: 'Duelist: +20% ATK while in a front hex.',
+    },
+  },
+
   sir_pixel: {
     id: 'sir_pixel',
     name: 'Sir Pixel',

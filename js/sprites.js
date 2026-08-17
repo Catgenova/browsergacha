@@ -1,27 +1,43 @@
 // Spritesheet loading + animation playback.
 //
-// Spritesheet contract (see assets/README.md):
-//   - One PNG per hero, one animation per row, frames left-to-right.
-//   - The hero definition declares frame size and per-animation row/frame
-//     count/fps, e.g.:
-//       sprite: {
-//         src: 'assets/heroes/sir_pixel.png',
-//         frameW: 32, frameH: 32,
-//         animations: {
-//           idle:   { row: 0, frames: 4, fps: 6,  loop: true  },
-//           attack: { row: 1, frames: 5, fps: 10, loop: false },
-//         },
-//       }
+// Two sheet formats are supported (see assets/README.md):
 //
-// If the PNG is missing (or hasn't been provided yet) a procedurally drawn
-// pixel-art placeholder sheet is generated so the game stays runnable.
+// 1) Strip-per-animation (preferred for hand-made art): one PNG per
+//    animation, N equal frames left-to-right. Frame size is auto-derived
+//    (width / frames × height), so no pixel bookkeeping needed:
+//      sprite: {
+//        displayH: 88, // on-screen height in px (art is scaled to this)
+//        strips: {
+//          idle:   { src: 'assets/heroes/florence/idle.png',   frames: 9, fps: 8,  loop: true  },
+//          attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
+//        },
+//      }
+//
+// 2) Single sheet: one PNG per hero, one animation per row:
+//      sprite: {
+//        src: 'assets/heroes/x.png', frameW: 32, frameH: 32,
+//        animations: {
+//          idle:   { row: 0, frames: 4, fps: 6,  loop: true  },
+//          attack: { row: 1, frames: 5, fps: 10, loop: false },
+//        },
+//      }
+//
+// Missing files fall back gracefully: a missing attack strip means attack
+// requests resolve as a brief one-shot of idle; a missing idle (or no
+// sprite at all) generates a procedural pixel-art placeholder.
 
+// animations: { name: { image, row, frames, fps, loop, frameW, frameH } }
 class SpriteSheet {
-  constructor(image, frameW, frameH, animations) {
-    this.image = image;
-    this.frameW = frameW;
-    this.frameH = frameH;
+  constructor(animations, displayH) {
     this.animations = animations;
+    this.displayH = displayH; // on-screen height; width scales proportionally
+  }
+
+  // On-screen size of an animation's frames (defaults to idle).
+  size(name = 'idle') {
+    const anim = this.animations[name] || this.animations.idle;
+    const scale = this.displayH / anim.frameH;
+    return { w: anim.frameW * scale, h: this.displayH };
   }
 }
 
@@ -35,7 +51,14 @@ class AnimationPlayer {
   }
 
   play(name, onComplete = null) {
-    if (!this.sheet.animations[name]) name = 'idle';
+    if (!this.sheet.animations[name]) {
+      // Animation not provided (e.g. attack strip not delivered yet):
+      // keep idling, but still resolve the completion callback so the
+      // battle flow (which waits on it) never stalls.
+      if (onComplete) setTimeout(onComplete, 350);
+      name = 'idle';
+      onComplete = null;
+    }
     this.current = name;
     this.frame = 0;
     this.elapsed = 0;
@@ -65,55 +88,90 @@ class AnimationPlayer {
     }
   }
 
-  // Draw centered at (x, y) with the unit's feet near the bottom.
-  draw(ctx, x, y, scale, flipX) {
+  size() {
+    return this.sheet.size(this.current);
+  }
+
+  // Draw centered at (x, y), scaled to the sheet's display height.
+  draw(ctx, x, y, flipX) {
     const anim = this.sheet.animations[this.current] || this.sheet.animations.idle;
-    const sx = this.frame * this.sheet.frameW;
-    const sy = anim.row * this.sheet.frameH;
-    const w = this.sheet.frameW * scale;
-    const h = this.sheet.frameH * scale;
+    if (!anim) return;
+    const scale = this.sheet.displayH / anim.frameH;
+    const w = anim.frameW * scale;
+    const h = anim.frameH * scale;
+    const sx = this.frame * anim.frameW;
+    const sy = anim.row * anim.frameH;
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.translate(x, y);
     if (flipX) ctx.scale(-1, 1);
-    ctx.drawImage(
-      this.sheet.image,
-      sx, sy, this.sheet.frameW, this.sheet.frameH,
-      -w / 2, -h / 2, w, h
-    );
+    ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
     ctx.restore();
   }
 }
 
 const Sprites = (() => {
-  // Load a hero's spritesheet; fall back to a generated placeholder.
-  function load(spriteDef, tint) {
+  function loadImage(src) {
     return new Promise((resolve) => {
-      const finishWithPlaceholder = () => {
-        const sheet = makePlaceholderSheet(tint);
-        resolve(sheet);
-      };
-
-      if (!spriteDef || !spriteDef.src) {
-        finishWithPlaceholder();
-        return;
-      }
-
       const img = new Image();
-      img.onload = () => {
-        resolve(new SpriteSheet(img, spriteDef.frameW, spriteDef.frameH, spriteDef.animations));
-      };
-      img.onerror = finishWithPlaceholder;
-      img.src = spriteDef.src;
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
     });
+  }
+
+  async function load(spriteDef, tint) {
+    // Strip-per-animation format.
+    if (spriteDef && spriteDef.strips) {
+      const animations = {};
+      for (const [name, strip] of Object.entries(spriteDef.strips)) {
+        const img = await loadImage(strip.src);
+        if (!img) continue; // strip not delivered yet — skip it
+        animations[name] = {
+          image: img,
+          row: 0,
+          frames: strip.frames,
+          fps: strip.fps,
+          loop: !!strip.loop,
+          frameW: Math.floor(img.width / strip.frames),
+          frameH: img.height,
+        };
+      }
+      if (animations.idle) {
+        return new SpriteSheet(animations, spriteDef.displayH || 88);
+      }
+      // No usable idle: fall through to placeholder.
+    }
+
+    // Single-sheet format.
+    if (spriteDef && spriteDef.src) {
+      const img = await loadImage(spriteDef.src);
+      if (img) {
+        const animations = {};
+        for (const [name, a] of Object.entries(spriteDef.animations)) {
+          animations[name] = {
+            image: img,
+            row: a.row,
+            frames: a.frames,
+            fps: a.fps,
+            loop: !!a.loop,
+            frameW: spriteDef.frameW,
+            frameH: spriteDef.frameH,
+          };
+        }
+        return new SpriteSheet(
+          animations, spriteDef.displayH || spriteDef.frameH * CONFIG.SPRITE_SCALE);
+      }
+    }
+
+    return makePlaceholderSheet(tint);
   }
 
   // ---- Placeholder generation -------------------------------------------
   // Draws a tiny 16x16 knight-ish figure into an offscreen spritesheet:
   //   row 0: idle (4 frames, gentle bob)
   //   row 1: attack (5 frames, lunge + swing)
-  // This exercises the exact same animation pipeline real sheets will use.
 
   const PLACEHOLDER = {
     frameW: 16,
@@ -159,7 +217,7 @@ const Sprites = (() => {
   function drawFrame(ctx, ox, oy, palette, shiftX, shiftY, weaponForward) {
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
-        let ch = BASE_FRAME[y][x];
+        const ch = BASE_FRAME[y][x];
         if (ch === '.') continue;
         let px = x + shiftX;
         // On attack frames, thrust the weapon column forward.
@@ -195,7 +253,14 @@ const Sprites = (() => {
       drawFrame(ctx, i * frameW, frameH, palette, m.x, 0, m.w)
     );
 
-    return new SpriteSheet(canvas, frameW, frameH, PLACEHOLDER.animations);
+    const animations = {};
+    for (const [name, a] of Object.entries(PLACEHOLDER.animations)) {
+      animations[name] = {
+        image: canvas, row: a.row, frames: a.frames, fps: a.fps, loop: !!a.loop,
+        frameW, frameH,
+      };
+    }
+    return new SpriteSheet(animations, frameH * CONFIG.SPRITE_SCALE);
   }
 
   // Cache: one sheet promise per definition id, shared by battle units,
@@ -212,17 +277,19 @@ const Sprites = (() => {
   // Draw a hero's idle frame 0 into a portrait canvas element.
   async function drawPortrait(canvasEl, def) {
     const sheet = await getSheet(def);
+    const anim = sheet.animations.idle;
     const ctx = canvasEl.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    // Integer scale that fits the frame inside the portrait canvas.
-    const scale = Math.max(1, Math.floor(
-      Math.min(canvasEl.width / sheet.frameW, canvasEl.height / sheet.frameH)));
-    const w = sheet.frameW * scale;
-    const h = sheet.frameH * scale;
+    // Fit the frame in the canvas: crisp integer upscale for small frames,
+    // fractional downscale for large art.
+    let scale = Math.min(canvasEl.width / anim.frameW, canvasEl.height / anim.frameH);
+    if (scale > 1) scale = Math.floor(scale);
+    const w = anim.frameW * scale;
+    const h = anim.frameH * scale;
     ctx.drawImage(
-      sheet.image,
-      0, sheet.animations.idle.row * sheet.frameH, sheet.frameW, sheet.frameH,
+      anim.image,
+      0, anim.row * anim.frameH, anim.frameW, anim.frameH,
       (canvasEl.width - w) / 2, (canvasEl.height - h) / 2, w, h
     );
   }

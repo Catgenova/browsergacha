@@ -11,15 +11,26 @@ const GameState = (() => {
     pity: 0,                              // pulls since last 5★
   };
 
+  // Heroes every player owns, granted retroactively to existing saves too.
+  const STARTERS = ['sir_pixel', 'florence'];
+
   let state = load();
   const listeners = [];
 
   function load() {
+    let loaded;
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) return { ...structuredClone(DEFAULTS), ...JSON.parse(raw) };
-    } catch (e) { /* storage unavailable or corrupt: start fresh */ }
-    return structuredClone(DEFAULTS);
+      loaded = raw
+        ? { ...structuredClone(DEFAULTS), ...JSON.parse(raw) }
+        : structuredClone(DEFAULTS);
+    } catch (e) { /* storage unavailable or corrupt: start fresh */
+      loaded = structuredClone(DEFAULTS);
+    }
+    for (const id of STARTERS) {
+      if (!loaded.roster[id]) loaded.roster[id] = { copies: 1 };
+    }
+    return loaded;
   }
 
   function save() {

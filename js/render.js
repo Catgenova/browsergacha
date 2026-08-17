@@ -107,14 +107,14 @@ class Renderer {
 
     // Sprite (with white flash when recently hit).
     if (unit.animator) {
-      unit.animator.draw(ctx, x, y, CONFIG.SPRITE_SCALE, flipX);
+      unit.animator.draw(ctx, x, y, flipX);
       if (unit.hitFlash > 0) {
         // Simple flash overlay box; per-sprite compositing can come later.
+        const size = unit.animator.size();
         ctx.save();
         ctx.globalAlpha = Math.min(1, unit.hitFlash * 5) * 0.35;
         ctx.fillStyle = '#ffffff';
-        const half = (16 * CONFIG.SPRITE_SCALE) / 2;
-        ctx.fillRect(x - half, y - half, half * 2, half * 2);
+        ctx.fillRect(x - size.w / 2, y - size.h / 2, size.w, size.h);
         ctx.restore();
       }
     }
@@ -123,10 +123,11 @@ class Renderer {
 
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
+      const dh = unit.animator ? unit.animator.sheet.displayH : 48;
       ctx.fillStyle = '#ffd76a';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, y - 16 * CONFIG.SPRITE_SCALE / 2 - 10);
+      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, y - dh / 2 - 10);
     }
   }
 
@@ -135,7 +136,8 @@ class Renderer {
     const { x, y } = unit.slot;
     const w = CONFIG.BAR_W;
     const h = CONFIG.BAR_H;
-    const top = y - (16 * CONFIG.SPRITE_SCALE) / 2 - 16;
+    const dh = unit.animator ? unit.animator.sheet.displayH : 48;
+    const top = y - dh / 2 - 16;
 
     // Health bar
     const hpFrac = unit.hp / unit.maxHp;

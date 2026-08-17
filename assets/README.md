@@ -1,34 +1,55 @@
 # Art assets
 
-## Hero spritesheets
+## Uploading sprites
 
-Drop hero spritesheets into `assets/heroes/` as one PNG per hero, e.g.
-`assets/heroes/sir_pixel.png`. Until the PNG exists, the game generates a
-pixel-art placeholder automatically, so nothing breaks while art is pending.
+Put hero animation strips in `assets/heroes/<hero_id>/`, one PNG per
+animation. Easiest way: on GitHub, open the folder (e.g.
+`assets/heroes/florence/`) on the **main** branch and use
+**Add file → Upload files** — the site redeploys automatically.
 
-### Sheet layout
+Expected files per hero:
 
-- One animation per **row**, frames laid out **left to right**.
-- All frames in a sheet share one fixed frame size (e.g. 32×32).
-- Sprites should face **right** — the engine mirrors them for the enemy side.
-- Transparent background.
+| File | Purpose |
+|---|---|
+| `idle.png` | Idle loop |
+| `attack.png` | Attack (played once per hit) |
 
-### Wiring a sheet up
+### Strip format (preferred)
 
-Declare the sheet in the hero's definition (`js/data/heroes.js`):
+- All frames for one animation in a **single horizontal row**, equal widths.
+- Transparent background; character facing **right** (the engine mirrors
+  enemies).
+- Frame size is auto-detected from `image width ÷ frame count`, so any
+  resolution works — the engine scales art to the hero's `displayH`.
+
+Wire-up in the hero definition (`js/data/heroes.js`):
 
 ```js
 sprite: {
-  src: 'assets/heroes/sir_pixel.png',
-  frameW: 32,
-  frameH: 32,
-  animations: {
-    idle:   { row: 0, frames: 4, fps: 6,  loop: true  },
-    attack: { row: 1, frames: 5, fps: 10, loop: false },
+  displayH: 88, // on-screen height in px
+  strips: {
+    idle:   { src: 'assets/heroes/florence/idle.png',   frames: 9, fps: 8,  loop: true  },
+    attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
   },
 },
 ```
 
-`idle` and `attack` are the two animations used today; more (hit, death,
-cast…) can be added as new rows later — the animation player already supports
-arbitrary named animations.
+**Important:** the `frames` count in the definition must match the strip —
+if your attack strip has a different number of frames, say so (or update
+the definition) or the slicing will be off.
+
+Missing strips degrade gracefully: no `attack.png` yet means attacks
+briefly play idle instead; no `idle.png` means the hero uses the generated
+pixel placeholder. Nothing breaks while art is in progress.
+
+### Currently expected uploads
+
+- `assets/heroes/florence/idle.png` — 9 frames (provided art: armored
+  knight, red plume, crystal sword)
+- `assets/heroes/florence/attack.png` — pending
+
+### Legacy single-sheet format
+
+One PNG per hero, one animation per row, frames left-to-right, fixed frame
+size declared in the def (`src`/`frameW`/`frameH`/`animations`). Still
+supported; strips are preferred for new art.
