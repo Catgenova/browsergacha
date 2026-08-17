@@ -214,7 +214,15 @@ const HEROES = {
         rowslash: {
           src: 'assets/heroes/florence/Knightjumpslash.png',
           frames: 23, fps: 10, loop: false,
-          holds: { 7: 4, 16: 0.5, 17: 0.5, 18: 0.5, 19: 0.5, 20: 0.5, 21: 5 },
+          // Fast ascent (8-15), fast slash with long hang at the apex
+          // (hold on 21), then a fast drop back down (22-23).
+          holds: {
+            7: 4,
+            8: 0.5, 9: 0.5, 10: 0.5, 11: 0.5, 12: 0.5, 13: 0.5, 14: 0.5, 15: 0.5,
+            16: 0.5, 17: 0.5, 18: 0.5, 19: 0.5, 20: 0.5,
+            21: 8,
+            22: 0.5, 23: 0.5,
+          },
           hitFrame: 17,
           motion: [
             { frames: [1, 7],   from: 'origin',    to: 'origin' },
