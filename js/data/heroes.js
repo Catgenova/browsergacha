@@ -204,8 +204,10 @@ const HEROES = {
                   variantOf: 'idle', every: [7, 14], holds: { 7: 15 } },
         // alert stance, loops while it's her turn to act
         ready:  { src: 'assets/heroes/florence/Knightready.png', frames: 9, fps: 6, loop: true },
-        // sword-slam crystal burst, plays on Crystal Resonance
-        buff:   { src: 'assets/heroes/florence/Knightbuff.png', frames: 17, fps: 12, loop: false },
+        // sword-slam crystal burst, plays on Crystal Resonance;
+        // rests on frame 16 as the crystals flare.
+        buff:   { src: 'assets/heroes/florence/Knightbuff.png', frames: 20, fps: 12, loop: false,
+                  holds: { 16: 5 } },
         attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
       },
     },
