@@ -12,6 +12,9 @@ class TeamScreen {
     this.el = document.getElementById('screen-team');
     this.canvas = document.getElementById('team-canvas');
     this.ctx = this.canvas.getContext('2d');
+    this.logicalW = 560;
+    this.logicalH = 400;
+    app.hiDpiCanvases.push({ el: this.canvas, w: this.logicalW, h: this.logicalH });
     this.rosterEl = document.getElementById('roster-grid');
     this.detailsEl = document.getElementById('hero-details');
     this.fightBtn = document.getElementById('fight-btn');
@@ -20,7 +23,7 @@ class TeamScreen {
 
     // Formation geometry (player side only, centered in the canvas).
     this.slots = Hex.buildFormation(
-      TEAM.PLAYER, this.canvas.width / 2, this.canvas.height / 2 - 10, 56
+      TEAM.PLAYER, this.logicalW / 2, this.logicalH / 2 - 10, 56
     );
 
     // Selection: { heroId, from: 'roster' | slotIndex }
@@ -179,8 +182,8 @@ class TeamScreen {
   canvasPoint(e) {
     const rect = this.canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (this.canvas.height / rect.height),
+      x: (e.clientX - rect.left) * (this.logicalW / rect.width),
+      y: (e.clientY - rect.top) * (this.logicalH / rect.height),
     };
   }
 
@@ -241,13 +244,15 @@ class TeamScreen {
 
   draw() {
     const { ctx } = this;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const q = this.canvas.width / this.logicalW;
+    ctx.setTransform(q, 0, 0, q, 0, 0);
+    ctx.clearRect(0, 0, this.logicalW, this.logicalH);
 
-    const grad = ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+    const grad = ctx.createLinearGradient(0, 0, 0, this.logicalH);
     grad.addColorStop(0, '#221e30');
     grad.addColorStop(1, '#161320');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.fillRect(0, 0, this.logicalW, this.logicalH);
 
     const team = GameState.getTeam();
     const selDef = this.selection ? HEROES[this.selection.heroId] : null;

@@ -6,6 +6,7 @@ class BattleScreen {
     this.app = app;
     this.el = document.getElementById('screen-battle');
     this.canvas = document.getElementById('battle-canvas');
+    app.hiDpiCanvases.push({ el: this.canvas, w: CONFIG.CANVAS_W, h: CONFIG.CANVAS_H });
     this.renderer = new Renderer(this.canvas);
     this.ui = new UI(this.renderer, this.canvas);
     this.ui.onReturn = () => app.showScreen('team');
