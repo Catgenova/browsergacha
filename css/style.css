@@ -45,6 +45,14 @@ body {
   font-size: 15px;
 }
 
+#version-tag {
+  display: block;
+  font-weight: normal;
+  letter-spacing: 0;
+  font-size: 9px;
+  color: #6a6288;
+}
+
 #nav-tabs {
   display: flex;
   gap: 6px;

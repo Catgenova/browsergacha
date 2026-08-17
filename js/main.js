@@ -38,6 +38,10 @@ const App = {
 };
 
 (function main() {
+  // Deploys stamp __VERSION__/__BUILD__; locally, show "dev" instead.
+  const versionTag = document.getElementById('version-tag');
+  if (versionTag.textContent.includes('__')) versionTag.textContent = 'dev';
+
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
   App.screens.battle = new BattleScreen(App);

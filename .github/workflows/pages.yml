@@ -22,8 +22,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Stamp asset versions (cache busting)
-        run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" index.html
+        with:
+          fetch-depth: 0 # full history so the version number (commit count) is right
+      - name: Stamp version and asset hashes
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          sed -i "s/__VERSION__/${VERSION}/g; s/__BUILD__/${GITHUB_SHA::8}/g" index.html
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
