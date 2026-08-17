@@ -127,23 +127,78 @@ class Battle {
   // ---- Actions -----------------------------------------------------------
 
   // Player (or AI) commits to an ability + target. Plays the caster's
-  // animation, applies effects at completion, then resumes ticking.
+  // animation; effects land on the animation's hitFrame if it declares
+  // one, otherwise at completion. Animations with motion phases move the
+  // caster across the field, tracking the selected target.
   performAbility(caster, abilityState, target) {
     this.state = BattleState.ACTING;
     const ability = abilityState.def;
+    const strip = caster.animator && ability.animation
+      ? caster.animator.sheet.animations[ability.animation]
+      : null;
 
-    const finish = () => {
-      if (!caster.alive) { this.afterAction(caster, abilityState); return; }
+    let applied = false;
+    const applyNow = () => {
+      if (applied) return;
+      applied = true;
+      if (!caster.alive) return;
       const results = Abilities.execute(ability, caster, target, this);
       this.reportResults(caster, ability, results);
-      this.afterAction(caster, abilityState);
     };
 
-    if (caster.animator && ability.animation) {
-      caster.animator.play(ability.animation, finish);
-    } else {
-      finish();
+    if (!strip) {
+      applyNow();
+      this.afterAction(caster, abilityState);
+      return;
     }
+
+    // Movement: precompute anchor points around the chosen target.
+    if (strip.motion && target && target.slot) {
+      const dir = Math.sign(target.slot.x - caster.slot.x) || 1;
+      const tw = target.animator ? target.animator.sheet.size().w : 48;
+      caster.motionState = {
+        anim: ability.animation,
+        phases: strip.motion,
+        anchors: {
+          origin: { x: caster.slot.x, y: caster.slot.y },
+          targetFront: { x: target.slot.x - dir * (tw / 2 + 26), y: target.slot.y },
+          targetBehind: { x: target.slot.x + dir * (tw / 2 + 30), y: target.slot.y },
+        },
+      };
+    }
+
+    if (strip.hitFrame) {
+      caster.animator.onFrameChange = (f) => {
+        if (f >= strip.hitFrame) applyNow();
+      };
+    }
+
+    caster.animator.play(ability.animation, () => {
+      caster.animator.onFrameChange = null;
+      applyNow(); // no hitFrame declared -> effects land here
+      caster.motionState = null;
+      this.afterAction(caster, abilityState);
+    });
+  }
+
+  // Current draw position for a unit moving through an attack animation.
+  motionPos(unit) {
+    const ms = unit.motionState;
+    if (!ms || !unit.animator || unit.animator.current !== ms.anim) {
+      return { x: unit.slot.x, y: unit.slot.y };
+    }
+    const f = unit.animator.frame + 1;
+    let phase = ms.phases[ms.phases.length - 1];
+    for (const p of ms.phases) {
+      if (f <= p.frames[1]) { phase = p; break; }
+    }
+    const t = unit.animator.progressIn(phase.frames);
+    const from = ms.anchors[phase.from];
+    const to = ms.anchors[phase.to];
+    const x = from.x + (to.x - from.x) * t;
+    let y = from.y + (to.y - from.y) * t;
+    if (phase.arc) y -= phase.arc * 4 * t * (1 - t); // parabolic air arc
+    return { x, y };
   }
 
   reportResults(caster, ability, results) {

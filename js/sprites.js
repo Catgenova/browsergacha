@@ -48,7 +48,30 @@ class AnimationPlayer {
     this.frame = 0;
     this.elapsed = 0;
     this.onComplete = null;
+    this.onFrameChange = null; // (frameNumber1Based) => void, fires per frame
     this.variantTimer = this.rollVariantDelay();
+  }
+
+  frameDuration(anim, frameNumber) {
+    return (1 / anim.fps) * ((anim.holds && anim.holds[frameNumber]) || 1);
+  }
+
+  // Real-time progress (0..1) through an inclusive 1-based frame range of
+  // the current animation, accounting for holds/fast frames. Drives
+  // attack motion so movement speed follows the animation's pacing.
+  progressIn(range) {
+    const anim = this.sheet.animations[this.current];
+    if (!anim) return 1;
+    const [a, b] = range;
+    const f = this.frame + 1;
+    if (f < a) return 0;
+    if (f > b) return 1;
+    let total = 0;
+    for (let i = a; i <= b; i++) total += this.frameDuration(anim, i);
+    let done = 0;
+    for (let i = a; i < f; i++) done += this.frameDuration(anim, i);
+    done += Math.min(this.elapsed, this.frameDuration(anim, f));
+    return Math.min(1, done / total);
   }
 
   // Timed idle variants: animations declaring variantOf: 'idle' play once
@@ -105,6 +128,9 @@ class AnimationPlayer {
       this.elapsed -= frameDuration;
       this.frame++;
       frameDuration = (1 / anim.fps) * ((anim.holds && anim.holds[this.frame + 1]) || 1);
+      if (this.frame < anim.frames && this.onFrameChange) {
+        this.onFrameChange(this.frame + 1);
+      }
       if (this.frame >= anim.frames) {
         if (anim.loop) {
           this.frame = 0;
@@ -183,6 +209,8 @@ const Sprites = (() => {
           variantOf: strip.variantOf || null,
           every: strip.every || null,
           holds: strip.holds || null,
+          hitFrame: strip.hitFrame || null, // effects land on this frame
+          motion: strip.motion || null,     // movement phases (see battle.js)
         };
       }
       if (animations.idle) {

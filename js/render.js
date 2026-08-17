@@ -28,9 +28,11 @@ class Renderer {
     this.drawFormation(this.battle.playerSlots, '#3a4a6a', '#22293d');
     this.drawFormation(this.battle.enemySlots, '#6a3a3a', '#3d2222');
 
-    // Draw units back-to-front by y so overlaps look right.
+    // Draw units back-to-front by y; units mid-attack-motion draw last
+    // so they pass in front of everything they fly over.
     const units = this.battle.units.slice().sort((a, b) => a.slot.y - b.slot.y);
-    for (const unit of units) this.drawUnit(unit);
+    for (const unit of units) if (!unit.motionState) this.drawUnit(unit);
+    for (const unit of units) if (unit.motionState) this.drawUnit(unit);
 
     this.drawFloatingTexts();
   }
@@ -70,7 +72,7 @@ class Renderer {
 
   drawUnit(unit) {
     const { ctx } = this;
-    const { x, y } = unit.slot;
+    const { x, y } = this.battle.motionPos(unit);
 
     if (!unit.alive) {
       // Fallen units: faded grave marker.
@@ -123,7 +125,7 @@ class Renderer {
       }
     }
 
-    this.drawBars(unit);
+    this.drawBars(unit, x, y);
 
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
@@ -135,9 +137,8 @@ class Renderer {
     }
   }
 
-  drawBars(unit) {
+  drawBars(unit, x, y) {
     const { ctx } = this;
-    const { x, y } = unit.slot;
     const w = CONFIG.BAR_W;
     const h = CONFIG.BAR_H;
     const dh = unit.animator ? unit.animator.sheet.displayH : 48;
