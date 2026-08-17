@@ -262,6 +262,106 @@ const HEROES = {
     },
   },
 
+  rat_mauler: {
+    id: 'rat_mauler',
+    name: 'Rat Mauler',
+    title: 'Cellar Crusher',
+    rarity: 2,
+    stats: { hp: 1100, atk: 130, def: 75, speed: 85 },
+    tint: { body: '#5a4a3a', helm: '#7a6a5a', weapon: '#a89078', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_mauler/ratmauleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'club_smash', name: 'Club Smash',
+        description: 'A heavy blow for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'bone_crusher', name: 'Bone Crusher',
+        description: 'Deals 140% ATK and cracks armor: -20% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'debuff', stat: 'def', mult: 0.8, turns: 2 },
+        ],
+      },
+      {
+        id: 'overhead_slam', name: 'Overhead Slam',
+        description: 'Bring it all down: 185% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.85 }],
+      },
+    ],
+    passive: {
+      name: 'Bully',
+      description: 'Deals 15% extra damage to enemies above half HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp >= 0.5 ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.2,
+      description: 'Bulwark: +20% max HP while in the center hex.',
+    },
+  },
+
+  rat_duelist: {
+    id: 'rat_duelist',
+    name: 'Rat Duelist',
+    title: 'Gutter Gentry',
+    rarity: 2,
+    stats: { hp: 850, atk: 140, def: 65, speed: 110 },
+    tint: { body: '#7a3a5a', helm: '#9a5a7a', weapon: '#d8d0e0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_duelist/ratduelistidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'riposte', name: 'Riposte',
+        description: 'A precise thrust for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'flourish', name: 'Flourish',
+        description: 'A dazzling combination for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'coup_de_grace', name: 'Coup de Grâce',
+        description: 'The decisive strike: 190% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.9 }],
+      },
+    ],
+    passive: {
+      name: 'Duelist\'s Eye',
+      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.1, turns: 1 });
+          return null; // silent — fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Point of Honor: +15% ATK while in a front hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     name: 'Florence',

@@ -27,4 +27,6 @@ const ENEMIES = {
   rat_assassin: ratEnemy('rat_assassin', 1.3),
   rat_spearman: ratEnemy('rat_spearman', 1.4),
   rat_berserker: ratEnemy('rat_berserker', 1.3),
+  rat_mauler: ratEnemy('rat_mauler', 1.3),
+  rat_duelist: ratEnemy('rat_duelist', 1.3),
 };
