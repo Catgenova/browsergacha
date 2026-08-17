@@ -42,11 +42,22 @@ Missing strips degrade gracefully: no `attack.png` yet means attacks
 briefly play idle instead; no `idle.png` means the hero uses the generated
 pixel placeholder. Nothing breaks while art is in progress.
 
-### Currently expected uploads
+### Timed idle variants
 
-- `assets/heroes/florence/idle.png` — 9 frames (provided art: armored
-  knight, red plume, crystal sword)
-- `assets/heroes/florence/attack.png` — pending
+A strip can be declared as an occasional variation of the base idle — it
+plays through once every `every: [min, max]` seconds of idling, then the
+loop resumes:
+
+```js
+idle2: { src: '.../Knightidle2.png', frames: 9, fps: 8, loop: false,
+         variantOf: 'idle', every: [7, 14] },
+```
+
+### Florence — current status
+
+- `KnightIdle.png` — ✅ standard idle loop (9 frames, 256×256)
+- `Knightidle2.png` — ✅ timed variation (helmet adjust)
+- `attack.png` — pending
 
 ### Legacy single-sheet format
 

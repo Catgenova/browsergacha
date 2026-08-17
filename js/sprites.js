@@ -48,6 +48,22 @@ class AnimationPlayer {
     this.frame = 0;
     this.elapsed = 0;
     this.onComplete = null;
+    this.variantTimer = this.rollVariantDelay();
+  }
+
+  // Timed idle variants: animations declaring variantOf: 'idle' play once
+  // every `every: [min, max]` seconds while the base idle is running.
+  variantsOf(base) {
+    return Object.entries(this.sheet.animations)
+      .filter(([, a]) => a.variantOf === base)
+      .map(([name, a]) => ({ name, every: a.every || [7, 14] }));
+  }
+
+  rollVariantDelay() {
+    const variants = this.variantsOf('idle');
+    if (variants.length === 0) return Infinity;
+    const [min, max] = variants[0].every;
+    return min + Math.random() * (max - min);
   }
 
   play(name, onComplete = null) {
@@ -68,6 +84,19 @@ class AnimationPlayer {
   update(dt) {
     const anim = this.sheet.animations[this.current];
     if (!anim) return;
+
+    // While plain idling, occasionally fire a timed idle variant.
+    if (this.current === 'idle' && !this.onComplete) {
+      this.variantTimer -= dt;
+      if (this.variantTimer <= 0) {
+        const variants = this.variantsOf('idle');
+        const pick = variants[Math.floor(Math.random() * variants.length)];
+        this.variantTimer = this.rollVariantDelay();
+        this.play(pick.name);
+        return;
+      }
+    }
+
     this.elapsed += dt;
     const frameDuration = 1 / anim.fps;
     while (this.elapsed >= frameDuration) {
@@ -136,6 +165,8 @@ const Sprites = (() => {
           loop: !!strip.loop,
           frameW: Math.floor(img.width / strip.frames),
           frameH: img.height,
+          variantOf: strip.variantOf || null,
+          every: strip.every || null,
         };
       }
       if (animations.idle) {
