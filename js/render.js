@@ -178,7 +178,7 @@ class Renderer {
     ctx.save();
     ctx.fillStyle = `rgba(8, 14, 8, ${0.32 * (0.55 + 0.45 * s)})`;
     ctx.beginPath();
-    ctx.ellipse(g.x, g.groundY + 10, rx, rx * 0.34, 0, 0, Math.PI * 2);
+    ctx.ellipse(g.x, g.groundY + 8, rx, rx * 0.34, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

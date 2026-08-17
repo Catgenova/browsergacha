@@ -297,16 +297,20 @@ const Sprites = (() => {
       ctx.drawImage(anim.image, 0, anim.row * anim.frameH, anim.frameW, anim.frameH,
         0, 0, anim.frameW, anim.frameH);
       const data = ctx.getImageData(0, 0, c.width, c.height).data;
-      const rowOpaque = (y) => {
-        for (let x = 0; x < c.width; x += 2) {
+      const rowOpaque = (y, x0, x1) => {
+        for (let x = x0; x < x1; x += 2) {
           if (data[(y * c.width + x) * 4 + 3] > 40) return true;
         }
         return false;
       };
+      // Feet line: scan only the central band of columns, so trailing
+      // capes/dresses at the frame edges don't count as "the bottom".
+      const bandX0 = Math.floor(c.width * 0.32);
+      const bandX1 = Math.ceil(c.width * 0.68);
       let bottom = c.height - 1;
-      while (bottom > 0 && !rowOpaque(bottom)) bottom--;
+      while (bottom > 0 && !rowOpaque(bottom, bandX0, bandX1)) bottom--;
       let top = 0;
-      while (top < bottom && !rowOpaque(top)) top++;
+      while (top < bottom && !rowOpaque(top, 0, c.width)) top++;
       const scale = sheet.displayH / anim.frameH;
       sheet.footPad = Math.round((c.height - 1 - bottom) * scale);
       sheet.headPad = Math.round(top * scale);
