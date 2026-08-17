@@ -52,4 +52,9 @@ const EFFECTS = {
     src: 'assets/strike_effect_spritesheet.png',
     frames: 5, fps: 15, displayH: 95, hue: -60,
   },
+  // Purple hex burst for Vex's curses.
+  strike_purple: {
+    src: 'assets/strike_effect_spritesheet.png',
+    frames: 5, fps: 15, displayH: 95, hue: 100,
+  },
 };

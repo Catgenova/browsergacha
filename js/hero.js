@@ -100,6 +100,16 @@ class Unit {
     return m;
   }
 
+  // Incoming damage multiplier from vulnerability marks ('damageTaken'
+  // status effects).
+  damageTakenMult() {
+    let m = 1;
+    for (const fx of this.statusEffects) {
+      if (fx.stat === 'damageTaken' && fx.mult) m *= fx.mult;
+    }
+    return m;
+  }
+
   // ---- Health ------------------------------------------------------------
 
   takeDamage(amount) {
