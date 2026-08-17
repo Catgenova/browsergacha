@@ -116,6 +116,56 @@ const HEROES = {
     },
   },
 
+  rat_spearman: {
+    id: 'rat_spearman',
+    name: 'Rat Spearman',
+    title: 'Tunnel Guard',
+    rarity: 1,
+    stats: { hp: 820, atk: 110, def: 70, speed: 95 },
+    tint: { body: '#6a6a8a', helm: '#8a8aa8', weapon: '#c8c0b0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_spearman/ratspearmanidle.png', frames: 14, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'poke', name: 'Poke',
+        description: 'A spear thrust for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'lunge', name: 'Lunge',
+        description: 'A deep lunge for 140% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.4 }],
+      },
+      {
+        id: 'sweeping_thrust', name: 'Sweeping Thrust',
+        description: 'Rake a hex row for 80% ATK.',
+        cooldown: 5, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.8 }],
+      },
+    ],
+    passive: {
+      name: 'Set Spear',
+      description: 'Deals 10% extra damage to front-row enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.slot && target.slot.position === POSITION.FRONT ? 1.1 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Shield Wall: +15% DEF while in a front hex.',
+    },
+  },
+
+  // ---- 2★ rat cohort ------------------------------------------------------
+
   rat_assassin: {
     id: 'rat_assassin',
     name: 'Rat Assassin',
@@ -161,6 +211,54 @@ const HEROES = {
     positional: {
       position: POSITION.BACK, stat: 'damage', mult: 1.15,
       description: 'Lurker: +15% damage dealt from a back hex.',
+    },
+  },
+
+  rat_berserker: {
+    id: 'rat_berserker',
+    name: 'Rat Berserker',
+    title: 'Plague Fury',
+    rarity: 2,
+    stats: { hp: 950, atk: 145, def: 55, speed: 100 },
+    tint: { body: '#8a4a3a', helm: '#a86a4a', weapon: '#c8b0a0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_berserker/ratberserkeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wild_swing', name: 'Wild Swing',
+        description: 'A frenzied swing for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'reckless_cleave', name: 'Reckless Cleave',
+        description: 'An all-out cleave for 155% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.55 }],
+      },
+      {
+        id: 'blood_frenzy', name: 'Blood Frenzy',
+        description: 'Work into a frenzy: +40% ATK for 3 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.4, turns: 3 }],
+      },
+    ],
+    passive: {
+      name: 'Pain Fueled',
+      description: 'Deals 25% extra damage while below half HP.',
+      hooks: {
+        damageDealtMult(unit) {
+          return unit.hp / unit.maxHp < 0.5 ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'damage', mult: 1.15,
+      description: 'Bloodlust: +15% damage dealt from a front hex.',
     },
   },
 
