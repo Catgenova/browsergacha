@@ -7,12 +7,14 @@ class Renderer {
     this.battle = null;        // bound via setBattle for each new battle
     this.hoveredUnit = null;   // set by UI for target highlighting
     this.targetingMode = null; // 'enemy' | 'ally' | null
+    this.rowMode = false;      // highlight the hovered enemy's whole row
   }
 
   setBattle(battle) {
     this.battle = battle;
     this.hoveredUnit = null;
     this.targetingMode = null;
+    this.rowMode = false;
   }
 
   draw() {
@@ -34,7 +36,37 @@ class Renderer {
     for (const unit of units) if (!unit.motionState) this.drawUnit(unit);
     for (const unit of units) if (unit.motionState) this.drawUnit(unit);
 
+    this.drawVisualEffects();
     this.drawFloatingTexts();
+  }
+
+  drawVisualEffects() {
+    const { ctx } = this;
+    for (const fx of this.battle.visualEffects) {
+      if (fx.kind !== 'windshear') continue;
+      const t = Math.min(1, fx.age / fx.duration);
+      const angle = Math.atan2(fx.ey - fx.sy, fx.ex - fx.sx);
+      const fade = t > 0.7 ? (1 - t) / 0.3 : 1;
+      // Leading crescent plus two trailing ghosts.
+      for (let i = 0; i < 3; i++) {
+        const tt = t - i * 0.1;
+        if (tt < 0) continue;
+        const gx = fx.sx + (fx.ex - fx.sx) * tt;
+        const gy = fx.sy + (fx.ey - fx.sy) * tt;
+        ctx.save();
+        ctx.translate(gx, gy);
+        ctx.rotate(angle);
+        ctx.globalAlpha = fade * (i === 0 ? 0.95 : 0.35 / i);
+        ctx.strokeStyle = i === 0 ? '#e8faff' : '#8ad8ff';
+        ctx.lineWidth = 5 - i;
+        ctx.shadowColor = '#8ad8ff';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(-34, 0, 44, -Math.PI / 2.5, Math.PI / 2.5);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
   }
 
   drawBackground() {
@@ -102,7 +134,10 @@ class Renderer {
         (this.targetingMode === 'enemy' && unit.team === TEAM.ENEMY) ||
         (this.targetingMode === 'ally' && unit.team === TEAM.PLAYER);
       if (isValid) {
-        const hovered = this.hoveredUnit === unit;
+        // Row abilities light up the hovered enemy's whole row.
+        const hovered = this.hoveredUnit === unit ||
+          (this.rowMode && this.hoveredUnit && unit.team === TEAM.ENEMY &&
+            Math.abs(unit.slot.y - this.hoveredUnit.slot.y) < 2);
         ctx.strokeStyle = hovered ? '#ff5a5a' : 'rgba(255, 138, 138, 0.5)';
         ctx.lineWidth = hovered ? 3 : 1.5;
         ctx.beginPath();

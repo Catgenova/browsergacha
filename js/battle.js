@@ -26,6 +26,7 @@ class Battle {
 
     // Transient view data
     this.floatingTexts = []; // { x, y, text, color, age }
+    this.visualEffects = []; // { kind, sx, sy, ex, ey, age, duration }
     this.onLog = null;       // (message, cls) => void, wired by UI
     this.onPlayerTurn = null;
     this.onBattleEnd = null;
@@ -62,6 +63,8 @@ class Battle {
     }
     for (const ft of this.floatingTexts) ft.age += dt;
     this.floatingTexts = this.floatingTexts.filter((ft) => ft.age < 1.1);
+    for (const fx of this.visualEffects) fx.age += dt;
+    this.visualEffects = this.visualEffects.filter((fx) => fx.age < fx.duration);
 
     if (this.state !== BattleState.TICKING) return;
 
@@ -142,6 +145,9 @@ class Battle {
       if (applied) return;
       applied = true;
       if (!caster.alive) return;
+      if (ability.vfx === 'windshear' && target && target.slot) {
+        this.spawnWindshear(caster, target);
+      }
       const results = Abilities.execute(ability, caster, target, this);
       this.reportResults(caster, ability, results);
     };
@@ -161,6 +167,7 @@ class Battle {
         phases: strip.motion,
         anchors: {
           origin: { x: caster.slot.x, y: caster.slot.y },
+          originAir: { x: caster.slot.x, y: caster.slot.y - 120 },
           targetFront: { x: target.slot.x - dir * (tw / 2 + 26), y: target.slot.y },
           targetBehind: { x: target.slot.x + dir * (tw / 2 + 30), y: target.slot.y },
         },
@@ -178,6 +185,29 @@ class Battle {
       applyNow(); // no hitFrame declared -> effects land here
       caster.motionState = null;
       this.afterAction(caster, abilityState);
+    });
+  }
+
+  // A shearing wave that flies from the caster's blade through the
+  // target's hex row.
+  spawnWindshear(caster, target) {
+    const start = this.motionPos(caster);
+    const dir = Math.sign(target.slot.x - caster.slot.x) || 1;
+    const rowY = target.slot.y;
+    const row = this.livingUnits(caster.enemyTeam())
+      .filter((u) => Math.abs(u.slot.y - rowY) < 2);
+    // End just past the farthest enemy in the row (in the travel direction).
+    const farX = row.length
+      ? Math.max(...row.map((u) => u.slot.x * dir)) * dir
+      : target.slot.x;
+    this.visualEffects.push({
+      kind: 'windshear',
+      sx: start.x + dir * 24,
+      sy: start.y,
+      ex: farX + dir * 90,
+      ey: rowY,
+      age: 0,
+      duration: 0.35,
     });
   }
 
@@ -283,6 +313,19 @@ class Battle {
       // Focus fire the lowest-HP enemy.
       const enemies = this.livingUnits(unit.enemyTeam());
       target = enemies.slice().sort((a, b) => a.hp - b.hp)[0];
+    } else if (choice.def.targeting === 'enemy-row') {
+      // Aim at the row with the most enemies, weakest member as anchor.
+      const rows = new Map();
+      for (const e of this.livingUnits(unit.enemyTeam())) {
+        const key = Math.round(e.slot.y);
+        if (!rows.has(key)) rows.set(key, []);
+        rows.get(key).push(e);
+      }
+      let best = null;
+      for (const arr of rows.values()) {
+        if (!best || arr.length > best.length) best = arr;
+      }
+      target = best.slice().sort((a, b) => a.hp - b.hp)[0];
     } else if (choice.def.targeting === 'ally') {
       // Support the most wounded ally.
       const allies = this.livingUnits(unit.team);
