@@ -1,42 +1,57 @@
-// Bootstrap: build the battle, place units, load sprites, run the loop.
+// App shell: top bar, screen switching, and the single game loop that
+// drives whichever screen is active.
 
-(async function main() {
-  const canvas = document.getElementById('battle-canvas');
-  const battle = new Battle();
-  const renderer = new Renderer(canvas, battle);
-  const ui = new UI(battle, renderer, canvas);
+const App = {
+  screens: {},
+  active: null,
 
-  // --- Demo setup: our first hero vs a couple of slimes -------------------
-  // Slot indices: 0 = center, 1 = front-center, 2 = front-top, 3 = back-top,
-  // 4 = back-center, 5 = back-bottom, 6 = front-bottom (mirrored for enemies).
-  const hero = new Unit(HEROES.sir_pixel, TEAM.PLAYER);
-  battle.placeUnit(hero, 1); // front hex -> his Vanguard positional bonus is live
+  async showScreen(name) {
+    const next = this.screens[name];
+    if (!next) return;
+    if (this.active) {
+      this.active.exit();
+      this.active.el.classList.add('hidden');
+    }
+    document.querySelectorAll('.nav-tab').forEach((tab) =>
+      tab.classList.toggle('active', tab.dataset.screen === name));
+    this.active = next;
+    next.el.classList.remove('hidden');
+    await next.enter();
+  },
 
-  const gloopA = new Unit(ENEMIES.gloop, TEAM.ENEMY);
-  const gloopB = new Unit(ENEMIES.gloop, TEAM.ENEMY);
-  battle.placeUnit(gloopA, 1);
-  battle.placeUnit(gloopB, 2);
+  updateGems() {
+    document.getElementById('gem-count').textContent = GameState.gems.toLocaleString();
+  },
+};
 
-  // Load spritesheets (placeholder art is generated if the PNG is absent).
-  for (const unit of battle.units) {
-    const sheet = await Sprites.load(unit.def.sprite, unit.spriteTint);
-    unit.animator = new AnimationPlayer(sheet);
-    unit.animator.play('idle');
-    // Desync idle animations so units don't bob in lockstep.
-    unit.animator.elapsed = Math.random() * 0.5;
-  }
+(function main() {
+  App.screens.summon = new SummonScreen(App);
+  App.screens.team = new TeamScreen(App);
+  App.screens.battle = new BattleScreen(App);
 
-  battle.log('Battle start! Click an ability, then a target.', 'log-system');
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.dataset.screen === 'battle' && GameState.teamSize() === 0) {
+        // No team yet — bounce to the builder instead.
+        App.showScreen('team');
+        return;
+      }
+      App.showScreen(tab.dataset.screen);
+    });
+  });
 
-  // --- Main loop ----------------------------------------------------------
+  GameState.onChange(() => App.updateGems());
+  App.updateGems();
+  App.showScreen('team');
+
   let lastTime = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
-
-    battle.update(dt);
-    renderer.draw();
-
+    if (App.active) {
+      App.active.update(dt);
+      App.active.draw();
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

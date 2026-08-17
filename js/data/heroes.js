@@ -1,83 +1,442 @@
 // Hero definitions. Every hero follows the same contract:
-//   - 3 active abilities: one short cooldown, one no cooldown, one long cooldown
-//   - 1 passive ability (hook-based)
+//   - 3 active abilities: one no-cooldown, one short cooldown, one long cooldown
+//   - 1 passive ability: hooks.onTurnStart(unit, battle) -> null | {
+//       label, message, floats: [{ target, text, color }] }
 //   - 1 positional bonus, active only in the matching grid position
 //   - sprite: spritesheet reference (placeholder art is generated when the
 //     PNG is absent — drop real sheets into assets/heroes/ to replace it)
+//
+// Rarity drives gacha rates and rough stat budgets (3★ < 4★ < 5★).
 
-const HEROES = {
-  sir_pixel: {
-    id: 'sir_pixel',
-    name: 'Sir Pixel',
-    rarity: 4,
-    stats: {
-      hp: 1400,
-      atk: 220,
-      def: 140,
-      speed: 100,
+// Shared sprite declaration until real sheets land; per-hero PNGs will
+// override frame sizes/rows as needed.
+function defaultSprite(id) {
+  return {
+    src: `assets/heroes/${id}.png`,
+    frameW: 32,
+    frameH: 32,
+    animations: {
+      idle:   { row: 0, frames: 4, fps: 6,  loop: true  },
+      attack: { row: 1, frames: 5, fps: 10, loop: false },
     },
-    tint: { body: '#4a6fd4', helm: '#8d9bb8', shield: '#b8862e' },
-    sprite: {
-      src: 'assets/heroes/sir_pixel.png', // not present yet -> placeholder
-      frameW: 32,
-      frameH: 32,
-      animations: {
-        idle:   { row: 0, frames: 4, fps: 6,  loop: true  },
-        attack: { row: 1, frames: 5, fps: 10, loop: false },
+  };
+}
+
+// Passive helper: heal self for pct of max HP each turn.
+function regenPassive(name, pct) {
+  return {
+    name,
+    description: `Recovers ${Math.round(pct * 100)}% max HP at the start of each turn.`,
+    hooks: {
+      onTurnStart(unit) {
+        const healed = unit.heal(Math.round(unit.maxHp * pct));
+        if (healed <= 0) return null;
+        return {
+          label: name,
+          message: `${unit.name}'s ${name} restores ${healed} HP.`,
+          floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+        };
       },
     },
+  };
+}
+
+const HEROES = {
+  // ---- 3★ ---------------------------------------------------------------
+
+  bram: {
+    id: 'bram',
+    name: 'Bram',
+    title: 'Thornback',
+    rarity: 3,
+    stats: { hp: 1500, atk: 150, def: 170, speed: 80 },
+    tint: { body: '#6a7a4a', helm: '#8a9a6a', shield: '#5a4a30' },
+    sprite: defaultSprite('bram'),
     abilities: [
       {
-        id: 'valiant_strike',
-        name: 'Valiant Strike',
-        description: 'Slash one enemy for 100% ATK.',
-        cooldown: 0,
-        targeting: 'enemy',
-        animation: 'attack',
+        id: 'thorn_jab', name: 'Thorn Jab',
+        description: 'Jab one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
-        id: 'shield_bash',
-        name: 'Shield Bash',
+        id: 'brace', name: 'Brace',
+        description: 'Raise own DEF by 50% for 2 turns.',
+        cooldown: 3, targeting: 'self', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.5, turns: 2 }],
+      },
+      {
+        id: 'bramble_wall', name: 'Bramble Wall',
+        description: 'Raise ALL allies\' DEF by 30% for 2 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: regenPassive('Stone Skin', 0.03),
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.3,
+      description: 'Bulwark: +30% DEF while in a front hex.',
+    },
+  },
+
+  lyra: {
+    id: 'lyra',
+    name: 'Lyra',
+    title: 'Swift Arrow',
+    rarity: 3,
+    stats: { hp: 1000, atk: 200, def: 90, speed: 110 },
+    tint: { body: '#7a5a3a', helm: '#caa86a', weapon: '#e8e0c8' },
+    sprite: defaultSprite('lyra'),
+    abilities: [
+      {
+        id: 'quick_shot', name: 'Quick Shot',
+        description: 'Shoot one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'piercing_bolt', name: 'Piercing Bolt',
+        description: 'Pierce one enemy for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'arrow_storm', name: 'Arrow Storm',
+        description: 'Rain arrows on ALL enemies for 80% ATK.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.8 }],
+      },
+    ],
+    passive: {
+      name: 'Focus',
+      description: 'Gains +10% ATK for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 1 });
+          return {
+            label: 'Focus',
+            message: `${unit.name} focuses (+10% ATK this turn).`,
+            floats: [{ target: unit, text: 'ATK ▲', color: '#8ecbff' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.2,
+      description: 'Deadeye: +20% ATK while in a back hex.',
+    },
+  },
+
+  milo: {
+    id: 'milo',
+    name: 'Milo',
+    title: 'Acolyte',
+    rarity: 3,
+    stats: { hp: 1100, atk: 160, def: 110, speed: 95 },
+    tint: { body: '#c8c0a8', helm: '#e8dcc0', weapon: '#caa86a' },
+    sprite: defaultSprite('milo'),
+    abilities: [
+      {
+        id: 'smite', name: 'Smite',
+        description: 'Smite one enemy for 90% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.9 }],
+      },
+      {
+        id: 'mend', name: 'Mend',
+        description: 'Heal one ally for 120% ATK.',
+        cooldown: 2, targeting: 'ally', animation: 'attack',
+        effects: [{ type: 'heal', mult: 1.2 }],
+      },
+      {
+        id: 'sanctuary', name: 'Sanctuary',
+        description: 'Heal ALL allies for 70% ATK.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'heal', mult: 0.7 }],
+      },
+    ],
+    passive: {
+      name: 'Mending Light',
+      description: 'Heals the most wounded ally for 3% of Milo\'s max HP each turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team)
+            .filter((u) => u.hp < u.maxHp)
+            .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          if (allies.length === 0) return null;
+          const target = allies[0];
+          const healed = target.heal(Math.round(unit.maxHp * 0.03));
+          if (healed <= 0) return null;
+          return {
+            label: 'Mending Light',
+            message: `${unit.name}'s Mending Light heals ${target.name} for ${healed}.`,
+            floats: [{ target, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.25,
+      description: 'Sheltered: +25% DEF while in the center hex.',
+    },
+  },
+
+  // ---- 4★ ---------------------------------------------------------------
+
+  sir_pixel: {
+    id: 'sir_pixel',
+    name: 'Sir Pixel',
+    title: 'Errant Knight',
+    rarity: 4,
+    stats: { hp: 1400, atk: 220, def: 140, speed: 100 },
+    tint: { body: '#4a6fd4', helm: '#8d9bb8', shield: '#b8862e' },
+    sprite: defaultSprite('sir_pixel'),
+    abilities: [
+      {
+        id: 'valiant_strike', name: 'Valiant Strike',
+        description: 'Slash one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'shield_bash', name: 'Shield Bash',
         description: 'Bash one enemy for 140% ATK and lower its DEF by 30% for 2 turns.',
-        cooldown: 3,
-        targeting: 'enemy',
-        animation: 'attack',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.4 },
           { type: 'debuff', stat: 'def', mult: 0.7, turns: 2 },
         ],
       },
       {
-        id: 'judgement',
-        name: 'Radiant Judgement',
+        id: 'judgement', name: 'Radiant Judgement',
         description: 'Smite ALL enemies for 90% ATK and raise own DEF by 40% for 2 turns.',
-        cooldown: 6,
-        targeting: 'all-enemies',
-        animation: 'attack',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [{ type: 'damage', mult: 0.9 }],
         selfEffects: [{ type: 'buff', stat: 'def', mult: 1.4, turns: 2 }],
       },
     ],
+    passive: regenPassive('Second Wind', 0.04),
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.25,
+      description: 'Vanguard: +25% DEF while in a front hex.',
+    },
+  },
+
+  cindra: {
+    id: 'cindra',
+    name: 'Cindra',
+    title: 'Ember Witch',
+    rarity: 4,
+    stats: { hp: 1150, atk: 260, def: 95, speed: 105 },
+    tint: { body: '#a83a3a', helm: '#d86a3a', weapon: '#ffc84a', shield: '#7a2a2a' },
+    sprite: defaultSprite('cindra'),
+    abilities: [
+      {
+        id: 'ember_bolt', name: 'Ember Bolt',
+        description: 'Scorch one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'flame_lash', name: 'Flame Lash',
+        description: 'Lash one enemy for 130% ATK and lower its ATK by 25% for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'atk', mult: 0.75, turns: 2 },
+        ],
+      },
+      {
+        id: 'inferno', name: 'Inferno',
+        description: 'Engulf ALL enemies for 110% ATK.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+    ],
     passive: {
-      name: 'Second Wind',
-      description: 'Recovers 4% max HP at the start of each turn.',
+      name: 'Rising Heat',
+      description: 'Below 50% HP, gains +20% ATK for 1 turn at turn start.',
       hooks: {
         onTurnStart(unit) {
-          const amount = Math.round(unit.maxHp * 0.04);
-          const healed = unit.heal(amount);
-          if (healed > 0) {
-            return { kind: 'passive-heal', amount: healed, label: 'Second Wind' };
-          }
-          return null;
+          if (unit.hp / unit.maxHp >= 0.5) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 1 });
+          return {
+            label: 'Rising Heat',
+            message: `${unit.name} burns hotter (+20% ATK this turn).`,
+            floats: [{ target: unit, text: 'ATK ▲', color: '#ff9a5a' }],
+          };
         },
       },
     },
     positional: {
-      position: POSITION.FRONT,
-      stat: 'def',
-      mult: 1.25,
-      description: 'Vanguard: +25% DEF while in a front hex.',
+      position: POSITION.BACK, stat: 'atk', mult: 1.25,
+      description: 'Long Fuse: +25% ATK while in a back hex.',
+    },
+  },
+
+  vex: {
+    id: 'vex',
+    name: 'Vex',
+    title: 'Shadowblade',
+    rarity: 4,
+    stats: { hp: 1050, atk: 270, def: 85, speed: 125 },
+    tint: { body: '#3a3a4a', helm: '#5a5a7a', skin: '#c8a88a', weapon: '#9a8aff' },
+    sprite: defaultSprite('vex'),
+    abilities: [
+      {
+        id: 'shadow_cut', name: 'Shadow Cut',
+        description: 'Cut one enemy for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'hamstring', name: 'Hamstring',
+        description: 'Strike for 120% ATK and lower the target\'s SPD by 30% for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'speed', mult: 0.7, turns: 2 },
+        ],
+      },
+      {
+        id: 'deathmark', name: 'Deathmark',
+        description: 'Ambush one enemy for 220% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 2.2 }],
+      },
+    ],
+    passive: {
+      name: 'Shadow Veil',
+      description: 'While in a back hex, gains +25% DEF for 1 turn at turn start.',
+      hooks: {
+        onTurnStart(unit) {
+          if (!unit.slot || unit.slot.position !== POSITION.BACK) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.25, turns: 1 });
+          return {
+            label: 'Shadow Veil',
+            message: `${unit.name} melts into shadow (+25% DEF this turn).`,
+            floats: [{ target: unit, text: 'DEF ▲', color: '#9a8aff' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.2,
+      description: 'First Blood: +20% ATK while in a front hex.',
+    },
+  },
+
+  // ---- 5★ ---------------------------------------------------------------
+
+  zephyra: {
+    id: 'zephyra',
+    name: 'Zephyra',
+    title: 'Stormcaller',
+    rarity: 5,
+    stats: { hp: 1350, atk: 300, def: 110, speed: 115 },
+    tint: { body: '#3a6a8a', helm: '#8ad8ff', weapon: '#ffe86a', shield: '#2a4a6a' },
+    sprite: defaultSprite('zephyra'),
+    abilities: [
+      {
+        id: 'spark', name: 'Spark',
+        description: 'Shock one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'chain_lightning', name: 'Chain Lightning',
+        description: 'Blast ALL enemies for 75% ATK.',
+        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.75 }],
+      },
+      {
+        id: 'tempest', name: 'Tempest',
+        description: 'Unleash the storm: 130% ATK to ALL enemies, -20% SPD for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'speed', mult: 0.8, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Static Charge',
+      description: 'Zaps a random enemy for 25% ATK at the start of each turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const dmg = Abilities.damageFormula(
+            unit.effectiveStat('atk') * 0.25, target.effectiveStat('def'));
+          target.takeDamage(dmg);
+          return {
+            label: 'Static Charge',
+            message: `${unit.name}'s Static Charge zaps ${target.name} for ${dmg}.`,
+            floats: [{ target, text: `-${dmg}`, color: '#ffe86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.3,
+      description: 'Eye of the Storm: +30% ATK while in the center hex.',
+    },
+  },
+
+  aurelius: {
+    id: 'aurelius',
+    name: 'Aurelius',
+    title: 'Dawn Paladin',
+    rarity: 5,
+    stats: { hp: 1800, atk: 230, def: 180, speed: 90 },
+    tint: { body: '#c8a83a', helm: '#ffe8a8', shield: '#e8e8f0', weapon: '#fff8d8' },
+    sprite: defaultSprite('aurelius'),
+    abilities: [
+      {
+        id: 'dawn_strike', name: 'Dawn Strike',
+        description: 'Strike one enemy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'consecrate', name: 'Consecrate',
+        description: 'Heal one ally for 100% ATK and raise their DEF by 25% for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.0 },
+          { type: 'buff', stat: 'def', mult: 1.25, turns: 2 },
+        ],
+      },
+      {
+        id: 'aegis_of_dawn', name: 'Aegis of Dawn',
+        description: 'Heal ALL allies for 60% ATK and raise their DEF by 30% for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.6 },
+          { type: 'buff', stat: 'def', mult: 1.3, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: "Guardian's Aegis",
+      description: 'Grants ALL allies +10% DEF for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team);
+          allies.forEach((u) =>
+            u.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 1 }));
+          return {
+            label: "Guardian's Aegis",
+            message: `${unit.name}'s aegis shields the team (+10% DEF this turn).`,
+            floats: [{ target: unit, text: 'DEF ▲', color: '#ffe8a8' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.3,
+      description: 'Dawnguard: +30% DEF while in a front hex.',
     },
   },
 };

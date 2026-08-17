@@ -10,13 +10,94 @@ body {
   font-family: 'Courier New', monospace;
   display: flex;
   justify-content: center;
-  align-items: center;
+  padding: 16px 0 40px;
   min-height: 100vh;
 }
 
 #game-root {
   position: relative;
   width: 960px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==== Top bar ==== */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
+}
+
+#logo {
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #ffd76a;
+  font-size: 15px;
+}
+
+#nav-tabs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.nav-tab {
+  padding: 7px 18px;
+  background: #2b2740;
+  color: #b8b2cc;
+  border: 1px solid #4a4468;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.nav-tab:hover { background: #3d3760; color: #e8e4d8; }
+.nav-tab.active {
+  background: #4d4578;
+  color: #ffd76a;
+  border-color: #ffd76a;
+}
+
+#gem-display {
+  font-size: 14px;
+  color: #8ecbff;
+  font-weight: bold;
+}
+
+/* ==== Shared buttons / rarity colors ==== */
+.panel-btn {
+  padding: 8px 16px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #6a5f96;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.panel-btn:hover:not(:disabled) { background: #3d3760; }
+.panel-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.panel-btn.gold { border-color: #ffd76a; color: #ffd76a; }
+.panel-btn.gold:hover:not(:disabled) { background: #4d4530; }
+.panel-btn.danger { border-color: #a85a5a; color: #ff9a8a; }
+.panel-btn.danger:hover:not(:disabled) { background: #4d3030; }
+
+.rarity-3 { color: #8ecbff; }
+.rarity-4 { color: #d78aff; }
+.rarity-5 { color: #ffd76a; }
+
+/* ==== Battle screen ==== */
+#battle-wrap {
+  position: relative;
 }
 
 #battle-canvas {
@@ -30,11 +111,10 @@ body {
   cursor: default;
 }
 
-/* ---- Ability bar ---- */
 #ability-bar {
   position: absolute;
   left: 50%;
-  bottom: 118px; /* anchored just above the canvas bottom edge, clear of the log */
+  bottom: 12px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -109,7 +189,6 @@ body {
   50% { opacity: 0.4; }
 }
 
-/* ---- Battle log ---- */
 #battle-log {
   margin-top: 8px;
   height: 96px;
@@ -127,23 +206,311 @@ body {
 #battle-log .log-enemy  { color: #ff9a8a; }
 #battle-log .log-system { color: #ffd76a; }
 
-/* ---- End banner ---- */
 #battle-banner {
   position: absolute;
-  top: 200px;
+  top: 170px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 18px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 48px;
   background: rgba(20, 18, 30, 0.95);
   border: 2px solid #ffd76a;
   border-radius: 10px;
+  text-align: center;
+}
+
+#banner-title {
   font-size: 28px;
   font-weight: bold;
   letter-spacing: 3px;
   color: #ffd76a;
+}
+
+#banner-sub {
+  font-size: 14px;
+  color: #b8b2cc;
+}
+
+/* ==== Team builder screen ==== */
+#team-top {
+  display: flex;
+  gap: 12px;
+}
+
+#team-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#team-canvas {
+  display: block;
+  width: 560px;
+  height: 400px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
+  image-rendering: pixelated;
+}
+
+#team-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#team-count {
+  flex: 1;
+  font-size: 12px;
+  color: #9a92b8;
+}
+
+#hero-details {
+  flex: 1;
+  padding: 12px 14px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.details-empty {
+  color: #9a92b8;
+  font-size: 12px;
+}
+
+.detail-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.detail-title {
+  font-size: 11px;
+  font-weight: normal;
+  color: #9a92b8;
+}
+
+.detail-stats {
+  margin: 6px 0 4px;
+  color: #b8b2cc;
+}
+
+.detail-section {
+  margin-top: 10px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #3a3450;
+  color: #ffd76a;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.detail-ability {
+  margin-top: 6px;
+  color: #c8c2da;
+}
+
+.detail-ability .cd {
+  color: #9a92b8;
+  font-size: 10px;
+}
+
+.detail-ability.bonus-live {
+  color: #ffd76a;
+}
+
+#hero-details .panel-btn {
+  margin-top: 12px;
+}
+
+#roster-section {
+  margin-top: 12px;
+}
+
+#roster-section h3 {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #9a92b8;
+  margin-bottom: 8px;
+}
+
+#roster-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.roster-card {
+  position: relative;
+  width: 104px;
+  padding: 8px 6px 6px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.08s, border-color 0.08s;
+}
+
+.roster-card:hover { transform: translateY(-2px); border-color: #6a5f96; }
+.roster-card.selected { border-color: #ffd76a; }
+
+.roster-card .portrait,
+.summon-card .portrait {
+  image-rendering: pixelated;
+  background: #14121a;
+  border-radius: 6px;
+}
+
+.card-name {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.card-stars {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.card-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 1px 4px;
+  background: #2a4a2a;
+  border: 1px solid #4ad46a;
+  border-radius: 4px;
+  font-size: 8px;
+  color: #7ae87a;
+}
+
+.card-copies {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  color: #9a92b8;
+}
+
+/* ==== Summon screen ==== */
+#summon-header {
+  padding: 14px 16px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
   text-align: center;
 }
 
-.hidden {
-  display: none !important;
+#summon-header h2 {
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: #ffd76a;
+}
+
+.summon-rates {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9a92b8;
+}
+
+#pity-counter {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #d78aff;
+}
+
+#summon-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+#summon-error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ff8a8a;
+  min-height: 16px;
+}
+
+#summon-results {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  min-height: 190px;
+}
+
+.summon-card {
+  width: 116px;
+  height: 172px;
+  perspective: 600px;
+}
+
+.summon-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.summon-card.revealed .summon-card-inner {
+  transform: rotateY(180deg);
+}
+
+.summon-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  background: #1c1926;
+}
+
+.summon-back {
+  border: 2px solid #4a4468;
+  font-size: 40px;
+  color: #4a4468;
+}
+
+.summon-front {
+  transform: rotateY(180deg);
+  border: 2px solid #3a3450;
+  padding: 8px;
+}
+
+.summon-front.rarity-border-3 { border-color: #8ecbff; }
+.summon-front.rarity-border-4 { border-color: #d78aff; box-shadow: 0 0 10px rgba(215, 138, 255, 0.35); }
+.summon-front.rarity-border-5 {
+  border-color: #ffd76a;
+  box-shadow: 0 0 16px rgba(255, 215, 106, 0.55);
+  animation: gold-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes gold-glow {
+  50% { box-shadow: 0 0 26px rgba(255, 215, 106, 0.85); }
+}
+
+.card-new {
+  font-size: 10px;
+  font-weight: bold;
+  color: #7ae87a;
+}
+
+.card-dupe {
+  font-size: 10px;
+  color: #9a92b8;
 }

@@ -198,5 +198,34 @@ const Sprites = (() => {
     return new SpriteSheet(canvas, frameW, frameH, PLACEHOLDER.animations);
   }
 
-  return { load };
+  // Cache: one sheet promise per definition id, shared by battle units,
+  // team-builder previews, and roster/summon portraits.
+  const sheetCache = new Map();
+
+  function getSheet(def) {
+    if (!sheetCache.has(def.id)) {
+      sheetCache.set(def.id, load(def.sprite, def.tint || {}));
+    }
+    return sheetCache.get(def.id);
+  }
+
+  // Draw a hero's idle frame 0 into a portrait canvas element.
+  async function drawPortrait(canvasEl, def) {
+    const sheet = await getSheet(def);
+    const ctx = canvasEl.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    // Integer scale that fits the frame inside the portrait canvas.
+    const scale = Math.max(1, Math.floor(
+      Math.min(canvasEl.width / sheet.frameW, canvasEl.height / sheet.frameH)));
+    const w = sheet.frameW * scale;
+    const h = sheet.frameH * scale;
+    ctx.drawImage(
+      sheet.image,
+      0, sheet.animations.idle.row * sheet.frameH, sheet.frameW, sheet.frameH,
+      (canvasEl.width - w) / 2, (canvasEl.height - h) / 2, w, h
+    );
+  }
+
+  return { load, getSheet, drawPortrait };
 })();

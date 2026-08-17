@@ -12,6 +12,20 @@ python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
+## Screens
+
+- **Summon** — spend gems on ×1 (100) or ×10 (900) pulls. Rates: 3★ 70% /
+  4★ 25% / 5★ 5%; a ×10 guarantees a 4★+, and a 5★ is guaranteed within 40
+  pulls (pity). Duplicates are tracked as copies on the roster.
+- **Team** — the team builder. Click a roster hero, then a hex to place
+  them; click a placed hero, then another hex to move or swap. Hexes where
+  the selected hero's positional bonus activates glow gold. Fight! starts
+  a battle against a randomly generated enemy wave.
+- **Battle** — the turn-based combat itself. Victory pays out gems, which
+  loop back into summons.
+
+Progress (gems, roster, team layout, pity) persists in `localStorage`.
+
 ## Battle layout
 
 Each side fields up to **7 units** on a hex "flower": a center hex ringed by
@@ -44,6 +58,8 @@ ability + target input; enemies act on simple AI.
 | File | What it does |
 |---|---|
 | `js/config.js` | Tunables: layout, turn meter, sprite scale |
+| `js/state.js` | Persistent player state: gems, roster, team, pity |
+| `js/gacha.js` | Summon rates, pity, pull resolution |
 | `js/hex.js` | Hex math + the 7-slot formation builder |
 | `js/sprites.js` | Spritesheet loading, animation playback, placeholder art |
 | `js/abilities.js` | Ability/effect resolution (damage, heal, buff, debuff) |
@@ -53,12 +69,14 @@ ability + target input; enemies act on simple AI.
 | `js/battle.js` | Battle engine: turn order, actions, enemy AI |
 | `js/render.js` | Canvas drawing: grid, sprites, bars, floating text |
 | `js/ui.js` | DOM UI: ability bar, targeting, battle log |
-| `js/main.js` | Bootstrap + game loop |
+| `js/battle_screen.js` | Battle screen: team → battle, enemy waves, rewards |
+| `js/team_screen.js` | Team builder screen |
+| `js/summon_screen.js` | Gacha summon screen |
+| `js/main.js` | App shell: nav, screen switching, game loop |
 
 ## Roadmap
 
-- [ ] Gacha summon screen + hero collection
-- [ ] Team builder with drag-to-place formation editing
 - [ ] More heroes, real spritesheets
 - [ ] Status effect icons, stuns, and richer effect types
 - [ ] Stages / waves and progression
+- [ ] Hero leveling / dupe-powered upgrades

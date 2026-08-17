@@ -63,9 +63,9 @@ class Battle {
 
     if (this.state !== BattleState.TICKING) return;
 
-    // Advance turn meters.
+    // Advance turn meters (speed buffs/debuffs apply here).
     for (const u of this.livingUnits()) {
-      u.turnMeter += u.speed * CONFIG.TICK_SPEED_SCALE * dt * 10;
+      u.turnMeter += u.effectiveStat('speed') * CONFIG.TICK_SPEED_SCALE * dt * 10;
     }
 
     // Highest overfilled meter acts first.
@@ -80,11 +80,21 @@ class Battle {
     this.activeUnit = unit;
     unit.turnMeter = CONFIG.TURN_METER_MAX;
 
-    const passiveResult = unit.startTurn();
-    if (passiveResult && passiveResult.kind === 'passive-heal') {
-      this.addFloatingText(unit, `+${passiveResult.amount}`, '#7ae87a');
-      this.log(`${unit.name}'s ${passiveResult.label} restores ${passiveResult.amount} HP.`,
+    const passiveResult = unit.startTurn(this);
+    if (passiveResult) {
+      (passiveResult.floats || []).forEach((f) =>
+        this.addFloatingText(f.target, f.text, f.color));
+      this.log(passiveResult.message,
         unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+    }
+
+    // A damaging passive may have just ended the battle.
+    const winner = this.checkEnd();
+    if (winner) {
+      this.activeUnit = null;
+      this.state = BattleState.ENDED;
+      if (this.onBattleEnd) this.onBattleEnd(winner);
+      return;
     }
 
     if (unit.team === TEAM.PLAYER) {

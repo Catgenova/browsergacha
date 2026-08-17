@@ -1,16 +1,23 @@
 // Canvas rendering: hex grids, units, health/turn-meter bars, floating text.
 
 class Renderer {
-  constructor(canvas, battle) {
+  constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.battle = battle;
+    this.battle = null;        // bound via setBattle for each new battle
     this.hoveredUnit = null;   // set by UI for target highlighting
     this.targetingMode = null; // 'enemy' | 'ally' | null
   }
 
+  setBattle(battle) {
+    this.battle = battle;
+    this.hoveredUnit = null;
+    this.targetingMode = null;
+  }
+
   draw() {
     const { ctx } = this;
+    if (!this.battle) return;
     ctx.clearRect(0, 0, CONFIG.CANVAS_W, CONFIG.CANVAS_H);
 
     this.drawBackground();

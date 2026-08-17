@@ -1,10 +1,11 @@
-// DOM UI: ability bar, target selection, battle log, end banner.
+// DOM UI for the battle screen: ability bar, target selection, battle log,
+// end banner. Rebindable to a fresh Battle via bind().
 
 class UI {
-  constructor(battle, renderer, canvas) {
-    this.battle = battle;
+  constructor(renderer, canvas) {
     this.renderer = renderer;
     this.canvas = canvas;
+    this.battle = null;
 
     this.abilityBar = document.getElementById('ability-bar');
     this.heroNameEl = document.getElementById('active-hero-name');
@@ -12,16 +13,31 @@ class UI {
     this.targetHint = document.getElementById('target-hint');
     this.logEl = document.getElementById('battle-log');
     this.bannerEl = document.getElementById('battle-banner');
+    this.bannerTitle = document.getElementById('banner-title');
+    this.bannerSub = document.getElementById('banner-sub');
+    this.bannerReturn = document.getElementById('banner-return');
 
     this.activeHero = null;
     this.selectedAbility = null; // ability state awaiting a target
-
-    battle.onLog = (msg, cls) => this.appendLog(msg, cls);
-    battle.onPlayerTurn = (unit) => this.showAbilityBar(unit);
-    battle.onBattleEnd = (winner) => this.showBanner(winner);
+    this.onReturn = null;        // wired by the app (back to team screen)
 
     canvas.addEventListener('click', (e) => this.onCanvasClick(e));
     canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
+    this.bannerReturn.addEventListener('click', () => {
+      this.bannerEl.classList.add('hidden');
+      if (this.onReturn) this.onReturn();
+    });
+  }
+
+  // Attach to a (new) battle and reset all transient UI.
+  bind(battle) {
+    this.battle = battle;
+    this.hideAbilityBar();
+    this.bannerEl.classList.add('hidden');
+    this.logEl.innerHTML = '';
+
+    battle.onLog = (msg, cls) => this.appendLog(msg, cls);
+    battle.onPlayerTurn = (unit) => this.showAbilityBar(unit);
   }
 
   canvasPoint(e) {
@@ -71,15 +87,13 @@ class UI {
   }
 
   selectAbility(abilityState, btn) {
-    // Toggle selection highlight
     this.buttonsEl.querySelectorAll('.ability-btn').forEach((b) => b.classList.remove('selected'));
     btn.classList.add('selected');
     this.selectedAbility = abilityState;
 
     const targeting = abilityState.def.targeting;
     if (targeting === 'self' || targeting === 'all-enemies' || targeting === 'all-allies') {
-      // No target needed — fire immediately.
-      this.commit(null);
+      this.commit(null); // no target needed — fire immediately
     } else {
       this.renderer.targetingMode = targeting; // 'enemy' | 'ally'
       this.targetHint.classList.remove('hidden');
@@ -96,7 +110,7 @@ class UI {
   // ---- Canvas interaction ------------------------------------------------
 
   onCanvasClick(e) {
-    if (!this.selectedAbility || !this.renderer.targetingMode) return;
+    if (!this.battle || !this.selectedAbility || !this.renderer.targetingMode) return;
     const { x, y } = this.canvasPoint(e);
     const unit = this.battle.unitAt(x, y);
     if (!unit) return;
@@ -109,7 +123,7 @@ class UI {
   }
 
   onCanvasMove(e) {
-    if (!this.renderer.targetingMode) {
+    if (!this.battle || !this.renderer.targetingMode) {
       this.canvas.style.cursor = 'default';
       return;
     }
@@ -129,9 +143,10 @@ class UI {
     this.logEl.scrollTop = this.logEl.scrollHeight;
   }
 
-  showBanner(winner) {
+  showBanner(winner, subText = '') {
     this.hideAbilityBar();
-    this.bannerEl.textContent = winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT';
+    this.bannerTitle.textContent = winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT';
+    this.bannerSub.textContent = subText;
     this.bannerEl.classList.remove('hidden');
     this.appendLog(winner === TEAM.PLAYER ? 'Victory!' : 'Defeat…', 'log-system');
   }

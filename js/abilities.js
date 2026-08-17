@@ -86,5 +86,5 @@ const Abilities = (() => {
     return results;
   }
 
-  return { execute, resolveTargets };
+  return { execute, resolveTargets, damageFormula };
 })();

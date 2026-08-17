@@ -8,20 +8,74 @@
 </head>
 <body>
   <div id="game-root">
-    <canvas id="battle-canvas" width="960" height="540"></canvas>
+    <!-- Top bar: nav + currency -->
+    <header id="topbar">
+      <div id="logo">BROWSER GACHA</div>
+      <nav id="nav-tabs">
+        <button class="nav-tab" data-screen="summon">Summon</button>
+        <button class="nav-tab" data-screen="team">Team</button>
+        <button class="nav-tab" data-screen="battle">Battle</button>
+      </nav>
+      <div id="gem-display">💎 <span id="gem-count">0</span></div>
+    </header>
 
-    <!-- Ability bar: shown when it's a player hero's turn -->
-    <div id="ability-bar" class="hidden">
-      <div id="active-hero-name"></div>
-      <div id="ability-buttons"></div>
-      <div id="target-hint" class="hidden">Select a target…</div>
-    </div>
+    <!-- ================= Summon screen ================= -->
+    <section id="screen-summon" class="screen hidden">
+      <div id="summon-header">
+        <h2>Hero Summon</h2>
+        <div class="summon-rates">Rates: 3★ 70% · 4★ 25% · 5★ 5% — ×10 guarantees a 4★+</div>
+        <div id="pity-counter"></div>
+        <div id="summon-actions">
+          <button id="summon-one-btn" class="panel-btn">Summon ×1 (100 💎)</button>
+          <button id="summon-ten-btn" class="panel-btn gold">Summon ×10 (900 💎)</button>
+        </div>
+        <div id="summon-error"></div>
+      </div>
+      <div id="summon-results"></div>
+    </section>
 
-    <!-- Battle log -->
-    <div id="battle-log"></div>
+    <!-- ================= Team builder screen ================= -->
+    <section id="screen-team" class="screen hidden">
+      <div id="team-top">
+        <div id="team-canvas-wrap">
+          <canvas id="team-canvas" width="560" height="400"></canvas>
+          <div id="team-controls">
+            <span id="team-count"></span>
+            <button id="clear-team-btn" class="panel-btn danger">Clear team</button>
+            <button id="fight-btn" class="panel-btn gold">Fight!</button>
+          </div>
+        </div>
+        <aside id="hero-details"></aside>
+      </div>
+      <div id="roster-section">
+        <h3>Your Heroes</h3>
+        <div id="roster-grid"></div>
+      </div>
+    </section>
 
-    <!-- End-of-battle banner -->
-    <div id="battle-banner" class="hidden"></div>
+    <!-- ================= Battle screen ================= -->
+    <section id="screen-battle" class="screen hidden">
+      <div id="battle-wrap">
+        <canvas id="battle-canvas" width="960" height="540"></canvas>
+
+        <!-- Ability bar: shown when it's a player hero's turn -->
+        <div id="ability-bar" class="hidden">
+          <div id="active-hero-name"></div>
+          <div id="ability-buttons"></div>
+          <div id="target-hint" class="hidden">Select a target…</div>
+        </div>
+
+        <!-- End-of-battle banner -->
+        <div id="battle-banner" class="hidden">
+          <div id="banner-title"></div>
+          <div id="banner-sub"></div>
+          <button id="banner-return" class="panel-btn gold">Return to Team</button>
+        </div>
+      </div>
+
+      <!-- Battle log -->
+      <div id="battle-log"></div>
+    </section>
   </div>
 
   <script src="js/config.js"></script>
@@ -31,9 +85,14 @@
   <script src="js/hero.js"></script>
   <script src="js/data/heroes.js"></script>
   <script src="js/data/enemies.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/gacha.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/render.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/battle_screen.js"></script>
+  <script src="js/team_screen.js"></script>
+  <script src="js/summon_screen.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -106,16 +106,17 @@ class Unit {
     return this.abilities.filter((a) => a.cooldownRemaining === 0);
   }
 
-  startTurn() {
+  startTurn(battle) {
     // Cooldowns tick down at the start of this unit's own turn.
     for (const a of this.abilities) {
       if (a.cooldownRemaining > 0) a.cooldownRemaining--;
     }
     this.tickStatusEffects();
 
-    // Passive hook: onTurnStart (e.g. regeneration).
+    // Passive hook: onTurnStart. Returns null or a display result:
+    //   { label, message, floats: [{ target, text, color }] }
     if (this.passive && this.passive.hooks && this.passive.hooks.onTurnStart) {
-      return this.passive.hooks.onTurnStart(this) || null;
+      return this.passive.hooks.onTurnStart(this, battle) || null;
     }
     return null;
   }
