@@ -65,6 +65,11 @@ const Abilities = (() => {
         return battle.livingUnits(caster.enemyTeam());
       case 'all-allies':
         return battle.livingUnits(caster.team);
+      case 'enemy-row':
+        // The chosen enemy plus everyone in its hex row (same y).
+        if (!chosenTarget) return [];
+        return battle.livingUnits(caster.enemyTeam())
+          .filter((u) => Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
       case 'ally':
       case 'enemy':
       default:

@@ -81,6 +81,7 @@ class UI {
   hideAbilityBar() {
     this.abilityBar.classList.add('hidden');
     this.renderer.targetingMode = null;
+    this.renderer.rowMode = false;
     this.renderer.hoveredUnit = null;
     this.activeHero = null;
     this.selectedAbility = null;
@@ -95,7 +96,9 @@ class UI {
     if (targeting === 'self' || targeting === 'all-enemies' || targeting === 'all-allies') {
       this.commit(null); // no target needed — fire immediately
     } else {
-      this.renderer.targetingMode = targeting; // 'enemy' | 'ally'
+      // 'enemy', 'enemy-row' (pick any enemy in the row), or 'ally'
+      this.renderer.targetingMode = targeting === 'ally' ? 'ally' : 'enemy';
+      this.renderer.rowMode = targeting === 'enemy-row';
       this.targetHint.classList.remove('hidden');
     }
   }

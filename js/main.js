@@ -63,7 +63,7 @@ const App = {
   // lag behind. Poll for a newer stamped version and offer a reload.
   if (location.protocol.startsWith('http') && versionTag.textContent !== 'dev') {
     const current = versionTag.textContent;
-    setInterval(async () => {
+    const checkForUpdate = async () => {
       try {
         const res = await fetch(location.href, { cache: 'no-store' });
         const html = await res.text();
@@ -74,7 +74,9 @@ const App = {
           versionTag.onclick = () => location.reload(true);
         }
       } catch (e) { /* offline etc. — try again next tick */ }
-    }, 60000);
+    };
+    checkForUpdate(); // immediately on load, in case this page is stale
+    setInterval(checkForUpdate, 60000);
   }
 
   App.screens.summon = new SummonScreen(App);

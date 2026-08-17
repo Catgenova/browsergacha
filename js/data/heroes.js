@@ -208,6 +208,21 @@ const HEROES = {
         // rests on frame 16 as the crystals flare.
         buff:   { src: 'assets/heroes/florence/Knightbuff.png', frames: 20, fps: 12, loop: false,
                   holds: { 16: 5 } },
+        // Skill 3 — same frames as the jump slash, but she leaps straight
+        // up, the swing hurls a windshear along the enemy row, and she
+        // lands back on her own hex. Same frame timing as jumpslash.
+        rowslash: {
+          src: 'assets/heroes/florence/Knightjumpslash.png',
+          frames: 23, fps: 10, loop: false,
+          holds: { 7: 4, 16: 0.5, 17: 0.5, 18: 0.5, 19: 0.5, 20: 0.5, 21: 5 },
+          hitFrame: 17,
+          motion: [
+            { frames: [1, 7],   from: 'origin',    to: 'origin' },
+            { frames: [8, 15],  from: 'origin',    to: 'originAir' },
+            { frames: [16, 21], from: 'originAir', to: 'originAir' },
+            { frames: [22, 23], from: 'originAir', to: 'origin' },
+          ],
+        },
         // Skill 1 — leap to the target and slash through them:
         //   1-7   windup on her hex, holding frame 7 as she tenses
         //   8-15  airborne arc to just in front of the target
@@ -246,12 +261,9 @@ const HEROES = {
       },
       {
         id: 'prism_break', name: 'Prism Break',
-        description: 'Shatter one enemy for 200% ATK and lower its DEF by 25% for 2 turns.',
-        cooldown: 6, targeting: 'enemy', animation: 'attack',
-        effects: [
-          { type: 'damage', mult: 2.0 },
-          { type: 'debuff', stat: 'def', mult: 0.75, turns: 2 },
-        ],
+        description: 'Leap skyward and hurl a shearing wave that cuts an entire enemy row for 170% ATK.',
+        cooldown: 7, targeting: 'enemy-row', animation: 'rowslash', vfx: 'windshear',
+        effects: [{ type: 'damage', mult: 1.7 }],
       },
     ],
     passive: {
