@@ -139,7 +139,10 @@ class AnimationPlayer {
           const cb = this.onComplete;
           this.onComplete = null;
           if (cb) cb();
-          this.play('idle');
+          // freeze: stay on the final frame (death poses) instead of
+          // returning to idle.
+          if (!anim.freeze) this.play('idle');
+          else this.elapsed = 0;
           return;
         }
       }
@@ -151,7 +154,8 @@ class AnimationPlayer {
   }
 
   // Draw centered at (x, y), scaled to the sheet's display height.
-  draw(ctx, x, y, flipX) {
+  // whiteFlash (0..1) tints the sprite's own silhouette white — hit flash.
+  draw(ctx, x, y, flipX, whiteFlash = 0) {
     const anim = this.sheet.animations[this.current] || this.sheet.animations.idle;
     if (!anim) return;
     const scale = this.sheet.displayH / anim.frameH;
@@ -159,8 +163,8 @@ class AnimationPlayer {
     const h = anim.frameH * scale;
     // Map playback index -> sheet frame (identity unless order remaps it).
     const sheetFrame = anim.order ? anim.order[this.frame] - 1 : this.frame;
-    const sx = sheetFrame * anim.frameW;
-    const sy = anim.row * anim.frameH;
+    const sx = anim.vertical ? 0 : sheetFrame * anim.frameW;
+    const sy = anim.vertical ? sheetFrame * anim.frameH : anim.row * anim.frameH;
 
     ctx.save();
     // High-res art shrinking down gets quality resampling; low-res pixel
@@ -169,10 +173,22 @@ class AnimationPlayer {
     ctx.imageSmoothingQuality = 'high';
     ctx.translate(x, y);
     if (flipX) ctx.scale(-1, 1);
-    if (anim.vertical) {
-      ctx.drawImage(anim.image, 0, sheetFrame * anim.frameH, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
-    } else {
-      ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+    ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+
+    if (whiteFlash > 0) {
+      const scratch = AnimationPlayer.scratch ||
+        (AnimationPlayer.scratch = document.createElement('canvas'));
+      if (scratch.width < anim.frameW) scratch.width = anim.frameW;
+      if (scratch.height < anim.frameH) scratch.height = anim.frameH;
+      const sctx = scratch.getContext('2d');
+      sctx.clearRect(0, 0, anim.frameW, anim.frameH);
+      sctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, 0, 0, anim.frameW, anim.frameH);
+      sctx.globalCompositeOperation = 'source-in';
+      sctx.fillStyle = '#ffffff';
+      sctx.fillRect(0, 0, anim.frameW, anim.frameH);
+      sctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = Math.min(1, whiteFlash);
+      ctx.drawImage(scratch, 0, 0, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
     }
     ctx.restore();
   }
@@ -221,6 +237,7 @@ const Sprites = (() => {
           hitFrame: strip.hitFrame || null, // effects land on this frame
           motion: strip.motion || null,     // movement phases (see battle.js)
           frameEffects: strip.frameEffects || null, // spawned effects per frame
+          freeze: !!strip.freeze,           // hold last frame at completion
         };
       }
       if (animations.idle) {

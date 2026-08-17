@@ -140,12 +140,17 @@ class Renderer {
     const { x, y } = this.battle.motionPos(unit);
 
     if (!unit.alive) {
-      // Fallen units: faded grave marker.
-      ctx.save();
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#888';
-      ctx.fillRect(x - 6, y - 10, 12, 18);
-      ctx.restore();
+      if (unit.animator && unit.animator.current === 'death') {
+        // Death animation plays out and freezes on its final frame.
+        unit.animator.draw(ctx, x, y, unit.team === TEAM.ENEMY);
+      } else {
+        // Fallback for units without death art: faded grave marker.
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#888';
+        ctx.fillRect(x - 6, y - 10, 12, 18);
+        ctx.restore();
+      }
       return;
     }
 
@@ -179,18 +184,10 @@ class Renderer {
       }
     }
 
-    // Sprite (with white flash when recently hit).
+    // Sprite; recently-hit units flash white along their own silhouette.
     if (unit.animator) {
-      unit.animator.draw(ctx, x, y, flipX);
-      if (unit.hitFlash > 0) {
-        // Simple flash overlay box; per-sprite compositing can come later.
-        const size = unit.animator.size();
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, unit.hitFlash * 5) * 0.35;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x - size.w / 2, y - size.h / 2, size.w, size.h);
-        ctx.restore();
-      }
+      const flash = unit.hitFlash > 0 ? Math.min(1, unit.hitFlash * 5) * 0.85 : 0;
+      unit.animator.draw(ctx, x, y, flipX, flash);
     }
 
     this.drawBars(unit, x, y);
