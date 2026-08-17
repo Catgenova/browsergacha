@@ -9,6 +9,113 @@
 // Rarity drives gacha rates and rough stat budgets (3★ < 4★ < 5★).
 
 const HEROES = {
+  // ---- 1★ rat cohort ------------------------------------------------------
+  // Idle-only art for now; attack/ready/death strips will be added later
+  // (attacks gracefully hold idle until then).
+
+  rat_archer: {
+    id: 'rat_archer',
+    name: 'Rat Archer',
+    title: 'Burrow Scout',
+    rarity: 1,
+    stats: { hp: 700, atk: 115, def: 55, speed: 100 },
+    tint: { body: '#5a7a4a', helm: '#7a9a5a', weapon: '#a88a5a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_archer/ratarcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'quick_shot', name: 'Quick Shot',
+        description: 'Loose an arrow for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'aimed_shot', name: 'Aimed Shot',
+        description: 'A careful shot for 140% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.4 }],
+      },
+      {
+        id: 'arrow_rain', name: 'Arrow Rain',
+        description: 'Pepper ALL enemies for 70% ATK.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.7 }],
+      },
+    ],
+    passive: {
+      name: 'Twitchy',
+      description: 'Gains +8% SPD for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.08, turns: 1 });
+          return null; // silent — too minor to log every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Skirmisher: +15% ATK while in a back hex.',
+    },
+  },
+
+  rat_brawler: {
+    id: 'rat_brawler',
+    name: 'Rat Brawler',
+    title: 'Gutter Scrapper',
+    rarity: 1,
+    stats: { hp: 900, atk: 105, def: 80, speed: 90 },
+    tint: { body: '#8a6a4a', helm: '#a8845a', weapon: '#b8b0a8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_brawler/ratbrawleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'jab', name: 'Jab',
+        description: 'A quick jab for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'haymaker', name: 'Haymaker',
+        description: 'A wild swing for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'gutter_stance', name: 'Gutter Stance',
+        description: 'Hunker down: +40% DEF for 2 turns.',
+        cooldown: 5, targeting: 'self', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.4, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Thick Hide',
+      description: 'Recovers 3% max HP at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+          if (healed <= 0) return null;
+          return {
+            label: 'Thick Hide',
+            message: `${unit.name}'s Thick Hide restores ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Scrapper: +15% DEF while in a front hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     name: 'Florence',
