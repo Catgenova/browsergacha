@@ -21,6 +21,8 @@ class Battle {
     this.units = [];
     this.state = BattleState.TICKING;
     this.activeUnit = null;
+    this.autoMode = false;      // player heroes act via AI when true
+    this.onAutoTakeover = null; // notify UI when auto seizes a pending turn
 
     // Transient view data
     this.floatingTexts = []; // { x, y, text, color, age }
@@ -97,12 +99,24 @@ class Battle {
       return;
     }
 
-    if (unit.team === TEAM.PLAYER) {
+    if (unit.team === TEAM.PLAYER && !this.autoMode) {
       this.state = BattleState.PLAYER_INPUT;
       if (this.onPlayerTurn) this.onPlayerTurn(unit);
     } else {
       this.state = BattleState.ACTING;
-      setTimeout(() => this.enemyAct(unit), CONFIG.AI_DELAY);
+      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY);
+    }
+  }
+
+  // Toggle autobattle. If a player hero is already waiting for input,
+  // auto takes over their pending turn immediately.
+  setAuto(on) {
+    this.autoMode = on;
+    if (on && this.state === BattleState.PLAYER_INPUT && this.activeUnit) {
+      const unit = this.activeUnit;
+      this.state = BattleState.ACTING;
+      if (this.onAutoTakeover) this.onAutoTakeover();
+      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY);
     }
   }
 
@@ -165,9 +179,9 @@ class Battle {
     return null;
   }
 
-  // ---- Enemy AI ----------------------------------------------------------
+  // ---- AI (enemies, and player heroes in autobattle) ---------------------
 
-  enemyAct(unit) {
+  autoAct(unit) {
     if (this.state === BattleState.ENDED || !unit.alive) return;
 
     const ready = unit.readyAbilities();
@@ -177,10 +191,28 @@ class Battle {
       return;
     }
 
+    // Hold support abilities (heals/buffs on allies) while nobody is hurt.
+    const anyWounded = this.livingUnits(unit.team).some((u) => u.hp / u.maxHp < 0.8);
+    const usable = ready.filter((a) => {
+      const supportOnly = a.def.effects.every((e) => e.type === 'heal' || e.type === 'buff');
+      const targetsAllies = ['ally', 'all-allies', 'self'].includes(a.def.targeting);
+      return !(supportOnly && targetsAllies && !anyWounded);
+    });
+    const pool = usable.length > 0 ? usable : ready;
+
     // Prefer the longest-cooldown ready ability; fall back to basics.
-    const choice = ready.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
-    const targets = this.livingUnits(unit.enemyTeam());
-    const target = targets[Math.floor(Math.random() * targets.length)];
+    const choice = pool.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
+
+    let target = null;
+    if (choice.def.targeting === 'enemy') {
+      // Focus fire the lowest-HP enemy.
+      const enemies = this.livingUnits(unit.enemyTeam());
+      target = enemies.slice().sort((a, b) => a.hp - b.hp)[0];
+    } else if (choice.def.targeting === 'ally') {
+      // Support the most wounded ally.
+      const allies = this.livingUnits(unit.team);
+      target = allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    }
     this.performAbility(unit, choice, target);
   }
 
