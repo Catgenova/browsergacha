@@ -140,7 +140,7 @@ class Renderer {
   // the tile center, body rising above the grid).
   spriteCenterY(unit, tileY) {
     const dh = unit.animator ? unit.animator.sheet.displayH : 48;
-    return tileY - dh / 2 + 14;
+    return tileY - dh / 2 + 5;
   }
 
   drawUnit(unit) {
@@ -172,7 +172,7 @@ class Renderer {
       ctx.strokeStyle = '#ffd76a';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(x, y + 16, 26, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + 7, 26, 8, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -189,7 +189,7 @@ class Renderer {
         ctx.strokeStyle = hovered ? '#ff5a5a' : 'rgba(255, 138, 138, 0.5)';
         ctx.lineWidth = hovered ? 3 : 1.5;
         ctx.beginPath();
-        ctx.ellipse(x, y + 16, 28, 9, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + 7, 28, 9, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
     }

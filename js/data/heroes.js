@@ -242,8 +242,8 @@ const HEROES = {
           ],
           // Dust on liftoff, and again as she touches back down.
           frameEffects: [
-            { frame: 8,  effect: 'jump_cloud', at: 'origin', dy: 28 },
-            { frame: 23, effect: 'land_cloud', at: 'origin', dy: 28 },
+            { frame: 8,  effect: 'jump_cloud', at: 'origin', dy: 18 },
+            { frame: 23, effect: 'land_cloud', at: 'origin', dy: 18 },
           ],
         },
         // Skill 1 — leap to the target and slash through them:
@@ -266,8 +266,8 @@ const HEROES = {
           // Dust: takeoff cloud as she leaves her hex, skid cloud where
           // she comes to a stop behind the target.
           frameEffects: [
-            { frame: 8,  effect: 'jump_cloud', at: 'origin',       dy: 28 },
-            { frame: 18, effect: 'land_cloud', at: 'targetBehind', dy: 28 },
+            { frame: 8,  effect: 'jump_cloud', at: 'origin',       dy: 18 },
+            { frame: 18, effect: 'land_cloud', at: 'targetBehind', dy: 18 },
           ],
         },
       },

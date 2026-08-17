@@ -417,7 +417,7 @@ class Battle {
     // anchored feet-on-tile, so its center sits above the slot center).
     for (const u of this.livingUnits()) {
       const size = u.animator ? u.animator.sheet.size() : { w: 48, h: 48 };
-      const centerY = u.slot.y - size.h / 2 + 14;
+      const centerY = u.slot.y - size.h / 2 + 5;
       const halfW = size.w / 2 + 6;
       const halfH = size.h / 2 + 6;
       if (Math.abs(px - u.slot.x) <= halfW && Math.abs(py - centerY) <= halfH) {
