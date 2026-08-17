@@ -215,6 +215,7 @@ const Sprites = (() => {
           holds: strip.holds || null,
           hitFrame: strip.hitFrame || null, // effects land on this frame
           motion: strip.motion || null,     // movement phases (see battle.js)
+          frameEffects: strip.frameEffects || null, // spawned effects per frame
         };
       }
       if (animations.idle) {
@@ -353,17 +354,48 @@ const Sprites = (() => {
     return sheetCache.get(def.id);
   }
 
+  // Frame-per-file sequences ('##' in the pattern is the zero-padded
+  // index): stitched into a horizontal strip at load, bottom-aligned so
+  // ground effects sit on their baseline.
+  async function loadSequenceImage(seq) {
+    const imgs = [];
+    for (let i = 1; i <= seq.count; i++) {
+      const n = String(i).padStart(seq.pad || 2, '0');
+      const img = await loadImage(seq.pattern.replace('##', n));
+      if (img) imgs.push(img);
+    }
+    if (imgs.length === 0) return null;
+    const frameW = Math.max(...imgs.map((i) => i.width));
+    const frameH = Math.max(...imgs.map((i) => i.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = frameW * imgs.length;
+    canvas.height = frameH;
+    const ctx = canvas.getContext('2d');
+    imgs.forEach((img, i) =>
+      ctx.drawImage(img, i * frameW + (frameW - img.width) / 2, frameH - img.height));
+    return { image: canvas, frameW, frameH, frames: imgs.length };
+  }
+
   // Standalone effect sheets (see js/data/effects.js): one 'play'
   // animation per sheet. Resolves to null if the image is missing.
   async function loadEffectSheet(fx) {
-    const img = await loadImage(fx.src);
-    if (!img) return null;
-    const frameW = fx.vertical ? img.width : Math.floor(img.width / fx.frames);
-    const frameH = fx.vertical ? Math.floor(img.height / fx.frames) : img.height;
+    let image, frameW, frameH, frames;
+    if (fx.seq) {
+      const stitched = await loadSequenceImage(fx.seq);
+      if (!stitched) return null;
+      ({ image, frameW, frameH, frames } = stitched);
+    } else {
+      const img = await loadImage(fx.src);
+      if (!img) return null;
+      image = img;
+      frames = fx.frames;
+      frameW = fx.vertical ? img.width : Math.floor(img.width / fx.frames);
+      frameH = fx.vertical ? Math.floor(img.height / fx.frames) : img.height;
+    }
     const animations = {
       play: {
-        image: img, row: 0, frames: fx.frames, fps: fx.fps, loop: false,
-        frameW, frameH, vertical: !!fx.vertical,
+        image, row: 0, frames, fps: fx.fps, loop: false,
+        frameW, frameH, vertical: !fx.seq && !!fx.vertical,
       },
     };
     return new SpriteSheet(animations, fx.displayH || frameH);

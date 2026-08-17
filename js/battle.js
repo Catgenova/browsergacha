@@ -181,9 +181,27 @@ class Battle {
       };
     }
 
-    if (strip.hitFrame) {
+    // Frame-triggered side effects (dust clouds etc.) declared on the
+    // strip: { frame, effect, at: anchorName|'self', dx, dy }.
+    const firedFx = new Set();
+    const frameEffectsAt = (f) => {
+      for (const fe of strip.frameEffects || []) {
+        if (f < fe.frame || firedFx.has(fe)) continue;
+        firedFx.add(fe);
+        let pos;
+        if (fe.at === 'self' || !caster.motionState) {
+          pos = this.motionPos(caster);
+        } else {
+          pos = caster.motionState.anchors[fe.at] || { x: caster.slot.x, y: caster.slot.y };
+        }
+        this.spawnImpact(fe.effect, pos.x + (fe.dx || 0), pos.y + (fe.dy || 0));
+      }
+    };
+
+    if (strip.hitFrame || strip.frameEffects) {
       caster.animator.onFrameChange = (f) => {
-        if (f >= strip.hitFrame) applyNow();
+        if (strip.hitFrame && f >= strip.hitFrame) applyNow();
+        frameEffectsAt(f);
       };
     }
 
@@ -196,10 +214,11 @@ class Battle {
   }
 
   // One-shot impact effect (see js/data/effects.js) at a field position.
-  spawnImpact(effectId, x, y) {
+  // opts.rotate is in radians (drawn around the effect's center).
+  spawnImpact(effectId, x, y, opts = {}) {
     const sheet = this.effectSheets[effectId];
     if (!sheet) return;
-    const fx = { x, y, player: new AnimationPlayer(sheet), done: false };
+    const fx = { x, y, rotate: opts.rotate || 0, player: new AnimationPlayer(sheet), done: false };
     fx.player.play('play', () => { fx.done = true; });
     this.effectSprites.push(fx);
   }
@@ -269,7 +288,8 @@ class Battle {
       const wantImpact = res.kind === 'damage' ? (ability.impact || 'strike') : ability.impact;
       if (wantImpact && res.target.slot && !impacted.has(res.target)) {
         impacted.add(res.target);
-        this.spawnImpact(wantImpact, res.target.slot.x, res.target.slot.y - 14);
+        this.spawnImpact(wantImpact, res.target.slot.x, res.target.slot.y - 14,
+          { rotate: (ability.impactRotate || 0) * Math.PI / 180 });
       }
     }
     for (const res of results) {

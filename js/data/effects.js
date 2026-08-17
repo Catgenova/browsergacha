@@ -32,4 +32,14 @@ const EFFECTS = {
     src: 'assets/horizonal_slash_effect_spritesheet.png',
     frames: 5, fps: 14, vertical: true, displayH: 104,
   },
+  // Dust cloud kicked up on a jump (frame-per-file sequence).
+  jump_cloud: {
+    seq: { pattern: 'assets/take_off_##.png', count: 7 },
+    fps: 16, displayH: 46,
+  },
+  // Skid clouds splitting to both sides on landing.
+  land_cloud: {
+    seq: { pattern: 'assets/land_##.png', count: 8 },
+    fps: 16, displayH: 48,
+  },
 };
