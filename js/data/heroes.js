@@ -194,13 +194,13 @@ const HEROES = {
     sprite: {
       displayH: 88,
       strips: {
-        idle:   { src: 'assets/heroes/florence/KnightIdle.png',  frames: 9, fps: 8, loop: true },
+        idle:   { src: 'assets/heroes/florence/KnightIdle.png',  frames: 9, fps: 2, loop: true },
         // Timed fidgets, played once every 7-14s of idling (random pick):
         // helmet adjust — rests on frames 4, 6, and 8 for 3 ticks each.
-        idle2:  { src: 'assets/heroes/florence/Knightidle2.png', frames: 9, fps: 8, loop: false,
+        idle2:  { src: 'assets/heroes/florence/Knightidle2.png', frames: 9, fps: 2, loop: false,
                   variantOf: 'idle', every: [7, 14], holds: { 4: 3, 6: 3, 8: 3 } },
         // kneeling rest — holds the kneel (frame 7) for 5 ticks.
-        idle3:  { src: 'assets/heroes/florence/Knightidle3.png', frames: 9, fps: 8, loop: false,
+        idle3:  { src: 'assets/heroes/florence/Knightidle3.png', frames: 9, fps: 2, loop: false,
                   variantOf: 'idle', every: [7, 14], holds: { 7: 5 } },
         attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
       },
