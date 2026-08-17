@@ -14,6 +14,8 @@ class Unit {
     this.baseAtk = def.stats.atk;
     this.baseDef = def.stats.def;
     this.speed = def.stats.speed;
+    this.baseCritChance = def.stats.critChance ?? 0.15; // 15% base
+    this.baseCritDamage = def.stats.critDamage ?? 1.5;  // crits deal 150%
 
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
@@ -59,16 +61,29 @@ class Unit {
   }
 
   effectiveStat(stat) {
-    let value = stat === 'atk' ? this.baseAtk : stat === 'def' ? this.baseDef : this.speed;
+    let value;
+    switch (stat) {
+      case 'atk': value = this.baseAtk; break;
+      case 'def': value = this.baseDef; break;
+      case 'speed': value = this.speed; break;
+      case 'critChance': value = this.baseCritChance; break;
+      case 'critDamage': value = this.baseCritDamage; break;
+      default: return 0;
+    }
 
     if (this.positionalActive() && this.positional.stat === stat) {
       value *= this.positional.mult;
     }
 
+    // Status effects: `add` is a flat bonus (crit stats), `mult` scales.
     for (const fx of this.statusEffects) {
-      if (fx.stat === stat) value *= fx.mult;
+      if (fx.stat !== stat) continue;
+      if (fx.add) value += fx.add;
+      if (fx.mult) value *= fx.mult;
     }
 
+    if (stat === 'critChance') return Math.min(1, Math.max(0, value));
+    if (stat === 'critDamage') return value;
     return Math.round(value);
   }
 

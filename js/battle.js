@@ -82,6 +82,10 @@ class Battle {
     this.activeUnit = unit;
     unit.turnMeter = CONFIG.TURN_METER_MAX;
 
+    // Alert stance while it's this unit's turn (falls back to idle if the
+    // hero has no ready animation).
+    if (unit.animator) unit.animator.play('ready');
+
     const passiveResult = unit.startTurn(this);
     if (passiveResult) {
       (passiveResult.floats || []).forEach((f) =>
@@ -144,18 +148,28 @@ class Battle {
 
   reportResults(caster, ability, results) {
     const cls = caster.team === TEAM.PLAYER ? 'log-player' : 'log-enemy';
+    const statLabel = {
+      atk: 'ATK', def: 'DEF', speed: 'SPD',
+      critChance: 'CRIT', critDamage: 'CRIT DMG',
+    };
     for (const res of results) {
       if (res.kind === 'damage') {
-        this.addFloatingText(res.target, `-${res.amount}`, '#ff6a6a');
-        this.log(`${caster.name} uses ${ability.name}: ${res.amount} damage to ${res.target.name}.`, cls);
+        if (res.crit) {
+          this.addFloatingText(res.target, `-${res.amount}!`, '#ffb02e', true);
+          this.log(`${caster.name} uses ${ability.name}: CRITICAL! ${res.amount} damage to ${res.target.name}.`, cls);
+        } else {
+          this.addFloatingText(res.target, `-${res.amount}`, '#ff6a6a');
+          this.log(`${caster.name} uses ${ability.name}: ${res.amount} damage to ${res.target.name}.`, cls);
+        }
         if (!res.target.alive) this.log(`${res.target.name} is defeated!`, 'log-system');
       } else if (res.kind === 'heal') {
         this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
         this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
+        const label = statLabel[res.stat] || res.stat.toUpperCase();
         const arrow = res.kind === 'buff' ? '▲' : '▼';
-        this.addFloatingText(res.target, `${res.stat.toUpperCase()} ${arrow}`, res.kind === 'buff' ? '#8ecbff' : '#d78aff');
-        this.log(`${res.target.name}'s ${res.stat.toUpperCase()} ${res.kind === 'buff' ? 'rises' : 'falls'} for ${res.turns} turns.`, cls);
+        this.addFloatingText(res.target, `${label} ${arrow}`, res.kind === 'buff' ? '#8ecbff' : '#d78aff');
+        this.log(`${res.target.name}'s ${label} ${res.kind === 'buff' ? 'rises' : 'falls'} for ${res.turns} turns.`, cls);
       }
     }
   }
@@ -163,6 +177,10 @@ class Battle {
   afterAction(caster, abilityState) {
     caster.useAbility(abilityState);
     this.activeUnit = null;
+    // Back to plain idle if the turn ended without an action animation.
+    if (caster.animator && caster.animator.current === 'ready') {
+      caster.animator.play('idle');
+    }
 
     const winner = this.checkEnd();
     if (winner) {
@@ -191,12 +209,14 @@ class Battle {
       return;
     }
 
-    // Hold support abilities (heals/buffs on allies) while nobody is hurt.
+    // Hold defensive support (heals / DEF buffs on allies) while nobody is
+    // hurt. Offensive buffs (ATK, crit, speed) are worth using anytime.
     const anyWounded = this.livingUnits(unit.team).some((u) => u.hp / u.maxHp < 0.8);
     const usable = ready.filter((a) => {
-      const supportOnly = a.def.effects.every((e) => e.type === 'heal' || e.type === 'buff');
+      const defensiveOnly = a.def.effects.every((e) =>
+        e.type === 'heal' || (e.type === 'buff' && e.stat === 'def'));
       const targetsAllies = ['ally', 'all-allies', 'self'].includes(a.def.targeting);
-      return !(supportOnly && targetsAllies && !anyWounded);
+      return !(defensiveOnly && targetsAllies && !anyWounded);
     });
     const pool = usable.length > 0 ? usable : ready;
 
@@ -218,13 +238,14 @@ class Battle {
 
   // ---- View helpers ------------------------------------------------------
 
-  addFloatingText(unit, text, color) {
+  addFloatingText(unit, text, color, big = false) {
     if (!unit.slot) return;
     this.floatingTexts.push({
       x: unit.slot.x + (Math.random() * 16 - 8),
       y: unit.slot.y - 40,
       text,
       color,
+      big,
       age: 0,
     });
   }

@@ -202,6 +202,10 @@ const HEROES = {
         // kneeling rest — holds the kneel (frame 7) for 15 ticks.
         idle3:  { src: 'assets/heroes/florence/Knightidle3.png', frames: 9, fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14], holds: { 7: 15 } },
+        // alert stance, loops while it's her turn to act
+        ready:  { src: 'assets/heroes/florence/Knightready.png', frames: 9, fps: 6, loop: true },
+        // sword-slam crystal burst, plays on Crystal Resonance
+        buff:   { src: 'assets/heroes/florence/Knightbuff.png', frames: 17, fps: 12, loop: false },
         attack: { src: 'assets/heroes/florence/attack.png', frames: 6, fps: 12, loop: false },
       },
     },
@@ -213,11 +217,13 @@ const HEROES = {
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
-        id: 'gleaming_edge', name: 'Gleaming Edge',
-        description: 'Strike for 130% ATK and raise own ATK by 20% for 2 turns.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.3 }],
-        selfEffects: [{ type: 'buff', stat: 'atk', mult: 1.2, turns: 2 }],
+        id: 'crystal_resonance', name: 'Crystal Resonance',
+        description: 'Attune to the blade: +50% crit chance and +50% crit damage for 3 turns.',
+        cooldown: 5, targeting: 'self', animation: 'buff',
+        effects: [
+          { type: 'buff', stat: 'critChance', add: 0.5, turns: 3 },
+          { type: 'buff', stat: 'critDamage', add: 0.5, turns: 3 },
+        ],
       },
       {
         id: 'prism_break', name: 'Prism Break',
