@@ -413,12 +413,14 @@ class Battle {
   }
 
   unitAt(px, py) {
-    // Hit test against a box around each living unit's sprite.
+    // Hit test against a box around each living unit's sprite (which is
+    // anchored feet-on-tile, so its center sits above the slot center).
     for (const u of this.livingUnits()) {
       const size = u.animator ? u.animator.sheet.size() : { w: 48, h: 48 };
+      const centerY = u.slot.y - size.h / 2 + 14;
       const halfW = size.w / 2 + 6;
       const halfH = size.h / 2 + 6;
-      if (Math.abs(px - u.slot.x) <= halfW && Math.abs(py - u.slot.y) <= halfH) {
+      if (Math.abs(px - u.slot.x) <= halfW && Math.abs(py - centerY) <= halfH) {
         return u;
       }
     }

@@ -15,10 +15,12 @@ const Hex = (() => {
   ];
 
   // Axial -> pixel offset from the formation center (pointy-top).
+  // The y axis is foreshortened so the grid reads as a floor seen from a
+  // low top-down angle, matching the hero sprites.
   function axialToPixel(q, r, size) {
     return {
       x: size * Math.sqrt(3) * (q + r / 2),
-      y: size * 1.5 * r,
+      y: size * 1.5 * r * CONFIG.HEX_SQUASH,
     };
   }
 
@@ -58,11 +60,15 @@ const Hex = (() => {
   }
 
   // Corner points of a pointy-top hex centered at (x, y), for drawing.
+  // Same vertical foreshortening as the layout.
   function corners(x, y, size) {
     const pts = [];
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 180) * (60 * i - 30);
-      pts.push({ x: x + size * Math.cos(angle), y: y + size * Math.sin(angle) });
+      pts.push({
+        x: x + size * Math.cos(angle),
+        y: y + size * Math.sin(angle) * CONFIG.HEX_SQUASH,
+      });
     }
     return pts;
   }
