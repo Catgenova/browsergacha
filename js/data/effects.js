@@ -30,6 +30,6 @@ const EFFECTS = {
   // Horizontal shearing swirl (vertical strip) — projectile wave.
   windshear_wave: {
     src: 'assets/horizonal_slash_effect_spritesheet.png',
-    frames: 5, fps: 14, vertical: true, displayH: 64,
+    frames: 5, fps: 14, vertical: true, displayH: 104,
   },
 };
