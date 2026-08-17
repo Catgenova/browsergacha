@@ -10,6 +10,16 @@ class BattleScreen {
     this.ui = new UI(this.renderer, this.canvas);
     this.ui.onReturn = () => app.showScreen('team');
     this.battle = null;
+
+    // Autobattle toggle (persists across battles within the session).
+    this.auto = false;
+    this.autoBtn = document.getElementById('auto-btn');
+    this.autoBtn.addEventListener('click', () => {
+      this.auto = !this.auto;
+      this.autoBtn.textContent = `Auto: ${this.auto ? 'ON' : 'OFF'}`;
+      this.autoBtn.classList.toggle('auto-on', this.auto);
+      if (this.battle) this.battle.setAuto(this.auto);
+    });
   }
 
   // Entering the screen starts a fresh battle unless one is still running.
@@ -53,6 +63,8 @@ class BattleScreen {
     this.battle = battle;
     this.renderer.setBattle(battle);
     this.ui.bind(battle);
+    battle.autoMode = this.auto;
+    battle.onAutoTakeover = () => this.ui.hideAbilityBar();
 
     battle.onBattleEnd = (winner) => {
       if (winner === TEAM.PLAYER) {
