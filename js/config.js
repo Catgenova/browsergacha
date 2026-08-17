@@ -8,7 +8,10 @@ const CONFIG = {
   HEX_SQUASH: 0.55,             // vertical foreshortening: tiles as floor, not walls
   PLAYER_FORMATION_X: 240,      // center of the player-side flower
   ENEMY_FORMATION_X: 720,       // center of the enemy-side flower
-  FORMATION_Y: 290,
+  FORMATION_Y: 340,             // sits both grids in the clearing's open grass
+
+  // Battle backdrop (drawn cover-fit behind the grids).
+  BATTLE_BG: 'assets/battle_bg_clearing.png',
 
   // Turn meter: fills at unit.speed points/sec; unit acts when full.
   TURN_METER_MAX: 1000,
