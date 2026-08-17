@@ -12,7 +12,7 @@ const GameState = (() => {
   };
 
   // Heroes every player owns, granted retroactively to existing saves too.
-  const STARTERS = ['florence', 'vivian', 'coral', 'vex'];
+  const STARTERS = ['florence', 'vivian', 'coral', 'vex', 'emily'];
 
   let state = load();
   const listeners = [];

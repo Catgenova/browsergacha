@@ -65,6 +65,17 @@ const Abilities = (() => {
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit: false };
       }
+      case 'cleanse': {
+        // Strip all debuffs from the target.
+        const before = target.statusEffects.length;
+        target.statusEffects = target.statusEffects.filter((fx) => fx.kind !== 'debuff');
+        return { kind: 'cleanse', target, count: before - target.statusEffects.length };
+      }
+      case 'revive': {
+        if (target.alive) return null;
+        target.revive(effect.pct);
+        return { kind: 'revive', target, amount: target.hp };
+      }
       case 'turnMeter': {
         // Push the target's action bar by a fraction of max (negative cuts).
         target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
@@ -116,6 +127,9 @@ const Abilities = (() => {
         // Every living enemy standing in a back-position hex.
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => u.slot.position === POSITION.BACK);
+      case 'dead-ally':
+        // A chosen fallen teammate (revives).
+        return chosenTarget && !chosenTarget.alive ? [chosenTarget] : [];
       case 'ally':
       case 'enemy':
       default:

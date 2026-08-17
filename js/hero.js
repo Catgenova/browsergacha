@@ -125,6 +125,20 @@ class Unit {
     }
   }
 
+  // Return from the dead at a fraction of max HP.
+  revive(pct) {
+    if (this.alive) return;
+    this.hp = Math.max(1, Math.round(this.maxHp * pct));
+    this.statusEffects = [];
+    this.turnMeter = 0;
+    this.hitFlash = 0;
+    if (this.animator) this.animator.play('idle');
+    // Counts as a heal for heal-reactive passives.
+    if (typeof Battle !== 'undefined' && Battle.active) {
+      Battle.active.onUnitHealed(this, this.hp);
+    }
+  }
+
   heal(amount) {
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);

@@ -355,6 +355,14 @@ class Battle {
       } else if (res.kind === 'heal') {
         this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
         this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
+      } else if (res.kind === 'cleanse') {
+        if (res.count > 0) {
+          this.addFloatingText(res.target, 'CLEANSED', '#ffe8a8');
+          this.log(`${res.target.name} is cleansed of ${res.count} debuff${res.count > 1 ? 's' : ''}.`, cls);
+        }
+      } else if (res.kind === 'revive') {
+        this.addFloatingText(res.target, '✚ REVIVED', '#ffe8a8', true);
+        this.log(`${caster.name} uses ${ability.name}: ${res.target.name} returns to the fight with ${res.amount} HP!`, cls);
       } else if (res.kind === 'hot') {
         this.addFloatingText(res.target, 'HoT ▲', '#7ae87a');
         this.log(`${res.target.name} is blessed with regrowth for ${res.turns} turns.`, cls);
@@ -411,23 +419,30 @@ class Battle {
       return;
     }
 
-    // Hold defensive support (heals / HoTs / DEF buffs on allies) while
-    // nobody is hurt. Offensive buffs (ATK, crit, speed) are worth using
-    // anytime.
-    const anyWounded = this.livingUnits(unit.team).some((u) => u.hp / u.maxHp < 0.8);
+    // Hold defensive support (heals / HoTs / cleanses / DEF buffs on
+    // allies) while nobody is hurt or debuffed. Offensive buffs (ATK,
+    // crit, speed) are worth using anytime.
+    const allies = this.livingUnits(unit.team);
+    const anyImpaired =
+      allies.some((u) => u.hp / u.maxHp < 0.8) ||
+      allies.some((u) => u.statusEffects.some((fx) => fx.kind === 'debuff'));
     const usable = ready.filter((a) => {
       const defensiveOnly = a.def.effects.every((e) =>
         e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||
-        (e.type === 'buff' && e.stat === 'def'));
+        e.type === 'cleanse' || (e.type === 'buff' && e.stat === 'def'));
       const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies'].includes(a.def.targeting);
-      return !(defensiveOnly && targetsAllies && !anyWounded);
+      return !(defensiveOnly && targetsAllies && !anyImpaired);
     });
     // Skip group-target abilities whose target set is currently empty
     // (e.g. a back-row nuke when no enemy holds a back hex).
     const groupTargetings = ['all-enemies', 'back-enemies', 'front-allies', 'all-allies'];
-    const withTargets = (usable.length > 0 ? usable : ready).filter((a) =>
-      !groupTargetings.includes(a.def.targeting) ||
-      Abilities.resolveTargets(a.def, unit, null, this).length > 0);
+    const withTargets = (usable.length > 0 ? usable : ready).filter((a) => {
+      if (a.def.targeting === 'dead-ally') {
+        return this.units.some((u) => !u.alive && u.team === unit.team);
+      }
+      return !groupTargetings.includes(a.def.targeting) ||
+        Abilities.resolveTargets(a.def, unit, null, this).length > 0;
+    });
     const pool = withTargets.length > 0 ? withTargets : ready;
 
     // Prefer the longest-cooldown ready ability; fall back to basics.
@@ -453,8 +468,12 @@ class Battle {
       target = best.slice().sort((a, b) => a.hp - b.hp)[0];
     } else if (choice.def.targeting === 'ally') {
       // Support the most wounded ally.
-      const allies = this.livingUnits(unit.team);
       target = allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    } else if (choice.def.targeting === 'dead-ally') {
+      // Raise the fallen ally with the largest HP pool first.
+      target = this.units
+        .filter((u) => !u.alive && u.team === unit.team)
+        .sort((a, b) => b.maxHp - a.maxHp)[0];
     }
     this.performAbility(unit, choice, target);
   }
@@ -473,10 +492,11 @@ class Battle {
     });
   }
 
-  unitAt(px, py) {
-    // Hit test against a box around each living unit's sprite (which is
+  unitAt(px, py, includeDead = false) {
+    // Hit test against a box around each unit's sprite (which is
     // anchored feet-on-tile, so its center sits above the slot center).
-    for (const u of this.livingUnits()) {
+    const pool = includeDead ? this.units.filter((u) => u.slot) : this.livingUnits();
+    for (const u of pool) {
       const size = u.animator ? u.animator.sheet.size() : { w: 48, h: 48 };
       const centerY = u.slot.y - size.h / 2 + 5;
       const halfW = size.w / 2 + 6;
