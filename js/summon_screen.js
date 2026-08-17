@@ -22,8 +22,11 @@ class SummonScreen {
   exit() {}
 
   updateInfo() {
-    this.pityEl.textContent =
-      `Pity: 5★ guaranteed within ${Gacha.PITY_LIMIT - GameState.pity} pulls`;
+    // Pity is only meaningful once a 5★ hero exists to be pitied into.
+    const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
+    this.pityEl.textContent = has5
+      ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} pulls`
+      : '';
     this.oneBtn.disabled = this.revealing || GameState.gems < Gacha.COST_SINGLE;
     this.tenBtn.disabled = this.revealing || GameState.gems < Gacha.COST_TEN;
   }
