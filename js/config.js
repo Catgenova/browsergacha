@@ -16,6 +16,8 @@ const CONFIG = {
     'assets/battle_bg_clearing.png',
     'assets/battle_bg_canyon.png',
     'assets/battle_bg_bonefield.png',
+    'assets/battle_bg_meadow.png',
+    'assets/battle_bg_valley.png',
   ],
 
   // Turn meter: fills at unit.speed points/sec; unit acts when full.
