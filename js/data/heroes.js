@@ -214,21 +214,28 @@ const HEROES = {
         rowslash: {
           src: 'assets/heroes/florence/Knightjumpslash.png',
           frames: 23, fps: 10, loop: false,
-          // Fast ascent (8-15), fast slash with long hang at the apex
-          // (hold on 21), then a fast drop back down (22-23).
+          // Playback order revisits sheet frame 15 (tucked airborne pose)
+          // after the swing, so she hangs and falls in the jump position
+          // and only hits the landing pose (21) back at the ground.
+          // Playback: 1-20 as drawn, then [15 hang, 15 fall, 21-23 land].
+          order: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                  16, 17, 18, 19, 20, 15, 15, 21, 22, 23],
+          // Fast ascent, fast slash, long airborne hang (playback 21),
+          // fast fall (22), brief landing skid (23).
           holds: {
             7: 4,
             8: 0.5, 9: 0.5, 10: 0.5, 11: 0.5, 12: 0.5, 13: 0.5, 14: 0.5, 15: 0.5,
             16: 0.5, 17: 0.5, 18: 0.5, 19: 0.5, 20: 0.5,
             21: 8,
-            22: 0.5, 23: 0.5,
+            23: 2,
           },
           hitFrame: 17,
           motion: [
             { frames: [1, 7],   from: 'origin',    to: 'origin' },
             { frames: [8, 15],  from: 'origin',    to: 'originAir' },
             { frames: [16, 21], from: 'originAir', to: 'originAir' },
-            { frames: [22, 23], from: 'originAir', to: 'origin' },
+            { frames: [22, 22], from: 'originAir', to: 'origin' },
+            { frames: [23, 25], from: 'origin',    to: 'origin' },
           ],
         },
         // Skill 1 — leap to the target and slash through them:
