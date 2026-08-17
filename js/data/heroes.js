@@ -247,13 +247,13 @@ const HEROES = {
       {
         id: 'crystal_slash', name: 'Crystal Slash',
         description: 'Leap to an enemy and slash clean through for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'jumpslash',
+        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
         id: 'crystal_resonance', name: 'Crystal Resonance',
         description: 'Attune to the blade: +50% crit chance and +50% crit damage for 3 turns.',
-        cooldown: 5, targeting: 'self', animation: 'buff',
+        cooldown: 5, targeting: 'self', animation: 'buff', impact: 'slam',
         effects: [
           { type: 'buff', stat: 'critChance', add: 0.5, turns: 3 },
           { type: 'buff', stat: 'critDamage', add: 0.5, turns: 3 },
@@ -262,7 +262,7 @@ const HEROES = {
       {
         id: 'prism_break', name: 'Prism Break',
         description: 'Leap skyward and hurl a shearing wave that cuts an entire enemy row for 170% ATK.',
-        cooldown: 7, targeting: 'enemy-row', animation: 'rowslash', vfx: 'windshear',
+        cooldown: 7, targeting: 'enemy-row', animation: 'rowslash', vfx: 'windshear', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.7 }],
       },
     ],

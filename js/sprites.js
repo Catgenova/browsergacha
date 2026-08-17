@@ -167,7 +167,11 @@ class AnimationPlayer {
     ctx.imageSmoothingQuality = 'high';
     ctx.translate(x, y);
     if (flipX) ctx.scale(-1, 1);
-    ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+    if (anim.vertical) {
+      ctx.drawImage(anim.image, 0, this.frame * anim.frameH, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+    } else {
+      ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+    }
     ctx.restore();
   }
 }
@@ -349,6 +353,31 @@ const Sprites = (() => {
     return sheetCache.get(def.id);
   }
 
+  // Standalone effect sheets (see js/data/effects.js): one 'play'
+  // animation per sheet. Resolves to null if the image is missing.
+  async function loadEffectSheet(fx) {
+    const img = await loadImage(fx.src);
+    if (!img) return null;
+    const frameW = fx.vertical ? img.width : Math.floor(img.width / fx.frames);
+    const frameH = fx.vertical ? Math.floor(img.height / fx.frames) : img.height;
+    const animations = {
+      play: {
+        image: img, row: 0, frames: fx.frames, fps: fx.fps, loop: false,
+        frameW, frameH, vertical: !!fx.vertical,
+      },
+    };
+    return new SpriteSheet(animations, fx.displayH || frameH);
+  }
+
+  function getEffectSheet(id) {
+    const key = `fx:${id}`;
+    if (!sheetCache.has(key)) {
+      const fx = typeof EFFECTS !== 'undefined' && EFFECTS[id];
+      sheetCache.set(key, fx ? loadEffectSheet(fx) : Promise.resolve(null));
+    }
+    return sheetCache.get(key);
+  }
+
   // Draw a hero's idle frame 0 into a portrait canvas element.
   // Renders at 3x backing resolution so portraits stay sharp when the UI
   // scales up; the element keeps its logical CSS size.
@@ -379,5 +408,5 @@ const Sprites = (() => {
     );
   }
 
-  return { load, getSheet, drawPortrait };
+  return { load, getSheet, getEffectSheet, drawPortrait };
 })();
