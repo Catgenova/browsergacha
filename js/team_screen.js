@@ -295,7 +295,7 @@ class TeamScreen {
       const rx = Math.min(34, (sheet ? sheet.size().w : 48) * 0.3);
       ctx.fillStyle = 'rgba(8, 14, 8, 0.32)';
       ctx.beginPath();
-      ctx.ellipse(slot.x, slot.y + 10, rx, rx * 0.34, 0, 0, Math.PI * 2);
+      ctx.ellipse(slot.x, slot.y + 8, rx, rx * 0.34, 0, 0, Math.PI * 2);
       ctx.fill();
       if (animator) animator.draw(ctx, slot.x, yc, false);
 
