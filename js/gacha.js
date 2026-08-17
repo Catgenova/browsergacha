@@ -12,7 +12,7 @@ const Gacha = (() => {
   const RATES = [
     { rarity: 5, p: 0.05 },
     { rarity: 4, p: 0.25 },
-    { rarity: 3, p: 0.70 },
+    { rarity: 1, p: 0.70 },
   ];
 
   function poolByRarity(rarity) {
@@ -26,18 +26,20 @@ const Gacha = (() => {
       acc += p;
       if (r < acc) return rarity;
     }
-    return 3;
+    return 1;
   }
 
   function pickHero(rarity) {
     let pool = poolByRarity(rarity);
     // A rolled rarity may have no heroes yet (small early pool): fall back
-    // to the nearest populated rarity, preferring lower.
+    // to the highest populated rarity at or below the roll, else the
+    // lowest above it — a lucky roll never downgrades below its floor.
     if (pool.length === 0) {
       const available = [...new Set(Object.values(HEROES).map((h) => h.rarity))]
-        .sort((a, b) => Math.abs(a - rarity) - Math.abs(b - rarity) || a - b);
+        .sort((a, b) => a - b);
       if (available.length === 0) return null;
-      pool = poolByRarity(available[0]);
+      const below = available.filter((r) => r <= rarity);
+      pool = poolByRarity(below.length > 0 ? below[below.length - 1] : available[0]);
     }
     return pool[Math.floor(Math.random() * pool.length)];
   }
