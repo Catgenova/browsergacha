@@ -478,58 +478,6 @@ const HEROES = {
     },
   },
 
-  vex: {
-    id: 'vex',
-    name: 'Vex',
-    title: 'Shadowblade',
-    rarity: 4,
-    stats: { hp: 1050, atk: 270, def: 85, speed: 125 },
-    tint: { body: '#3a3a4a', helm: '#5a5a7a', skin: '#c8a88a', weapon: '#9a8aff' },
-    sprite: defaultSprite('vex'),
-    abilities: [
-      {
-        id: 'shadow_cut', name: 'Shadow Cut',
-        description: 'Cut one enemy for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
-      },
-      {
-        id: 'hamstring', name: 'Hamstring',
-        description: 'Strike for 120% ATK and lower the target\'s SPD by 30% for 2 turns.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [
-          { type: 'damage', mult: 1.2 },
-          { type: 'debuff', stat: 'speed', mult: 0.7, turns: 2 },
-        ],
-      },
-      {
-        id: 'deathmark', name: 'Deathmark',
-        description: 'Ambush one enemy for 220% ATK.',
-        cooldown: 6, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 2.2 }],
-      },
-    ],
-    passive: {
-      name: 'Shadow Veil',
-      description: 'While in a back hex, gains +25% DEF for 1 turn at turn start.',
-      hooks: {
-        onTurnStart(unit) {
-          if (!unit.slot || unit.slot.position !== POSITION.BACK) return null;
-          unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.25, turns: 1 });
-          return {
-            label: 'Shadow Veil',
-            message: `${unit.name} melts into shadow (+25% DEF this turn).`,
-            floats: [{ target: unit, text: 'DEF ▲', color: '#9a8aff' }],
-          };
-        },
-      },
-    },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.2,
-      description: 'First Blood: +20% ATK while in a front hex.',
-    },
-  },
-
   // ---- 5★ ---------------------------------------------------------------
 
   zephyra: {

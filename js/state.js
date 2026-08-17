@@ -30,6 +30,15 @@ const GameState = (() => {
     for (const id of STARTERS) {
       if (!loaded.roster[id]) loaded.roster[id] = { copies: 1 };
     }
+    // Scrub heroes that no longer exist (removed characters) from saves.
+    if (typeof HEROES !== 'undefined') {
+      for (const id of Object.keys(loaded.roster)) {
+        if (!HEROES[id]) delete loaded.roster[id];
+      }
+      for (const [slot, id] of Object.entries(loaded.team)) {
+        if (!HEROES[id]) delete loaded.team[slot];
+      }
+    }
     return loaded;
   }
 
