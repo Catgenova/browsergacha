@@ -167,6 +167,13 @@ class Renderer {
     return tileY - dh / 2 + 5 + (sheet && sheet.footPad || 0);
   }
 
+  // Where a unit's feet sit horizontally: frame center plus the art's
+  // shadow offset (mirrored for flipped enemy sprites).
+  feetX(unit, baseX) {
+    const off = (unit.animator && unit.animator.sheet.shadowOffsetX) || 0;
+    return baseX + (unit.team === TEAM.ENEMY ? -off : off);
+  }
+
   // Soft shadow orb on the ground beneath a unit; shrinks and fades as
   // the character gains altitude (jumps).
   drawShadow(unit) {
@@ -178,7 +185,7 @@ class Renderer {
     ctx.save();
     ctx.fillStyle = `rgba(8, 14, 8, ${0.32 * (0.55 + 0.45 * s)})`;
     ctx.beginPath();
-    ctx.ellipse(g.x, g.groundY + 8, rx, rx * 0.34, 0, 0, Math.PI * 2);
+    ctx.ellipse(this.feetX(unit, g.x), g.groundY + 8, rx, rx * 0.34, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -217,7 +224,7 @@ class Renderer {
       ctx.strokeStyle = '#ffd76a';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(g.x, g.groundY + 7, 26, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(this.feetX(unit, g.x), g.groundY + 7, 26, 8, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -234,7 +241,7 @@ class Renderer {
         ctx.strokeStyle = hovered ? '#ff5a5a' : 'rgba(255, 138, 138, 0.5)';
         ctx.lineWidth = hovered ? 3 : 1.5;
         ctx.beginPath();
-        ctx.ellipse(x, y + 7, 28, 9, 0, 0, Math.PI * 2);
+        ctx.ellipse(this.feetX(unit, x), y + 7, 28, 9, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
