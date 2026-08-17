@@ -157,7 +157,9 @@ class AnimationPlayer {
     const scale = this.sheet.displayH / anim.frameH;
     const w = anim.frameW * scale;
     const h = anim.frameH * scale;
-    const sx = this.frame * anim.frameW;
+    // Map playback index -> sheet frame (identity unless order remaps it).
+    const sheetFrame = anim.order ? anim.order[this.frame] - 1 : this.frame;
+    const sx = sheetFrame * anim.frameW;
     const sy = anim.row * anim.frameH;
 
     ctx.save();
@@ -168,7 +170,7 @@ class AnimationPlayer {
     ctx.translate(x, y);
     if (flipX) ctx.scale(-1, 1);
     if (anim.vertical) {
-      ctx.drawImage(anim.image, 0, this.frame * anim.frameH, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
+      ctx.drawImage(anim.image, 0, sheetFrame * anim.frameH, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
     } else {
       ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
     }
@@ -205,7 +207,10 @@ const Sprites = (() => {
         animations[name] = {
           image: img,
           row: 0,
-          frames: strip.frames,
+          // Custom playback order (1-based sheet frames) lets a pose be
+          // revisited, e.g. holding an airborne frame during descent.
+          order: strip.order || null,
+          frames: strip.order ? strip.order.length : strip.frames,
           fps: strip.fps,
           loop: !!strip.loop,
           frameW: Math.floor(img.width / strip.frames),
