@@ -248,6 +248,12 @@ const HEROES = {
             { frames: [16, 20], from: 'targetFront',  to: 'targetBehind' },
             { frames: [21, 23], from: 'targetBehind', to: 'targetBehind' },
           ],
+          // Dust: takeoff cloud as she leaves her hex, skid cloud where
+          // she comes to a stop behind the target.
+          frameEffects: [
+            { frame: 8,  effect: 'jump_cloud', at: 'origin',       dy: 28 },
+            { frame: 18, effect: 'land_cloud', at: 'targetBehind', dy: 28 },
+          ],
         },
       },
     },
@@ -255,7 +261,8 @@ const HEROES = {
       {
         id: 'crystal_slash', name: 'Crystal Slash',
         description: 'Leap to an enemy and slash clean through for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash',
+        // Slash impact rotated to sweep left-to-right with the sword tip.
+        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash', impactRotate: -90,
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
