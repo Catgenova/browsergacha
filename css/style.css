@@ -109,6 +109,7 @@ body {
 .panel-btn.danger:hover:not(:disabled) { background: #4d3030; }
 
 .rarity-1 { color: #b8b2cc; }
+.rarity-2 { color: #a8e0a8; }
 .rarity-3 { color: #8ecbff; }
 .rarity-4 { color: #d78aff; }
 .rarity-5 { color: #ffd76a; }

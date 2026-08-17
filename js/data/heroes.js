@@ -116,6 +116,54 @@ const HEROES = {
     },
   },
 
+  rat_assassin: {
+    id: 'rat_assassin',
+    name: 'Rat Assassin',
+    title: 'Sewer Shadow',
+    rarity: 2,
+    stats: { hp: 800, atk: 135, def: 60, speed: 115, critChance: 0.25 },
+    tint: { body: '#3a3a4a', helm: '#5a5a6a', weapon: '#b8b0c8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_assassin/ratassassinidle.png', frames: 16, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shiv', name: 'Shiv',
+        description: 'A quick stab for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'backstab', name: 'Backstab',
+        description: 'Slip behind for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'throat_cut', name: 'Throat Cut',
+        description: 'Go for the kill: 200% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 2.0 }],
+      },
+    ],
+    passive: {
+      name: 'Opportunist',
+      description: 'Deals 20% extra damage to enemies below half HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Lurker: +15% damage dealt from a back hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     name: 'Florence',
