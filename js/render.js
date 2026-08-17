@@ -42,9 +42,34 @@ class Renderer {
 
   drawVisualEffects() {
     const { ctx } = this;
+    // One-shot impact sprites (slash/strike/punch/slam art).
+    for (const fx of this.battle.effectSprites) {
+      fx.player.draw(ctx, fx.x, fx.y, false);
+    }
+
     for (const fx of this.battle.visualEffects) {
       if (fx.kind !== 'windshear') continue;
       const t = Math.min(1, fx.age / fx.duration);
+
+      // Sprite wave (preferred): travels along the path, art plays through.
+      if (fx.player) {
+        const x = fx.sx + (fx.ex - fx.sx) * t;
+        const y = fx.sy + (fx.ey - fx.sy) * t;
+        const angle = Math.atan2(fx.ey - fx.sy, fx.ex - fx.sx);
+        ctx.save();
+        ctx.translate(x, y);
+        if (fx.dir >= 0) {
+          ctx.rotate(angle);
+        } else {
+          ctx.scale(-1, 1);
+          ctx.rotate(Math.atan2(fx.ey - fx.sy, -(fx.ex - fx.sx)));
+        }
+        fx.player.draw(ctx, 0, 0, false);
+        ctx.restore();
+        continue;
+      }
+
+      // Fallback: drawn crescents.
       const angle = Math.atan2(fx.ey - fx.sy, fx.ex - fx.sx);
       const fade = t > 0.7 ? (1 - t) / 0.3 : 1;
       // Leading crescent plus two trailing ghosts.

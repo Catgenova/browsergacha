@@ -79,3 +79,11 @@ holds: { 6: 3, 9: 3 }, // frames 6 and 9 last 3 ticks each
 One PNG per hero, one animation per row, frames left-to-right, fixed frame
 size declared in the def (`src`/`frameW`/`frameH`/`animations`). Still
 supported; strips are preferred for new art.
+
+## Effect spritesheets
+
+Standalone impact/projectile effects live in `assets/` and are registered
+in `js/data/effects.js` (frames, fps, `vertical: true` for stacked strips).
+Abilities reference them via `impact: '<id>'`; damage abilities default to
+`strike`. Current set: `slash`, `strike`, `punch`, `slam`,
+`windshear_wave` (Prism Break's projectile).

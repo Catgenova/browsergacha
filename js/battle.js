@@ -26,7 +26,9 @@ class Battle {
 
     // Transient view data
     this.floatingTexts = []; // { x, y, text, color, age }
-    this.visualEffects = []; // { kind, sx, sy, ex, ey, age, duration }
+    this.visualEffects = []; // { kind, sx, sy, ex, ey, age, duration, player }
+    this.effectSprites = []; // one-shot impact effects { x, y, player, done }
+    this.effectSheets = {};  // effectId -> SpriteSheet, preloaded by the screen
     this.onLog = null;       // (message, cls) => void, wired by UI
     this.onPlayerTurn = null;
     this.onBattleEnd = null;
@@ -63,8 +65,13 @@ class Battle {
     }
     for (const ft of this.floatingTexts) ft.age += dt;
     this.floatingTexts = this.floatingTexts.filter((ft) => ft.age < 1.1);
-    for (const fx of this.visualEffects) fx.age += dt;
+    for (const fx of this.visualEffects) {
+      fx.age += dt;
+      if (fx.player) fx.player.update(dt);
+    }
     this.visualEffects = this.visualEffects.filter((fx) => fx.age < fx.duration);
+    for (const fx of this.effectSprites) fx.player.update(dt);
+    this.effectSprites = this.effectSprites.filter((fx) => !fx.done);
 
     if (this.state !== BattleState.TICKING) return;
 
@@ -188,6 +195,15 @@ class Battle {
     });
   }
 
+  // One-shot impact effect (see js/data/effects.js) at a field position.
+  spawnImpact(effectId, x, y) {
+    const sheet = this.effectSheets[effectId];
+    if (!sheet) return;
+    const fx = { x, y, player: new AnimationPlayer(sheet), done: false };
+    fx.player.play('play', () => { fx.done = true; });
+    this.effectSprites.push(fx);
+  }
+
   // A shearing wave that flies from the caster's blade through the
   // target's hex row.
   spawnWindshear(caster, target) {
@@ -200,7 +216,7 @@ class Battle {
     const farX = row.length
       ? Math.max(...row.map((u) => u.slot.x * dir)) * dir
       : target.slot.x;
-    this.visualEffects.push({
+    const fx = {
       kind: 'windshear',
       sx: start.x + dir * 24,
       sy: start.y,
@@ -208,7 +224,16 @@ class Battle {
       ey: rowY,
       age: 0,
       duration: 0.35,
-    });
+      dir,
+      player: null,
+    };
+    // Sprite wave when the effect sheet is available; the renderer falls
+    // back to drawn crescents otherwise.
+    if (this.effectSheets.windshear_wave) {
+      fx.player = new AnimationPlayer(this.effectSheets.windshear_wave);
+      fx.player.play('play');
+    }
+    this.visualEffects.push(fx);
   }
 
   // Current draw position for a unit moving through an attack animation.
@@ -237,6 +262,16 @@ class Battle {
       atk: 'ATK', def: 'DEF', speed: 'SPD',
       critChance: 'CRIT', critDamage: 'CRIT DMG',
     };
+    // Impact effects: one per affected unit. Damage defaults to 'strike';
+    // non-damage abilities show one only when they declare an impact.
+    const impacted = new Set();
+    for (const res of results) {
+      const wantImpact = res.kind === 'damage' ? (ability.impact || 'strike') : ability.impact;
+      if (wantImpact && res.target.slot && !impacted.has(res.target)) {
+        impacted.add(res.target);
+        this.spawnImpact(wantImpact, res.target.slot.x, res.target.slot.y - 14);
+      }
+    }
     for (const res of results) {
       if (res.kind === 'damage') {
         if (res.crit) {

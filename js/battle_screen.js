@@ -61,6 +61,12 @@ class BattleScreen {
       unit.animator.elapsed = Math.random() * 0.5; // desync idle bobbing
     }
 
+    // Preload impact/projectile effect sheets (null when art is absent).
+    for (const id of Object.keys(EFFECTS)) {
+      const sheet = await Sprites.getEffectSheet(id);
+      if (sheet) battle.effectSheets[id] = sheet;
+    }
+
     this.battle = battle;
     this.renderer.setBattle(battle);
     this.ui.bind(battle);

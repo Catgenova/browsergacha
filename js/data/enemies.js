@@ -16,6 +16,7 @@ const ENEMIES = {
     abilities: [
       {
         id: 'slam',
+        impact: 'punch',
         name: 'Slime Slam',
         description: 'Slams one hero for 100% ATK.',
         cooldown: 0,
@@ -54,6 +55,7 @@ const ENEMIES = {
     abilities: [
       {
         id: 'crush',
+        impact: 'punch',
         name: 'Crush',
         description: 'Crushes one hero for 110% ATK.',
         cooldown: 0,
