@@ -136,11 +136,12 @@ class Renderer {
     }
   }
 
-  // Sprite center so the unit's feet stand on its tile (slightly below
-  // the tile center, body rising above the grid).
+  // Sprite center so the unit's ART feet (not the padded frame edge)
+  // stand on its tile, slightly below the tile center.
   spriteCenterY(unit, tileY) {
-    const dh = unit.animator ? unit.animator.sheet.displayH : 48;
-    return tileY - dh / 2 + 5;
+    const sheet = unit.animator && unit.animator.sheet;
+    const dh = sheet ? sheet.displayH : 48;
+    return tileY - dh / 2 + 5 + (sheet && sheet.footPad || 0);
   }
 
   drawUnit(unit) {
@@ -200,14 +201,17 @@ class Renderer {
       unit.animator.draw(ctx, x, yc, flipX, flash);
     }
 
-    this.drawBars(unit, x, yc - dh / 2);
+    // Bars sit just above the visible art (skip padded headroom).
+    const headPad = (unit.animator && unit.animator.sheet.headPad) || 0;
+    const visualTop = yc - dh / 2 + headPad;
+    this.drawBars(unit, x, visualTop);
 
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
       ctx.fillStyle = '#ffd76a';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, yc - dh / 2 - 10);
+      ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, visualTop - 10);
     }
   }
 
