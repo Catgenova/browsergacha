@@ -147,12 +147,21 @@ class AnimationPlayer {
 }
 
 const Sprites = (() => {
+  // Cache-bust sprite images with the deployed build id, so an updated
+  // sheet can never pair with a stale cached image (which would slice
+  // frames at the wrong width). Locally the tag has no hex sha -> no-op.
+  function assetUrl(src) {
+    const tag = document.getElementById('version-tag');
+    const m = tag && tag.textContent.match(/[0-9a-f]{8}/);
+    return m ? `${src}?v=${m[0]}` : src;
+  }
+
   function loadImage(src) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = () => resolve(null);
-      img.src = src;
+      img.src = assetUrl(src);
     });
   }
 
