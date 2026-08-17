@@ -177,7 +177,7 @@ class Renderer {
       ctx.save();
       ctx.globalAlpha = Math.max(0, alpha);
       ctx.fillStyle = ft.color;
-      ctx.font = 'bold 15px monospace';
+      ctx.font = ft.big ? 'bold 20px monospace' : 'bold 15px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(ft.text, ft.x, ft.y - rise);
       ctx.restore();

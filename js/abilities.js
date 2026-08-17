@@ -28,9 +28,11 @@ const Abilities = (() => {
     switch (effect.type) {
       case 'damage': {
         const raw = caster.effectiveStat('atk') * effect.mult;
-        const dmg = damageFormula(raw, target.effectiveStat('def'));
+        let dmg = damageFormula(raw, target.effectiveStat('def'));
+        const crit = Math.random() < caster.effectiveStat('critChance');
+        if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
         target.takeDamage(dmg);
-        return { kind: 'damage', target, amount: dmg };
+        return { kind: 'damage', target, amount: dmg, crit };
       }
       case 'heal': {
         const amount = Math.round(caster.effectiveStat('atk') * effect.mult);
@@ -43,6 +45,7 @@ const Abilities = (() => {
           kind: effect.type,
           stat: effect.stat,
           mult: effect.mult,
+          add: effect.add,
           turns: effect.turns,
         });
         return { kind: effect.type, target, stat: effect.stat, turns: effect.turns };

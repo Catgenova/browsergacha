@@ -70,6 +70,8 @@ holds: { 6: 3, 9: 3 }, // frames 6 and 9 last 3 ticks each
 - `KnightIdle.png` — ✅ standard idle loop (9 frames, 256×256)
 - `Knightidle2.png` — ✅ timed variation (helmet adjust, holds on 4, 6 & 8)
 - `Knightidle3.png` — ✅ timed variation (kneeling rest, hold on 7)
+- `Knightready.png` — ✅ ready stance (loops on her turn)
+- `Knightbuff.png` — ✅ Crystal Resonance cast (17 frames)
 - `attack.png` — pending
 
 ### Legacy single-sheet format
