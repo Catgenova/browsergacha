@@ -43,8 +43,8 @@ class UI {
   canvasPoint(e) {
     const rect = this.canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (this.canvas.height / rect.height),
+      x: (e.clientX - rect.left) * (CONFIG.CANVAS_W / rect.width),
+      y: (e.clientY - rect.top) * (CONFIG.CANVAS_H / rect.height),
     };
   }
 

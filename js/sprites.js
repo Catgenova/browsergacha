@@ -132,7 +132,10 @@ class AnimationPlayer {
     const sy = anim.row * anim.frameH;
 
     ctx.save();
-    ctx.imageSmoothingEnabled = false;
+    // High-res art shrinking down gets quality resampling; low-res pixel
+    // art blowing up keeps crisp nearest-neighbor.
+    ctx.imageSmoothingEnabled = scale < 1;
+    ctx.imageSmoothingQuality = 'high';
     ctx.translate(x, y);
     if (flipX) ctx.scale(-1, 1);
     ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH, -w / 2, -h / 2, w, h);
@@ -306,16 +309,26 @@ const Sprites = (() => {
   }
 
   // Draw a hero's idle frame 0 into a portrait canvas element.
+  // Renders at 3x backing resolution so portraits stay sharp when the UI
+  // scales up; the element keeps its logical CSS size.
   async function drawPortrait(canvasEl, def) {
     const sheet = await getSheet(def);
     const anim = sheet.animations.idle;
+    const logicalW = canvasEl.width;
+    const logicalH = canvasEl.height;
+    canvasEl.style.width = `${logicalW}px`;
+    canvasEl.style.height = `${logicalH}px`;
+    canvasEl.width = logicalW * 3;
+    canvasEl.height = logicalH * 3;
+
     const ctx = canvasEl.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    // Fit the frame in the canvas: crisp integer upscale for small frames,
-    // fractional downscale for large art.
+    // Fit the frame in the backing store: crisp integer upscale for small
+    // pixel frames, quality downscale for large art.
     let scale = Math.min(canvasEl.width / anim.frameW, canvasEl.height / anim.frameH);
     if (scale > 1) scale = Math.floor(scale);
+    ctx.imageSmoothingEnabled = scale < 1;
+    ctx.imageSmoothingQuality = 'high';
     const w = anim.frameW * scale;
     const h = anim.frameH * scale;
     ctx.drawImage(

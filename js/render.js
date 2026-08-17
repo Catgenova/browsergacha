@@ -18,6 +18,10 @@ class Renderer {
   draw() {
     const { ctx } = this;
     if (!this.battle) return;
+    // Backing store may be larger than the logical 960x540 (hi-DPI);
+    // draw in logical coordinates on top of a scale transform.
+    const q = this.canvas.width / CONFIG.CANVAS_W;
+    ctx.setTransform(q, 0, 0, q, 0, 0);
     ctx.clearRect(0, 0, CONFIG.CANVAS_W, CONFIG.CANVAS_H);
 
     this.drawBackground();
