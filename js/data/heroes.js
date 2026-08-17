@@ -29,18 +29,21 @@ const HEROES = {
     abilities: [
       {
         id: 'quick_shot', name: 'Quick Shot',
+        icon: 'assets/icons/fc1515.png',
         description: 'Loose an arrow for 100% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
         id: 'aimed_shot', name: 'Aimed Shot',
+        icon: 'assets/icons/fc1516.png',
         description: 'A careful shot for 140% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.4 }],
       },
       {
         id: 'arrow_rain', name: 'Arrow Rain',
+        icon: 'assets/icons/fc807.png',
         description: 'Pepper ALL enemies for 70% ATK.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [{ type: 'damage', mult: 0.7 }],
@@ -48,6 +51,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Twitchy',
+      icon: 'assets/icons/fc882.png',
       description: 'Gains +8% SPD for 1 turn at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
@@ -78,18 +82,21 @@ const HEROES = {
     abilities: [
       {
         id: 'jab', name: 'Jab',
+        icon: 'assets/icons/fc663.png',
         description: 'A quick jab for 100% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
         id: 'haymaker', name: 'Haymaker',
+        icon: 'assets/icons/fc762.png',
         description: 'A wild swing for 150% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
         effects: [{ type: 'damage', mult: 1.5 }],
       },
       {
         id: 'gutter_stance', name: 'Gutter Stance',
+        icon: 'assets/icons/fc854.png',
         description: 'Hunker down: +40% DEF for 2 turns.',
         cooldown: 5, targeting: 'self', animation: 'attack',
         effects: [{ type: 'buff', stat: 'def', mult: 1.4, turns: 2 }],
@@ -97,6 +104,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Thick Hide',
+      icon: 'assets/icons/fc1112.png',
       description: 'Recovers 3% max HP at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
@@ -132,18 +140,21 @@ const HEROES = {
     abilities: [
       {
         id: 'poke', name: 'Poke',
+        icon: 'assets/icons/fc1461.png',
         description: 'A spear thrust for 100% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.0 }],
       },
       {
         id: 'lunge', name: 'Lunge',
+        icon: 'assets/icons/fc1791.png',
         description: 'A deep lunge for 140% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.4 }],
       },
       {
         id: 'sweeping_thrust', name: 'Sweeping Thrust',
+        icon: 'assets/icons/fc724.png',
         description: 'Rake a hex row for 80% ATK.',
         cooldown: 5, targeting: 'enemy-row', animation: 'attack',
         effects: [{ type: 'damage', mult: 0.8 }],
@@ -151,6 +162,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Set Spear',
+      icon: 'assets/icons/fc1801.png',
       description: 'Deals 10% extra damage to front-row enemies.',
       hooks: {
         damageDealtMult(unit, target) {
@@ -182,18 +194,21 @@ const HEROES = {
     abilities: [
       {
         id: 'shiv', name: 'Shiv',
+        icon: 'assets/icons/fc1444.png',
         description: 'A quick stab for 105% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.05 }],
       },
       {
         id: 'backstab', name: 'Backstab',
+        icon: 'assets/icons/fc825.png',
         description: 'Slip behind for 150% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.5 }],
       },
       {
         id: 'throat_cut', name: 'Throat Cut',
+        icon: 'assets/icons/fc734.png',
         description: 'Go for the kill: 200% ATK.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 2.0 }],
@@ -201,6 +216,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Opportunist',
+      icon: 'assets/icons/fc863.png',
       description: 'Deals 20% extra damage to enemies below half HP.',
       hooks: {
         damageDealtMult(unit, target) {
@@ -230,18 +246,21 @@ const HEROES = {
     abilities: [
       {
         id: 'wild_swing', name: 'Wild Swing',
+        icon: 'assets/icons/fc744.png',
         description: 'A frenzied swing for 105% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
         effects: [{ type: 'damage', mult: 1.05 }],
       },
       {
         id: 'reckless_cleave', name: 'Reckless Cleave',
+        icon: 'assets/icons/fc745.png',
         description: 'An all-out cleave for 155% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
         effects: [{ type: 'damage', mult: 1.55 }],
       },
       {
         id: 'blood_frenzy', name: 'Blood Frenzy',
+        icon: 'assets/icons/fc743.png',
         description: 'Work into a frenzy: +40% ATK for 3 turns.',
         cooldown: 6, targeting: 'self', animation: 'attack',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.4, turns: 3 }],
@@ -249,6 +268,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Pain Fueled',
+      icon: 'assets/icons/fc1093.png',
       description: 'Deals 25% extra damage while below half HP.',
       hooks: {
         damageDealtMult(unit) {
@@ -278,12 +298,14 @@ const HEROES = {
     abilities: [
       {
         id: 'club_smash', name: 'Club Smash',
+        icon: 'assets/icons/fc1471.png',
         description: 'A heavy blow for 105% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.05 }],
       },
       {
         id: 'bone_crusher', name: 'Bone Crusher',
+        icon: 'assets/icons/fc1476.png',
         description: 'Deals 140% ATK and cracks armor: -20% DEF for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [
@@ -293,6 +315,7 @@ const HEROES = {
       },
       {
         id: 'overhead_slam', name: 'Overhead Slam',
+        icon: 'assets/icons/fc767.png',
         description: 'Bring it all down: 185% ATK.',
         cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.85 }],
@@ -300,6 +323,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Bully',
+      icon: 'assets/icons/fc657.png',
       description: 'Deals 15% extra damage to enemies above half HP.',
       hooks: {
         damageDealtMult(unit, target) {
@@ -329,18 +353,21 @@ const HEROES = {
     abilities: [
       {
         id: 'riposte', name: 'Riposte',
+        icon: 'assets/icons/fc1454.png',
         description: 'A precise thrust for 105% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.05 }],
       },
       {
         id: 'flourish', name: 'Flourish',
+        icon: 'assets/icons/fc729.png',
         description: 'A dazzling combination for 150% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.5 }],
       },
       {
         id: 'coup_de_grace', name: 'Coup de Grâce',
+        icon: 'assets/icons/fc728.png',
         description: 'The decisive strike: 190% ATK.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.9 }],
@@ -348,6 +375,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Duelist\'s Eye',
+      icon: 'assets/icons/fc719.png',
       description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
@@ -380,18 +408,21 @@ const HEROES = {
     abilities: [
       {
         id: 'iai_cut', name: 'Iai Cut',
+        icon: 'assets/icons/fc1587.png',
         description: 'A lightning draw-cut for 105% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.05 }],
       },
       {
         id: 'cross_slash', name: 'Cross Slash',
+        icon: 'assets/icons/fc1030.png',
         description: 'Two crossing cuts for 155% ATK.',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.55 }],
       },
       {
         id: 'crescent_moon', name: 'Crescent Moon',
+        icon: 'assets/icons/fc1003.png',
         description: 'One sweeping cut along a hex row for 120% ATK.',
         cooldown: 6, targeting: 'enemy-row', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.2 }],
@@ -399,6 +430,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Iaijutsu',
+      icon: 'assets/icons/fc1038.png',
       description: 'Deals 25% extra damage to enemies at full HP.',
       hooks: {
         damageDealtMult(unit, target) {
@@ -507,6 +539,7 @@ const HEROES = {
     abilities: [
       {
         id: 'crystal_slash', name: 'Crystal Slash',
+        icon: 'assets/icons/fc1609.png',
         description: 'Leap to an enemy and slash clean through for 100% ATK.',
         // Slash impact rotated flat and mirrored vertically so the sweep
         // reads bottom-left to bottom-right, following the sword tip.
@@ -516,6 +549,7 @@ const HEROES = {
       },
       {
         id: 'crystal_resonance', name: 'Crystal Resonance',
+        icon: 'assets/icons/fc1024.png',
         description: 'Attune to the blade: +50% crit chance and +50% crit damage for 3 turns.',
         cooldown: 5, targeting: 'self', animation: 'buff',
         effects: [
@@ -525,6 +559,7 @@ const HEROES = {
       },
       {
         id: 'prism_break', name: 'Prism Break',
+        icon: 'assets/icons/fc788.png',
         description: 'Leap skyward and hurl a shearing wave that cuts an entire enemy row for 170% ATK.',
         cooldown: 7, targeting: 'enemy-row', animation: 'rowslash', vfx: 'windshear', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.7 }],
@@ -532,6 +567,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Blade Dance',
+      icon: 'assets/icons/fc731.png',
       description: 'Gains +15% SPD for 1 turn at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
@@ -582,18 +618,21 @@ const HEROES = {
     abilities: [
       {
         id: 'verdant_mend', name: 'Verdant Mend',
+        icon: 'assets/icons/fc1073.png',
         description: 'Heal an ally for 10% of Vivian\'s max HP — 20% if they hold a front hex.',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_green',
         effects: [{ type: 'healHpPct', pct: 0.10, frontPct: 0.20 }],
       },
       {
         id: 'thicket_blessing', name: 'Thicket Blessing',
+        icon: 'assets/icons/fc1113.png',
         description: 'Bless the entire front row with regrowth: heal 5% of Vivian\'s max HP per turn for 4 turns.',
         cooldown: 5, targeting: 'front-allies', animation: 'cast', impact: 'heal_green',
         effects: [{ type: 'hot', pct: 0.05, turns: 4 }],
       },
       {
         id: 'briar_burst', name: 'Briar Burst',
+        icon: 'assets/icons/fc1066.png',
         description: 'Lash an enemy with thorns for 20% of Vivian\'s max HP and cut their action bar by 50%.',
         cooldown: 6, targeting: 'enemy', animation: 'attack3', impact: 'strike_green',
         effects: [
@@ -604,6 +643,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Sympathetic Growth',
+      icon: 'assets/icons/fc866.png',
       description: 'Gains 5% action bar whenever an ally is healed.',
       hooks: {
         onAllyHealed(unit) {
@@ -654,6 +694,7 @@ const HEROES = {
     abilities: [
       {
         id: 'pinprick', name: 'Pinprick',
+        icon: 'assets/icons/fc89.png',
         description: 'Stab the doll: 90% ATK to one enemy and -15% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
@@ -663,6 +704,7 @@ const HEROES = {
       },
       {
         id: 'creeping_malaise', name: 'Creeping Malaise',
+        icon: 'assets/icons/fc1117.png',
         description: 'Curse ALL enemies: -25% DEF and -15% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'cast', impact: 'strike_purple',
         effects: [
@@ -672,6 +714,7 @@ const HEROES = {
       },
       {
         id: 'doom_mark', name: 'Doom Mark',
+        icon: 'assets/icons/fc1050.png',
         description: 'Condemn one enemy: takes 40% more damage and loses 30% ATK for 3 turns.',
         cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike_purple',
         effects: [
@@ -682,6 +725,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Vile Persistence',
+      icon: 'assets/icons/fc1053.png',
       description: 'Her debuffs last 1 extra turn.',
       hooks: {
         debuffExtraTurns: 1,
@@ -726,12 +770,14 @@ const HEROES = {
     abilities: [
       {
         id: 'lightmend', name: 'Lightmend',
+        icon: 'assets/icons/fc1041.png',
         description: 'Bathe one ally in light, healing 130% ATK.',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_gold',
         effects: [{ type: 'heal', mult: 1.3 }],
       },
       {
         id: 'purifying_chorus', name: 'Purifying Chorus',
+        icon: 'assets/icons/fc1046.png',
         description: 'Heal ALL allies for 80% ATK and cleanse their debuffs.',
         cooldown: 5, targeting: 'all-allies', animation: 'cast2', impact: 'heal_gold',
         effects: [
@@ -741,6 +787,7 @@ const HEROES = {
       },
       {
         id: 'second_dawn', name: 'Second Dawn',
+        icon: 'assets/icons/fc1075.png',
         description: 'Call a fallen ally back to the fight with 40% of their max HP.',
         cooldown: 7, targeting: 'dead-ally', animation: 'revive', impact: 'heal_gold',
         effects: [{ type: 'revive', pct: 0.4 }],
@@ -748,6 +795,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Serenity',
+      icon: 'assets/icons/fc1091.png',
       description: 'At the start of her turn, removes one debuff from the most afflicted ally.',
       hooks: {
         onTurnStart(unit, battle) {
@@ -805,18 +853,21 @@ const HEROES = {
     abilities: [
       {
         id: 'tide_lash', name: 'Tide Lash',
+        icon: 'assets/icons/fc819.png',
         description: 'Strike one enemy with a surging wave for 110% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.1 }],
       },
       {
         id: 'undertow', name: 'Undertow',
+        icon: 'assets/icons/fc821.png',
         description: 'Drag the enemy back row under for 90% ATK.',
         cooldown: 6, targeting: 'back-enemies', animation: 'attack', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.9 }],
       },
       {
         id: 'maelstrom_spear', name: 'Maelstrom Spear',
+        icon: 'assets/icons/fc786.png',
         description: 'Skewer one enemy with a focused torrent for 240% ATK.',
         cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike',
         effects: [{ type: 'damage', mult: 2.4 }],
@@ -824,6 +875,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Riptide',
+      icon: 'assets/icons/fc823.png',
       description: 'Deals 25% extra damage to enemies holding front hexes.',
       hooks: {
         damageDealtMult(unit, target) {

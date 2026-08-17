@@ -205,7 +205,10 @@ class TeamScreen {
 
     const abilitiesHtml = def.abilities.map((a) => {
       const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
-      return `<div class="detail-ability"><b>${a.name}</b> <span class="cd">${cd}</span><br>${a.description}</div>`;
+      const icon = a.icon
+        ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
+        : '';
+      return `<div class="detail-ability">${icon}<b>${a.name}</b> <span class="cd">${cd}</span><br>${a.description}</div>`;
     }).join('');
 
     this.detailsEl.innerHTML = `
@@ -217,7 +220,7 @@ class TeamScreen {
       <div class="detail-section">Abilities</div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
-      <div class="detail-ability"><b>${def.passive.name}</b><br>${def.passive.description}</div>
+      <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
       <div class="detail-section">Positional bonus</div>
       <div class="detail-ability ${bonusLive ? 'bonus-live' : ''}">
         ${def.positional.description}
