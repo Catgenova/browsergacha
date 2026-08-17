@@ -10,8 +10,13 @@ const CONFIG = {
   ENEMY_FORMATION_X: 720,       // center of the enemy-side flower
   FORMATION_Y: 340,             // sits both grids in the clearing's open grass
 
-  // Battle backdrop (drawn cover-fit behind the grids).
-  BATTLE_BG: 'assets/battle_bg_clearing.png',
+  // Battle backdrops (cover-fit behind the grids); each new battle
+  // rotates to the next one.
+  BATTLE_BGS: [
+    'assets/battle_bg_clearing.png',
+    'assets/battle_bg_canyon.png',
+    'assets/battle_bg_bonefield.png',
+  ],
 
   // Turn meter: fills at unit.speed points/sec; unit acts when full.
   TURN_METER_MAX: 1000,
