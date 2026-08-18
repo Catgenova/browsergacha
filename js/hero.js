@@ -13,8 +13,10 @@ class Unit {
     this.stars = progress?.stars ?? def.rarity ?? 1;
     this.isBoss = !!def.isBoss;
 
-    // Base stats, scaled by level and stars.
-    const stats = Progression.scaledStats(def, this.level, this.stars);
+    // Base stats: scaled by level and stars, then modified by any
+    // equipped gear (main stats + set bonuses).
+    const scaled = Progression.scaledStats(def, this.level, this.stars);
+    const stats = Gear.applyToStats(scaled, progress?.gear || []);
     this.maxHp = stats.hp;
     this.hp = stats.hp;
     this.baseAtk = stats.atk;

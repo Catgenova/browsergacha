@@ -231,14 +231,49 @@ class TeamScreen {
       return `<div class="detail-ability">${icon}<b>${a.name}</b> <span class="cd">${cd}</span><br>${a.description}</div>`;
     }).join('');
 
-    // Progression: scaled stats, level/XP bar, star-up state.
+    // Progression: scaled stats (gear included), level/XP bar, star-up.
     const progress = GameState.progressOf(def.id);
-    const stats = Progression.scaledStats(def, progress.level, progress.stars);
+    const equipped = GameState.equippedPieces(def.id);
+    const stats = Gear.applyToStats(
+      Progression.scaledStats(def, progress.level, progress.stars), equipped);
     const cap = Progression.maxLevel(progress.stars);
     const atCap = progress.level >= cap;
     const xpNeed = atCap ? 0 : Progression.xpToNext(progress.level);
     const xpPct = atCap ? 100 : Math.min(100, Math.round((progress.xp / xpNeed) * 100));
     const starsText = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+
+    // Gear: one row per slot with an equip picker, plus set bonuses.
+    const equipment = GameState.equipmentOf(def.id);
+    const gearRows = Gear.SLOTS.map((slot) => {
+      const uid = equipment[slot];
+      const piece = uid ? GameState.gearById(uid) : null;
+      const options = [`<option value="">— empty —</option>`];
+      if (piece) {
+        options.push(`<option value="${piece.uid}" selected>${Gear.describe(piece)}</option>`);
+      }
+      for (const p of GameState.unequippedGear(slot)) {
+        options.push(`<option value="${p.uid}">${Gear.describe(p)}</option>`);
+      }
+      const iconSrc = piece ? Gear.icon(piece) : null;
+      const iconHtml = iconSrc
+        ? `<img class="detail-icon" src="${Sprites.assetUrl(iconSrc)}" alt="">`
+        : '<span class="gear-slot-empty"></span>';
+      return `
+        <div class="gear-row">
+          ${iconHtml}<span class="gear-slot-name">${Gear.SLOT_LABELS[slot]}</span>
+          <select class="gear-select" data-slot="${slot}">${options.join('')}</select>
+        </div>`;
+    }).join('');
+
+    const { setCounts } = Gear.aggregate(equipped);
+    const setBonusHtml = Object.values(Gear.SETS).map((set) => {
+      const count = setCounts[set.id] || 0;
+      if (count === 0 && equipped.length === 0) return '';
+      const rows = set.bonuses.map((b) =>
+        `<div class="set-bonus ${count >= b.pieces ? 'set-bonus-live' : ''}">${b.label}</div>`
+      ).join('');
+      return `<div class="detail-ability"><b>${set.name} set (${count}/6)</b>${rows}</div>`;
+    }).join('');
 
     let starUpHtml = '';
     if (progress.stars < Progression.MAX_STARS) {
@@ -271,6 +306,9 @@ class TeamScreen {
       <div class="detail-stats">
         HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
       </div>
+      <div class="detail-section">Gear</div>
+      ${gearRows}
+      ${setBonusHtml}
       <div class="detail-section">Abilities</div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
@@ -299,6 +337,14 @@ class TeamScreen {
         if (GameState.starUp(def.id)) this.refresh();
       });
     }
+
+    this.detailsEl.querySelectorAll('.gear-select').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        if (sel.value) GameState.equipGear(def.id, sel.value);
+        else GameState.unequipGear(def.id, sel.dataset.slot);
+        this.refresh();
+      });
+    });
   }
 
   // ---- Canvas rendering --------------------------------------------------

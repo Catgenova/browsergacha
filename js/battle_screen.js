@@ -50,6 +50,7 @@ class BattleScreen {
       const def = HEROES[heroId];
       if (!def) continue;
       const progress = GameState.progressOf(heroId);
+      if (progress) progress.gear = GameState.equippedPieces(heroId);
       teamLevels.push(progress ? progress.level : 1);
       battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
@@ -124,6 +125,10 @@ class BattleScreen {
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
           sub.unshift(`Stage ${this.bossFight.stage} cleared!`);
+          // Bosses drop a set piece scaled to their level.
+          const piece = Gear.roll('dragon', Progression.bossLevel(this.bossFight.stage));
+          GameState.addGear(piece);
+          sub.push(`Loot: ${Gear.describe(piece)}`);
         }
         this.ui.showBanner(winner, sub.join('<br>'));
       } else {

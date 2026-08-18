@@ -11,11 +11,17 @@ const GameState = (() => {
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
     pity: 0,                             // pulls since last 5★
     bossStages: {},                      // bossId -> highest stage cleared
+    gear: {},                            // uid -> gear piece
+    nextGearUid: 1,
   };
 
   function freshEntry(heroId) {
     const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
-    return { copies: 1, level: 1, xp: 0, stars: def ? def.rarity : 1 };
+    return {
+      copies: 1, level: 1, xp: 0,
+      stars: def ? def.rarity : 1,
+      equipment: {}, // slot -> gear uid
+    };
   }
 
   // Heroes every player owns, granted retroactively to existing saves too.
@@ -46,12 +52,15 @@ const GameState = (() => {
         if (!HEROES[id]) delete loaded.team[slot];
       }
     }
-    // Migrate pre-progression saves: entries gain level/xp/stars.
+    // Migrate older saves: entries gain level/xp/stars/equipment.
     for (const [id, entry] of Object.entries(loaded.roster)) {
       if (entry.level === undefined) {
         Object.assign(entry, { level: 1, xp: 0 }, { stars: freshEntry(id).stars });
       }
+      if (!entry.equipment) entry.equipment = {};
     }
+    if (!loaded.gear) loaded.gear = {};
+    if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     return loaded;
   }
 
@@ -170,6 +179,63 @@ const GameState = (() => {
       save();
     },
     teamSize() { return Object.keys(state.team).length; },
+
+    // ---- Gear ----
+    // Add a dropped piece to the inventory; returns its uid.
+    addGear(piece) {
+      const uid = String(state.nextGearUid++);
+      state.gear[uid] = { ...piece, uid };
+      save();
+      return uid;
+    },
+    gearById(uid) { return state.gear[uid] || null; },
+
+    // Pieces not currently worn by anyone (optionally one slot only).
+    unequippedGear(slot = null) {
+      const worn = new Set();
+      for (const entry of Object.values(state.roster)) {
+        for (const uid of Object.values(entry.equipment || {})) worn.add(uid);
+      }
+      return Object.values(state.gear).filter(
+        (p) => !worn.has(p.uid) && (!slot || p.slot === slot)
+      );
+    },
+
+    // Equipped pieces for a hero, as an array (for stat aggregation).
+    equippedPieces(heroId) {
+      const entry = state.roster[heroId];
+      if (!entry || !entry.equipment) return [];
+      return Object.values(entry.equipment)
+        .map((uid) => state.gear[uid])
+        .filter(Boolean);
+    },
+    equipmentOf(heroId) {
+      const entry = state.roster[heroId];
+      return entry && entry.equipment ? { ...entry.equipment } : {};
+    },
+
+    // Equip a piece: pulls it off any other wearer, replaces whatever
+    // is in the hero's matching slot.
+    equipGear(heroId, uid) {
+      const piece = state.gear[uid];
+      const entry = state.roster[heroId];
+      if (!piece || !entry) return false;
+      for (const other of Object.values(state.roster)) {
+        if (!other.equipment) continue;
+        for (const [slot, worn] of Object.entries(other.equipment)) {
+          if (worn === uid) delete other.equipment[slot];
+        }
+      }
+      entry.equipment[piece.slot] = uid;
+      save();
+      return true;
+    },
+    unequipGear(heroId, slot) {
+      const entry = state.roster[heroId];
+      if (!entry || !entry.equipment) return;
+      delete entry.equipment[slot];
+      save();
+    },
 
     // ---- Boss stages ----
     bossStageCleared(bossId) {
