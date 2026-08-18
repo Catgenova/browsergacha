@@ -70,7 +70,6 @@ class BattleScreen {
       const stage = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const level = Progression.bossLevel(stage);
       this.bossFight = { bossId: def.id, stage };
-      this.rewardGems = 300 + 100 * stage;
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
@@ -81,7 +80,6 @@ class BattleScreen {
       const enemyDefs = Object.values(ENEMIES);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
       const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
-      this.rewardGems = 75 + 50 * count;
       this.rewardXp = 0;
       let totalEnemyLevels = 0;
       for (let i = 0; i < count; i++) {
@@ -117,7 +115,6 @@ class BattleScreen {
 
     battle.onBattleEnd = (winner) => {
       if (winner === TEAM.PLAYER) {
-        GameState.addGems(this.rewardGems);
         // The whole party earns XP, fallen members included.
         const levelUps = [];
         for (const heroId of Object.values(GameState.getTeam())) {
@@ -130,9 +127,18 @@ class BattleScreen {
         GameState.addWhetstones(this.rewardWhetstones);
         GameState.addArcana(this.rewardArcana);
         const sub = [
-          `+${this.rewardGems} 💎 · +${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
+          `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
         ];
+        // Scroll drops: 10% Common, 3% Rare per victory.
+        if (Math.random() < 0.10) {
+          GameState.addScrolls('common', 1);
+          sub.push('A Common Summon Scroll drops! 📜');
+        }
+        if (Math.random() < 0.03) {
+          GameState.addScrolls('rare', 1);
+          sub.push('A RARE Summon Scroll drops! ✨');
+        }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
           sub.unshift(`Stage ${this.bossFight.stage} cleared!`);

@@ -19,8 +19,9 @@ const App = {
     await next.enter();
   },
 
-  updateGems() {
-    document.getElementById('gem-count').textContent = GameState.gems.toLocaleString();
+  updateCurrencies() {
+    document.getElementById('scroll-common-count').textContent = GameState.scrollsCommon.toLocaleString();
+    document.getElementById('scroll-rare-count').textContent = GameState.scrollsRare.toLocaleString();
     document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
     document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
   },
@@ -97,15 +98,16 @@ const App = {
     });
   });
 
-  // Testing helper: free gems.
-  document.getElementById('dev-gems-btn').addEventListener('click', () => {
-    GameState.addGems(1000);
+  // Testing helper: free scrolls.
+  document.getElementById('dev-scrolls-btn').addEventListener('click', () => {
+    GameState.addScrolls('common', 10);
+    GameState.addScrolls('rare', 10);
     // Refresh summon-button enabled states if that screen is showing.
     if (App.active === App.screens.summon) App.screens.summon.updateInfo();
   });
 
-  GameState.onChange(() => App.updateGems());
-  App.updateGems();
+  GameState.onChange(() => App.updateCurrencies());
+  App.updateCurrencies();
   App.showScreen('team');
 
   // Keep the layout fitted: on window resize and whenever screen content

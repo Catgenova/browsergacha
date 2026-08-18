@@ -1,18 +1,25 @@
-// Gacha summon screen: spend gems, reveal pulled heroes as flipping cards.
+// Gacha summon screen: spend scrolls, reveal pulled heroes as
+// flipping cards.
 
 class SummonScreen {
   constructor(app) {
     this.app = app;
     this.el = document.getElementById('screen-summon');
     this.resultsEl = document.getElementById('summon-results');
-    this.oneBtn = document.getElementById('summon-one-btn');
-    this.tenBtn = document.getElementById('summon-ten-btn');
     this.pityEl = document.getElementById('pity-counter');
+    this.scrollsEl = document.getElementById('scroll-counts');
     this.errorEl = document.getElementById('summon-error');
     this.revealing = false;
 
-    this.oneBtn.addEventListener('click', () => this.summon(1));
-    this.tenBtn.addEventListener('click', () => this.summon(10));
+    this.buttons = [
+      { el: document.getElementById('summon-common-one'), kind: 'common', count: 1 },
+      { el: document.getElementById('summon-common-ten'), kind: 'common', count: 10 },
+      { el: document.getElementById('summon-rare-one'), kind: 'rare', count: 1 },
+      { el: document.getElementById('summon-rare-ten'), kind: 'rare', count: 10 },
+    ];
+    for (const b of this.buttons) {
+      b.el.addEventListener('click', () => this.summon(b.kind, b.count));
+    }
   }
 
   enter() {
@@ -22,22 +29,26 @@ class SummonScreen {
   exit() {}
 
   updateInfo() {
+    this.scrollsEl.textContent =
+      `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare`;
     // Pity is only meaningful once a 5★ hero exists to be pitied into.
     const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
     this.pityEl.textContent = has5
-      ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} pulls`
+      ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} rare pulls`
       : '';
-    this.oneBtn.disabled = this.revealing || GameState.gems < Gacha.COST_SINGLE;
-    this.tenBtn.disabled = this.revealing || GameState.gems < Gacha.COST_TEN;
+    for (const b of this.buttons) {
+      const have = b.kind === 'rare' ? GameState.scrollsRare : GameState.scrollsCommon;
+      b.el.disabled = this.revealing || have < b.count;
+    }
   }
 
-  summon(count) {
+  summon(kind, count) {
     if (this.revealing) return;
     this.errorEl.textContent = '';
 
-    const results = count === 1 ? Gacha.pullOne() : Gacha.pullTen();
+    const results = Gacha.pull(kind, count);
     if (!results) {
-      this.errorEl.textContent = 'Not enough gems!';
+      this.errorEl.textContent = 'Not enough scrolls!';
       return;
     }
 
