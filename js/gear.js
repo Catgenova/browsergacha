@@ -119,15 +119,25 @@ const Gear = (() => {
     return sub;
   }
 
-  // Drop rarity odds shift toward the top end as boss stages climb.
+  // Drop rarity odds interpolate between two extremes across the 20
+  // stages: stage 1 skews hard common (1% legendary), stage 20 skews
+  // hard legendary (30% legendary).
+  const RARITY_WEIGHTS = {
+    stage1:  { normal: 60, uncommon: 25, rare: 10, epic: 4,  legendary: 1 },
+    stage20: { normal: 2,  uncommon: 8,  rare: 25, epic: 35, legendary: 30 },
+  };
+
+  function rarityWeights(stage) {
+    const t = Math.min(1, Math.max(0, (stage - 1) / 19));
+    const w = {};
+    for (const k of RARITY_ORDER) {
+      w[k] = RARITY_WEIGHTS.stage1[k] + (RARITY_WEIGHTS.stage20[k] - RARITY_WEIGHTS.stage1[k]) * t;
+    }
+    return w;
+  }
+
   function rollRarity(stage) {
-    const w = {
-      normal: Math.max(4, 52 - 3 * stage),
-      uncommon: 30,
-      rare: 14 + stage,
-      epic: 3 + stage * 0.8,
-      legendary: 1 + stage * 0.5,
-    };
+    const w = rarityWeights(stage);
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
     for (const k of RARITY_ORDER) {
