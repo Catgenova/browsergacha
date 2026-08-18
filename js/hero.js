@@ -34,7 +34,9 @@ class Unit {
       cooldownRemaining: 0,
     }));
 
-    this.passive = def.passive || null;
+    // Passives: heroes carry one, bosses carry several (def.passives).
+    this.passives = def.passives || (def.passive ? [def.passive] : []);
+    this.passive = this.passives[0] || null; // legacy single-passive alias
     this.positional = def.positional || null;
 
     // Status effects: { kind, stat, mult, turns }
@@ -103,17 +105,23 @@ class Unit {
     if (this.positionalActive() && this.positional.stat === 'damage') {
       m *= this.positional.mult;
     }
-    const hook = this.passive && this.passive.hooks && this.passive.hooks.damageDealtMult;
-    if (hook) m *= hook(this, target) || 1;
+    for (const p of this.passives) {
+      const hook = p.hooks && p.hooks.damageDealtMult;
+      if (hook) m *= hook(this, target) || 1;
+    }
     return m;
   }
 
   // Incoming damage multiplier from vulnerability marks ('damageTaken'
-  // status effects).
+  // status effects) and defensive passives.
   damageTakenMult() {
     let m = 1;
     for (const fx of this.statusEffects) {
       if (fx.stat === 'damageTaken' && fx.mult) m *= fx.mult;
+    }
+    for (const p of this.passives) {
+      const hook = p.hooks && p.hooks.damageTakenMult;
+      if (hook) m *= hook(this) || 1;
     }
     return m;
   }
@@ -200,9 +208,11 @@ class Unit {
 
     this.tickStatusEffects();
 
-    if (this.passive && this.passive.hooks && this.passive.hooks.onTurnStart) {
-      const r = this.passive.hooks.onTurnStart(this, battle);
-      if (r) results.push(r);
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.onTurnStart) {
+        const r = p.hooks.onTurnStart(this, battle);
+        if (r) results.push(r);
+      }
     }
     return results;
   }
