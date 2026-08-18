@@ -14,6 +14,7 @@
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
+        <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="battle">Battle</button>
       </nav>
       <div id="gem-display">💎 <span id="gem-count">0</span></div>
@@ -53,6 +54,15 @@
       <div id="roster-section">
         <h3>Your Heroes</h3>
         <div id="roster-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= Blacksmith screen ================= -->
+    <section id="screen-blacksmith" class="screen hidden">
+      <div id="bs-filters"></div>
+      <div id="bs-main">
+        <div id="bs-list"></div>
+        <aside id="bs-detail"></aside>
       </div>
     </section>
 
@@ -101,6 +111,7 @@
   <script src="js/ui.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
+  <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
   <script src="js/summon_screen.js?v=__BUILD__"></script>
   <script src="js/main.js?v=__BUILD__"></script>
 </body>

@@ -227,6 +227,37 @@ const GameState = (() => {
       return milestone || true;
     },
 
+    // Hero currently wearing a piece, or null.
+    wearerOf(uid) {
+      for (const [heroId, entry] of Object.entries(state.roster)) {
+        for (const worn of Object.values(entry.equipment || {})) {
+          if (worn === uid) return heroId;
+        }
+      }
+      return null;
+    },
+
+    // Destroy a piece for materials: whetstones scale with rarity and
+    // level, plus half the Arcana spent on its enchant comes back.
+    salvageGear(uid) {
+      const piece = state.gear[uid];
+      if (!piece) return null;
+      for (const entry of Object.values(state.roster)) {
+        for (const [slot, worn] of Object.entries(entry.equipment || {})) {
+          if (worn === uid) delete entry.equipment[slot];
+        }
+      }
+      const rarityMult = { normal: 1, uncommon: 1.5, rare: 2, epic: 3, legendary: 5 };
+      const whetstones = Math.round((5 + piece.level * 2) * (rarityMult[piece.rarity] || 1));
+      const arcanaSpent = 3 * piece.plus + (piece.plus * (piece.plus - 1)) / 2;
+      const arcana = Math.floor(arcanaSpent / 2);
+      delete state.gear[uid];
+      state.whetstones += whetstones;
+      state.arcana += arcana;
+      save();
+      return { whetstones, arcana };
+    },
+
     // ---- Gear ----
     // Add a dropped piece to the inventory; returns its uid.
     addGear(piece) {
