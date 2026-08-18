@@ -1,11 +1,13 @@
-// Persistent player state: gems, hero roster, saved team, gacha pity.
+// Persistent player state: summon scrolls, hero roster, saved team,
+// gacha pity, gear, and upgrade materials.
 // Saved to localStorage; falls back to in-memory if storage is unavailable.
 
 const GameState = (() => {
   const KEY = 'browsergacha_save_v1';
 
   const DEFAULTS = {
-    gems: 3000,
+    scrollsCommon: 5,                    // Common Summon Scrolls
+    scrollsRare: 1,                      // Rare Summon Scrolls
     // heroId -> { copies, level, xp, stars }
     roster: { florence: { copies: 1 } },
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
@@ -65,6 +67,10 @@ const GameState = (() => {
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
+    // Gems are retired; grant scroll defaults to migrated saves.
+    if (loaded.scrollsCommon === undefined) loaded.scrollsCommon = 5;
+    if (loaded.scrollsRare === undefined) loaded.scrollsRare = 1;
+    delete loaded.gems;
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
     for (const piece of Object.values(loaded.gear)) {
@@ -88,12 +94,18 @@ const GameState = (() => {
   return {
     onChange(fn) { listeners.push(fn); },
 
-    // ---- Currency ----
-    get gems() { return state.gems; },
-    addGems(n) { state.gems += n; save(); },
-    spendGems(n) {
-      if (state.gems < n) return false;
-      state.gems -= n;
+    // ---- Summon scrolls ----
+    get scrollsCommon() { return state.scrollsCommon; },
+    get scrollsRare() { return state.scrollsRare; },
+    addScrolls(kind, n) {
+      if (kind === 'rare') state.scrollsRare += n;
+      else state.scrollsCommon += n;
+      save();
+    },
+    spendScrolls(kind, n) {
+      const key = kind === 'rare' ? 'scrollsRare' : 'scrollsCommon';
+      if (state[key] < n) return false;
+      state[key] -= n;
       save();
       return true;
     },

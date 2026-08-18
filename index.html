@@ -17,20 +17,23 @@
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="battle">Battle</button>
       </nav>
-      <div id="gem-display">💎 <span id="gem-count">0</span></div>
+      <div id="scroll-display" title="Common · Rare summon scrolls">📜 <span id="scroll-common-count">0</span> · ✨ <span id="scroll-rare-count">0</span></div>
       <div id="mat-display" title="Whetstones (item leveling) · Arcana (enchanting)">🪨 <span id="whetstone-count">0</span> · ✦ <span id="arcana-count">0</span></div>
-      <button id="dev-gems-btn" class="panel-btn" title="Testing only: grants 1000 gems">+1000 💎</button>
+      <button id="dev-scrolls-btn" class="panel-btn" title="Testing only: grants 10 of each scroll">+📜</button>
     </header>
 
     <!-- ================= Summon screen ================= -->
     <section id="screen-summon" class="screen hidden">
       <div id="summon-header">
         <h2>Hero Summon</h2>
-        <div class="summon-rates">Rates: 1★ 40% · 2★ 20% · 3★ 10% · 4★ 25% · 5★ 5%</div>
+        <div class="summon-rates">Common Scroll 📜: 1★ 60% · 2★ 30% · 3★ 10% &nbsp;|&nbsp; Rare Scroll ✨: 3★ 80% · 4★ 18% · 5★ 2%</div>
+        <div id="scroll-counts"></div>
         <div id="pity-counter"></div>
         <div id="summon-actions">
-          <button id="summon-one-btn" class="panel-btn">Summon ×1 (100 💎)</button>
-          <button id="summon-ten-btn" class="panel-btn gold">Summon ×10 (900 💎)</button>
+          <button id="summon-common-one" class="panel-btn">Common ×1 (1 📜)</button>
+          <button id="summon-common-ten" class="panel-btn">Common ×10 (10 📜)</button>
+          <button id="summon-rare-one" class="panel-btn gold">Rare ×1 (1 ✨)</button>
+          <button id="summon-rare-ten" class="panel-btn gold">Rare ×10 (10 ✨)</button>
         </div>
         <div id="summon-error"></div>
       </div>
