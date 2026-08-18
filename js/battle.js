@@ -79,6 +79,9 @@ class Battle {
   // ---- Main update loop --------------------------------------------------
 
   update(dt) {
+    // Battle speed multiplier (3x auto-battle): scales animations,
+    // meters, and effect timers alike.
+    dt *= this.speedMult || 1;
     // Animations & flashes always advance.
     for (const u of this.units) {
       if (u.animator) u.animator.update(dt);
@@ -139,7 +142,7 @@ class Battle {
       if (this.onPlayerTurn) this.onPlayerTurn(unit);
     } else {
       this.state = BattleState.ACTING;
-      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY);
+      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY / (this.speedMult || 1));
     }
   }
 
@@ -151,7 +154,7 @@ class Battle {
       const unit = this.activeUnit;
       this.state = BattleState.ACTING;
       if (this.onAutoTakeover) this.onAutoTakeover();
-      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY);
+      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY / (this.speedMult || 1));
     }
   }
 
