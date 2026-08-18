@@ -33,14 +33,16 @@ const Abilities = (() => {
   }
 
   // Resolve one effect against one unit. Returns a log-friendly result.
-  function applyEffect(effect, caster, target) {
+  // `power` is the caster's skill-level multiplier for the ability this
+  // effect belongs to; it scales damage/heal/poison numbers only.
+  function applyEffect(effect, caster, target, power = 1) {
     switch (effect.type) {
       case 'damage': {
         // Dodge: a fully evaded hit deals nothing.
         if (Math.random() < (target.dodgeChance ? target.dodgeChance() : 0)) {
           return { kind: 'damage', target, amount: 0, dodged: true };
         }
-        let raw = caster.effectiveStat('atk') * effect.mult *
+        let raw = caster.effectiveStat('atk') * effect.mult * power *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
         // Combo hits: multiplied damage against a marked status — by
@@ -58,7 +60,7 @@ const Abilities = (() => {
         return { kind: 'damage', target, amount: dmg, crit };
       }
       case 'heal': {
-        const amount = Math.round(caster.effectiveStat('atk') * effect.mult);
+        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power);
         const healed = target.heal(amount);
         return { kind: 'heal', target, amount: healed };
       }
@@ -67,7 +69,7 @@ const Abilities = (() => {
         // front-row targets.
         const front = target.slot && target.slot.position === POSITION.FRONT;
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
-        const healed = target.heal(Math.round(caster.maxHp * pct));
+        const healed = target.heal(Math.round(caster.maxHp * pct * power));
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {
@@ -75,15 +77,15 @@ const Abilities = (() => {
         // each of the target's turns.
         target.addStatusEffect({
           kind: 'hot',
-          amount: Math.round(caster.maxHp * effect.pct),
+          amount: Math.round(caster.maxHp * effect.pct * power),
           turns: effect.turns,
         });
         return { kind: 'hot', target, turns: effect.turns };
       }
       case 'damageHpPct': {
         // Flat damage scaled off the caster's max HP (ignores DEF).
-        const dmg = Math.round(caster.maxHp * effect.pct * caster.damageDealtMult(target)
-          * target.damageTakenMult());
+        const dmg = Math.round(caster.maxHp * effect.pct * power
+          * caster.damageDealtMult(target) * target.damageTakenMult());
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit: false };
       }
@@ -111,8 +113,8 @@ const Abilities = (() => {
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
-        const amount = Math.round(
-          caster.effectiveStat('atk') * effect.pct * (1 + caster.dotBoost()));
+        const amount = Math.round(caster.effectiveStat('atk') * effect.pct *
+          power * (1 + caster.dotBoost()));
         target.addStatusEffect({ kind: 'dot', amount, turns: effect.turns });
         return { kind: 'dot', target, amount, turns: effect.turns };
       }
@@ -191,16 +193,18 @@ const Abilities = (() => {
 
   function execute(ability, caster, chosenTarget, battle) {
     const targets = resolveTargets(ability, caster, chosenTarget, battle);
+    // Skill-level power: +10% per level past 1 on this ability's numbers.
+    const power = caster.skillPowerFor ? caster.skillPowerFor(ability) : 1;
     const results = [];
     for (const target of targets) {
       for (const effect of ability.effects) {
-        const res = applyEffect(effect, caster, target);
+        const res = applyEffect(effect, caster, target, power);
         if (res) results.push(res);
       }
     }
     // Optional rider effects the ability applies to the caster itself.
     for (const effect of ability.selfEffects || []) {
-      const res = applyEffect(effect, caster, caster);
+      const res = applyEffect(effect, caster, caster, power);
       if (res) results.push(res);
     }
     return results;

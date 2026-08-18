@@ -509,6 +509,31 @@ body {
   color: #ffd76a;
 }
 
+/* Skill leveling: per-ability upgrade button (Skill Tomes) */
+.skill-up-btn {
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: #ffd76a;
+  background: #2c2545;
+  border: 1px solid #ffd76a;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.skill-up-btn:hover:not(:disabled) { background: #3d3260; }
+.skill-up-btn:disabled {
+  color: #6b6486;
+  border-color: #4a4368;
+  cursor: default;
+}
+.skill-max {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #7ae87a;
+  letter-spacing: 1px;
+}
+
 #hero-details .panel-btn {
   margin-top: 12px;
 }

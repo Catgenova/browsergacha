@@ -289,6 +289,11 @@ class BattleScreen {
           if (floor % 20 === 0) {
             GameState.addScrolls('temporal', 1);
             sub.push('Milestone chest: a TEMPORAL Scroll! 🌀');
+            // Skill Tomes drop ONLY here — every 20th floor, scaling
+            // with height (floor 20 -> 1 tome, 40 -> 2, 60 -> 3 ...).
+            const tomes = floor / 20;
+            GameState.addTomes(tomes);
+            sub.push(`Milestone chest: ${tomes} Skill Tome${tomes > 1 ? 's' : ''}! 📖`);
           }
         }
         if (this.bossFight) {
