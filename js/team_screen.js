@@ -233,6 +233,14 @@ class TeamScreen {
         dupes.textContent = `×${copies}`;
         card.appendChild(dupes);
       }
+      // Star-up ready: max level with enough spare duplicates.
+      if (GameState.canStarUp(heroId)) {
+        const up = document.createElement('div');
+        up.className = 'card-starup';
+        up.title = 'Ready to star up!';
+        up.textContent = '★⬆';
+        card.appendChild(up);
+      }
 
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
       this.rosterEl.appendChild(card);
