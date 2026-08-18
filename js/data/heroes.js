@@ -830,6 +830,393 @@ const HEROES = {
     },
   },
 
+
+  // ---- Minotaur cohort ----------------------------------------------------
+  // Bonefield natives; idle-only art for now.
+
+  minotaur_warrior: {
+    id: 'minotaur_warrior',
+    element: 'fire',
+    name: 'Minotaur Warrior',
+    title: 'Maze Soldier',
+    rarity: 1,
+    stats: { hp: 880, atk: 110, def: 70, speed: 92 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurwarrioridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'maze_slash', name: 'Maze Slash',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A soldier\'s cut for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'war_cleave', name: 'War Cleave',
+        icon: 'assets/icons/fc730.png',
+        description: 'A heavy cleave for 145% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.45 }],
+      },
+      {
+        id: 'rallying_bellow', name: 'Rallying Bellow',
+        icon: 'assets/icons/fc869.png',
+        description: 'Bellow with fury: +30% ATK for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Stubborn',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +8% DEF for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.08, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Shield Line: +15% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_bruiser: {
+    id: 'minotaur_bruiser',
+    element: 'water',
+    name: 'Minotaur Bruiser',
+    title: 'Maze Muscle',
+    rarity: 1,
+    stats: { hp: 950, atk: 105, def: 75, speed: 88 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurbruiseridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pummel', name: 'Pummel',
+        icon: 'assets/icons/fc663.png',
+        description: 'A meaty fist for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'headbutt', name: 'Headbutt',
+        icon: 'assets/icons/fc762.png',
+        description: 'Horns first: 140% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.4 }],
+      },
+      {
+        id: 'ground_stomp', name: 'Ground Stomp',
+        icon: 'assets/icons/fc767.png',
+        description: 'Shake a hex row for 75% ATK.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 0.75 }],
+      },
+    ],
+    passive: {
+      name: 'Thick Skull',
+      icon: 'assets/icons/fc1112.png',
+      description: 'Recovers 2% max HP at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          const healed = unit.heal(Math.round(unit.maxHp * 0.02));
+          if (healed <= 0) return null;
+          return {
+            label: 'Thick Skull',
+            message: `${unit.name} shakes it off (+${healed} HP).`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
+      description: 'Immovable: +15% max HP while in a front hex.',
+    },
+  },
+
+  minotaur_guard: {
+    id: 'minotaur_guard',
+    element: 'water',
+    name: 'Minotaur Guard',
+    title: 'Gate Warden',
+    rarity: 2,
+    stats: { hp: 1100, atk: 115, def: 95, speed: 85 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgaurdidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shield_strike', name: 'Shield Strike',
+        icon: 'assets/icons/fc854.png',
+        description: 'A shield-first blow for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'bulwark_slam', name: 'Bulwark Slam',
+        icon: 'assets/icons/fc1476.png',
+        description: 'Deals 135% ATK and dents armor: -15% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'phalanx_wall', name: 'Phalanx Wall',
+        icon: 'assets/icons/fc855.png',
+        description: 'Wall off the front row: +30% DEF for 2 turns.',
+        cooldown: 6, targeting: 'front-allies', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Warden\'s Resolve',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 10% less damage from all attacks.',
+      hooks: {
+        damageTakenMult() {
+          return 0.9;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Gatekeeper: +20% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_crossbowman: {
+    id: 'minotaur_crossbowman',
+    element: 'wind',
+    name: 'Minotaur Crossbowman',
+    title: 'Maze Sharpshooter',
+    rarity: 2,
+    stats: { hp: 850, atk: 140, def: 60, speed: 105 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurcrossbowmanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bolt', name: 'Bolt',
+        icon: 'assets/icons/fc1481.png',
+        description: 'A crossbow bolt for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'piercing_bolt', name: 'Piercing Bolt',
+        icon: 'assets/icons/fc1484.png',
+        description: 'A heavy bolt for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'bolt_storm', name: 'Bolt Storm',
+        icon: 'assets/icons/fc814.png',
+        description: 'Rake ALL enemies for 80% ATK.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.8 }],
+      },
+    ],
+    passive: {
+      name: 'Deadeye',
+      icon: 'assets/icons/fc719.png',
+      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.1, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Overwatch: +15% ATK while in a back hex.',
+    },
+  },
+
+  minotaur_gladiator: {
+    id: 'minotaur_gladiator',
+    element: 'fire',
+    name: 'Minotaur Gladiator',
+    title: 'Arena Idol',
+    rarity: 2,
+    stats: { hp: 920, atk: 138, def: 68, speed: 108 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgladiatoridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'arena_strike', name: 'Arena Strike',
+        icon: 'assets/icons/fc1527.png',
+        description: 'A showy strike for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'crowd_pleaser', name: 'Crowd Pleaser',
+        icon: 'assets/icons/fc729.png',
+        description: 'A spinning flourish for 155% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.55 }],
+      },
+      {
+        id: 'executioners_round', name: 'Executioner\'s Round',
+        icon: 'assets/icons/fc734.png',
+        description: 'Finish the show: 195% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.95 }],
+      },
+    ],
+    passive: {
+      name: 'Showman',
+      icon: 'assets/icons/fc868.png',
+      description: 'Gains +10% ATK for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
+      description: 'Center of Attention: +15% damage dealt from the center hex.',
+    },
+  },
+
+  minotaur_shaman: {
+    id: 'minotaur_shaman',
+    element: 'wind',
+    name: 'Minotaur Shaman',
+    title: 'Maze Mystic',
+    rarity: 3,
+    stats: { hp: 1150, atk: 150, def: 85, speed: 100 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurshamanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spirit_jolt', name: 'Spirit Jolt',
+        icon: 'assets/icons/fc970.png',
+        description: 'A jolt of spirit energy for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'mending_totem', name: 'Mending Totem',
+        icon: 'assets/icons/fc1073.png',
+        description: 'Heal an ally for 12% of the shaman\'s max HP (15% if front row).',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [{ type: 'healHpPct', pct: 0.12, frontPct: 0.15 }],
+      },
+      {
+        id: 'ancestral_winds', name: 'Ancestral Winds',
+        icon: 'assets/icons/fc1113.png',
+        description: 'Bless ALL allies with regrowth: 4% of the shaman\'s max HP per turn for 3 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'hot', pct: 0.04, turns: 3 }],
+      },
+    ],
+    passive: {
+      name: 'Earthen Bond',
+      icon: 'assets/icons/fc853.png',
+      description: 'Takes 15% less damage while above half HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.hp / unit.maxHp >= 0.5 ? 0.85 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.2,
+      description: 'Spirit Shelter: +20% max HP while in a back hex.',
+    },
+  },
+
+  minotaur_necromancer: {
+    id: 'minotaur_necromancer',
+    element: 'dark',
+    name: 'Minotaur Necromancer',
+    title: 'Maze Gravecaller',
+    rarity: 3,
+    stats: { hp: 1080, atk: 168, def: 75, speed: 104 },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurnecromanceridle.png', frames: 9, fps: 5, loop: true },
+        idle2: {
+          src: 'assets/heroes/minotaurnecromanceridle1.png', frames: 9, fps: 5,
+          variantOf: 'idle', every: [8, 16],
+        },
+      },
+    },
+    abilities: [
+      {
+        id: 'grave_bolt', name: 'Grave Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A bolt of grave-chill for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'soul_rot', name: 'Soul Rot',
+        icon: 'assets/icons/fc1066.png',
+        description: 'Deals 125% ATK and marks the soul: +20% damage taken for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.2, turns: 2 },
+        ],
+      },
+      {
+        id: 'raise_dead', name: 'Raise Dead',
+        icon: 'assets/icons/fc1075.png',
+        description: 'Drag a fallen ally back to their feet with 30% HP.',
+        cooldown: 7, targeting: 'dead-ally', animation: 'attack',
+        effects: [{ type: 'revive', pct: 0.3 }],
+      },
+    ],
+    passive: {
+      name: 'Harvester',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to enemies below half HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Grave Roost: +15% damage dealt from a back hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',

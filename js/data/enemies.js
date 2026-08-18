@@ -41,6 +41,14 @@ const ENEMIES = {
   owl_sentinel: enemyFromHero('owl_sentinel', 1.3),
   eagle_champion: enemyFromHero('eagle_champion', 1.25),
   raven_hexer: enemyFromHero('raven_hexer', 1.25),
+  // Minotaur cohort (the Bonefield)
+  minotaur_warrior: enemyFromHero('minotaur_warrior', 1.4),
+  minotaur_bruiser: enemyFromHero('minotaur_bruiser', 1.4),
+  minotaur_guard: enemyFromHero('minotaur_guard', 1.3),
+  minotaur_crossbowman: enemyFromHero('minotaur_crossbowman', 1.3),
+  minotaur_gladiator: enemyFromHero('minotaur_gladiator', 1.3),
+  minotaur_shaman: enemyFromHero('minotaur_shaman', 1.25),
+  minotaur_necromancer: enemyFromHero('minotaur_necromancer', 1.25),
 };
 
 // Which enemies roam each hunt location, keyed by BATTLE_BGS index.
@@ -54,5 +62,10 @@ const LOCATION_ENEMIES = {
   1: [ // Canyon — the avian cohort
     'vulture_reaver', 'kingfisher', 'rook_swordsman', 'rooster_duelist',
     'owl_sentinel', 'eagle_champion', 'raven_hexer',
+  ],
+  2: [ // Bonefield — the minotaur cohort
+    'minotaur_warrior', 'minotaur_bruiser', 'minotaur_guard',
+    'minotaur_crossbowman', 'minotaur_gladiator', 'minotaur_shaman',
+    'minotaur_necromancer',
   ],
 };

@@ -236,4 +236,78 @@ const BOSSES = {
     ],
     positional: null,
   },
+
+  labyrinth_king: {
+    id: 'boss_labyrinth_king',
+    element: 'fire',
+    gearSet: 'minotaur',
+    background: 'assets/battle_bg_bonefield.png',
+    name: 'Labyrinth King',
+    title: 'Tyrant of the Endless Maze',
+    rarity: 5,
+    isBoss: true,
+    stats: { hp: 9200, atk: 240, def: 145, speed: 125 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/heroes/labyrinthkingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'axe_of_the_maze', name: 'Axe of the Maze',
+        icon: 'assets/icons/fc1467.png',
+        description: 'A monstrous axe blow for 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+      {
+        id: 'labyrinthine_charge', name: 'Labyrinthine Charge',
+        icon: 'assets/icons/fc767.png',
+        description: 'Charge through a hero row for 100% ATK.',
+        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'wrath_of_the_maze', name: 'Wrath of the Maze',
+        icon: 'assets/icons/fc999.png',
+        description: 'The maze quakes: 95% ATK to ALL heroes.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.95 }],
+      },
+    ],
+    passives: [
+      {
+        name: 'Bull Rush',
+        icon: 'assets/icons/fc1038.png',
+        description: 'Deals 20% extra damage to heroes at full HP.',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.alive && target.hp >= target.maxHp ? 1.2 : 1;
+          },
+        },
+      },
+      {
+        name: 'Labyrinth Walls',
+        icon: 'assets/icons/fc853.png',
+        description: 'Takes 15% less damage from all attacks.',
+        hooks: {
+          damageTakenMult() {
+            return 0.85;
+          },
+        },
+      },
+      {
+        name: 'Undying Fury',
+        icon: 'assets/icons/fc743.png',
+        description: 'Deals 30% extra damage while below half HP.',
+        hooks: {
+          damageDealtMult(unit) {
+            return unit.hp / unit.maxHp < 0.5 ? 1.3 : 1;
+          },
+        },
+      },
+    ],
+    positional: null,
+  },
 };
