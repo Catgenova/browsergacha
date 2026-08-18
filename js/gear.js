@@ -236,7 +236,9 @@ const Gear = (() => {
 
   // ---- Leveling (Whetstones) ----
   function maxLevel(piece) { return RARITIES[piece.rarity].maxLevel; }
-  function polishCost(level) { return 5 + Math.ceil(level * 1.1); }
+  // Superlinear: early levels stay cheap, high levels get expensive
+  // (Lv1 ~6, Lv30 ~137, Lv60 ~377, Lv89 ~677 whetstones).
+  function polishCost(level) { return 5 + Math.ceil(Math.pow(level, 1.5) * 0.8); }
 
   // ---- Enchanting (Arcana) ----
   const MAX_PLUS = 15;

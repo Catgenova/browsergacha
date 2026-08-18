@@ -236,6 +236,34 @@ const GameState = (() => {
       return true;
     },
 
+    // Auto-polish: keep leveling until the item caps or whetstones run
+    // dry. Returns { levels, spent }.
+    autoPolishGear(uid) {
+      const before = state.whetstones;
+      let levels = 0;
+      while (this.polishGear(uid)) levels++;
+      return { levels, spent: before - state.whetstones };
+    },
+
+    // Auto-enchant: keep attempting until +15 or arcana runs dry.
+    // Returns { attempts, successes, spent, milestones }.
+    autoEnchantGear(uid) {
+      const before = state.arcana;
+      let attempts = 0;
+      let successes = 0;
+      const milestones = [];
+      for (;;) {
+        const r = this.enchantGear(uid);
+        if (!r) break;
+        attempts++;
+        if (r.success) {
+          successes++;
+          if (r.milestone) milestones.push(r.milestone);
+        }
+      }
+      return { attempts, successes, spent: before - state.arcana, milestones };
+    },
+
     // Spend arcana to attempt an enchant. The attempt can fail (success
     // falls from 95% at +1 to 5% at +15) and a failure still burns the
     // Arcana. Returns null if no attempt was possible, else
