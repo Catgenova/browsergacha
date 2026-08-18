@@ -68,20 +68,20 @@ const BOSSES = {
       {
         name: 'Ancient Scales',
         icon: 'assets/icons/fc853.png',
-        description: 'Takes 15% less damage from all attacks.',
+        description: 'Takes 50% less damage while below 30% HP.',
         hooks: {
-          damageTakenMult() {
-            return 0.85;
+          damageTakenMult(unit) {
+            return unit.hp / unit.maxHp < 0.3 ? 0.5 : 1;
           },
         },
       },
       {
         name: 'Draconic Vigor',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 3% max HP at the start of each turn.',
+        description: 'Regenerates 5% max HP at the start of each turn.',
         hooks: {
           onTurnStart(unit) {
-            const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+            const healed = unit.heal(Math.round(unit.maxHp * 0.05));
             if (healed <= 0) return null;
             return {
               label: 'Draconic Vigor',
