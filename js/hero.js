@@ -15,8 +15,11 @@ class Unit {
     this.element = def.element || null;
 
     // Base stats: scaled by level and stars, then modified by any
-    // equipped gear (main stats + set bonuses).
-    const scaled = Progression.scaledStats(def, this.level, this.stars);
+    // equipped gear (main stats + set bonuses). Bosses declaring
+    // level-5/level-100 anchors use their own per-stat curves.
+    const scaled = (def.isBoss && def.stats5 && def.stats100)
+      ? Progression.bossScaledStats(def, this.level)
+      : Progression.scaledStats(def, this.level, this.stars);
     const stats = Gear.applyToStats(scaled, progress?.gear || []);
     this.maxHp = stats.hp;
     this.hp = stats.hp;
