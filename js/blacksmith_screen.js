@@ -146,11 +146,17 @@ class BlacksmithScreen {
           ${atMax || GameState.whetstones < polishCost ? 'disabled' : ''}>
           ${atMax ? 'Max level' : `Polish (${polishCost} 🪨)`}
         </button>
+        <button id="bs-auto-polish" class="panel-btn" title="Keep polishing until the item caps or whetstones run out"
+          ${atMax || GameState.whetstones < polishCost ? 'disabled' : ''}>Auto 🪨</button>
+      </div>
+      <div class="gear-actions">
         <button id="bs-enchant" class="panel-btn"
           ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>
           ${atMaxPlus ? 'Max +15'
             : `Enchant +${piece.plus + 1} (${enchCost} ✦ · ${Math.round(Gear.enchantSuccessRate(piece.plus) * 100)}%)`}
         </button>
+        <button id="bs-auto-enchant" class="panel-btn" title="Keep attempting enchants until +15 or arcana runs out"
+          ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>Auto ✦</button>
       </div>
       <div class="detail-section">Maintenance</div>
       <div class="gear-actions">
@@ -181,6 +187,25 @@ class BlacksmithScreen {
         } else {
           msg('The enchant fizzles — the Arcana is lost.');
         }
+      });
+    }
+    const autoPolishBtn = document.getElementById('bs-auto-polish');
+    if (autoPolishBtn && !autoPolishBtn.disabled) {
+      autoPolishBtn.addEventListener('click', () => {
+        const r = GameState.autoPolishGear(piece.uid);
+        this.refresh();
+        const p = GameState.gearById(piece.uid);
+        msg(`Polished ${r.levels} level${r.levels === 1 ? '' : 's'} to Lv ${p.level} for ${r.spent} 🪨.`);
+      });
+    }
+    const autoEnchantBtn = document.getElementById('bs-auto-enchant');
+    if (autoEnchantBtn && !autoEnchantBtn.disabled) {
+      autoEnchantBtn.addEventListener('click', () => {
+        const r = GameState.autoEnchantGear(piece.uid);
+        this.refresh();
+        const p = GameState.gearById(piece.uid);
+        const extra = r.milestones.length ? ` ${r.milestones.join(' · ')}` : '';
+        msg(`${r.attempts} attempt${r.attempts === 1 ? '' : 's'}, ${r.successes} succeeded — now +${p.plus} (${r.spent} ✦ spent).${extra}`);
       });
     }
     const salvageBtn = document.getElementById('bs-salvage');
