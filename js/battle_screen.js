@@ -93,6 +93,7 @@ class BattleScreen {
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+      bgPin = def.background || null; // boss arenas pin their own backdrop
       this.introLog = `Stage ${stage}: the ${def.name} descends! (Lv ${level})`;
     } else {
       // Hunt: the player picks a location (backdrop) and a stage that

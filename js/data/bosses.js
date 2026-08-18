@@ -13,6 +13,7 @@ const BOSSES = {
     title: 'Tyrant of the Clearing',
     rarity: 5,
     isBoss: true,
+    background: 'assets/battle_bg_volcano.png', // boss arena, all stages
     stats: { hp: 9000, atk: 230, def: 150, speed: 130 },
     sprite: {
       displayH: 230,
