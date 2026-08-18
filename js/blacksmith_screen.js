@@ -125,7 +125,8 @@ class BlacksmithScreen {
         </button>
         <button id="bs-enchant" class="panel-btn"
           ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>
-          ${atMaxPlus ? 'Max +15' : `Enchant +${piece.plus + 1} (${enchCost} ✦)`}
+          ${atMaxPlus ? 'Max +15'
+            : `Enchant +${piece.plus + 1} (${enchCost} ✦ · ${Math.round(Gear.enchantSuccessRate(piece.plus) * 100)}%)`}
         </button>
       </div>
       <div class="detail-section">Maintenance</div>
@@ -151,7 +152,12 @@ class BlacksmithScreen {
       enchantBtn.addEventListener('click', () => {
         const r = GameState.enchantGear(piece.uid);
         this.refresh();
-        if (typeof r === 'string') msg(r);
+        if (!r) return;
+        if (r.success) {
+          msg(r.milestone ? `Success! ${r.milestone}` : `Enchant succeeds: +${piece.plus + 1}!`);
+        } else {
+          msg('The enchant fizzles — the Arcana is lost.');
+        }
       });
     }
     const salvageBtn = document.getElementById('bs-salvage');

@@ -236,17 +236,23 @@ const GameState = (() => {
       return true;
     },
 
-    // Spend arcana to enchant an item one +. Returns the milestone
-    // message (substat roll/boost) or true, false on failure.
+    // Spend arcana to attempt an enchant. The attempt can fail (success
+    // falls from 95% at +1 to 5% at +15) and a failure still burns the
+    // Arcana. Returns null if no attempt was possible, else
+    // { success, milestone }.
     enchantGear(uid) {
       const piece = state.gear[uid];
-      if (!piece || piece.plus >= Gear.MAX_PLUS) return false;
+      if (!piece || piece.plus >= Gear.MAX_PLUS) return null;
       const cost = Gear.arcanaCost(piece.plus);
-      if (state.arcana < cost) return false;
+      if (state.arcana < cost) return null;
       state.arcana -= cost;
+      if (Math.random() >= Gear.enchantSuccessRate(piece.plus)) {
+        save();
+        return { success: false };
+      }
       const milestone = Gear.applyEnchant(piece);
       save();
-      return milestone || true;
+      return { success: true, milestone };
     },
 
     // Hero currently wearing a piece, or null.
