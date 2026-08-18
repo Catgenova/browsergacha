@@ -8,6 +8,7 @@ function ratEnemy(heroId, statScale) {
     id: h.id, // shared id -> shared sprite sheet cache
     name: h.name,
     rarity: h.rarity,
+    element: h.element,
     stats: {
       hp: Math.round(h.stats.hp * statScale),
       atk: Math.round(h.stats.atk * statScale),

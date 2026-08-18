@@ -159,7 +159,7 @@ class TeamScreen {
 
       const name = document.createElement('div');
       name.className = 'card-name';
-      name.textContent = def.name;
+      name.textContent = `${Elements.badge(def.element)} ${def.name}`.trim();
 
       const progress = GameState.progressOf(heroId);
       const stars = document.createElement('div');
@@ -370,7 +370,8 @@ class TeamScreen {
     }
 
     this.detailsEl.innerHTML = `
-      <div class="detail-name rarity-${def.rarity}">${def.name} <span class="detail-title">${def.title || ''}</span></div>
+      <div class="detail-name rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name} <span class="detail-title">${def.title || ''}</span></div>
+      ${def.element && Elements.info(def.element) ? `<div class="detail-element" style="color:${Elements.info(def.element).color}">${Elements.info(def.element).name} element</div>` : ''}
       <div class="card-stars rarity-${def.rarity}">${starsText}</div>
       <div class="detail-level">
         Lv ${progress.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}

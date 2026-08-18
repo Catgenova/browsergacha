@@ -170,6 +170,11 @@ class BattleScreen {
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
           sub.unshift(`Stage ${this.bossFight.stage} cleared!`);
+          // Temporal Scrolls: 1% from boss stages 15 and up.
+          if (this.bossFight.stage >= 15 && Math.random() < 0.01) {
+            GameState.addScrolls('temporal', 1);
+            sub.push('A TEMPORAL Scroll shimmers into being! 🌀');
+          }
           // Bosses drop a set piece; higher stages weight rarer drops.
           const piece = Gear.drop('dragon', this.bossFight.stage);
           GameState.addGear(piece);

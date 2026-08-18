@@ -22,6 +22,7 @@ const App = {
   updateCurrencies() {
     document.getElementById('scroll-common-count').textContent = GameState.scrollsCommon.toLocaleString();
     document.getElementById('scroll-rare-count').textContent = GameState.scrollsRare.toLocaleString();
+    document.getElementById('scroll-temporal-count').textContent = GameState.scrollsTemporal.toLocaleString();
     document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
     document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
   },
@@ -102,6 +103,7 @@ const App = {
   document.getElementById('dev-scrolls-btn').addEventListener('click', () => {
     GameState.addScrolls('common', 10);
     GameState.addScrolls('rare', 10);
+    GameState.addScrolls('temporal', 10);
     // Refresh summon-button enabled states if that screen is showing.
     if (App.active === App.screens.summon) App.screens.summon.updateInfo();
   });

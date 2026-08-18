@@ -9,6 +9,7 @@
 const BOSSES = {
   dragon: {
     id: 'boss_dragon',
+    element: 'fire',
     name: 'Dragon',
     title: 'Tyrant of the Clearing',
     rarity: 5,
