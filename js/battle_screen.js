@@ -23,16 +23,24 @@ class BattleScreen {
     });
   }
 
-  // Entering the screen starts a fresh battle unless one is still running.
+  // Fight buttons request a specific battle before switching screens.
+  requestBattle(mode) {
+    this.pendingMode = mode;
+  }
+
+  // Entering the screen starts a fresh battle unless one is still running
+  // (an explicit fight request always starts fresh).
   async enter() {
-    if (!this.battle || this.battle.state === BattleState.ENDED) {
-      await this.startNewBattle();
+    if (this.pendingMode || !this.battle || this.battle.state === BattleState.ENDED) {
+      const mode = this.pendingMode || 'wave';
+      this.pendingMode = null;
+      await this.startNewBattle(mode);
     }
   }
 
   exit() {}
 
-  async startNewBattle() {
+  async startNewBattle(mode = 'wave') {
     const team = GameState.getTeam();
     const battle = new Battle();
 
@@ -52,16 +60,26 @@ class BattleScreen {
       1,
       Math.round(teamLevels.reduce((a, b) => a + b, 0) / (teamLevels.length || 1))
     );
-    const enemyDefs = Object.values(ENEMIES);
-    const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
-    const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
-    this.rewardGems = 75 + 50 * count;
-    this.rewardXp = 0;
-    for (let i = 0; i < count; i++) {
-      const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
-      const level = Math.max(1, avgLevel + Math.floor(Math.random() * 3) - 1);
-      this.rewardXp += Progression.enemyXp(level);
-      battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
+    if (mode === 'boss') {
+      // A boss fights alone from the center tile, spanning the formation.
+      const def = BOSSES.dragon;
+      const level = avgLevel + 2;
+      this.rewardGems = 600;
+      this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
+      battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+      battle.log(`The ${def.name} descends! (Lv ${level})`, 'log-system');
+    } else {
+      const enemyDefs = Object.values(ENEMIES);
+      const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
+      const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
+      this.rewardGems = 75 + 50 * count;
+      this.rewardXp = 0;
+      for (let i = 0; i < count; i++) {
+        const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
+        const level = Math.max(1, avgLevel + Math.floor(Math.random() * 3) - 1);
+        this.rewardXp += Progression.enemyXp(level);
+        battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
+      }
     }
 
     // Load sprites (cached sheets, one animator per unit).
