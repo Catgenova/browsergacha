@@ -83,6 +83,12 @@ class TeamScreen {
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
     this.fightBtn.disabled = size === 0;
+    this.bossBtn.disabled = size === 0;
+    const cleared = GameState.bossStageCleared(BOSSES.dragon.id);
+    const stage = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+    this.bossBtn.textContent = cleared >= Progression.BOSS_MAX_STAGE
+      ? `Boss! Stage ${Progression.BOSS_MAX_STAGE} ✓`
+      : `Boss! Stage ${stage} (Lv ${Progression.bossLevel(stage)})`;
   }
 
   // ---- Roster panel ------------------------------------------------------

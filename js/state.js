@@ -10,6 +10,7 @@ const GameState = (() => {
     roster: { florence: { copies: 1 } },
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
     pity: 0,                             // pulls since last 5★
+    bossStages: {},                      // bossId -> highest stage cleared
   };
 
   function freshEntry(heroId) {
@@ -169,6 +170,16 @@ const GameState = (() => {
       save();
     },
     teamSize() { return Object.keys(state.team).length; },
+
+    // ---- Boss stages ----
+    bossStageCleared(bossId) {
+      return (state.bossStages && state.bossStages[bossId]) || 0;
+    },
+    recordBossClear(bossId, stage) {
+      if (!state.bossStages) state.bossStages = {};
+      state.bossStages[bossId] = Math.max(this.bossStageCleared(bossId), stage);
+      save();
+    },
 
     // ---- Gacha pity ----
     get pity() { return state.pity; },

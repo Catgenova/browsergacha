@@ -62,13 +62,19 @@ class BattleScreen {
     );
     if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
+      // Stages: fight the next uncleared stage (replay the last once all
+      // 20 are done). Stage N = boss level 5*N.
       const def = BOSSES.dragon;
-      const level = avgLevel + 2;
-      this.rewardGems = 600;
+      const cleared = GameState.bossStageCleared(def.id);
+      const stage = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      const level = Progression.bossLevel(stage);
+      this.bossFight = { bossId: def.id, stage };
+      this.rewardGems = 300 + 100 * stage;
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
-      battle.log(`The ${def.name} descends! (Lv ${level})`, 'log-system');
+      battle.log(`Stage ${stage}: the ${def.name} descends! (Lv ${level})`, 'log-system');
     } else {
+      this.bossFight = null;
       const enemyDefs = Object.values(ENEMIES);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
       const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
@@ -115,6 +121,10 @@ class BattleScreen {
           }
         }
         const sub = [`+${this.rewardGems} 💎 · +${this.rewardXp} XP each`, ...levelUps];
+        if (this.bossFight) {
+          GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
+          sub.unshift(`Stage ${this.bossFight.stage} cleared!`);
+        }
         this.ui.showBanner(winner, sub.join('<br>'));
       } else {
         this.ui.showBanner(winner, 'Your team was wiped out.');

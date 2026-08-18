@@ -48,5 +48,16 @@ const Progression = (() => {
     return 20 + 8 * level;
   }
 
-  return { MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp };
+  // ---- Boss stages ----
+  // Each boss has 20 stages; stage 1 is level 5 and every stage adds 5
+  // levels (stage 20 = level 100).
+  const BOSS_MAX_STAGE = 20;
+  function bossLevel(stage) {
+    return stage * 5;
+  }
+
+  return {
+    MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
+    BOSS_MAX_STAGE, bossLevel,
+  };
 })();
