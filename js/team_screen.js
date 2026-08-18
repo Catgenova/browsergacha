@@ -127,7 +127,9 @@ class TeamScreen {
 
       const level = document.createElement('div');
       level.className = 'card-level';
-      level.textContent = `Lv ${progress.level}`;
+      const capped = progress.level >= Progression.maxLevel(progress.stars);
+      level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
+      if (capped) level.classList.add('card-level-max');
 
       card.append(portrait, name, stars, level);
 
@@ -328,8 +330,8 @@ class TeamScreen {
       <div class="detail-name rarity-${def.rarity}">${def.name} <span class="detail-title">${def.title || ''}</span></div>
       <div class="card-stars rarity-${def.rarity}">${starsText}</div>
       <div class="detail-level">
-        Lv ${progress.level} / ${cap}
-        <span class="xp-text">${atCap ? 'MAX — star up to continue' : `XP ${progress.xp} / ${xpNeed}`}</span>
+        Lv ${progress.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}
+        <span class="xp-text">${atCap ? 'Star up to continue leveling' : `XP ${progress.xp} / ${xpNeed}`}</span>
       </div>
       <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
       <div class="detail-stats">
