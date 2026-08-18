@@ -452,6 +452,384 @@ const HEROES = {
     },
   },
 
+
+  // ---- Bird cohort --------------------------------------------------------
+  // Idle-only art for now, like the rats; attack/death strips can land
+  // later without kit changes.
+
+  vulture_reaver: {
+    id: 'vulture_reaver',
+    element: 'wind',
+    name: 'Vulture Reaver',
+    title: 'Carrion Prince',
+    rarity: 1,
+    stats: { hp: 850, atk: 112, def: 60, speed: 98 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Vulturereaveridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'peck_and_tear', name: 'Peck & Tear',
+        icon: 'assets/icons/fc746.png',
+        description: 'Rip at a foe for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'carrion_swoop', name: 'Carrion Swoop',
+        icon: 'assets/icons/fc763.png',
+        description: 'Dive on a foe for 145% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.45 }],
+      },
+      {
+        id: 'feeding_frenzy', name: 'Feeding Frenzy',
+        icon: 'assets/icons/fc800.png',
+        description: 'Savage ALL enemies for 75% ATK.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.75 }],
+      },
+    ],
+    passive: {
+      name: 'Scavenger',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 15% extra damage to enemies below half HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Circling: +15% ATK while in a back hex.',
+    },
+  },
+
+  kingfisher: {
+    id: 'kingfisher',
+    element: 'water',
+    name: 'Kingfisher',
+    title: 'River Lancer',
+    rarity: 2,
+    stats: { hp: 900, atk: 130, def: 70, speed: 105 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Kingfisheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'dive_stab', name: 'Dive Stab',
+        icon: 'assets/icons/fc1621.png',
+        description: 'A darting thrust for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'skewer', name: 'Skewer',
+        icon: 'assets/icons/fc1622.png',
+        description: 'Spear a foe clean through for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'riptide_lance', name: 'Riptide Lance',
+        icon: 'assets/icons/fc819.png',
+        description: 'Sweep a hex row for 110% ATK.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+    ],
+    passive: {
+      name: "Fisher's Patience",
+      icon: 'assets/icons/fc719.png',
+      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.1, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Shallows Hunter: +15% ATK while in a front hex.',
+    },
+  },
+
+  rook_swordsman: {
+    id: 'rook_swordsman',
+    element: 'wind',
+    name: 'Rook Swordsman',
+    title: 'Gallows Blade',
+    rarity: 2,
+    stats: { hp: 950, atk: 135, def: 75, speed: 100 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Rookswordsmanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cleave', name: 'Cleave',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A heavy cut for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'cross_cut', name: 'Cross Cut',
+        icon: 'assets/icons/fc723.png',
+        description: 'Two crossing strokes for 155% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.55 }],
+      },
+      {
+        id: 'murder_stroke', name: 'Murder Stroke',
+        icon: 'assets/icons/fc734.png',
+        description: 'An executioner\'s blow: 200% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 2.0 }],
+      },
+    ],
+    passive: {
+      name: 'Corvid Cunning',
+      icon: 'assets/icons/fc862.png',
+      description: 'Deals 15% extra damage to enemies at full HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp >= target.maxHp ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
+      description: 'Murder\'s Eye: +15% damage dealt from the center hex.',
+    },
+  },
+
+  rooster_duelist: {
+    id: 'rooster_duelist',
+    element: 'fire',
+    name: 'Rooster Duelist',
+    title: 'Dawn Blade',
+    rarity: 2,
+    stats: { hp: 820, atk: 140, def: 60, speed: 115, critChance: 0.2 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Roosterduelistidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'flurry_peck', name: 'Flurry Peck',
+        icon: 'assets/icons/fc1454.png',
+        description: 'A rapid thrust for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'gallant_lunge', name: 'Gallant Lunge',
+        icon: 'assets/icons/fc736.png',
+        description: 'A flamboyant lunge for 150% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'crowing_coup', name: 'Crowing Coup',
+        icon: 'assets/icons/fc728.png',
+        description: 'The dawn strike: 185% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.85 }],
+      },
+    ],
+    passive: {
+      name: 'Strut',
+      icon: 'assets/icons/fc868.png',
+      description: 'Gains +10% ATK for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'damage', mult: 1.15,
+      description: 'Center Stage: +15% damage dealt from a front hex.',
+    },
+  },
+
+  owl_sentinel: {
+    id: 'owl_sentinel',
+    element: 'light',
+    name: 'Owl Sentinel',
+    title: 'Watcher of Dawn',
+    rarity: 2,
+    stats: { hp: 1050, atk: 115, def: 90, speed: 90 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Owlsentinelidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'talon_jab', name: 'Talon Jab',
+        icon: 'assets/icons/fc981.png',
+        description: 'A piercing jab for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'shield_bash', name: 'Shield Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Slam a foe for 135% ATK and crack armor: -15% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'aegis_of_dawn', name: 'Aegis of Dawn',
+        icon: 'assets/icons/fc855.png',
+        description: 'Shield the front row: +30% DEF for 2 turns.',
+        cooldown: 6, targeting: 'front-allies', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Vigilant',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 10% less damage from all attacks.',
+      hooks: {
+        damageTakenMult() {
+          return 0.9;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Bulwark of Dawn: +20% DEF while in a front hex.',
+    },
+  },
+
+  eagle_champion: {
+    id: 'eagle_champion',
+    element: 'wind',
+    name: 'Eagle Champion',
+    title: 'Skycrown Marshal',
+    rarity: 3,
+    stats: { hp: 1250, atk: 170, def: 95, speed: 100 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Eaglechampionidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'hammer_blow', name: 'Hammer Blow',
+        icon: 'assets/icons/fc1472.png',
+        description: 'A crushing blow for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'skyfall_smash', name: 'Skyfall Smash',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Bring the hammer down for 160% ATK.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.6 }],
+      },
+      {
+        id: 'judgment_peak', name: 'Judgment Peak',
+        icon: 'assets/icons/fc767.png',
+        description: 'The marshal\'s verdict: 210% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        effects: [{ type: 'damage', mult: 2.1 }],
+      },
+    ],
+    passive: {
+      name: "Champion's Might",
+      icon: 'assets/icons/fc869.png',
+      description: 'Deals 15% extra damage to enemies above half HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp >= 0.5 ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
+      description: 'Skycrown Banner: +20% ATK while in the center hex.',
+    },
+  },
+
+  raven_hexer: {
+    id: 'raven_hexer',
+    element: 'dark',
+    name: 'Raven Hexer',
+    title: 'Nightfeather Warlock',
+    rarity: 3,
+    stats: { hp: 1100, atk: 165, def: 80, speed: 108 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Ravenhexeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'hex_bolt', name: 'Hex Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A bolt of dark magic for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'withering_curse', name: 'Withering Curse',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Deals 120% ATK and saps strength: -20% ATK for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'atk', mult: 0.8, turns: 2 },
+        ],
+      },
+      {
+        id: 'nights_descent', name: "Night's Descent",
+        icon: 'assets/icons/fc1053.png',
+        description: 'Deals 150% ATK and marks the target: +25% damage taken for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.25, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dark Omen',
+      icon: 'assets/icons/fc1084.png',
+      description: 'Debuffs this hero inflicts last 1 extra turn.',
+      hooks: {
+        debuffExtraTurns: 1,
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Night Roost: +15% damage dealt from a back hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',
