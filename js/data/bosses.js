@@ -323,6 +323,7 @@ const BOSSES = {
     stats: { hp: 8800, atk: 235, def: 140, speed: 132 },
     sprite: {
       displayH: 230,
+      faceLeft: true, // art is drawn facing left; don't mirror as an enemy
       strips: {
         idle: { src: 'assets/heroes/snakeempressidle.png', frames: 11, fps: 5, loop: true },
       },
