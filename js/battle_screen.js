@@ -119,7 +119,10 @@ class BattleScreen {
       const ws = GameState.waveSettings;
       bgPin = ws.location;
       const baseLevel = ws.stage * 5;
-      const enemyDefs = Object.values(ENEMIES);
+      // Each location fields its own enemy race (clearing rats, canyon
+      // birds); fall back to the clearing pool for safety.
+      const poolIds = LOCATION_ENEMIES[ws.location] || LOCATION_ENEMIES[0];
+      const enemyDefs = poolIds.map((id) => ENEMIES[id]).filter(Boolean);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
       const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
       this.rewardXp = 0;
