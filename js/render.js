@@ -181,7 +181,7 @@ class Renderer {
     const g = this.battle.motionGround(unit);
     const size = unit.animator ? unit.animator.sheet.size() : { w: 48 };
     const s = Math.max(0.35, Math.min(1, 1 - g.height / 220));
-    const rx = Math.min(34, size.w * 0.3) * s;
+    const rx = Math.min(unit.isBoss ? 120 : 34, size.w * 0.3) * s;
     ctx.save();
     ctx.fillStyle = `rgba(8, 14, 8, ${0.32 * (0.55 + 0.45 * s)})`;
     ctx.beginPath();
@@ -278,7 +278,8 @@ class Renderer {
   // spriteTop: the y of the unit sprite's top edge; bars stack above it.
   drawBars(unit, x, spriteTop) {
     const { ctx } = this;
-    const w = CONFIG.BAR_W;
+    // Boss bars span the whole formation the boss occupies.
+    const w = unit.isBoss ? CONFIG.BAR_W * 3 : CONFIG.BAR_W;
     const h = CONFIG.BAR_H;
     const top = spriteTop - 16;
 

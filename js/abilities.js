@@ -116,17 +116,19 @@ const Abilities = (() => {
         return battle.livingUnits(caster.team);
       case 'enemy-row':
         // The chosen enemy plus everyone in its hex row (same y).
+        // A boss spans every row, so it is always included.
         if (!chosenTarget) return [];
         return battle.livingUnits(caster.enemyTeam())
-          .filter((u) => Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
+          .filter((u) => u.isBoss || Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
       case 'front-allies':
         // Every living ally standing in a front-position hex.
         return battle.livingUnits(caster.team)
           .filter((u) => u.slot.position === POSITION.FRONT);
       case 'back-enemies':
-        // Every living enemy standing in a back-position hex.
+        // Every living enemy standing in a back-position hex (a boss
+        // spans every hex, so it always qualifies).
         return battle.livingUnits(caster.enemyTeam())
-          .filter((u) => u.slot.position === POSITION.BACK);
+          .filter((u) => u.isBoss || u.slot.position === POSITION.BACK);
       case 'dead-ally':
         // A chosen fallen teammate (revives).
         return chosenTarget && !chosenTarget.alive ? [chosenTarget] : [];

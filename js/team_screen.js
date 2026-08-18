@@ -35,6 +35,13 @@ class TeamScreen {
     this.canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
     this.fightBtn.addEventListener('click', () => {
       if (GameState.teamSize() === 0) return;
+      this.app.screens.battle.requestBattle('wave');
+      this.app.showScreen('battle');
+    });
+    this.bossBtn = document.getElementById('boss-btn');
+    this.bossBtn.addEventListener('click', () => {
+      if (GameState.teamSize() === 0) return;
+      this.app.screens.battle.requestBattle('boss');
       this.app.showScreen('battle');
     });
     this.clearBtn.addEventListener('click', () => {
