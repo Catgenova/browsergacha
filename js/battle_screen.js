@@ -78,7 +78,6 @@ class BattleScreen {
       battle.log(`Stage ${stage}: the ${def.name} descends! (Lv ${level})`, 'log-system');
     } else {
       this.bossFight = null;
-      this.rewardArcana = 0;
       const enemyDefs = Object.values(ENEMIES);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
       const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
@@ -93,6 +92,7 @@ class BattleScreen {
         battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
       }
       this.rewardWhetstones = 3 + Math.round(totalEnemyLevels * 0.8);
+      this.rewardArcana = 1 + Math.floor(totalEnemyLevels / 15);
     }
 
     // Load sprites (cached sheets, one animator per unit).
@@ -128,14 +128,14 @@ class BattleScreen {
           }
         }
         GameState.addWhetstones(this.rewardWhetstones);
+        GameState.addArcana(this.rewardArcana);
         const sub = [
-          `+${this.rewardGems} 💎 · +${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨`,
+          `+${this.rewardGems} 💎 · +${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
         ];
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
-          GameState.addArcana(this.rewardArcana);
-          sub.unshift(`Stage ${this.bossFight.stage} cleared! +${this.rewardArcana} ✦`);
+          sub.unshift(`Stage ${this.bossFight.stage} cleared!`);
           // Bosses drop a set piece; higher stages weight rarer drops.
           const piece = Gear.drop('dragon', this.bossFight.stage);
           GameState.addGear(piece);
