@@ -49,6 +49,14 @@ const ENEMIES = {
   minotaur_gladiator: enemyFromHero('minotaur_gladiator', 1.3),
   minotaur_shaman: enemyFromHero('minotaur_shaman', 1.25),
   minotaur_necromancer: enemyFromHero('minotaur_necromancer', 1.25),
+  // Snake cohort (the Marshland)
+  snake_warrior: enemyFromHero('snake_warrior', 1.4),
+  snake_archer: enemyFromHero('snake_archer', 1.4),
+  snake_assassin: enemyFromHero('snake_assassin', 1.3),
+  snake_mage: enemyFromHero('snake_mage', 1.3),
+  snake_alchemist: enemyFromHero('snake_alchemist', 1.3),
+  snake_shaman: enemyFromHero('snake_shaman', 1.25),
+  snake_healer: enemyFromHero('snake_healer', 1.25),
 };
 
 // Which enemies roam each hunt location, keyed by BATTLE_BGS index.
@@ -67,5 +75,9 @@ const LOCATION_ENEMIES = {
     'minotaur_warrior', 'minotaur_bruiser', 'minotaur_guard',
     'minotaur_crossbowman', 'minotaur_gladiator', 'minotaur_shaman',
     'minotaur_necromancer',
+  ],
+  8: [ // Marshland — the snake cohort
+    'snake_warrior', 'snake_archer', 'snake_assassin', 'snake_mage',
+    'snake_alchemist', 'snake_shaman', 'snake_healer',
   ],
 };
