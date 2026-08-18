@@ -12,15 +12,30 @@ class BattleScreen {
     this.ui.onReturn = () => app.showScreen('team');
     this.battle = null;
 
-    // Autobattle toggle (persists across battles within the session).
+    // Autobattle toggle (persists across battles within the session),
+    // with a 3x speed toggle available while auto is on.
     this.auto = false;
+    this.speed = 1;
     this.autoBtn = document.getElementById('auto-btn');
+    this.speedBtn = document.getElementById('speed-btn');
     this.autoBtn.addEventListener('click', () => {
       this.auto = !this.auto;
       this.autoBtn.textContent = `Auto: ${this.auto ? 'ON' : 'OFF'}`;
       this.autoBtn.classList.toggle('auto-on', this.auto);
+      this.speedBtn.classList.toggle('hidden', !this.auto);
+      if (!this.auto) this.setSpeed(1); // manual play always runs at 1x
       if (this.battle) this.battle.setAuto(this.auto);
     });
+    this.speedBtn.addEventListener('click', () => {
+      this.setSpeed(this.speed === 1 ? 3 : 1);
+    });
+  }
+
+  setSpeed(mult) {
+    this.speed = mult;
+    this.speedBtn.textContent = `Speed: ${mult}×`;
+    this.speedBtn.classList.toggle('auto-on', mult > 1);
+    if (this.battle) this.battle.speedMult = mult;
   }
 
   // Fight buttons request a specific battle before switching screens.
@@ -139,6 +154,7 @@ class BattleScreen {
     this.renderer.setBattle(battle, bgPin);
     this.ui.bind(battle);
     battle.autoMode = this.auto;
+    battle.speedMult = this.auto ? this.speed : 1;
     battle.onAutoTakeover = () => this.ui.hideAbilityBar();
 
     battle.onBattleEnd = (winner) => {
