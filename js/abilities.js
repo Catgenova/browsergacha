@@ -40,9 +40,15 @@ const Abilities = (() => {
         if (Math.random() < (target.dodgeChance ? target.dodgeChance() : 0)) {
           return { kind: 'damage', target, amount: 0, dodged: true };
         }
-        const raw = caster.effectiveStat('atk') * effect.mult *
+        let raw = caster.effectiveStat('atk') * effect.mult *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
+        // Combo hits: multiplied damage against a marked status (e.g.
+        // fire breath detonating methane fog).
+        if (effect.bonusVs &&
+            target.statusEffects.some((fx) => fx.stat === effect.bonusVs.stat)) {
+          raw *= effect.bonusVs.mult;
+        }
         let dmg = damageFormula(raw, target.effectiveStat('def'));
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
@@ -161,6 +167,17 @@ const Abilities = (() => {
         // spans every hex, so it always qualifies).
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => u.isBoss || u.slot.position === POSITION.BACK);
+      case 'front-enemies': {
+        // Every living enemy in a front-position hex; if nobody holds
+        // the front line, the sweep still catches one random enemy.
+        const pool = battle.livingUnits(caster.enemyTeam());
+        const front = pool.filter(
+          (u) => u.isBoss || u.slot.position === POSITION.FRONT);
+        if (front.length > 0) return front;
+        return pool.length > 0
+          ? [pool[Math.floor(Math.random() * pool.length)]]
+          : [];
+      }
       case 'dead-ally':
         // A chosen fallen teammate (revives).
         return chosenTarget && !chosenTarget.alive ? [chosenTarget] : [];
