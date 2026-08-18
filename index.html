@@ -98,7 +98,19 @@
 
     <!-- ================= Blacksmith screen ================= -->
     <section id="screen-blacksmith" class="screen hidden">
-      <div id="bs-filters"></div>
+      <div id="bs-toolbar">
+        <div id="bs-filters"></div>
+        <div id="bs-bulk">
+          <select id="bs-bulk-rarity" title="Salvage all unequipped items below this rarity">
+            <option value="uncommon">below Uncommon</option>
+            <option value="rare" selected>below Rare</option>
+            <option value="epic">below Epic</option>
+            <option value="legendary">below Legendary</option>
+          </select>
+          <button id="bs-bulk-salvage" class="panel-btn danger">Salvage all</button>
+          <span id="bs-toolbar-msg"></span>
+        </div>
+      </div>
       <div id="bs-main">
         <div id="bs-list"></div>
         <aside id="bs-detail"></aside>

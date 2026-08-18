@@ -12,6 +12,29 @@ class BlacksmithScreen {
     this.detailEl = document.getElementById('bs-detail');
     this.filter = 'all';
     this.selectedUid = null;
+
+    // Bulk salvage: every unequipped piece below the chosen rarity.
+    this.bulkRarity = document.getElementById('bs-bulk-rarity');
+    document.getElementById('bs-bulk-salvage').addEventListener('click', () => {
+      const rarity = this.bulkRarity.value;
+      const rank = Gear.RARITY_ORDER.indexOf(rarity);
+      const count = GameState.unequippedGear()
+        .filter((p) => Gear.RARITY_ORDER.indexOf(p.rarity) < rank).length;
+      if (count === 0) {
+        this.refresh();
+        this.message(`No unequipped items below ${Gear.RARITIES[rarity].name}.`);
+        return;
+      }
+      if (!confirm(`Salvage ${count} unequipped item${count > 1 ? 's' : ''} below ${Gear.RARITIES[rarity].name}? This destroys them.`)) return;
+      const r = GameState.salvageAllBelow(rarity);
+      this.refresh();
+      this.message(`Salvaged ${r.count} items for ${r.whetstones} 🪨${r.arcana ? ` and ${r.arcana} ✦` : ''}.`);
+    });
+  }
+
+  message(text) {
+    const el = document.getElementById('bs-toolbar-msg');
+    if (el) el.textContent = text;
   }
 
   enter() {

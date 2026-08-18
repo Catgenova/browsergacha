@@ -286,6 +286,25 @@ const GameState = (() => {
       return { whetstones, arcana };
     },
 
+    // Salvage every UNEQUIPPED piece below the given rarity. Returns
+    // the count and total material yield.
+    salvageAllBelow(rarity) {
+      const rank = Gear.RARITY_ORDER.indexOf(rarity);
+      if (rank <= 0) return { count: 0, whetstones: 0, arcana: 0 };
+      const targets = this.unequippedGear()
+        .filter((p) => Gear.RARITY_ORDER.indexOf(p.rarity) < rank);
+      const total = { count: 0, whetstones: 0, arcana: 0 };
+      for (const p of targets) {
+        const r = this.salvageGear(p.uid);
+        if (r) {
+          total.count++;
+          total.whetstones += r.whetstones;
+          total.arcana += r.arcana;
+        }
+      }
+      return total;
+    },
+
     // ---- Gear ----
     // Add a dropped piece to the inventory; returns its uid.
     addGear(piece) {
