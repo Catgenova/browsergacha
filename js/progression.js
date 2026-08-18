@@ -56,8 +56,24 @@ const Progression = (() => {
     return stage * 5;
   }
 
+  // Bosses can declare exact stats at level 5 and level 100
+  // (def.stats5 / def.stats100); every level in between interpolates
+  // linearly, letting each stat grow on its own curve.
+  function bossScaledStats(def, level) {
+    const t = Math.max(0, Math.min(1, (level - 5) / 95));
+    const lerp = (a, b) => Math.round(a + (b - a) * t);
+    return {
+      hp: lerp(def.stats5.hp, def.stats100.hp),
+      atk: lerp(def.stats5.atk, def.stats100.atk),
+      def: lerp(def.stats5.def, def.stats100.def),
+      speed: def.stats5.speed,
+      critChance: def.stats5.critChance,
+      critDamage: def.stats5.critDamage,
+    };
+  }
+
   return {
     MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
-    BOSS_MAX_STAGE, bossLevel,
+    BOSS_MAX_STAGE, bossLevel, bossScaledStats,
   };
 })();
