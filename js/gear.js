@@ -49,6 +49,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc2187.png',
       amulet: 'assets/icons/fc2177.png',
     },
+    minotaur: {
+      weapon: 'assets/icons/fc1467.png',
+      gloves: 'assets/icons/fc1486.png',
+      chest: 'assets/icons/fc1925.png',
+      boots: 'assets/icons/fc1941.png',
+      ring: 'assets/icons/fc1845.png',
+      amulet: 'assets/icons/fc2183.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -86,6 +94,15 @@ const Gear = (() => {
         { pieces: 2, stat: 'spdFlat', add: 10, label: '2pc: +10 SPD' },
         { pieces: 4, stat: 'spdFlat', add: 20, label: '4pc: +20 SPD' },
         { pieces: 6, stat: 'spdPct', add: 0.25, label: '6pc: +25% SPD' },
+      ],
+    },
+    minotaur: {
+      id: 'minotaur',
+      name: 'Minotaur',
+      bonuses: [
+        { pieces: 2, stat: 'atkPct', add: 0.10, label: '2pc: +10% ATK' },
+        { pieces: 4, stat: 'atkPct', add: 0.20, label: '4pc: +20% ATK' },
+        { pieces: 6, stat: 'atkPct', add: 0.40, label: '6pc: +40% ATK' },
       ],
     },
   };
