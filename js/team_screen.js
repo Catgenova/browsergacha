@@ -242,8 +242,12 @@ class TeamScreen {
     const xpPct = atCap ? 100 : Math.min(100, Math.round((progress.xp / xpNeed) * 100));
     const starsText = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
 
-    // Gear: one row per slot with an equip picker, plus set bonuses.
+    // Gear: one row per slot with an equip picker, plus a focused-piece
+    // panel (level/polish + enchant) and set bonuses.
     const equipment = GameState.equipmentOf(def.id);
+    if (!this.gearFocus || !equipment[this.gearFocus]) {
+      this.gearFocus = Gear.SLOTS.find((s) => equipment[s]) || null;
+    }
     const gearRows = Gear.SLOTS.map((slot) => {
       const uid = equipment[slot];
       const piece = uid ? GameState.gearById(uid) : null;
@@ -258,12 +262,48 @@ class TeamScreen {
       const iconHtml = iconSrc
         ? `<img class="detail-icon" src="${Sprites.assetUrl(iconSrc)}" alt="">`
         : '<span class="gear-slot-empty"></span>';
+      const focused = slot === this.gearFocus ? ' gear-row-focused' : '';
       return `
-        <div class="gear-row">
+        <div class="gear-row${focused}" data-slot="${slot}">
           ${iconHtml}<span class="gear-slot-name">${Gear.SLOT_LABELS[slot]}</span>
           <select class="gear-select" data-slot="${slot}">${options.join('')}</select>
         </div>`;
     }).join('');
+
+    // Focused piece: full readout with upgrade buttons.
+    let gearDetailHtml = '';
+    const focusUid = this.gearFocus ? equipment[this.gearFocus] : null;
+    const focusPiece = focusUid ? GameState.gearById(focusUid) : null;
+    if (focusPiece) {
+      const rar = Gear.RARITIES[focusPiece.rarity];
+      const base = Gear.baseStat(focusPiece);
+      const capLevel = Gear.maxLevel(focusPiece);
+      const atMax = focusPiece.level >= capLevel;
+      const polishCost = atMax ? 0 : Gear.polishCost(focusPiece.level);
+      const atMaxPlus = focusPiece.plus >= Gear.MAX_PLUS;
+      const enchCost = atMaxPlus ? 0 : Gear.arcanaCost(focusPiece.plus);
+      const subsHtml = focusPiece.subs.length
+        ? focusPiece.subs.map((s) => `<div class="set-bonus">${Gear.subLabel(s)}</div>`).join('')
+        : '<div class="set-bonus">No substats yet</div>';
+      const nextMilestone = atMaxPlus ? null : Math.ceil((focusPiece.plus + 1) / 3) * 3;
+      gearDetailHtml = `
+        <div class="detail-ability gear-detail">
+          <b style="color:${rar.color}">${Gear.pieceName(focusPiece)}</b>
+          <span class="cd">Lv ${focusPiece.level}/${capLevel} · ${Gear.statText(base.stat, base.value)}</span>
+          ${subsHtml}
+          <div class="gear-actions">
+            <button id="polish-btn" class="panel-btn"
+              ${atMax || GameState.whetstones < polishCost ? 'disabled' : ''}>
+              ${atMax ? 'Max level' : `Polish (${polishCost} 🪨)`}
+            </button>
+            <button id="enchant-btn" class="panel-btn"
+              ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>
+              ${atMaxPlus ? 'Max +15' : `Enchant +${focusPiece.plus + 1} (${enchCost} ✦)`}
+            </button>
+          </div>
+          ${nextMilestone ? `<div class="set-bonus">Next substat roll/boost at +${nextMilestone}</div>` : ''}
+        </div>`;
+    }
 
     const { setCounts } = Gear.aggregate(equipped);
     const setBonusHtml = Object.values(Gear.SETS).map((set) => {
@@ -308,6 +348,7 @@ class TeamScreen {
       </div>
       <div class="detail-section">Gear</div>
       ${gearRows}
+      ${gearDetailHtml}
       ${setBonusHtml}
       <div class="detail-section">Abilities</div>
       ${abilitiesHtml}
@@ -342,9 +383,29 @@ class TeamScreen {
       sel.addEventListener('change', () => {
         if (sel.value) GameState.equipGear(def.id, sel.value);
         else GameState.unequipGear(def.id, sel.dataset.slot);
+        this.gearFocus = sel.dataset.slot;
         this.refresh();
       });
     });
+    this.detailsEl.querySelectorAll('.gear-row').forEach((row) => {
+      row.addEventListener('click', (e) => {
+        if (e.target.tagName === 'SELECT') return; // let the picker work
+        this.gearFocus = row.dataset.slot;
+        this.updateDetails();
+      });
+    });
+    const polishBtn = document.getElementById('polish-btn');
+    if (polishBtn && !polishBtn.disabled) {
+      polishBtn.addEventListener('click', () => {
+        if (GameState.polishGear(equipment[this.gearFocus])) this.refresh();
+      });
+    }
+    const enchantBtn = document.getElementById('enchant-btn');
+    if (enchantBtn && !enchantBtn.disabled) {
+      enchantBtn.addEventListener('click', () => {
+        if (GameState.enchantGear(equipment[this.gearFocus])) this.refresh();
+      });
+    }
   }
 
   // ---- Canvas rendering --------------------------------------------------
