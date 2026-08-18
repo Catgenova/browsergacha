@@ -43,16 +43,45 @@ const BOSSES = {
         effects: [{ type: 'damage', mult: 1.0 }],
       },
     ],
-    passive: {
-      name: 'Enrage',
-      icon: 'assets/icons/fc743.png',
-      description: 'Deals 30% extra damage while below half HP.',
-      hooks: {
-        damageDealtMult(unit) {
-          return unit.hp / unit.maxHp < 0.5 ? 1.3 : 1;
+    // Bosses carry three unique passives (and no positional bonuses).
+    passives: [
+      {
+        name: 'Enrage',
+        icon: 'assets/icons/fc743.png',
+        description: 'Deals 30% extra damage while below half HP.',
+        hooks: {
+          damageDealtMult(unit) {
+            return unit.hp / unit.maxHp < 0.5 ? 1.3 : 1;
+          },
         },
       },
-    },
+      {
+        name: 'Ancient Scales',
+        icon: 'assets/icons/fc853.png',
+        description: 'Takes 15% less damage from all attacks.',
+        hooks: {
+          damageTakenMult() {
+            return 0.85;
+          },
+        },
+      },
+      {
+        name: 'Draconic Vigor',
+        icon: 'assets/icons/fc713.png',
+        description: 'Regenerates 3% max HP at the start of each turn.',
+        hooks: {
+          onTurnStart(unit) {
+            const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+            if (healed <= 0) return null;
+            return {
+              label: 'Draconic Vigor',
+              message: `The ${unit.name}'s wounds knit closed (+${healed} HP).`,
+              floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+            };
+          },
+        },
+      },
+    ],
     positional: null,
   },
 };

@@ -57,11 +57,13 @@ class Battle {
   // Called (via the heal event bus) whenever any unit is actually healed.
   onUnitHealed(healedUnit, amount) {
     for (const u of this.livingUnits(healedUnit.team)) {
-      const hook = u.passive && u.passive.hooks && u.passive.hooks.onAllyHealed;
-      if (!hook) continue;
-      const res = hook(u, healedUnit, this);
-      if (res && res.floats) {
-        res.floats.forEach((f) => this.addFloatingText(f.target, f.text, f.color));
+      for (const p of u.passives || []) {
+        const hook = p.hooks && p.hooks.onAllyHealed;
+        if (!hook) continue;
+        const res = hook(u, healedUnit, this);
+        if (res && res.floats) {
+          res.floats.forEach((f) => this.addFloatingText(f.target, f.text, f.color));
+        }
       }
     }
   }

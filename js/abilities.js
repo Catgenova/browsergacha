@@ -86,9 +86,10 @@ const Abilities = (() => {
       case 'debuff': {
         // Debuffer passives can extend the duration of applied debuffs.
         let turns = effect.turns;
-        if (effect.type === 'debuff' && caster.passive && caster.passive.hooks &&
-            caster.passive.hooks.debuffExtraTurns) {
-          turns += caster.passive.hooks.debuffExtraTurns;
+        if (effect.type === 'debuff' && caster.passives) {
+          for (const p of caster.passives) {
+            if (p.hooks && p.hooks.debuffExtraTurns) turns += p.hooks.debuffExtraTurns;
+          }
         }
         target.addStatusEffect({
           kind: effect.type,
