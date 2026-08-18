@@ -1,10 +1,20 @@
 // Gear: six equipment slots per hero, every piece belongs to a Set, and
-// wearing enough pieces of one set grants its bonuses (tiers stack: a
-// 6-piece wearer has the 2pc, 4pc, and 6pc bonuses at once).
+// wearing enough pieces of one set grants its bonuses (tiers stack).
 //
-// Pieces drop from boss fights; their main-stat magnitude scales with
-// the boss's level, plus a random roll. The first farmable set is the
-// Dragon set (from the Dragon boss).
+// Every item has:
+//   - a LEVEL that linearly scales its slot-fixed base stat (a level 1
+//     weapon gives ~5 ATK; level 90 gives 500). Levels are bought with
+//     Whetstones (polishing), costing more each level.
+//   - a RARITY (normal/uncommon/rare/epic/legendary) that sets its max
+//     level and max substat count (1/2/3/4/5). Items drop with one sub
+//     fewer than their max (legendary: 4 subs plus a free bonus boost).
+//   - an ENCHANT level (+0..+15) bought with Arcana. At +3/6/9/12/15 a
+//     new substat rolls if the item is below its rarity's cap,
+//     otherwise a random existing substat gets boosted.
+//
+// Base stats per slot: weapon raw ATK, gloves raw DEF, chest raw HP,
+// boots raw SPD, ring ATK% (caps at 100%), amulet HP% (caps at 100%).
+// Raw substats cap at 50% of the slot base-stat maximum.
 
 const Gear = (() => {
   const SLOTS = ['weapon', 'gloves', 'chest', 'boots', 'ring', 'amulet'];
@@ -14,7 +24,6 @@ const Gear = (() => {
     boots: 'Boots', ring: 'Ring', amulet: 'Amulet',
   };
 
-  // Icons per set+slot (assets/icons pack).
   const SLOT_ICONS = {
     dragon: {
       weapon: 'assets/icons/fc1590.png',
@@ -24,6 +33,15 @@ const Gear = (() => {
       ring: 'assets/icons/fc2186.png',
       amulet: 'assets/icons/fc2181.png',
     },
+  };
+
+  const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
+  const RARITIES = {
+    normal:    { name: 'Normal',    maxLevel: 30, maxSubs: 1, color: '#b8b2cc' },
+    uncommon:  { name: 'Uncommon',  maxLevel: 45, maxSubs: 2, color: '#a8e0a8' },
+    rare:      { name: 'Rare',      maxLevel: 60, maxSubs: 3, color: '#8ecbff' },
+    epic:      { name: 'Epic',      maxLevel: 75, maxSubs: 4, color: '#d78aff' },
+    legendary: { name: 'Legendary', maxLevel: 90, maxSubs: 5, color: '#ffd76a' },
   };
 
   const SETS = {
@@ -38,80 +56,174 @@ const Gear = (() => {
     },
   };
 
-  // Main stat is fixed per slot; magnitude scales with the drop level.
-  const SLOT_STATS = {
-    weapon: { stat: 'atkPct', base: 0.10, perLevel: 0.0020 },
-    gloves: { stat: 'atkFlat', base: 12, perLevel: 1.2 },
-    chest: { stat: 'defPct', base: 0.10, perLevel: 0.0020 },
-    boots: { stat: 'spdFlat', base: 4, perLevel: 0.22 },
-    ring: { stat: 'hpPct', base: 0.10, perLevel: 0.0020 },
-    amulet: { stat: 'critDmg', base: 0.12, perLevel: 0.0040 },
+  // Slot-fixed base stat, scaling linearly from v1 (level 1) to v90
+  // (level 90). Percent bases cap at 100%.
+  const BASE_SCALE = {
+    weapon: { stat: 'atkFlat', v1: 5, v90: 500 },
+    gloves: { stat: 'defFlat', v1: 3, v90: 300 },
+    chest:  { stat: 'hpFlat',  v1: 30, v90: 3000 },
+    boots:  { stat: 'spdFlat', v1: 2, v90: 50 },
+    ring:   { stat: 'atkPct',  v1: 0.02, v90: 1.0 },
+    amulet: { stat: 'hpPct',   v1: 0.02, v90: 1.0 },
   };
 
-  // Roll a fresh drop: random slot, level-scaled main stat ±15%.
-  function roll(setId, level) {
-    const slot = SLOTS[Math.floor(Math.random() * SLOTS.length)];
-    const t = SLOT_STATS[slot];
-    const variance = 0.85 + Math.random() * 0.30;
-    const raw = (t.base + t.perLevel * level) * variance;
-    const value =
-      t.stat === 'atkFlat' ? Math.round(raw) :
-      t.stat === 'spdFlat' ? Math.round(raw) :
-      Math.round(raw * 100) / 100;
-    return { set: setId, slot, stat: t.stat, value, level };
+  function baseStat(piece) {
+    const t = BASE_SCALE[piece.slot];
+    const f = (piece.level - 1) / 89;
+    const raw = t.v1 + (t.v90 - t.v1) * f;
+    const pct = t.stat.endsWith('Pct');
+    return {
+      stat: t.stat,
+      value: pct ? Math.min(1, Math.round(raw * 100) / 100) : Math.round(raw),
+    };
   }
 
+  // Substat pool. Raw caps are 50% of the matching base-stat max.
+  const SUB_POOL = {
+    atkFlat:    { roll: [5, 20],       cap: 250,  label: 'ATK' },
+    defFlat:    { roll: [3, 12],       cap: 150,  label: 'DEF' },
+    hpFlat:     { roll: [30, 120],     cap: 1500, label: 'HP' },
+    spdFlat:    { roll: [1, 4],        cap: 25,   label: 'SPD' },
+    atkPct:     { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'ATK' },
+    defPct:     { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'DEF' },
+    hpPct:      { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'HP' },
+    critChance: { roll: [0.02, 0.05],  cap: 0.25, pct: true, label: 'Crit Rate' },
+    critDamage: { roll: [0.03, 0.07],  cap: 0.5,  pct: true, label: 'Crit DMG' },
+  };
+
+  function rollValue(t) {
+    const v = t.roll[0] + Math.random() * (t.roll[1] - t.roll[0]);
+    return t.pct ? Math.round(v * 100) / 100 : Math.round(v);
+  }
+
+  // Add a new substat the piece doesn't already have.
+  function rollSub(piece) {
+    const taken = new Set(piece.subs.map((s) => s.stat));
+    const open = Object.keys(SUB_POOL).filter((k) => !taken.has(k));
+    if (open.length === 0) return null;
+    const stat = open[Math.floor(Math.random() * open.length)];
+    const sub = { stat, value: rollValue(SUB_POOL[stat]) };
+    piece.subs.push(sub);
+    return sub;
+  }
+
+  // Strengthen a random existing substat by 50-100% of a fresh roll.
+  function boostSub(piece) {
+    if (piece.subs.length === 0) return null;
+    const sub = piece.subs[Math.floor(Math.random() * piece.subs.length)];
+    const t = SUB_POOL[sub.stat];
+    const gain = rollValue(t) * (0.5 + Math.random() * 0.5);
+    sub.value = Math.min(t.cap, t.pct
+      ? Math.round((sub.value + gain) * 100) / 100
+      : Math.round(sub.value + gain));
+    return sub;
+  }
+
+  // Drop rarity odds shift toward the top end as boss stages climb.
+  function rollRarity(stage) {
+    const w = {
+      normal: Math.max(4, 52 - 3 * stage),
+      uncommon: 30,
+      rare: 14 + stage,
+      epic: 3 + stage * 0.8,
+      legendary: 1 + stage * 0.5,
+    };
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (const k of RARITY_ORDER) {
+      r -= w[k];
+      if (r < 0) return k;
+    }
+    return 'normal';
+  }
+
+  // A fresh drop: level 1, +0, starting subs = rarity max minus one
+  // (legendary also gets one free bonus boost).
+  function drop(setId, stage) {
+    const rarity = rollRarity(stage);
+    const piece = {
+      set: setId,
+      slot: SLOTS[Math.floor(Math.random() * SLOTS.length)],
+      rarity,
+      level: 1,
+      plus: 0,
+      subs: [],
+    };
+    for (let i = 0; i < RARITIES[rarity].maxSubs - 1; i++) rollSub(piece);
+    if (rarity === 'legendary') boostSub(piece);
+    return piece;
+  }
+
+  // ---- Leveling (Whetstones) ----
+  function maxLevel(piece) { return RARITIES[piece.rarity].maxLevel; }
+  function polishCost(level) { return 5 + Math.ceil(level * 1.1); }
+
+  // ---- Enchanting (Arcana) ----
+  const MAX_PLUS = 15;
+  function arcanaCost(plus) { return 3 + plus; }
+
+  // Advance one enchant level, applying milestone substat rolls/boosts.
+  // Returns a description of what happened at a milestone (or null).
+  function applyEnchant(piece) {
+    piece.plus++;
+    if (piece.plus % 3 !== 0) return null;
+    if (piece.subs.length < RARITIES[piece.rarity].maxSubs) {
+      const sub = rollSub(piece);
+      return sub ? `New substat: ${subLabel(sub)}` : null;
+    }
+    const sub = boostSub(piece);
+    return sub ? `Boosted: ${subLabel(sub)}` : null;
+  }
+
+  // ---- Display ----
   function icon(piece) {
     const set = SLOT_ICONS[piece.set];
     return set ? set[piece.slot] : null;
   }
 
-  function pieceName(piece) {
-    return `${SETS[piece.set].name} ${SLOT_LABELS[piece.slot]}`;
+  function statText(stat, value) {
+    const t = SUB_POOL[stat] || {};
+    const label = t.label ||
+      { atkFlat: 'ATK', defFlat: 'DEF', hpFlat: 'HP', spdFlat: 'SPD', atkPct: 'ATK', hpPct: 'HP' }[stat] || stat;
+    const pct = stat.endsWith('Pct') || stat === 'critChance' || stat === 'critDamage';
+    return pct ? `+${Math.round(value * 100)}% ${label}` : `+${value} ${label}`;
   }
 
-  function statLabel(piece) {
-    switch (piece.stat) {
-      case 'atkPct': return `+${Math.round(piece.value * 100)}% ATK`;
-      case 'defPct': return `+${Math.round(piece.value * 100)}% DEF`;
-      case 'hpPct': return `+${Math.round(piece.value * 100)}% HP`;
-      case 'atkFlat': return `+${piece.value} ATK`;
-      case 'spdFlat': return `+${piece.value} SPD`;
-      case 'critDmg': return `+${Math.round(piece.value * 100)}% Crit DMG`;
-      default: return '';
-    }
+  function subLabel(sub) { return statText(sub.stat, sub.value); }
+
+  function pieceName(piece) {
+    const plus = piece.plus > 0 ? ` +${piece.plus}` : '';
+    return `${RARITIES[piece.rarity].name} ${SETS[piece.set].name} ${SLOT_LABELS[piece.slot]}${plus}`;
   }
 
   function describe(piece) {
-    return `${pieceName(piece)} · ${statLabel(piece)} · Lv ${piece.level}`;
+    const b = baseStat(piece);
+    return `${pieceName(piece)} · Lv ${piece.level} · ${statText(b.stat, b.value)}`;
   }
 
-  // Sum piece main stats + earned set bonuses into one modifier bundle.
+  // ---- Aggregation ----
   function aggregate(pieces) {
     const mods = {
-      hpPct: 0, atkPct: 0, defPct: 0, atkFlat: 0, spdFlat: 0,
+      hpPct: 0, atkPct: 0, defPct: 0,
+      hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0,
       critChance: 0, critDamage: 0,
+    };
+    const add = (stat, value) => {
+      if (stat in mods) mods[stat] += value;
     };
     const setCounts = {};
     for (const p of pieces) {
       if (!p) continue;
       setCounts[p.set] = (setCounts[p.set] || 0) + 1;
-      switch (p.stat) {
-        case 'hpPct': mods.hpPct += p.value; break;
-        case 'atkPct': mods.atkPct += p.value; break;
-        case 'defPct': mods.defPct += p.value; break;
-        case 'atkFlat': mods.atkFlat += p.value; break;
-        case 'spdFlat': mods.spdFlat += p.value; break;
-        case 'critDmg': mods.critDamage += p.value; break;
-      }
+      const b = baseStat(p);
+      add(b.stat, b.value);
+      for (const sub of p.subs || []) add(sub.stat, sub.value);
     }
     for (const [setId, count] of Object.entries(setCounts)) {
       const set = SETS[setId];
       if (!set) continue;
-      for (const b of set.bonuses) {
-        if (count < b.pieces) continue;
-        if (b.stat === 'critChance') mods.critChance += b.add;
-        if (b.stat === 'critDamage') mods.critDamage += b.add;
+      for (const bonus of set.bonuses) {
+        if (count >= bonus.pieces) add(bonus.stat, bonus.add);
       }
     }
     return { mods, setCounts };
@@ -121,9 +233,9 @@ const Gear = (() => {
   function applyToStats(stats, pieces) {
     const { mods } = aggregate(pieces);
     return {
-      hp: Math.round(stats.hp * (1 + mods.hpPct)),
+      hp: Math.round(stats.hp * (1 + mods.hpPct) + mods.hpFlat),
       atk: Math.round(stats.atk * (1 + mods.atkPct) + mods.atkFlat),
-      def: Math.round(stats.def * (1 + mods.defPct)),
+      def: Math.round(stats.def * (1 + mods.defPct) + mods.defFlat),
       speed: Math.round(stats.speed + mods.spdFlat),
       critChance: (stats.critChance ?? 0.15) + mods.critChance,
       critDamage: (stats.critDamage ?? 1.5) + mods.critDamage,
@@ -131,7 +243,8 @@ const Gear = (() => {
   }
 
   return {
-    SLOTS, SLOT_LABELS, SETS,
-    roll, icon, pieceName, statLabel, describe, aggregate, applyToStats,
+    SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
+    baseStat, drop, maxLevel, polishCost, arcanaCost, applyEnchant,
+    icon, pieceName, describe, statText, subLabel, aggregate, applyToStats,
   };
 })();

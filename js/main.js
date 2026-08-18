@@ -21,6 +21,8 @@ const App = {
 
   updateGems() {
     document.getElementById('gem-count').textContent = GameState.gems.toLocaleString();
+    document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
+    document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
   },
 
   // Canvases that should render at device resolution: {el, w, h} with

@@ -13,6 +13,8 @@ const GameState = (() => {
     bossStages: {},                      // bossId -> highest stage cleared
     gear: {},                            // uid -> gear piece
     nextGearUid: 1,
+    whetstones: 0,                       // item-leveling currency
+    arcana: 0,                           // enchanting currency
   };
 
   function freshEntry(heroId) {
@@ -61,6 +63,20 @@ const GameState = (() => {
     }
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
+    if (!loaded.whetstones) loaded.whetstones = 0;
+    if (!loaded.arcana) loaded.arcana = 0;
+    // Migrate first-generation gear (fixed main stat, no rarity) to the
+    // leveled/rarity schema: rare, level carried over (capped), no subs.
+    for (const piece of Object.values(loaded.gear)) {
+      if (!piece.rarity) {
+        piece.rarity = 'rare';
+        piece.level = Math.min(piece.level || 1, 60);
+        piece.plus = 0;
+        piece.subs = [];
+        delete piece.stat;
+        delete piece.value;
+      }
+    }
     return loaded;
   }
 
@@ -179,6 +195,37 @@ const GameState = (() => {
       save();
     },
     teamSize() { return Object.keys(state.team).length; },
+
+    // ---- Upgrade currencies ----
+    get whetstones() { return state.whetstones; },
+    addWhetstones(n) { state.whetstones += n; save(); },
+    get arcana() { return state.arcana; },
+    addArcana(n) { state.arcana += n; save(); },
+
+    // Spend whetstones to raise an item one level.
+    polishGear(uid) {
+      const piece = state.gear[uid];
+      if (!piece || piece.level >= Gear.maxLevel(piece)) return false;
+      const cost = Gear.polishCost(piece.level);
+      if (state.whetstones < cost) return false;
+      state.whetstones -= cost;
+      piece.level++;
+      save();
+      return true;
+    },
+
+    // Spend arcana to enchant an item one +. Returns the milestone
+    // message (substat roll/boost) or true, false on failure.
+    enchantGear(uid) {
+      const piece = state.gear[uid];
+      if (!piece || piece.plus >= Gear.MAX_PLUS) return false;
+      const cost = Gear.arcanaCost(piece.plus);
+      if (state.arcana < cost) return false;
+      state.arcana -= cost;
+      const milestone = Gear.applyEnchant(piece);
+      save();
+      return milestone || true;
+    },
 
     // ---- Gear ----
     // Add a dropped piece to the inventory; returns its uid.
