@@ -333,12 +333,26 @@ class TeamScreen {
     const placedSlot = slotIndex !== null ? this.slots[slotIndex] : null;
     const bonusLive = placedSlot && placedSlot.position === def.positional.position;
 
-    const abilitiesHtml = def.abilities.map((a) => {
+    // Abilities with skill levels: each level past 1 adds +10% power.
+    // Skill Tomes come only from Endless Tower milestone chests.
+    const abilitiesHtml = def.abilities.map((a, i) => {
       const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
       const icon = a.icon
         ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
-      return `<div class="detail-ability">${icon}<b>${a.name}</b> <span class="cd">${cd}</span><br>${a.description}</div>`;
+      const lv = GameState.skillLevel(def.id, i);
+      const maxed = lv >= Progression.MAX_SKILL_LEVEL;
+      const bonus = Math.round((Progression.skillPower(lv) - 1) * 100);
+      const powerText = bonus > 0 ? ` · +${bonus}% power` : '';
+      const upBtn = maxed
+        ? '<span class="skill-max">MAX</span>'
+        : `<button class="skill-up-btn" data-idx="${i}"
+             title="Spend Skill Tomes (Endless Tower drops) for +10% power"
+             ${GameState.tomes >= Progression.skillUpCost(lv) ? '' : 'disabled'}>
+             ▲ ${Progression.skillUpCost(lv)} 📖</button>`;
+      return `<div class="detail-ability">${icon}<b>${a.name}</b>
+        <span class="cd">Lv ${lv}/${Progression.MAX_SKILL_LEVEL} · ${cd}${powerText}</span>
+        ${upBtn}<br>${a.description}</div>`;
     }).join('');
 
     // Progression: scaled stats (gear included), level/XP bar, star-up.
@@ -450,7 +464,7 @@ class TeamScreen {
       ${gearRows}
       ${gearDetailHtml}
       ${setBonusHtml}
-      <div class="detail-section">Abilities</div>
+      <div class="detail-section">Abilities <span class="cd">(📖 ${GameState.tomes} tomes)</span></div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
       <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
@@ -471,6 +485,12 @@ class TeamScreen {
         this.refresh();
       });
     }
+
+    this.detailsEl.querySelectorAll('.skill-up-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (GameState.upgradeSkill(def.id, Number(btn.dataset.idx))) this.refresh();
+      });
+    });
 
     const starUpBtn = document.getElementById('star-up-btn');
     if (starUpBtn && !starUpBtn.disabled) {

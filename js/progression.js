@@ -73,8 +73,21 @@ const Progression = (() => {
     };
   }
 
+  // ---- Skill leveling ----
+  // Every active skill levels 1..5. Each level past 1 adds +10% to the
+  // skill's damage / heal / poison numbers. Skill Tomes are the only
+  // material and drop exclusively from the Endless Tower.
+  const MAX_SKILL_LEVEL = 5;
+  function skillUpCost(level) {         // tomes to go from `level` to level+1
+    return level;
+  }
+  function skillPower(level) {          // effect multiplier at `level`
+    return 1 + 0.10 * (level - 1);
+  }
+
   return {
     MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
     BOSS_MAX_STAGE, bossLevel, bossScaledStats,
+    MAX_SKILL_LEVEL, skillUpCost, skillPower,
   };
 })();

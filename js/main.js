@@ -25,6 +25,7 @@ const App = {
     document.getElementById('scroll-temporal-count').textContent = GameState.scrollsTemporal.toLocaleString();
     document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
     document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
+    document.getElementById('tome-count').textContent = GameState.tomes.toLocaleString();
   },
 
   // Canvases that should render at device resolution: {el, w, h} with

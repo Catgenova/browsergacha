@@ -22,6 +22,7 @@ const GameState = (() => {
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
+    tomes: 0,                            // skill-leveling currency (tower only)
   };
 
   function freshEntry(heroId) {
@@ -30,6 +31,7 @@ const GameState = (() => {
       copies: 1, level: 1, xp: 0,
       stars: def ? def.rarity : 1,
       equipment: {}, // slot -> gear uid
+      skills: {},    // ability index -> skill level (absent = 1)
     };
   }
 
@@ -67,11 +69,13 @@ const GameState = (() => {
         Object.assign(entry, { level: 1, xp: 0 }, { stars: freshEntry(id).stars });
       }
       if (!entry.equipment) entry.equipment = {};
+      if (!entry.skills) entry.skills = {};
     }
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
+    if (!loaded.tomes) loaded.tomes = 0;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     if (!loaded.quests) loaded.quests = {};
     if (!loaded.tower) loaded.tower = { best: 0 };
@@ -144,7 +148,10 @@ const GameState = (() => {
     // { copies, level, xp, stars } for an owned hero (null if unowned).
     progressOf(heroId) {
       const e = state.roster[heroId];
-      return e ? { copies: e.copies, level: e.level, xp: e.xp, stars: e.stars } : null;
+      return e
+        ? { copies: e.copies, level: e.level, xp: e.xp, stars: e.stars,
+            skills: { ...(e.skills || {}) } }
+        : null;
     },
 
     // Grant XP, chaining level-ups. XP gained at max level is discarded
@@ -227,6 +234,29 @@ const GameState = (() => {
     addWhetstones(n) { state.whetstones += n; save(); },
     get arcana() { return state.arcana; },
     addArcana(n) { state.arcana += n; save(); },
+    get tomes() { return state.tomes; },
+    addTomes(n) { state.tomes += n; save(); },
+
+    // ---- Skill leveling ----
+    // Skill levels live on the roster entry, keyed by ability index.
+    skillLevel(heroId, idx) {
+      const e = state.roster[heroId];
+      return (e && e.skills && e.skills[idx]) || 1;
+    },
+    // Spend Skill Tomes to raise one ability a level (max 5).
+    upgradeSkill(heroId, idx) {
+      const e = state.roster[heroId];
+      if (!e) return false;
+      const lv = this.skillLevel(heroId, idx);
+      if (lv >= Progression.MAX_SKILL_LEVEL) return false;
+      const cost = Progression.skillUpCost(lv);
+      if (state.tomes < cost) return false;
+      state.tomes -= cost;
+      if (!e.skills) e.skills = {};
+      e.skills[idx] = lv + 1;
+      save();
+      return true;
+    },
 
     // Spend whetstones to raise an item one level.
     polishGear(uid) {

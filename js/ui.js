@@ -83,7 +83,8 @@ class UI {
       const iconHtml = a.icon
         ? `<img class="ability-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
-      btn.innerHTML = `${iconHtml}${a.name}${cdText}`;
+      const lvText = abilityState.level > 1 ? ` Lv${abilityState.level}` : '';
+      btn.innerHTML = `${iconHtml}${a.name}${lvText}${cdText}`;
 
       // Revives need a fallen ally to exist.
       const needsDead = a.targeting === 'dead-ally' &&

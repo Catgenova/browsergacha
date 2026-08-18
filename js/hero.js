@@ -37,10 +37,12 @@ class Unit {
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
 
-    // Abilities: instantiate cooldown state per ability.
-    this.abilities = (def.abilities || []).map((a) => ({
+    // Abilities: instantiate cooldown state per ability. Player heroes
+    // carry saved skill levels (+10% power each past 1); enemies stay 1.
+    this.abilities = (def.abilities || []).map((a, i) => ({
       def: a,
       cooldownRemaining: 0,
+      level: (progress && progress.skills && progress.skills[i]) || 1,
     }));
 
     // Passives: heroes carry one, bosses carry several (def.passives).
@@ -282,6 +284,13 @@ class Unit {
       }
     }
     return results;
+  }
+
+  // Skill-level multiplier for one of this unit's abilities (looked up
+  // by def reference, since Abilities.execute receives the def alone).
+  skillPowerFor(abilityDef) {
+    const st = this.abilities.find((a) => a.def === abilityDef);
+    return st ? Progression.skillPower(st.level) : 1;
   }
 
   useAbility(abilityState) {
