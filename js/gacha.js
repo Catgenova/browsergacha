@@ -100,6 +100,7 @@ const Gacha = (() => {
     if (!GameState.spendScrolls(kind, count)) return null;
     const results = [];
     for (let i = 0; i < count; i++) results.push(resolvePull(kind));
+    GameState.questBump('summons', count);
     return results;
   }
 

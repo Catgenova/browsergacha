@@ -86,6 +86,7 @@ const App = {
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
   App.screens.blacksmith = new BlacksmithScreen(App);
+  App.screens.quests = new QuestsScreen(App);
   App.screens.battle = new BattleScreen(App);
 
   document.querySelectorAll('.nav-tab').forEach((tab) => {
@@ -99,8 +100,14 @@ const App = {
     });
   });
 
-  GameState.onChange(() => App.updateCurrencies());
+  // Quest badge: a dot on the tab whenever rewards are claimable.
+  const questBadge = document.getElementById('quest-badge');
+  const updateQuestBadge = () => {
+    questBadge.classList.toggle('hidden', GameState.claimableQuestCount() === 0);
+  };
+  GameState.onChange(() => { App.updateCurrencies(); updateQuestBadge(); });
   App.updateCurrencies();
+  updateQuestBadge();
   App.showScreen('team');
 
   // Keep the layout fitted: on window resize and whenever screen content
