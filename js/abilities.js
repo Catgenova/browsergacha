@@ -43,10 +43,11 @@ const Abilities = (() => {
         let raw = caster.effectiveStat('atk') * effect.mult *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
-        // Combo hits: multiplied damage against a marked status (e.g.
-        // fire breath detonating methane fog).
-        if (effect.bonusVs &&
-            target.statusEffects.some((fx) => fx.stat === effect.bonusVs.stat)) {
+        // Combo hits: multiplied damage against a marked status — by
+        // stat (methane fog) or by kind (detonating poisons).
+        if (effect.bonusVs && target.statusEffects.some((fx) =>
+            (effect.bonusVs.stat && fx.stat === effect.bonusVs.stat) ||
+            (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
           raw *= effect.bonusVs.mult;
         }
         let dmg = damageFormula(raw, target.effectiveStat('def'));

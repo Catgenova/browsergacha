@@ -104,7 +104,9 @@ const BOSSES = {
     title: 'Monarch of the Under-Sewers',
     rarity: 5,
     isBoss: true,
-    stats: { hp: 8200, atk: 215, def: 130, speed: 140 },
+    stats: { hp: 13000, atk: 450, def: 260, speed: 145 }, // lv5 reference
+    stats5: { hp: 13000, atk: 450, def: 260, speed: 145 },
+    stats100: { hp: 85000, atk: 11000, def: 1700, speed: 145 },
     sprite: {
       displayH: 230,
       strips: {
@@ -115,28 +117,31 @@ const BOSSES = {
       {
         id: 'scepter_smash', name: 'Scepter Smash',
         icon: 'assets/icons/fc1477.png',
-        description: 'Crush a hero for 110% ATK.',
+        description: 'Crush a hero for 125% ATK and slow them: -10% SPD for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 1 },
+        ],
       },
       {
-        id: 'plague_wave', name: 'Plague Wave',
+        id: 'gnawing_horde', name: 'Gnawing Horde',
         icon: 'assets/icons/fc1066.png',
-        description: 'Sicken a hero row: 95% ATK and -15% ATK for 2 turns.',
-        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+        description: 'The horde swarms ALL heroes: 80% ATK and -15% ATK for 2 turns.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.8 },
           { type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 },
         ],
       },
       {
-        id: 'kings_feast', name: "King's Feast",
+        id: 'rat_flood', name: 'Rat Flood',
         icon: 'assets/icons/fc1067.png',
-        description: 'The horde swarms ALL heroes: 90% ATK and -15% SPD for 2 turns.',
-        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        description: 'Drown a hero row in vermin: 140% ATK and their action bars are cut by 30%.',
+        cooldown: 7, targeting: 'enemy-row', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.9 },
-          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+          { type: 'damage', mult: 1.4 },
+          { type: 'turnMeter', amount: -0.3 },
         ],
       },
     ],
@@ -144,8 +149,8 @@ const BOSSES = {
       {
         name: 'Skitterguard',
         icon: 'assets/icons/fc882.png',
-        description: 'Has a 10% chance to dodge any attack.',
-        hooks: { dodgeAdd: 0.10 },
+        description: 'Has a 15% chance to dodge any attack.',
+        hooks: { dodgeAdd: 0.15 },
       },
       {
         name: 'Crown of Filth',
@@ -161,8 +166,8 @@ const BOSSES = {
       {
         name: 'Royal Haste',
         icon: 'assets/icons/fc885.png',
-        description: 'Has a 10% chance to take another turn after acting.',
-        hooks: { extraTurnAdd: 0.10 },
+        description: 'Has a 20% chance to take another turn after acting.',
+        hooks: { extraTurnAdd: 0.20 },
       },
     ],
     positional: null,
@@ -177,7 +182,9 @@ const BOSSES = {
     title: 'Sovereign of the Bonefield',
     rarity: 5,
     isBoss: true,
-    stats: { hp: 8600, atk: 225, def: 135, speed: 135 },
+    stats: { hp: 14000, atk: 480, def: 280, speed: 138 }, // lv5 reference
+    stats5: { hp: 14000, atk: 480, def: 280, speed: 138 },
+    stats100: { hp: 90000, atk: 12000, def: 1800, speed: 138 },
     sprite: {
       displayH: 230,
       strips: {
@@ -188,33 +195,39 @@ const BOSSES = {
       {
         id: 'rending_beak', name: 'Rending Beak',
         icon: 'assets/icons/fc746.png',
-        description: 'Tear at a hero for 110% ATK.',
+        description: 'Tear at a hero for 120% ATK and rend armor: -15% DEF for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
       },
       {
         id: 'wing_buffet', name: 'Wing Buffet',
         icon: 'assets/icons/fc785.png',
-        description: 'Batter ALL heroes for 70% ATK with a storm of wings.',
-        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.7 }],
+        description: 'Batter ALL heroes for 75% ATK and knock their action bars back 15%.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
       },
       {
         id: 'death_from_above', name: 'Death From Above',
         icon: 'assets/icons/fc763.png',
-        description: 'A murderous dive: 200% ATK.',
+        description: 'A murderous dive on one hero: 250% ATK.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 2.0 }],
+        effects: [{ type: 'damage', mult: 2.5 }],
       },
     ],
     passives: [
       {
         name: 'Carrion Gorge',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 4% max HP at the start of each turn.',
+        description: 'Regenerates 5% max HP at the start of each turn.',
         hooks: {
           onTurnStart(unit) {
-            const healed = unit.heal(Math.round(unit.maxHp * 0.04));
+            const healed = unit.heal(Math.round(unit.maxHp * 0.05));
             if (healed <= 0) return null;
             return {
               label: 'Carrion Gorge',
@@ -227,18 +240,18 @@ const BOSSES = {
       {
         name: 'Bone Picker',
         icon: 'assets/icons/fc863.png',
-        description: 'Deals 20% extra damage to enemies below half HP.',
+        description: 'Deals 30% extra damage to enemies below half HP.',
         hooks: {
           damageDealtMult(unit, target) {
-            return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.2 : 1;
+            return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.3 : 1;
           },
         },
       },
       {
         name: 'Storm Wings',
         icon: 'assets/icons/fc793.png',
-        description: 'Has a 15% chance to dodge any attack.',
-        hooks: { dodgeAdd: 0.15 },
+        description: 'Has a 20% chance to dodge any attack.',
+        hooks: { dodgeAdd: 0.20 },
       },
     ],
     positional: null,
@@ -253,7 +266,9 @@ const BOSSES = {
     title: 'Tyrant of the Endless Maze',
     rarity: 5,
     isBoss: true,
-    stats: { hp: 9200, atk: 240, def: 145, speed: 125 },
+    stats: { hp: 16000, atk: 520, def: 340, speed: 122 }, // lv5 reference
+    stats5: { hp: 16000, atk: 520, def: 340, speed: 122 },
+    stats100: { hp: 110000, atk: 11500, def: 2400, speed: 122 },
     sprite: {
       displayH: 230,
       strips: {
@@ -264,53 +279,56 @@ const BOSSES = {
       {
         id: 'axe_of_the_maze', name: 'Axe of the Maze',
         icon: 'assets/icons/fc1467.png',
-        description: 'A monstrous axe blow for 110% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
+        description: 'A monstrous axe sweep across the front line for 140% ATK.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.4 }],
       },
       {
         id: 'labyrinthine_charge', name: 'Labyrinthine Charge',
         icon: 'assets/icons/fc767.png',
-        description: 'Charge through a hero row for 100% ATK.',
-        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'Charge through a hero row for 130% ATK.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.3 }],
       },
       {
         id: 'wrath_of_the_maze', name: 'Wrath of the Maze',
         icon: 'assets/icons/fc999.png',
-        description: 'The maze quakes: 95% ATK to ALL heroes.',
-        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.95 }],
+        description: 'The maze quakes: 100% ATK to ALL heroes and shatters armor, -20% DEF for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'debuff', stat: 'def', mult: 0.8, turns: 2 },
+        ],
       },
     ],
     passives: [
       {
         name: 'Bull Rush',
         icon: 'assets/icons/fc1038.png',
-        description: 'Deals 20% extra damage to heroes at full HP.',
+        description: 'Deals 25% extra damage to heroes at full HP.',
         hooks: {
           damageDealtMult(unit, target) {
-            return target && target.alive && target.hp >= target.maxHp ? 1.2 : 1;
+            return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
           },
         },
       },
       {
         name: 'Labyrinth Walls',
         icon: 'assets/icons/fc853.png',
-        description: 'Takes 15% less damage from all attacks.',
+        description: 'Takes 30% less damage while above 70% HP.',
         hooks: {
-          damageTakenMult() {
-            return 0.85;
+          damageTakenMult(unit) {
+            return unit.hp / unit.maxHp > 0.7 ? 0.7 : 1;
           },
         },
       },
       {
         name: 'Undying Fury',
         icon: 'assets/icons/fc743.png',
-        description: 'Deals 30% extra damage while below half HP.',
+        description: 'Deals 40% extra damage while below half HP.',
         hooks: {
           damageDealtMult(unit) {
-            return unit.hp / unit.maxHp < 0.5 ? 1.3 : 1;
+            return unit.hp / unit.maxHp < 0.5 ? 1.4 : 1;
           },
         },
       },
@@ -327,7 +345,9 @@ const BOSSES = {
     title: 'Matriarch of the Glade Marshes',
     rarity: 5,
     isBoss: true,
-    stats: { hp: 8800, atk: 235, def: 140, speed: 132 },
+    stats: { hp: 14000, atk: 470, def: 290, speed: 135 }, // lv5 reference
+    stats5: { hp: 14000, atk: 470, def: 290, speed: 135 },
+    stats100: { hp: 95000, atk: 11000, def: 1900, speed: 135 },
     sprite: {
       displayH: 230,
       faceLeft: true, // art is drawn facing left; don't mirror as an enemy
@@ -339,28 +359,30 @@ const BOSSES = {
       {
         id: 'empress_fang', name: 'Empress Fang',
         icon: 'assets/icons/fc746.png',
-        description: 'A royal strike for 110% ATK.',
+        description: 'A royal strike for 120% ATK that poisons for 30% ATK per turn (2 turns).',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
-      },
-      {
-        id: 'venomous_deluge', name: 'Venomous Deluge',
-        icon: 'assets/icons/fc1067.png',
-        description: 'Drench ALL heroes: 70% ATK plus poison for 30% ATK per turn (2 turns).',
-        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.7 },
+          { type: 'damage', mult: 1.2 },
           { type: 'dot', pct: 0.3, turns: 2 },
         ],
       },
       {
-        id: 'royal_coils', name: 'Royal Coils',
-        icon: 'assets/icons/fc748.png',
-        description: 'Crush a hero row: 110% ATK and -15% SPD for 2 turns.',
-        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        id: 'venomous_deluge', name: 'Venomous Deluge',
+        icon: 'assets/icons/fc1067.png',
+        description: 'Drench ALL heroes: 70% ATK plus poison for 35% ATK per turn (2 turns).',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.1 },
-          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+          { type: 'damage', mult: 0.7 },
+          { type: 'dot', pct: 0.35, turns: 2 },
+        ],
+      },
+      {
+        id: 'constrict_and_devour', name: 'Constrict & Devour',
+        icon: 'assets/icons/fc748.png',
+        description: 'Crush ALL heroes for 90% ATK — poisoned heroes take double damage.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9, bonusVs: { kind: 'dot', mult: 2 } },
         ],
       },
     ],
@@ -368,22 +390,22 @@ const BOSSES = {
       {
         name: "Empress's Blood",
         icon: 'assets/icons/fc856.png',
-        description: '+40% debuff resistance.',
-        hooks: { resistanceAdd: 0.40 },
+        description: '+50% debuff resistance.',
+        hooks: { resistanceAdd: 0.50 },
       },
       {
         name: 'Lingering Venom',
         icon: 'assets/icons/fc1069.png',
-        description: '+50% DoT damage.',
-        hooks: { dotBoostAdd: 0.50 },
+        description: '+75% DoT damage.',
+        hooks: { dotBoostAdd: 0.75 },
       },
       {
         name: 'Molt',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 3% max HP at the start of each turn.',
+        description: 'Regenerates 4% max HP at the start of each turn.',
         hooks: {
           onTurnStart(unit) {
-            const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+            const healed = unit.heal(Math.round(unit.maxHp * 0.04));
             if (healed <= 0) return null;
             return {
               label: 'Molt',
