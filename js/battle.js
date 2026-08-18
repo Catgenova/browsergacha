@@ -403,6 +403,9 @@ class Battle {
         if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');
           this.log(`${res.target.name} resists ${caster.name}'s debuff!`, cls);
+        } else if (res.stat === 'methane') {
+          this.addFloatingText(res.target, 'GAS ☁', '#b8e85a');
+          this.log(`${res.target.name} is shrouded in methane fog for ${res.turns} turns!`, cls);
         } else if (res.stat === 'damageTaken') {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
@@ -478,7 +481,7 @@ class Battle {
     });
     // Skip group-target abilities whose target set is currently empty
     // (e.g. a back-row nuke when no enemy holds a back hex).
-    const groupTargetings = ['all-enemies', 'back-enemies', 'front-allies', 'all-allies'];
+    const groupTargetings = ['all-enemies', 'back-enemies', 'front-enemies', 'front-allies', 'all-allies'];
     const withTargets = (usable.length > 0 ? usable : ready).filter((a) => {
       if (a.def.targeting === 'dead-ally') {
         return this.units.some((u) => !u.alive && u.team === unit.team);

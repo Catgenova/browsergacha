@@ -25,25 +25,29 @@ const BOSSES = {
     },
     abilities: [
       {
-        id: 'claw_swipe', name: 'Claw Swipe',
-        icon: 'assets/icons/fc746.png',
-        description: 'Rake a hero for 110% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
+        id: 'cleave_sweep', name: 'Cleave Sweep',
+        icon: 'assets/icons/fc730.png',
+        description: 'Rake the entire front line for 150% ATK.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
       },
       {
-        id: 'tail_sweep', name: 'Tail Sweep',
-        icon: 'assets/icons/fc724.png',
-        description: 'Sweep a hex row for 90% ATK.',
-        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.9 }],
-      },
-      {
-        id: 'dragon_breath', name: 'Dragon Breath',
+        id: 'fire_breath', name: 'Fire Breath',
         icon: 'assets/icons/fc998.png',
-        description: 'Engulf ALL heroes in flame for 100% ATK.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'Engulf ALL heroes for 90% ATK — heroes shrouded in ' +
+          'methane fog are IGNITED for double damage.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9, bonusVs: { stat: 'methane', mult: 2 } },
+        ],
+      },
+      {
+        id: 'methane_fog', name: 'Methane Fog',
+        icon: 'assets/icons/fc675.png',
+        description: 'Blanket the party in flammable fog for 3 turns ' +
+          '(resistible). Fire Breath detonates it.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'debuff', stat: 'methane', mult: 1, turns: 3 }],
       },
     ],
     // Bosses carry three unique passives (and no positional bonuses).
