@@ -19,7 +19,7 @@ const BOSSES = {
     stats: { hp: 15000, atk: 500, def: 300, speed: 130 }, // lv5 reference
     // Exact anchors: stage 1 (Lv 5) and stage 20 (Lv 100), interpolated.
     stats5: { hp: 15000, atk: 500, def: 300, speed: 130 },
-    stats100: { hp: 80000, atk: 3000, def: 2000, speed: 130 },
+    stats100: { hp: 80000, atk: 10000, def: 2000, speed: 130 },
     sprite: {
       displayH: 230,
       strips: {
