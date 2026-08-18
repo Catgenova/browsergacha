@@ -33,6 +33,22 @@ const Gear = (() => {
       ring: 'assets/icons/fc2186.png',
       amulet: 'assets/icons/fc2181.png',
     },
+    rat: {
+      weapon: 'assets/icons/fc1443.png',
+      gloves: 'assets/icons/fc1488.png',
+      chest: 'assets/icons/fc1921.png',
+      boots: 'assets/icons/fc1938.png',
+      ring: 'assets/icons/fc1843.png',
+      amulet: 'assets/icons/fc2190.png',
+    },
+    avian: {
+      weapon: 'assets/icons/fc1609.png',
+      gloves: 'assets/icons/fc1648.png',
+      chest: 'assets/icons/fc1817.png',
+      boots: 'assets/icons/fc2159.png',
+      ring: 'assets/icons/fc2187.png',
+      amulet: 'assets/icons/fc2177.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -52,6 +68,24 @@ const Gear = (() => {
         { pieces: 2, stat: 'critChance', add: 0.15, label: '2pc: +15% Crit Rate' },
         { pieces: 4, stat: 'critChance', add: 0.20, label: '4pc: +20% Crit Rate' },
         { pieces: 6, stat: 'critDamage', add: 0.80, label: '6pc: +80% Crit Damage' },
+      ],
+    },
+    rat: {
+      id: 'rat',
+      name: 'Rat',
+      bonuses: [
+        { pieces: 2, stat: 'dodge', add: 0.05, label: '2pc: +5% Dodge' },
+        { pieces: 4, stat: 'dodge', add: 0.10, label: '4pc: +10% Dodge' },
+        { pieces: 6, stat: 'extraTurn', add: 0.15, label: '6pc: +15% chance to take another turn' },
+      ],
+    },
+    avian: {
+      id: 'avian',
+      name: 'Avian',
+      bonuses: [
+        { pieces: 2, stat: 'spdFlat', add: 10, label: '2pc: +10 SPD' },
+        { pieces: 4, stat: 'spdFlat', add: 20, label: '4pc: +20 SPD' },
+        { pieces: 6, stat: 'spdPct', add: 0.25, label: '6pc: +25% SPD' },
       ],
     },
   };
@@ -215,8 +249,8 @@ const Gear = (() => {
   function aggregate(pieces) {
     const mods = {
       hpPct: 0, atkPct: 0, defPct: 0,
-      hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0,
-      critChance: 0, critDamage: 0,
+      hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
+      critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -246,9 +280,11 @@ const Gear = (() => {
       hp: Math.round(stats.hp * (1 + mods.hpPct) + mods.hpFlat),
       atk: Math.round(stats.atk * (1 + mods.atkPct) + mods.atkFlat),
       def: Math.round(stats.def * (1 + mods.defPct) + mods.defFlat),
-      speed: Math.round(stats.speed + mods.spdFlat),
+      speed: Math.round((stats.speed + mods.spdFlat) * (1 + mods.spdPct)),
       critChance: (stats.critChance ?? 0.15) + mods.critChance,
       critDamage: (stats.critDamage ?? 1.5) + mods.critDamage,
+      dodge: mods.dodge,
+      extraTurn: mods.extraTurn,
     };
   }
 

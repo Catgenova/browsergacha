@@ -349,7 +349,10 @@ class Battle {
     }
     for (const res of results) {
       if (res.kind === 'damage') {
-        if (res.crit) {
+        if (res.dodged) {
+          this.addFloatingText(res.target, 'DODGE', '#8ee8ff');
+          this.log(`${res.target.name} dodges ${caster.name}'s ${ability.name}!`, cls);
+        } else if (res.crit) {
           this.addFloatingText(res.target, `-${res.amount}!`, '#ffb02e', true);
           this.log(`${caster.name} uses ${ability.name}: CRITICAL! ${res.amount} damage to ${res.target.name}.`, cls);
         } else {
@@ -403,6 +406,15 @@ class Battle {
       if (this.onBattleEnd) this.onBattleEnd(winner);
       return;
     }
+
+    // Extra turns (Rat set 6pc / boss passives): refill the meter so
+    // this unit acts again as soon as the tick resumes.
+    if (caster.alive && Math.random() < caster.extraTurnChance()) {
+      caster.turnMeter = CONFIG.TURN_METER_MAX;
+      this.addFloatingText(caster, 'EXTRA TURN', '#ffd76a', true);
+      this.log(`${caster.name} seizes another turn!`, 'log-system');
+    }
+
     this.state = BattleState.TICKING;
   }
 

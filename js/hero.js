@@ -25,6 +25,8 @@ class Unit {
     this.speed = stats.speed;
     this.baseCritChance = stats.critChance ?? 0.15; // 15% base
     this.baseCritDamage = stats.critDamage ?? 1.5;  // crits deal 150%
+    this.gearDodge = stats.dodge || 0;
+    this.gearExtraTurn = stats.extraTurn || 0;
 
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
@@ -111,6 +113,25 @@ class Unit {
       if (hook) m *= hook(this, target) || 1;
     }
     return m;
+  }
+
+  // Chance to fully evade an incoming damaging hit (gear set bonuses +
+  // dodgeAdd passive hooks), capped so nothing becomes unhittable.
+  dodgeChance() {
+    let d = this.gearDodge;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.dodgeAdd) d += p.hooks.dodgeAdd;
+    }
+    return Math.min(0.75, d);
+  }
+
+  // Chance to immediately take another turn after acting.
+  extraTurnChance() {
+    let c = this.gearExtraTurn;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.extraTurnAdd) c += p.hooks.extraTurnAdd;
+    }
+    return Math.min(0.6, c);
   }
 
   // Incoming damage multiplier from vulnerability marks ('damageTaken'

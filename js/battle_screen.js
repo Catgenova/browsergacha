@@ -50,7 +50,8 @@ class BattleScreen {
     } else if (mode === 'boss') {
       // Only already-cleared stages may be repeated.
       const bs = GameState.bossSettings;
-      const cleared = GameState.bossStageCleared(BOSSES.dragon.id);
+      const bossDef = BOSSES[bs.boss] || BOSSES.dragon;
+      const cleared = GameState.bossStageCleared(bossDef.id);
       if (bs.stage <= cleared) {
         const r = bs.repeat;
         this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
@@ -96,14 +97,14 @@ class BattleScreen {
     let bgPin = null;
     if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
-      // The player picks any unlocked stage (clearing one unlocks the
-      // next). Stage N = boss level 5*N.
-      const def = BOSSES.dragon;
+      // The player picks a boss and any unlocked stage (clearing one
+      // unlocks the next). Stage N = boss level 5*N.
+      const def = BOSSES[GameState.bossSettings.boss] || BOSSES.dragon;
       const cleared = GameState.bossStageCleared(def.id);
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const stage = Math.min(Math.max(1, GameState.bossSettings.stage), maxPick);
       const level = Progression.bossLevel(stage);
-      this.bossFight = { bossId: def.id, stage };
+      this.bossFight = { bossId: def.id, stage, gearSet: def.gearSet || 'dragon' };
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
@@ -191,8 +192,8 @@ class BattleScreen {
             GameState.addScrolls('temporal', 1);
             sub.push('A TEMPORAL Scroll shimmers into being! 🌀');
           }
-          // Bosses drop a set piece; higher stages weight rarer drops.
-          const piece = Gear.drop('dragon', this.bossFight.stage);
+          // Bosses drop a piece of THEIR set; higher stages drop rarer.
+          const piece = Gear.drop(this.bossFight.gearSet, this.bossFight.stage);
           GameState.addGear(piece);
           sub.push(`Loot: ${Gear.describe(piece)}`);
         }
