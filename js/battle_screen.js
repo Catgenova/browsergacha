@@ -10,9 +10,23 @@ class BattleScreen {
     this.renderer = new Renderer(this.canvas);
     this.ui = new UI(this.renderer, this.canvas);
     this.ui.onReturn = () => app.showScreen('team');
-    // Boss banner shortcuts: refight the stage, or push on to the next.
-    this.ui.onRetry = () => this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
-    this.ui.onNextStage = () => this.launchBossStage((this.bossFight ? this.bossFight.stage : 0) + 1);
+    // Banner shortcuts: refight, or push on to the next stage/floor.
+    this.ui.onRetry = () => {
+      if (this.towerFight) {
+        this.requestBattle('tower');
+        this.enter();
+      } else {
+        this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
+      }
+    };
+    this.ui.onNextStage = () => {
+      if (this.towerFight) {
+        this.requestBattle('tower'); // always climbs best + 1
+        this.enter();
+      } else {
+        this.launchBossStage((this.bossFight ? this.bossFight.stage : 0) + 1);
+      }
+    };
     this.battle = null;
 
     // Autobattle toggle (persists across battles within the session),
@@ -59,6 +73,9 @@ class BattleScreen {
         const r = bs.repeat;
         this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
       }
+    } else if (mode === 'tower') {
+      // The climb chains upward as long as auto keeps winning.
+      this.chainRemaining = Infinity;
     }
   }
 
@@ -67,14 +84,19 @@ class BattleScreen {
     this.chainCountdown = null;
   }
 
-  // Boss banners offer Retry always, and Next Stage when it's unlocked.
+  // Boss banners offer Retry always, and Next Stage when it's unlocked;
+  // tower banners offer Retry and Next Floor.
   bossBannerOpts() {
+    if (this.towerFight) {
+      return { retry: true, next: true, nextLabel: 'Next Floor' };
+    }
     if (!this.bossFight) return {};
     const cleared = GameState.bossStageCleared(this.bossFight.bossId);
     const next = this.bossFight.stage + 1;
     return {
       retry: true,
       next: next <= Math.min(Progression.BOSS_MAX_STAGE, cleared + 1),
+      nextLabel: 'Next Stage',
     };
   }
 
@@ -123,17 +145,59 @@ class BattleScreen {
       const stage = Math.min(Math.max(1, GameState.bossSettings.stage), maxPick);
       const level = Progression.bossLevel(stage);
       this.bossFight = { bossId: def.id, stage, gearSet: def.gearSet || 'dragon' };
+      this.towerFight = null;
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
       bgPin = def.background || null; // boss arenas pin their own backdrop
       this.introLog = `Stage ${stage}: the ${def.name} descends! (Lv ${level})`;
+    } else if (mode === 'tower') {
+      // Endless Tower: always fight the floor above your best. Enemy
+      // levels climb ~1.5 per floor forever; every 10th floor a random
+      // boss guards the way (extrapolating past its Lv 100 anchors).
+      this.bossFight = null;
+      const floor = GameState.towerBest + 1;
+      const level = Math.max(2, Math.ceil(floor * 1.5));
+      const isBossFloor = floor % 10 === 0;
+      this.towerFight = { floor, isBossFloor };
+      if (isBossFloor) {
+        const keys = Object.keys(BOSSES);
+        const def = BOSSES[keys[(floor / 10 - 1) % keys.length]];
+        this.rewardXp = Progression.enemyXp(level) * 6;
+        this.rewardWhetstones = 10 + level * 2;
+        this.rewardArcana = 3 + Math.ceil(floor / 10);
+        battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+        bgPin = def.background || null;
+        this.introLog = `Tower floor ${floor}: the ${def.name} bars the way! (Lv ${level})`;
+      } else {
+        // Wave floors rotate through the enemy races (and their homes).
+        const raceLocs = Object.keys(LOCATION_ENEMIES).map(Number);
+        const loc = raceLocs[(floor - 1) % raceLocs.length];
+        bgPin = loc;
+        const poolIds = LOCATION_ENEMIES[loc];
+        const enemyDefs = poolIds.map((id) => ENEMIES[id]).filter(Boolean);
+        const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
+        const slotOrder = [1, 2, 6, 0, 3, 5, 4];
+        this.rewardXp = 0;
+        let totalLevels = 0;
+        for (let i = 0; i < count; i++) {
+          const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
+          const lv = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
+          totalLevels += lv;
+          this.rewardXp += Progression.enemyXp(lv);
+          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level: lv, stars: def.rarity }), slotOrder[i]);
+        }
+        this.rewardWhetstones = 3 + Math.round(totalLevels * 0.8);
+        this.rewardArcana = 1 + Math.floor(totalLevels / 15);
+        this.introLog = `Tower floor ${floor} — enemies at Lv ~${level}.`;
+      }
     } else {
       // Hunt: the player picks a location (backdrop) and a stage that
       // sets enemy levels (stage N -> level ~5N), independent of the
       // deployed team.
       this.bossFight = null;
+      this.towerFight = null;
       const ws = GameState.waveSettings;
       bgPin = ws.location;
       const baseLevel = ws.stage * 5;
@@ -193,7 +257,8 @@ class BattleScreen {
         GameState.addWhetstones(this.rewardWhetstones);
         GameState.addArcana(this.rewardArcana);
         GameState.questBump('wins');
-        GameState.questBump(this.bossFight ? 'bossWins' : 'huntWins');
+        const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);
+        GameState.questBump(asBoss ? 'bossWins' : 'huntWins');
         const sub = [
           `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
@@ -206,6 +271,25 @@ class BattleScreen {
         if (Math.random() < 0.03) {
           GameState.addScrolls('rare', 1);
           sub.push('A RARE Summon Scroll drops! ✨');
+        }
+        if (this.towerFight) {
+          const floor = this.towerFight.floor;
+          GameState.recordTowerClear(floor);
+          sub.unshift(`Tower floor ${floor} cleared!`);
+          // Milestones: gear chest every 5 floors (rarity climbs with
+          // height), a Temporal Scroll every 20.
+          if (floor % 5 === 0) {
+            const sets = Object.keys(Gear.SETS);
+            const piece = Gear.drop(
+              sets[Math.floor(Math.random() * sets.length)],
+              Math.min(20, Math.ceil(floor / 3)));
+            GameState.addGear(piece);
+            sub.push(`Milestone chest: ${Gear.describe(piece)}`);
+          }
+          if (floor % 20 === 0) {
+            GameState.addScrolls('temporal', 1);
+            sub.push('Milestone chest: a TEMPORAL Scroll! 🌀');
+          }
         }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
@@ -222,10 +306,13 @@ class BattleScreen {
         }
         // Battle chaining (hunts and cleared boss stages): keep fighting
         // until the count runs out, pausing briefly on the banner.
-        if (this.chainRemaining > 0) {
+        if (this.chainRemaining > 0 &&
+            (this.chainMode !== 'tower' || this.auto)) {
           const left = this.chainRemaining === Infinity
             ? '∞' : this.chainRemaining;
-          sub.push(`Next battle in 2.5s… (${left} more)`);
+          sub.push(this.chainMode === 'tower'
+            ? 'Climbing on in 2.5s…'
+            : `Next battle in 2.5s… (${left} more)`);
           this.chainRemaining--;
           // Simulation-clock countdown so chains keep running while the
           // tab is hidden (real-time timers get throttled).

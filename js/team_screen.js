@@ -71,6 +71,13 @@ class TeamScreen {
       this.app.screens.battle.requestBattle('wave');
       this.app.showScreen('battle');
     });
+    this.towerBtn = document.getElementById('tower-btn');
+    this.towerStatus = document.getElementById('tower-status');
+    this.towerBtn.addEventListener('click', () => {
+      if (GameState.teamSize() === 0) return;
+      this.app.screens.battle.requestBattle('tower');
+      this.app.showScreen('battle');
+    });
     // Boss picker: which boss, stage (gated by per-boss clears), and
     // repeat (cleared stages only).
     this.bossBtn = document.getElementById('boss-btn');
@@ -136,6 +143,12 @@ class TeamScreen {
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
     this.fightBtn.disabled = size === 0;
     this.bossBtn.disabled = size === 0;
+    this.towerBtn.disabled = size === 0;
+    const nextFloor = GameState.towerBest + 1;
+    const floorLv = Math.max(2, Math.ceil(nextFloor * 1.5));
+    this.towerStatus.textContent =
+      `Best floor ${GameState.towerBest} — next: floor ${nextFloor} ` +
+      `(Lv ~${floorLv}${nextFloor % 10 === 0 ? ' · BOSS' : ''})`;
 
     // Boss stage list for the SELECTED boss: cleared stages ✓
     // (repeatable), the next stage open, everything past it locked.
