@@ -178,6 +178,7 @@ class UI {
     this.bannerSub.innerHTML = subText;
     this.bannerRetry.classList.toggle('hidden', !opts.retry);
     this.bannerNext.classList.toggle('hidden', !opts.next);
+    this.bannerNext.textContent = opts.nextLabel || 'Next Stage';
     this.bannerEl.classList.remove('hidden');
     this.appendLog(winner === TEAM.PLAYER ? 'Victory!' : 'Defeat…', 'log-system');
   }

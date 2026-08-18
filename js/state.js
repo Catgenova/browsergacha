@@ -18,6 +18,7 @@ const GameState = (() => {
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
     gear: {},                            // uid -> gear piece
     quests: {},                          // { daily, monthly } progress
+    tower: { best: 0 },                  // Endless Tower highest floor
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -73,6 +74,7 @@ const GameState = (() => {
     if (!loaded.arcana) loaded.arcana = 0;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     if (!loaded.quests) loaded.quests = {};
+    if (!loaded.tower) loaded.tower = { best: 0 };
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
     // Gems are retired; grant scroll defaults to migrated saves.
@@ -455,6 +457,13 @@ const GameState = (() => {
     get bossSettings() { return { ...state.bossSettings }; },
     setBossSettings(patch) {
       Object.assign(state.bossSettings, patch);
+      save();
+    },
+
+    // ---- Endless Tower ----
+    get towerBest() { return state.tower.best; },
+    recordTowerClear(floor) {
+      state.tower.best = Math.max(state.tower.best, floor);
       save();
     },
 

@@ -58,9 +58,10 @@ const Progression = (() => {
 
   // Bosses can declare exact stats at level 5 and level 100
   // (def.stats5 / def.stats100); every level in between interpolates
-  // linearly, letting each stat grow on its own curve.
+  // linearly, letting each stat grow on its own curve. Levels beyond
+  // 100 (Endless Tower) extrapolate along the same line.
   function bossScaledStats(def, level) {
-    const t = Math.max(0, Math.min(1, (level - 5) / 95));
+    const t = Math.max(0, (level - 5) / 95);
     const lerp = (a, b) => Math.round(a + (b - a) * t);
     return {
       hp: lerp(def.stats5.hp, def.stats100.hp),
