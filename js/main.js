@@ -83,6 +83,7 @@ const App = {
 
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
+  App.screens.blacksmith = new BlacksmithScreen(App);
   App.screens.battle = new BattleScreen(App);
 
   document.querySelectorAll('.nav-tab').forEach((tab) => {

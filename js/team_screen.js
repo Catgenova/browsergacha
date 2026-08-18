@@ -285,23 +285,12 @@ class TeamScreen {
       const subsHtml = focusPiece.subs.length
         ? focusPiece.subs.map((s) => `<div class="set-bonus">${Gear.subLabel(s)}</div>`).join('')
         : '<div class="set-bonus">No substats yet</div>';
-      const nextMilestone = atMaxPlus ? null : Math.ceil((focusPiece.plus + 1) / 3) * 3;
       gearDetailHtml = `
         <div class="detail-ability gear-detail">
           <b style="color:${rar.color}">${Gear.pieceName(focusPiece)}</b>
           <span class="cd">Lv ${focusPiece.level}/${capLevel} · ${Gear.statText(base.stat, base.value)}</span>
           ${subsHtml}
-          <div class="gear-actions">
-            <button id="polish-btn" class="panel-btn"
-              ${atMax || GameState.whetstones < polishCost ? 'disabled' : ''}>
-              ${atMax ? 'Max level' : `Polish (${polishCost} 🪨)`}
-            </button>
-            <button id="enchant-btn" class="panel-btn"
-              ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>
-              ${atMaxPlus ? 'Max +15' : `Enchant +${focusPiece.plus + 1} (${enchCost} ✦)`}
-            </button>
-          </div>
-          ${nextMilestone ? `<div class="set-bonus">Next substat roll/boost at +${nextMilestone}</div>` : ''}
+          <div class="set-bonus">Upgrade and salvage at the Blacksmith</div>
         </div>`;
     }
 
@@ -394,18 +383,6 @@ class TeamScreen {
         this.updateDetails();
       });
     });
-    const polishBtn = document.getElementById('polish-btn');
-    if (polishBtn && !polishBtn.disabled) {
-      polishBtn.addEventListener('click', () => {
-        if (GameState.polishGear(equipment[this.gearFocus])) this.refresh();
-      });
-    }
-    const enchantBtn = document.getElementById('enchant-btn');
-    if (enchantBtn && !enchantBtn.disabled) {
-      enchantBtn.addEventListener('click', () => {
-        if (GameState.enchantGear(equipment[this.gearFocus])) this.refresh();
-      });
-    }
   }
 
   // ---- Canvas rendering --------------------------------------------------
