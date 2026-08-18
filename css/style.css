@@ -307,6 +307,27 @@ body {
   gap: 10px;
 }
 
+#wave-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wave-label {
+  font-size: 12px;
+  color: #9a92b8;
+}
+
+#wave-controls select {
+  padding: 4px 6px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
 #team-count {
   flex: 1;
   font-size: 12px;

@@ -24,8 +24,22 @@ class BattleScreen {
   }
 
   // Fight buttons request a specific battle before switching screens.
+  // A wave request arms the repeat chain from the hunt settings.
   requestBattle(mode) {
     this.pendingMode = mode;
+    this.cancelChain();
+    if (mode === 'wave') {
+      const r = GameState.waveSettings.repeat;
+      this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+    }
+  }
+
+  cancelChain() {
+    this.chainRemaining = 0;
+    if (this.chainTimer) {
+      clearTimeout(this.chainTimer);
+      this.chainTimer = null;
+    }
   }
 
   // Entering the screen starts a fresh battle unless one is still running
@@ -38,29 +52,24 @@ class BattleScreen {
     }
   }
 
-  exit() {}
+  exit() {
+    this.cancelChain();
+  }
 
   async startNewBattle(mode = 'wave') {
     const team = GameState.getTeam();
     const battle = new Battle();
 
     // Player side: saved team placements, at their saved level/stars.
-    const teamLevels = [];
     for (const [slot, heroId] of Object.entries(team)) {
       const def = HEROES[heroId];
       if (!def) continue;
       const progress = GameState.progressOf(heroId);
       if (progress) progress.gear = GameState.equippedPieces(heroId);
-      teamLevels.push(progress ? progress.level : 1);
       battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
 
-    // Enemy side: a random wave sized against the team, leveled around
-    // the party's average so difficulty (and XP) tracks progress.
-    const avgLevel = Math.max(
-      1,
-      Math.round(teamLevels.reduce((a, b) => a + b, 0) / (teamLevels.length || 1))
-    );
+    let bgPin = null;
     if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
       // Stages: fight the next uncleared stage (replay the last once all
@@ -74,9 +83,15 @@ class BattleScreen {
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
-      battle.log(`Stage ${stage}: the ${def.name} descends! (Lv ${level})`, 'log-system');
+      this.introLog = `Stage ${stage}: the ${def.name} descends! (Lv ${level})`;
     } else {
+      // Hunt: the player picks a location (backdrop) and a stage that
+      // sets enemy levels (stage N -> level ~5N), independent of the
+      // deployed team.
       this.bossFight = null;
+      const ws = GameState.waveSettings;
+      bgPin = ws.location;
+      const baseLevel = ws.stage * 5;
       const enemyDefs = Object.values(ENEMIES);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
       const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
@@ -84,13 +99,15 @@ class BattleScreen {
       let totalEnemyLevels = 0;
       for (let i = 0; i < count; i++) {
         const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
-        const level = Math.max(1, avgLevel + Math.floor(Math.random() * 3) - 1);
+        const level = Math.max(1, baseLevel + Math.floor(Math.random() * 3) - 1);
         totalEnemyLevels += level;
         this.rewardXp += Progression.enemyXp(level);
         battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
       }
       this.rewardWhetstones = 3 + Math.round(totalEnemyLevels * 0.8);
       this.rewardArcana = 1 + Math.floor(totalEnemyLevels / 15);
+      this.introLog =
+        `Hunting in the ${CONFIG.LOCATION_NAMES[ws.location] || 'wilds'} — Stage ${ws.stage}.`;
     }
 
     // Load sprites (cached sheets, one animator per unit).
@@ -108,7 +125,7 @@ class BattleScreen {
     }
 
     this.battle = battle;
-    this.renderer.setBattle(battle);
+    this.renderer.setBattle(battle, bgPin);
     this.ui.bind(battle);
     battle.autoMode = this.auto;
     battle.onAutoTakeover = () => this.ui.hideAbilityBar();
@@ -147,13 +164,29 @@ class BattleScreen {
           GameState.addGear(piece);
           sub.push(`Loot: ${Gear.describe(piece)}`);
         }
+        // Battle chaining: keep hunting until the count runs out (or
+        // forever on ∞), pausing briefly on the rewards banner.
+        if (!this.bossFight && this.chainRemaining > 0) {
+          const left = this.chainRemaining === Infinity
+            ? '∞' : this.chainRemaining;
+          sub.push(`Next battle in 2.5s… (${left} more)`);
+          this.chainRemaining--;
+          this.chainTimer = setTimeout(() => {
+            this.chainTimer = null;
+            if (this.app.active === this && this.battle.state === BattleState.ENDED) {
+              this.startNewBattle('wave');
+            }
+          }, 2500);
+        }
         this.ui.showBanner(winner, sub.join('<br>'));
       } else {
+        this.cancelChain(); // a wipe ends the hunt
         this.ui.showBanner(winner, 'Your team was wiped out.');
       }
       // battle.state is now ENDED, so the next enter() starts a new battle.
     };
 
+    if (this.introLog) battle.log(this.introLog, 'log-system');
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
   }
 

@@ -17,15 +17,19 @@ class Renderer {
     this.bgIndex = 0;
   }
 
-  setBattle(battle) {
+  // `bgIndex` pins the backdrop (hunt locations); null rotates as before.
+  setBattle(battle, bgIndex = null) {
     this.battle = battle;
     this.hoveredUnit = null;
     this.targetingMode = null;
     this.rowMode = false;
-    // Rotate the arena for each new battle.
     if (this.bgImages.length > 0) {
-      Renderer.bgRotation = ((Renderer.bgRotation ?? -1) + 1) % this.bgImages.length;
-      this.bgIndex = Renderer.bgRotation;
+      if (bgIndex !== null) {
+        this.bgIndex = bgIndex % this.bgImages.length;
+      } else {
+        Renderer.bgRotation = ((Renderer.bgRotation ?? -1) + 1) % this.bgImages.length;
+        this.bgIndex = Renderer.bgRotation;
+      }
     }
   }
 

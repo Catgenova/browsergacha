@@ -13,6 +13,7 @@ const GameState = (() => {
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
     pity: 0,                             // pulls since last 5★
     bossStages: {},                      // bossId -> highest stage cleared
+    waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     gear: {},                            // uid -> gear piece
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
@@ -67,6 +68,7 @@ const GameState = (() => {
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
+    if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     // Gems are retired; grant scroll defaults to migrated saves.
     if (loaded.scrollsCommon === undefined) loaded.scrollsCommon = 5;
     if (loaded.scrollsRare === undefined) loaded.scrollsRare = 1;
@@ -324,6 +326,13 @@ const GameState = (() => {
       const entry = state.roster[heroId];
       if (!entry || !entry.equipment) return;
       delete entry.equipment[slot];
+      save();
+    },
+
+    // ---- Hunt settings (location / stage / repeat picker) ----
+    get waveSettings() { return { ...state.waveSettings }; },
+    setWaveSettings(patch) {
+      Object.assign(state.waveSettings, patch);
       save();
     },
 
