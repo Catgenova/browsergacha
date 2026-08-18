@@ -310,4 +310,82 @@ const BOSSES = {
     ],
     positional: null,
   },
+
+  snake_empress: {
+    id: 'boss_snake_empress',
+    element: 'water',
+    gearSet: 'snake',
+    background: 'assets/battle_bg_marshland.png',
+    name: 'Snake Empress',
+    title: 'Matriarch of the Marshlands',
+    rarity: 5,
+    isBoss: true,
+    stats: { hp: 8800, atk: 235, def: 140, speed: 132 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/heroes/snakeempressidle.png', frames: 11, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'empress_fang', name: 'Empress Fang',
+        icon: 'assets/icons/fc746.png',
+        description: 'A royal strike for 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+      {
+        id: 'venomous_deluge', name: 'Venomous Deluge',
+        icon: 'assets/icons/fc1067.png',
+        description: 'Drench ALL heroes: 70% ATK plus poison for 30% ATK per turn (2 turns).',
+        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'dot', pct: 0.3, turns: 2 },
+        ],
+      },
+      {
+        id: 'royal_coils', name: 'Royal Coils',
+        icon: 'assets/icons/fc748.png',
+        description: 'Crush a hero row: 110% ATK and -15% SPD for 2 turns.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+        ],
+      },
+    ],
+    passives: [
+      {
+        name: "Empress's Blood",
+        icon: 'assets/icons/fc856.png',
+        description: '+40% debuff resistance.',
+        hooks: { resistanceAdd: 0.40 },
+      },
+      {
+        name: 'Lingering Venom',
+        icon: 'assets/icons/fc1069.png',
+        description: '+50% DoT damage.',
+        hooks: { dotBoostAdd: 0.50 },
+      },
+      {
+        name: 'Molt',
+        icon: 'assets/icons/fc713.png',
+        description: 'Regenerates 3% max HP at the start of each turn.',
+        hooks: {
+          onTurnStart(unit) {
+            const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+            if (healed <= 0) return null;
+            return {
+              label: 'Molt',
+              message: `The ${unit.name} sheds her wounds (+${healed} HP).`,
+              floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+            };
+          },
+        },
+      },
+    ],
+    positional: null,
+  },
 };

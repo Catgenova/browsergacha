@@ -23,6 +23,15 @@ const Abilities = (() => {
     return Math.max(1, Math.round(rawAtk * (1 - mitigation)));
   }
 
+  // Debuff landing roll: accuracy (attacker) offsets resistance
+  // (defender); the land chance is floored at 15%.
+  function debuffLands(caster, target) {
+    const resistance = target.debuffResistance ? target.debuffResistance() : 0;
+    const accuracy = caster.debuffAccuracy ? caster.debuffAccuracy() : 0;
+    const chance = Math.max(0.15, 1 - Math.max(0, resistance - accuracy));
+    return Math.random() < chance;
+  }
+
   // Resolve one effect against one unit. Returns a log-friendly result.
   function applyEffect(effect, caster, target) {
     switch (effect.type) {
@@ -72,9 +81,10 @@ const Abilities = (() => {
         return { kind: 'damage', target, amount: dmg, crit: false };
       }
       case 'cleanse': {
-        // Strip all debuffs from the target.
+        // Strip all debuffs (poisons included) from the target.
         const before = target.statusEffects.length;
-        target.statusEffects = target.statusEffects.filter((fx) => fx.kind !== 'debuff');
+        target.statusEffects = target.statusEffects.filter(
+          (fx) => fx.kind !== 'debuff' && fx.kind !== 'dot');
         return { kind: 'cleanse', target, count: before - target.statusEffects.length };
       }
       case 'revive': {
@@ -88,12 +98,27 @@ const Abilities = (() => {
           target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX));
         return { kind: 'meter', target, amount: effect.amount };
       }
+      case 'dot': {
+        // Poison / damage-over-time: locked in at cast off the caster's
+        // ATK, amplified by DoT boosts, resisted like any debuff.
+        if (!debuffLands(caster, target)) {
+          return { kind: 'debuff', target, stat: 'dot', resisted: true };
+        }
+        const amount = Math.round(
+          caster.effectiveStat('atk') * effect.pct * (1 + caster.dotBoost()));
+        target.addStatusEffect({ kind: 'dot', amount, turns: effect.turns });
+        return { kind: 'dot', target, amount, turns: effect.turns };
+      }
       case 'buff':
       case 'debuff': {
-        // Debuffer passives can extend the duration of applied debuffs.
+        // Debuffs can be resisted (accuracy vs resistance); buffs always
+        // land. Debuffer passives can extend applied debuff durations.
         let turns = effect.turns;
-        if (effect.type === 'debuff' && caster.passives) {
-          for (const p of caster.passives) {
+        if (effect.type === 'debuff') {
+          if (!debuffLands(caster, target)) {
+            return { kind: 'debuff', target, stat: effect.stat, resisted: true };
+          }
+          for (const p of caster.passives || []) {
             if (p.hooks && p.hooks.debuffExtraTurns) turns += p.hooks.debuffExtraTurns;
           }
         }

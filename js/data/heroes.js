@@ -1217,6 +1217,397 @@ const HEROES = {
     },
   },
 
+
+  // ---- Snake cohort -------------------------------------------------------
+  // Marshland natives; poison (DoT) specialists. Idle-only art for now.
+
+  snake_warrior: {
+    id: 'snake_warrior',
+    element: 'water',
+    name: 'Snake Warrior',
+    title: 'Marsh Blade',
+    rarity: 1,
+    stats: { hp: 870, atk: 112, def: 68, speed: 96 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakewarrioridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'fang_slash', name: 'Fang Slash',
+        icon: 'assets/icons/fc726.png',
+        description: 'A curved cut for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'venom_cut', name: 'Venom Cut',
+        icon: 'assets/icons/fc722.png',
+        description: 'Deals 120% ATK and poisons for 30% ATK per turn (2 turns).',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'dot', pct: 0.3, turns: 2 },
+        ],
+      },
+      {
+        id: 'coil_crush', name: 'Coil Crush',
+        icon: 'assets/icons/fc748.png',
+        description: 'Constrict and crush: 170% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.7 }],
+      },
+    ],
+    passive: {
+      name: 'Scaled Hide',
+      icon: 'assets/icons/fc1112.png',
+      description: 'Recovers 2% max HP at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          const healed = unit.heal(Math.round(unit.maxHp * 0.02));
+          if (healed <= 0) return null;
+          return {
+            label: 'Scaled Hide',
+            message: `${unit.name} sheds the damage (+${healed} HP).`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Coiled Guard: +15% DEF while in a front hex.',
+    },
+  },
+
+  snake_archer: {
+    id: 'snake_archer',
+    element: 'wind',
+    name: 'Snake Archer',
+    title: 'Reed Stalker',
+    rarity: 1,
+    stats: { hp: 720, atk: 118, def: 55, speed: 102 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakearcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'reed_shot', name: 'Reed Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'A hissing arrow for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'venom_arrow', name: 'Venom Arrow',
+        icon: 'assets/icons/fc1516.png',
+        description: 'Deals 115% ATK and poisons for 30% ATK per turn (2 turns).',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'dot', pct: 0.3, turns: 2 },
+        ],
+      },
+      {
+        id: 'arrow_hiss', name: 'Arrow Hiss',
+        icon: 'assets/icons/fc807.png',
+        description: 'Pepper ALL enemies for 70% ATK.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.7 }],
+      },
+    ],
+    passive: {
+      name: 'Slither Step',
+      icon: 'assets/icons/fc882.png',
+      description: 'Gains +8% SPD for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.08, turns: 1 });
+          return null; // silent - fires every turn
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Reed Blind: +15% ATK while in a back hex.',
+    },
+  },
+
+  snake_assassin: {
+    id: 'snake_assassin',
+    element: 'dark',
+    name: 'Snake Assassin',
+    title: 'Silent Fang',
+    rarity: 2,
+    stats: { hp: 810, atk: 138, def: 58, speed: 116, critChance: 0.25 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeassassinidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'viper_stab', name: 'Viper Stab',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A lightning stab for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'envenom', name: 'Envenom',
+        icon: 'assets/icons/fc825.png',
+        description: 'Deals 130% ATK and poisons for 40% ATK per turn (3 turns).',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'dot', pct: 0.4, turns: 3 },
+        ],
+      },
+      {
+        id: 'fang_finish', name: 'Fang Finish',
+        icon: 'assets/icons/fc734.png',
+        description: 'Strike the throat: 190% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.9 }],
+      },
+    ],
+    passive: {
+      name: 'Taste for Venom',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to poisoned or debuffed enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects && target.statusEffects.some(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot') ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Ambush Coil: +15% damage dealt from a back hex.',
+    },
+  },
+
+  snake_mage: {
+    id: 'snake_mage',
+    element: 'fire',
+    name: 'Snake Mage',
+    title: 'Marsh-Light Caller',
+    rarity: 2,
+    stats: { hp: 830, atk: 142, def: 60, speed: 104 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakemageidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'venom_bolt', name: 'Venom Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A searing bolt for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'corrosive_blast', name: 'Corrosive Blast',
+        icon: 'assets/icons/fc1066.png',
+        description: 'Deals 120% ATK and corrodes armor: -15% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'toxic_nova', name: 'Toxic Nova',
+        icon: 'assets/icons/fc1067.png',
+        description: 'Deals 75% ATK to ALL enemies and poisons for 25% ATK per turn (2 turns).',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'dot', pct: 0.25, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexing Focus',
+      icon: 'assets/icons/fc987.png',
+      description: '+15% debuff accuracy.',
+      hooks: { accuracyAdd: 0.15 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
+      description: 'Marsh Focus: +15% damage dealt from the center hex.',
+    },
+  },
+
+  snake_alchemist: {
+    id: 'snake_alchemist',
+    element: 'water',
+    name: 'Snake Alchemist',
+    title: 'Venom Chemist',
+    rarity: 2,
+    stats: { hp: 900, atk: 125, def: 72, speed: 98 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakealchemistidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'acid_splash', name: 'Acid Splash',
+        icon: 'assets/icons/fc121.png',
+        description: 'A vial of acid for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'caustic_brew', name: 'Caustic Brew',
+        icon: 'assets/icons/fc123.png',
+        description: 'Deals 110% ATK and marks the target: +15% damage taken for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'mutagen', name: 'Mutagen',
+        icon: 'assets/icons/fc122.png',
+        description: 'Cleanse an ally and grant +25% ATK for 2 turns.',
+        cooldown: 6, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'atk', mult: 1.25, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Iron Gut',
+      icon: 'assets/icons/fc856.png',
+      description: '+20% debuff resistance.',
+      hooks: { resistanceAdd: 0.20 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
+      description: 'Hardened Brew: +15% max HP while in a front hex.',
+    },
+  },
+
+  snake_shaman: {
+    id: 'snake_shaman',
+    element: 'wind',
+    name: 'Snake Shaman',
+    title: 'Mire Whisperer',
+    rarity: 3,
+    stats: { hp: 1120, atk: 155, def: 82, speed: 102 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeshamanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spirit_fang', name: 'Spirit Fang',
+        icon: 'assets/icons/fc970.png',
+        description: 'A spectral bite for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'swamp_blessing', name: 'Swamp Blessing',
+        icon: 'assets/icons/fc1073.png',
+        description: 'Heal an ally for 12% of the shaman\'s max HP (15% if front row).',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [{ type: 'healHpPct', pct: 0.12, frontPct: 0.15 }],
+      },
+      {
+        id: 'miasma', name: 'Miasma',
+        icon: 'assets/icons/fc1068.png',
+        description: 'Deals 50% ATK to ALL enemies and poisons for 35% ATK per turn (3 turns).',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.5 },
+          { type: 'dot', pct: 0.35, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Venom Master',
+      icon: 'assets/icons/fc1069.png',
+      description: '+25% DoT damage.',
+      hooks: { dotBoostAdd: 0.25 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.2,
+      description: 'Mire Shelter: +20% max HP while in a back hex.',
+    },
+  },
+
+  snake_healer: {
+    id: 'snake_healer',
+    element: 'light',
+    name: 'Snake Healer',
+    title: 'Molted Saint',
+    rarity: 3,
+    stats: { hp: 1180, atk: 148, def: 84, speed: 99 },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakehealeridle1.png', frames: 16, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'soothing_scales', name: 'Soothing Scales',
+        icon: 'assets/icons/fc1041.png',
+        description: 'Heal an ally for 8% of the healer\'s max HP.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [{ type: 'healHpPct', pct: 0.08 }],
+      },
+      {
+        id: 'purifying_venom', name: 'Purifying Venom',
+        icon: 'assets/icons/fc1046.png',
+        description: 'Cleanse an ally and heal them for 10% of the healer\'s max HP.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'cleanse' },
+          { type: 'healHpPct', pct: 0.10 },
+        ],
+      },
+      {
+        id: 'rebirth_molt', name: 'Rebirth Molt',
+        icon: 'assets/icons/fc1113.png',
+        description: 'Bless ALL allies with regrowth: 4% of the healer\'s max HP per turn for 3 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'hot', pct: 0.04, turns: 3 }],
+      },
+    ],
+    passive: {
+      name: 'Radiant Scales',
+      icon: 'assets/icons/fc853.png',
+      description: 'Takes 10% less damage from all attacks.',
+      hooks: {
+        damageTakenMult() {
+          return 0.9;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.15,
+      description: 'Sheltered Coil: +15% max HP while in a back hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',

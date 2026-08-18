@@ -138,12 +138,19 @@ class Battle {
       }
     }
 
-    // A damaging passive may have just ended the battle.
+    // A damaging passive or poison tick may have just ended the battle.
     const winner = this.checkEnd();
     if (winner) {
       this.activeUnit = null;
       this.state = BattleState.ENDED;
       if (this.onBattleEnd) this.onBattleEnd(winner);
+      return;
+    }
+
+    // Poison can kill a unit at the start of its own turn: skip the act.
+    if (!unit.alive) {
+      this.activeUnit = null;
+      this.state = BattleState.TICKING;
       return;
     }
 
@@ -389,8 +396,14 @@ class Battle {
       } else if (res.kind === 'meter') {
         this.addFloatingText(res.target, 'METER ▼', '#d78aff');
         this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+      } else if (res.kind === 'dot') {
+        this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
+        this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
-        if (res.stat === 'damageTaken') {
+        if (res.resisted) {
+          this.addFloatingText(res.target, 'RESIST', '#c8c2da');
+          this.log(`${res.target.name} resists ${caster.name}'s debuff!`, cls);
+        } else if (res.stat === 'damageTaken') {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
@@ -454,7 +467,8 @@ class Battle {
     const allies = this.livingUnits(unit.team);
     const anyImpaired =
       allies.some((u) => u.hp / u.maxHp < 0.8) ||
-      allies.some((u) => u.statusEffects.some((fx) => fx.kind === 'debuff'));
+      allies.some((u) => u.statusEffects.some(
+        (fx) => fx.kind === 'debuff' || fx.kind === 'dot'));
     const usable = ready.filter((a) => {
       const defensiveOnly = a.def.effects.every((e) =>
         e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||

@@ -27,6 +27,9 @@ class Unit {
     this.baseCritDamage = stats.critDamage ?? 1.5;  // crits deal 150%
     this.gearDodge = stats.dodge || 0;
     this.gearExtraTurn = stats.extraTurn || 0;
+    this.gearAccuracy = stats.accuracy || 0;
+    this.gearResistance = stats.resistance || 0;
+    this.gearDotBoost = stats.dotBoost || 0;
 
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
@@ -123,6 +126,33 @@ class Unit {
       if (p.hooks && p.hooks.dodgeAdd) d += p.hooks.dodgeAdd;
     }
     return Math.min(0.75, d);
+  }
+
+  // Debuff accuracy (attacker) vs resistance (defender): a debuff lands
+  // with chance 1 - max(0, resistance - accuracy), floored at 15%.
+  debuffAccuracy() {
+    let a = this.gearAccuracy;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.accuracyAdd) a += p.hooks.accuracyAdd;
+    }
+    return a;
+  }
+
+  debuffResistance() {
+    let r = this.gearResistance;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.resistanceAdd) r += p.hooks.resistanceAdd;
+    }
+    return r;
+  }
+
+  // Damage-over-time amplification (Snake set, venom passives).
+  dotBoost() {
+    let d = this.gearDotBoost;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.dotBoostAdd) d += p.hooks.dotBoostAdd;
+    }
+    return d;
   }
 
   // Chance to immediately take another turn after acting.
@@ -226,6 +256,18 @@ class Unit {
           floats: [{ target: this, text: `+${healed}`, color: '#7ae87a' }],
         });
       }
+    }
+
+    // Damage-over-time ticks (poison etc.) — these can kill.
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'dot' || !this.alive) continue;
+      this.takeDamage(fx.amount);
+      results.push({
+        label: 'Poison',
+        message: `${this.name} suffers ${fx.amount} poison damage.` +
+          (this.alive ? '' : ` ${this.name} succumbs!`),
+        floats: [{ target: this, text: `-${fx.amount}`, color: '#a8e85a' }],
+      });
     }
 
     this.tickStatusEffects();

@@ -57,6 +57,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc1845.png',
       amulet: 'assets/icons/fc2183.png',
     },
+    snake: {
+      weapon: 'assets/icons/fc1689.png',
+      gloves: 'assets/icons/fc1487.png',
+      chest: 'assets/icons/fc1826.png',
+      boots: 'assets/icons/fc1946.png',
+      ring: 'assets/icons/fc1847.png',
+      amulet: 'assets/icons/fc2065.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -105,6 +113,15 @@ const Gear = (() => {
         { pieces: 6, stat: 'atkPct', add: 0.40, label: '6pc: +40% ATK' },
       ],
     },
+    snake: {
+      id: 'snake',
+      name: 'Snake',
+      bonuses: [
+        { pieces: 2, stat: 'accuracy', add: 0.20, label: '2pc: +20% Debuff Accuracy' },
+        { pieces: 4, stat: 'accuracy', add: 0.40, label: '4pc: +40% Debuff Accuracy' },
+        { pieces: 6, stat: 'dotBoost', add: 0.50, label: '6pc: +50% DoT Damage' },
+      ],
+    },
   };
 
   // Slot-fixed base stat, scaling linearly from v1 (level 1) to v90
@@ -140,6 +157,8 @@ const Gear = (() => {
     hpPct:      { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'HP' },
     critChance: { roll: [0.02, 0.05],  cap: 0.25, pct: true, label: 'Crit Rate' },
     critDamage: { roll: [0.03, 0.07],  cap: 0.5,  pct: true, label: 'Crit DMG' },
+    accuracy:   { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'Accuracy' },
+    resistance: { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'Resistance' },
   };
 
   function rollValue(t) {
@@ -275,6 +294,7 @@ const Gear = (() => {
       hpPct: 0, atkPct: 0, defPct: 0,
       hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
       critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
+      accuracy: 0, resistance: 0, dotBoost: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -309,6 +329,9 @@ const Gear = (() => {
       critDamage: (stats.critDamage ?? 1.5) + mods.critDamage,
       dodge: mods.dodge,
       extraTurn: mods.extraTurn,
+      accuracy: mods.accuracy,
+      resistance: mods.resistance,
+      dotBoost: mods.dotBoost,
     };
   }
 
