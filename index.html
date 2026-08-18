@@ -45,6 +45,18 @@
       <div id="team-top">
         <div id="team-canvas-wrap">
           <canvas id="team-canvas" width="560" height="400"></canvas>
+          <div id="wave-controls">
+            <span class="wave-label">Hunt:</span>
+            <select id="location-select" title="Battle location"></select>
+            <select id="stage-select" title="Stage (sets enemy levels)"></select>
+            <select id="repeat-select" title="How many battles to chain">
+              <option value="1">×1</option>
+              <option value="3">×3</option>
+              <option value="5">×5</option>
+              <option value="10">×10</option>
+              <option value="inf">∞</option>
+            </select>
+          </div>
           <div id="team-controls">
             <span id="team-count"></span>
             <button id="clear-team-btn" class="panel-btn danger">Clear team</button>

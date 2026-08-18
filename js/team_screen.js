@@ -33,6 +33,26 @@ class TeamScreen {
 
     this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
     this.canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
+    // Hunt picker: location (background), stage (enemy levels), repeat.
+    this.locationSel = document.getElementById('location-select');
+    this.stageSel = document.getElementById('stage-select');
+    this.repeatSel = document.getElementById('repeat-select');
+    this.locationSel.innerHTML = CONFIG.LOCATION_NAMES
+      .map((n, i) => `<option value="${i}">${n}</option>`).join('');
+    this.stageSel.innerHTML = Array.from({ length: 20 }, (_, i) =>
+      `<option value="${i + 1}">Stage ${i + 1} (Lv ${(i + 1) * 5})</option>`).join('');
+    const ws = GameState.waveSettings;
+    this.locationSel.value = String(ws.location);
+    this.stageSel.value = String(ws.stage);
+    this.repeatSel.value = String(ws.repeat);
+    const saveWave = () => GameState.setWaveSettings({
+      location: Number(this.locationSel.value),
+      stage: Number(this.stageSel.value),
+      repeat: this.repeatSel.value === 'inf' ? 'inf' : Number(this.repeatSel.value),
+    });
+    [this.locationSel, this.stageSel, this.repeatSel].forEach((sel) =>
+      sel.addEventListener('change', saveWave));
+
     this.fightBtn.addEventListener('click', () => {
       if (GameState.teamSize() === 0) return;
       this.app.screens.battle.requestBattle('wave');
