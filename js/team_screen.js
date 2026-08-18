@@ -58,15 +58,24 @@ class TeamScreen {
       this.app.screens.battle.requestBattle('wave');
       this.app.showScreen('battle');
     });
-    // Boss picker: stage (gated by clears) and repeat (cleared stages only).
+    // Boss picker: which boss, stage (gated by per-boss clears), and
+    // repeat (cleared stages only).
     this.bossBtn = document.getElementById('boss-btn');
+    this.bossSel = document.getElementById('boss-select');
     this.bossStageSel = document.getElementById('boss-stage-select');
     this.bossRepeatSel = document.getElementById('boss-repeat-select');
+    this.bossSel.innerHTML = Object.entries(BOSSES)
+      .map(([key, b]) => `<option value="${key}">${Elements.badge(b.element)} ${b.name}</option>`)
+      .join('');
+    this.bossSel.value = GameState.bossSettings.boss in BOSSES
+      ? GameState.bossSettings.boss : 'dragon';
     this.bossRepeatSel.value = String(GameState.bossSettings.repeat);
     const saveBoss = () => GameState.setBossSettings({
+      boss: this.bossSel.value,
       stage: Number(this.bossStageSel.value),
       repeat: this.bossRepeatSel.value === 'inf' ? 'inf' : Number(this.bossRepeatSel.value),
     });
+    this.bossSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
     this.bossStageSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
     this.bossRepeatSel.addEventListener('change', saveBoss);
     this.bossBtn.addEventListener('click', () => {
@@ -115,9 +124,10 @@ class TeamScreen {
     this.fightBtn.disabled = size === 0;
     this.bossBtn.disabled = size === 0;
 
-    // Boss stage list: cleared stages ✓ (repeatable), the next stage
-    // open, everything past it locked.
-    const cleared = GameState.bossStageCleared(BOSSES.dragon.id);
+    // Boss stage list for the SELECTED boss: cleared stages ✓
+    // (repeatable), the next stage open, everything past it locked.
+    const bossKey = this.bossSel.value in BOSSES ? this.bossSel.value : 'dragon';
+    const cleared = GameState.bossStageCleared(BOSSES[bossKey].id);
     const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
     const saved = Math.min(GameState.bossSettings.stage, maxPick);
     this.bossStageSel.innerHTML = Array.from(
@@ -342,7 +352,7 @@ class TeamScreen {
     const { setCounts } = Gear.aggregate(equipped);
     const setBonusHtml = Object.values(Gear.SETS).map((set) => {
       const count = setCounts[set.id] || 0;
-      if (count === 0 && equipped.length === 0) return '';
+      if (count === 0) return '';
       const rows = set.bonuses.map((b) =>
         `<div class="set-bonus ${count >= b.pieces ? 'set-bonus-live' : ''}">${b.label}</div>`
       ).join('');

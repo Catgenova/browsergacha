@@ -15,7 +15,7 @@ const GameState = (() => {
     pity: 0,                             // pulls since last 5★
     bossStages: {},                      // bossId -> highest stage cleared
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
-    bossSettings: { stage: 1, repeat: 1 },              // boss picker
+    bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
     gear: {},                            // uid -> gear piece
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
@@ -71,7 +71,8 @@ const GameState = (() => {
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
-    if (!loaded.bossSettings) loaded.bossSettings = { stage: 1, repeat: 1 };
+    if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
+    if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
     // Gems are retired; grant scroll defaults to migrated saves.
     if (loaded.scrollsCommon === undefined) loaded.scrollsCommon = 5;
     if (loaded.scrollsRare === undefined) loaded.scrollsRare = 1;

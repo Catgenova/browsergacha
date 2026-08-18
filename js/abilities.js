@@ -27,6 +27,10 @@ const Abilities = (() => {
   function applyEffect(effect, caster, target) {
     switch (effect.type) {
       case 'damage': {
+        // Dodge: a fully evaded hit deals nothing.
+        if (Math.random() < (target.dodgeChance ? target.dodgeChance() : 0)) {
+          return { kind: 'damage', target, amount: 0, dodged: true };
+        }
         const raw = caster.effectiveStat('atk') * effect.mult *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
