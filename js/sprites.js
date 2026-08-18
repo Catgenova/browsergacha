@@ -92,9 +92,9 @@ class AnimationPlayer {
   play(name, onComplete = null) {
     if (!this.sheet.animations[name]) {
       // Animation not provided (e.g. attack strip not delivered yet):
-      // keep idling, but still resolve the completion callback so the
-      // battle flow (which waits on it) never stalls.
-      if (onComplete) setTimeout(onComplete, 350);
+      // keep idling, but still resolve the completion callback (on the
+      // simulation clock, so background catch-up ticks drive it too).
+      if (onComplete) this.fallbackTimer = { wait: 0.35, onComplete };
       name = 'idle';
       onComplete = null;
     }
@@ -105,6 +105,16 @@ class AnimationPlayer {
   }
 
   update(dt) {
+    // Missing-animation completion runs on simulation time.
+    if (this.fallbackTimer) {
+      this.fallbackTimer.wait -= dt;
+      if (this.fallbackTimer.wait <= 0) {
+        const cb = this.fallbackTimer.onComplete;
+        this.fallbackTimer = null;
+        cb();
+      }
+    }
+
     const anim = this.sheet.animations[this.current];
     if (!anim) return;
 

@@ -97,6 +97,16 @@ class Battle {
     for (const fx of this.effectSprites) fx.player.update(dt);
     this.effectSprites = this.effectSprites.filter((fx) => !fx.done);
 
+    // Pending AI action (simulation-clock replacement for setTimeout).
+    if (this.pendingAuto) {
+      this.pendingAuto.wait -= dt;
+      if (this.pendingAuto.wait <= 0) {
+        const { unit } = this.pendingAuto;
+        this.pendingAuto = null;
+        this.autoAct(unit);
+      }
+    }
+
     if (this.state !== BattleState.TICKING) return;
 
     // Advance turn meters (speed buffs/debuffs apply here).
@@ -142,7 +152,9 @@ class Battle {
       if (this.onPlayerTurn) this.onPlayerTurn(unit);
     } else {
       this.state = BattleState.ACTING;
-      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY / (this.speedMult || 1));
+      // AI "thinking" pause runs on the simulation clock so background
+      // catch-up ticks (throttled tabs) keep battles moving.
+      this.pendingAuto = { unit, wait: CONFIG.AI_DELAY / 1000 };
     }
   }
 
@@ -154,7 +166,7 @@ class Battle {
       const unit = this.activeUnit;
       this.state = BattleState.ACTING;
       if (this.onAutoTakeover) this.onAutoTakeover();
-      setTimeout(() => this.autoAct(unit), CONFIG.AI_DELAY / (this.speedMult || 1));
+      this.pendingAuto = { unit, wait: CONFIG.AI_DELAY / 1000 };
     }
   }
 

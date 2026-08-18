@@ -61,10 +61,7 @@ class BattleScreen {
 
   cancelChain() {
     this.chainRemaining = 0;
-    if (this.chainTimer) {
-      clearTimeout(this.chainTimer);
-      this.chainTimer = null;
-    }
+    this.chainCountdown = null;
   }
 
   // Entering the screen starts a fresh battle unless one is still running
@@ -207,12 +204,9 @@ class BattleScreen {
             ? '∞' : this.chainRemaining;
           sub.push(`Next battle in 2.5s… (${left} more)`);
           this.chainRemaining--;
-          this.chainTimer = setTimeout(() => {
-            this.chainTimer = null;
-            if (this.app.active === this && this.battle.state === BattleState.ENDED) {
-              this.startNewBattle(this.chainMode || 'wave');
-            }
-          }, 2500);
+          // Simulation-clock countdown so chains keep running while the
+          // tab is hidden (real-time timers get throttled).
+          this.chainCountdown = 2.5;
         }
         this.ui.showBanner(winner, sub.join('<br>'));
       } else {
@@ -228,6 +222,16 @@ class BattleScreen {
 
   update(dt) {
     if (this.battle) this.battle.update(dt);
+    // Between-battle chain pause, on the simulation clock.
+    if (this.chainCountdown !== null && this.chainCountdown !== undefined) {
+      this.chainCountdown -= dt;
+      if (this.chainCountdown <= 0) {
+        this.chainCountdown = null;
+        if (this.app.active === this && this.battle.state === BattleState.ENDED) {
+          this.startNewBattle(this.chainMode || 'wave');
+        }
+      }
+    }
   }
 
   draw() {

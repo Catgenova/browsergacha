@@ -119,15 +119,29 @@ const App = {
     .observe(document.getElementById('game-root'));
   App.fitToScreen();
 
+  // Game clock. requestAnimationFrame drives visible play; because
+  // browsers pause rAF (and throttle timers) in background tabs, a
+  // 1s interval keeps simulating while hidden by catching the clock up
+  // in fixed sub-steps — auto-battles and chains keep farming.
   let lastTime = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - lastTime) / 1000);
+  function advance(now, draw) {
+    // Cap catch-up so a long-suspended tab doesn't grind on return.
+    let remaining = Math.min(120, (now - lastTime) / 1000);
     lastTime = now;
-    if (App.active) {
+    if (!App.active) return;
+    while (remaining > 0) {
+      const dt = Math.min(0.05, remaining);
       App.active.update(dt);
-      App.active.draw();
+      remaining -= dt;
     }
+    if (draw) App.active.draw();
+  }
+  function frame(now) {
+    advance(now, true);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  setInterval(() => {
+    if (document.hidden) advance(performance.now(), false);
+  }, 1000);
 })();
