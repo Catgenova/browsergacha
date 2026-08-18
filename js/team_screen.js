@@ -16,6 +16,10 @@ class TeamScreen {
     this.logicalH = 400;
     app.hiDpiCanvases.push({ el: this.canvas, w: this.logicalW, h: this.logicalH });
     this.rosterEl = document.getElementById('roster-grid');
+    this.rosterSearch = document.getElementById('roster-search');
+    this.rosterSort = document.getElementById('roster-sort');
+    this.rosterSearch.addEventListener('input', () => this.buildRoster());
+    this.rosterSort.addEventListener('change', () => this.buildRoster());
     this.detailsEl = document.getElementById('hero-details');
     this.fightBtn = document.getElementById('fight-btn');
     this.clearBtn = document.getElementById('clear-team-btn');
@@ -160,9 +164,30 @@ class TeamScreen {
     const team = GameState.getTeam();
     const inTeam = new Set(Object.values(team));
 
+    // Search filters by name or element; sort defaults to level, then
+    // stars, then rarity.
+    const query = (this.rosterSearch.value || '').trim().toLowerCase();
+    const p = (id) => GameState.progressOf(id);
+    const byLevel = (a, b) =>
+      p(b).level - p(a).level || p(b).stars - p(a).stars ||
+      HEROES[b].rarity - HEROES[a].rarity || a.localeCompare(b);
+    const SORTS = {
+      level: byLevel,
+      stars: (a, b) => p(b).stars - p(a).stars || byLevel(a, b),
+      rarity: (a, b) => HEROES[b].rarity - HEROES[a].rarity || byLevel(a, b),
+      name: (a, b) => HEROES[a].name.localeCompare(HEROES[b].name),
+      element: (a, b) =>
+        (HEROES[a].element || '').localeCompare(HEROES[b].element || '') || byLevel(a, b),
+    };
     const ids = GameState.ownedHeroIds()
       .filter((id) => HEROES[id])
-      .sort((a, b) => HEROES[b].rarity - HEROES[a].rarity || a.localeCompare(b));
+      .filter((id) => {
+        if (!query) return true;
+        const h = HEROES[id];
+        return h.name.toLowerCase().includes(query) ||
+          (h.element || '').toLowerCase().includes(query);
+      })
+      .sort(SORTS[this.rosterSort.value] || SORTS.level);
 
     for (const heroId of ids) {
       const def = HEROES[heroId];
