@@ -206,6 +206,13 @@ const Gear = (() => {
   const MAX_PLUS = 15;
   function arcanaCost(plus) { return 3 + plus; }
 
+  // Success chance for the attempt from `plus` to `plus + 1`: 95% for
+  // +1, falling linearly to 5% for +15. A failed attempt still burns
+  // the Arcana.
+  function enchantSuccessRate(plus) {
+    return 0.95 - (0.90 * plus) / 14;
+  }
+
   // Advance one enchant level, applying milestone substat rolls/boosts.
   // Returns a description of what happened at a milestone (or null).
   function applyEnchant(piece) {
@@ -290,7 +297,7 @@ const Gear = (() => {
 
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
-    baseStat, drop, maxLevel, polishCost, arcanaCost, applyEnchant,
+    baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats,
   };
 })();
