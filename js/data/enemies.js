@@ -76,7 +76,7 @@ const LOCATION_ENEMIES = {
     'minotaur_crossbowman', 'minotaur_gladiator', 'minotaur_shaman',
     'minotaur_necromancer',
   ],
-  8: [ // Marshland — the snake cohort
+  6: [ // Glade (the marshlands) — the snake cohort
     'snake_warrior', 'snake_archer', 'snake_assassin', 'snake_mage',
     'snake_alchemist', 'snake_shaman', 'snake_healer',
   ],
