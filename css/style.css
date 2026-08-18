@@ -427,7 +427,36 @@ body {
   font-size: 13px;
   letter-spacing: 1px;
   color: #9a92b8;
+}
+
+#roster-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 8px;
+}
+
+#roster-header h3 { flex: 1; }
+
+#roster-search {
+  width: 220px;
+  padding: 5px 8px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+#roster-sort {
+  padding: 5px 6px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
 }
 
 #roster-grid {

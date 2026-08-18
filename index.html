@@ -82,7 +82,17 @@
         <aside id="hero-details"></aside>
       </div>
       <div id="roster-section">
-        <h3>Your Heroes</h3>
+        <div id="roster-header">
+          <h3>Your Heroes</h3>
+          <input id="roster-search" type="search" placeholder="Search name or element…">
+          <select id="roster-sort" title="Sort the roster">
+            <option value="level">Sort: Level</option>
+            <option value="stars">Sort: Stars</option>
+            <option value="rarity">Sort: Rarity</option>
+            <option value="name">Sort: Name</option>
+            <option value="element">Sort: Element</option>
+          </select>
+        </div>
         <div id="roster-grid"></div>
       </div>
     </section>
