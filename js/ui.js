@@ -16,16 +16,28 @@ class UI {
     this.bannerTitle = document.getElementById('banner-title');
     this.bannerSub = document.getElementById('banner-sub');
     this.bannerReturn = document.getElementById('banner-return');
+    this.bannerRetry = document.getElementById('banner-retry');
+    this.bannerNext = document.getElementById('banner-next');
 
     this.activeHero = null;
     this.selectedAbility = null; // ability state awaiting a target
     this.onReturn = null;        // wired by the app (back to team screen)
+    this.onRetry = null;         // boss banner: refight the same stage
+    this.onNextStage = null;     // boss banner: advance to the next stage
 
     canvas.addEventListener('click', (e) => this.onCanvasClick(e));
     canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
     this.bannerReturn.addEventListener('click', () => {
       this.bannerEl.classList.add('hidden');
       if (this.onReturn) this.onReturn();
+    });
+    this.bannerRetry.addEventListener('click', () => {
+      this.bannerEl.classList.add('hidden');
+      if (this.onRetry) this.onRetry();
+    });
+    this.bannerNext.addEventListener('click', () => {
+      this.bannerEl.classList.add('hidden');
+      if (this.onNextStage) this.onNextStage();
     });
   }
 
@@ -158,11 +170,14 @@ class UI {
     this.logEl.scrollTop = this.logEl.scrollHeight;
   }
 
-  showBanner(winner, subText = '') {
+  // opts: { retry, next } toggle the boss-flow buttons.
+  showBanner(winner, subText = '', opts = {}) {
     this.hideAbilityBar();
     this.bannerTitle.textContent = winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT';
     // Multi-line rewards (XP, level-ups) arrive as <br>-separated text.
     this.bannerSub.innerHTML = subText;
+    this.bannerRetry.classList.toggle('hidden', !opts.retry);
+    this.bannerNext.classList.toggle('hidden', !opts.next);
     this.bannerEl.classList.remove('hidden');
     this.appendLog(winner === TEAM.PLAYER ? 'Victory!' : 'Defeat…', 'log-system');
   }

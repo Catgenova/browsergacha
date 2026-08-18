@@ -10,6 +10,9 @@ class BattleScreen {
     this.renderer = new Renderer(this.canvas);
     this.ui = new UI(this.renderer, this.canvas);
     this.ui.onReturn = () => app.showScreen('team');
+    // Boss banner shortcuts: refight the stage, or push on to the next.
+    this.ui.onRetry = () => this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
+    this.ui.onNextStage = () => this.launchBossStage((this.bossFight ? this.bossFight.stage : 0) + 1);
     this.battle = null;
 
     // Autobattle toggle (persists across battles within the session),
@@ -62,6 +65,24 @@ class BattleScreen {
   cancelChain() {
     this.chainRemaining = 0;
     this.chainCountdown = null;
+  }
+
+  // Boss banners offer Retry always, and Next Stage when it's unlocked.
+  bossBannerOpts() {
+    if (!this.bossFight) return {};
+    const cleared = GameState.bossStageCleared(this.bossFight.bossId);
+    const next = this.bossFight.stage + 1;
+    return {
+      retry: true,
+      next: next <= Math.min(Progression.BOSS_MAX_STAGE, cleared + 1),
+    };
+  }
+
+  // Start a boss fight at a specific stage (banner Retry / Next Stage).
+  launchBossStage(stage) {
+    GameState.setBossSettings({ stage });
+    this.requestBattle('boss');
+    this.enter();
   }
 
   // Entering the screen starts a fresh battle unless one is still running
@@ -208,10 +229,10 @@ class BattleScreen {
           // tab is hidden (real-time timers get throttled).
           this.chainCountdown = 2.5;
         }
-        this.ui.showBanner(winner, sub.join('<br>'));
+        this.ui.showBanner(winner, sub.join('<br>'), this.bossBannerOpts());
       } else {
         this.cancelChain(); // a wipe ends the hunt
-        this.ui.showBanner(winner, 'Your team was wiped out.');
+        this.ui.showBanner(winner, 'Your team was wiped out.', this.bossBannerOpts());
       }
       // battle.state is now ENDED, so the next enter() starts a new battle.
     };

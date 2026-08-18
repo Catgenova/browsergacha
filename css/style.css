@@ -292,6 +292,11 @@ body {
   color: #b8b2cc;
 }
 
+#banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ==== Team builder screen ==== */
 #team-top {
   display: flex;
