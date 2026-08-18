@@ -440,6 +440,8 @@ body {
   color: #9a92b8;
 }
 
+.card-level-max { color: #ffd76a; }
+
 /* ==== Progression (details panel) ==== */
 .detail-level {
   margin-top: 4px;
