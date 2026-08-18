@@ -17,15 +17,31 @@ class Renderer {
     this.bgIndex = 0;
   }
 
-  // `bgIndex` pins the backdrop (hunt locations); null rotates as before.
-  setBattle(battle, bgIndex = null) {
+  // `bgPin` pins the backdrop: a BATTLE_BGS index (hunt locations) or an
+  // image path (boss arenas). Null rotates as before.
+  setBattle(battle, bgPin = null) {
     this.battle = battle;
     this.hoveredUnit = null;
     this.targetingMode = null;
     this.rowMode = false;
+    this.customBg = null;
+    if (typeof bgPin === 'string') {
+      // Boss arena image, loaded once and cached; until it arrives (or
+      // if the file is missing) drawBackground falls back to bgIndex.
+      Renderer.customBgCache = Renderer.customBgCache || new Map();
+      if (Renderer.customBgCache.has(bgPin)) {
+        this.customBg = Renderer.customBgCache.get(bgPin);
+      } else {
+        Sprites.loadImage(bgPin).then((img) => {
+          Renderer.customBgCache.set(bgPin, img);
+          this.customBg = img;
+        });
+      }
+      bgPin = null; // fall through to rotation as the fallback backdrop
+    }
     if (this.bgImages.length > 0) {
-      if (bgIndex !== null) {
-        this.bgIndex = bgIndex % this.bgImages.length;
+      if (bgPin !== null) {
+        this.bgIndex = bgPin % this.bgImages.length;
       } else {
         Renderer.bgRotation = ((Renderer.bgRotation ?? -1) + 1) % this.bgImages.length;
         this.bgIndex = Renderer.bgRotation;
@@ -121,7 +137,7 @@ class Renderer {
 
   drawBackground() {
     const { ctx } = this;
-    const bg = this.bgImages[this.bgIndex];
+    const bg = this.customBg || this.bgImages[this.bgIndex];
     if (bg) {
       // Cover-fit: fill the canvas, cropping overflow, centered.
       const img = bg;
