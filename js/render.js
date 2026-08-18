@@ -187,11 +187,18 @@ class Renderer {
     return tileY - dh / 2 + 5 + (sheet && sheet.footPad || 0);
   }
 
+  // Whether a unit's sprite draws mirrored. Enemies face left by
+  // default; art authored facing left (sprite.faceLeft) inverts that.
+  spriteFlipped(unit) {
+    const faceLeft = !!(unit.def && unit.def.sprite && unit.def.sprite.faceLeft);
+    return (unit.team === TEAM.ENEMY) !== faceLeft;
+  }
+
   // Where a unit's feet sit horizontally: frame center plus the art's
-  // shadow offset (mirrored for flipped enemy sprites).
+  // shadow offset (mirrored for flipped sprites).
   feetX(unit, baseX) {
     const off = (unit.animator && unit.animator.sheet.shadowOffsetX) || 0;
-    return baseX + (unit.team === TEAM.ENEMY ? -off : off);
+    return baseX + (this.spriteFlipped(unit) ? -off : off);
   }
 
   // Soft shadow orb on the ground beneath a unit; shrinks and fades as
@@ -229,7 +236,7 @@ class Renderer {
       if (unit.animator && unit.animator.current === 'death') {
         // Death animation plays out and freezes on its final frame.
         this.drawShadow(unit);
-        unit.animator.draw(ctx, x, yc, unit.team === TEAM.ENEMY);
+        unit.animator.draw(ctx, x, yc, this.spriteFlipped(unit));
       } else {
         // Fallback for units without death art: faded grave marker.
         ctx.save();
@@ -242,7 +249,7 @@ class Renderer {
     }
 
     const isActive = this.battle.activeUnit === unit;
-    const flipX = unit.team === TEAM.ENEMY; // enemies face left
+    const flipX = this.spriteFlipped(unit);
 
     this.drawShadow(unit);
 
