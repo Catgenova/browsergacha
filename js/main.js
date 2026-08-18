@@ -99,15 +99,6 @@ const App = {
     });
   });
 
-  // Testing helper: free scrolls.
-  document.getElementById('dev-scrolls-btn').addEventListener('click', () => {
-    GameState.addScrolls('common', 10);
-    GameState.addScrolls('rare', 10);
-    GameState.addScrolls('temporal', 10);
-    // Refresh summon-button enabled states if that screen is showing.
-    if (App.active === App.screens.summon) App.screens.summon.updateInfo();
-  });
-
   GameState.onChange(() => App.updateCurrencies());
   App.updateCurrencies();
   App.showScreen('team');
