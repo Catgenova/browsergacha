@@ -37,11 +37,20 @@ class TeamScreen {
     this.locationSel = document.getElementById('location-select');
     this.stageSel = document.getElementById('stage-select');
     this.repeatSel = document.getElementById('repeat-select');
+    // Only locations with an enemy race are open; the rest unlock as
+    // their inhabitants are added.
     this.locationSel.innerHTML = CONFIG.LOCATION_NAMES
-      .map((n, i) => `<option value="${i}">${n}</option>`).join('');
+      .map((n, i) => {
+        const open = !!LOCATION_ENEMIES[i];
+        return `<option value="${i}" ${open ? '' : 'disabled'}>${n}${open ? '' : ' 🔒'}</option>`;
+      }).join('');
     this.stageSel.innerHTML = Array.from({ length: 20 }, (_, i) =>
       `<option value="${i + 1}">Stage ${i + 1} (Lv ${(i + 1) * 5})</option>`).join('');
     const ws = GameState.waveSettings;
+    if (!LOCATION_ENEMIES[ws.location]) {
+      GameState.setWaveSettings({ location: 0 }); // saved biome got locked
+      ws.location = 0;
+    }
     this.locationSel.value = String(ws.location);
     this.stageSel.value = String(ws.stage);
     this.repeatSel.value = String(ws.repeat);
