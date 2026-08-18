@@ -8,6 +8,7 @@ const GameState = (() => {
   const DEFAULTS = {
     scrollsCommon: 5,                    // Common Summon Scrolls
     scrollsRare: 1,                      // Rare Summon Scrolls
+    scrollsTemporal: 0,                  // Temporal Scrolls (dark/light)
     // heroId -> { copies, level, xp, stars }
     roster: { florence: { copies: 1 } },
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
@@ -74,6 +75,7 @@ const GameState = (() => {
     // Gems are retired; grant scroll defaults to migrated saves.
     if (loaded.scrollsCommon === undefined) loaded.scrollsCommon = 5;
     if (loaded.scrollsRare === undefined) loaded.scrollsRare = 1;
+    if (loaded.scrollsTemporal === undefined) loaded.scrollsTemporal = 0;
     delete loaded.gems;
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
@@ -101,13 +103,16 @@ const GameState = (() => {
     // ---- Summon scrolls ----
     get scrollsCommon() { return state.scrollsCommon; },
     get scrollsRare() { return state.scrollsRare; },
+    get scrollsTemporal() { return state.scrollsTemporal; },
     addScrolls(kind, n) {
-      if (kind === 'rare') state.scrollsRare += n;
-      else state.scrollsCommon += n;
+      const key = kind === 'rare' ? 'scrollsRare'
+        : kind === 'temporal' ? 'scrollsTemporal' : 'scrollsCommon';
+      state[key] += n;
       save();
     },
     spendScrolls(kind, n) {
-      const key = kind === 'rare' ? 'scrollsRare' : 'scrollsCommon';
+      const key = kind === 'rare' ? 'scrollsRare'
+        : kind === 'temporal' ? 'scrollsTemporal' : 'scrollsCommon';
       if (state[key] < n) return false;
       state[key] -= n;
       save();

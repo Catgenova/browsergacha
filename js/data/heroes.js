@@ -15,6 +15,7 @@ const HEROES = {
 
   rat_archer: {
     id: 'rat_archer',
+    element: 'wind',
     name: 'Rat Archer',
     title: 'Burrow Scout',
     rarity: 1,
@@ -68,6 +69,7 @@ const HEROES = {
 
   rat_brawler: {
     id: 'rat_brawler',
+    element: 'fire',
     name: 'Rat Brawler',
     title: 'Gutter Scrapper',
     rarity: 1,
@@ -126,6 +128,7 @@ const HEROES = {
 
   rat_spearman: {
     id: 'rat_spearman',
+    element: 'water',
     name: 'Rat Spearman',
     title: 'Tunnel Guard',
     rarity: 1,
@@ -180,6 +183,7 @@ const HEROES = {
 
   rat_assassin: {
     id: 'rat_assassin',
+    element: 'wind',
     name: 'Rat Assassin',
     title: 'Sewer Shadow',
     rarity: 2,
@@ -232,6 +236,7 @@ const HEROES = {
 
   rat_berserker: {
     id: 'rat_berserker',
+    element: 'fire',
     name: 'Rat Berserker',
     title: 'Plague Fury',
     rarity: 2,
@@ -284,6 +289,7 @@ const HEROES = {
 
   rat_mauler: {
     id: 'rat_mauler',
+    element: 'water',
     name: 'Rat Mauler',
     title: 'Cellar Crusher',
     rarity: 2,
@@ -339,6 +345,7 @@ const HEROES = {
 
   rat_duelist: {
     id: 'rat_duelist',
+    element: 'wind',
     name: 'Rat Duelist',
     title: 'Gutter Gentry',
     rarity: 2,
@@ -394,6 +401,7 @@ const HEROES = {
 
   rat_samurai: {
     id: 'rat_samurai',
+    element: 'fire',
     name: 'Rat Samurai',
     title: 'Ronin of the Drain',
     rarity: 3,
@@ -446,6 +454,7 @@ const HEROES = {
 
   florence: {
     id: 'florence',
+    element: 'water',
     name: 'Florence',
     title: 'Crystal Blade',
     rarity: 4,
@@ -588,6 +597,7 @@ const HEROES = {
 
   vivian: {
     id: 'vivian',
+    element: 'wind',
     name: 'Vivian',
     title: 'Hedge Mage',
     rarity: 4,
@@ -661,6 +671,7 @@ const HEROES = {
 
   vex: {
     id: 'vex',
+    element: 'dark',
     name: 'Vex',
     title: 'Doll Witch',
     rarity: 4,
@@ -739,6 +750,7 @@ const HEROES = {
 
   emily: {
     id: 'emily',
+    element: 'light',
     name: 'Emily',
     title: 'Dawn Cleric',
     rarity: 4,
@@ -823,6 +835,7 @@ const HEROES = {
 
   coral: {
     id: 'coral',
+    element: 'water',
     name: 'Coral',
     title: 'Tide Caller',
     rarity: 4,

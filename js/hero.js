@@ -12,6 +12,7 @@ class Unit {
     this.level = progress?.level ?? 1;
     this.stars = progress?.stars ?? def.rarity ?? 1;
     this.isBoss = !!def.isBoss;
+    this.element = def.element || null;
 
     // Base stats: scaled by level and stars, then modified by any
     // equipped gear (main stats + set bonuses).

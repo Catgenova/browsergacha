@@ -27,7 +27,9 @@ const Abilities = (() => {
   function applyEffect(effect, caster, target) {
     switch (effect.type) {
       case 'damage': {
-        const raw = caster.effectiveStat('atk') * effect.mult * caster.damageDealtMult(target);
+        const raw = caster.effectiveStat('atk') * effect.mult *
+          caster.damageDealtMult(target) *
+          Elements.mult(caster.element, target.element);
         let dmg = damageFormula(raw, target.effectiveStat('def'));
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
