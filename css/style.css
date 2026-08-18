@@ -435,6 +435,38 @@ body {
   color: #7ae87a;
 }
 
+.card-level {
+  font-size: 9px;
+  color: #9a92b8;
+}
+
+/* ==== Progression (details panel) ==== */
+.detail-level {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #e8e4d8;
+}
+
+.detail-level .xp-text {
+  margin-left: 8px;
+  font-size: 10px;
+  color: #9a92b8;
+}
+
+.xp-bar {
+  margin-top: 4px;
+  height: 6px;
+  background: #14121a;
+  border: 1px solid #3a3450;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8ecbff, #d78aff);
+}
+
 .card-copies {
   position: absolute;
   top: 4px;

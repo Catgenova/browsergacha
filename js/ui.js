@@ -161,7 +161,8 @@ class UI {
   showBanner(winner, subText = '') {
     this.hideAbilityBar();
     this.bannerTitle.textContent = winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT';
-    this.bannerSub.textContent = subText;
+    // Multi-line rewards (XP, level-ups) arrive as <br>-separated text.
+    this.bannerSub.innerHTML = subText;
     this.bannerEl.classList.remove('hidden');
     this.appendLog(winner === TEAM.PLAYER ? 'Victory!' : 'Defeat…', 'log-system');
   }

@@ -105,11 +105,18 @@ class TeamScreen {
       name.className = 'card-name';
       name.textContent = def.name;
 
+      const progress = GameState.progressOf(heroId);
       const stars = document.createElement('div');
       stars.className = `card-stars rarity-${def.rarity}`;
-      stars.textContent = '★'.repeat(def.rarity);
+      stars.textContent = progress.stars <= 5
+        ? '★'.repeat(progress.stars)
+        : `${progress.stars}★`;
 
-      card.append(portrait, name, stars);
+      const level = document.createElement('div');
+      level.className = 'card-level';
+      level.textContent = `Lv ${progress.level}`;
+
+      card.append(portrait, name, stars, level);
 
       if (inTeam.has(heroId)) {
         const badge = document.createElement('div');
@@ -211,11 +218,45 @@ class TeamScreen {
       return `<div class="detail-ability">${icon}<b>${a.name}</b> <span class="cd">${cd}</span><br>${a.description}</div>`;
     }).join('');
 
+    // Progression: scaled stats, level/XP bar, star-up state.
+    const progress = GameState.progressOf(def.id);
+    const stats = Progression.scaledStats(def, progress.level, progress.stars);
+    const cap = Progression.maxLevel(progress.stars);
+    const atCap = progress.level >= cap;
+    const xpNeed = atCap ? 0 : Progression.xpToNext(progress.level);
+    const xpPct = atCap ? 100 : Math.min(100, Math.round((progress.xp / xpNeed) * 100));
+    const starsText = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+
+    let starUpHtml = '';
+    if (progress.stars < Progression.MAX_STARS) {
+      const cost = Progression.starUpCost(progress.stars);
+      const spare = progress.copies - 1;
+      const can = GameState.canStarUp(def.id);
+      starUpHtml = `
+        <div class="detail-section">Star up</div>
+        <div class="detail-ability">
+          ${progress.stars}★ → ${progress.stars + 1}★: needs Lv ${cap} and ${cost} duplicate${cost > 1 ? 's' : ''}
+          (have ${spare}). Boosts base stats +25%, resets level to 1.
+        </div>
+        <button id="star-up-btn" class="panel-btn gold" ${can ? '' : 'disabled'}>
+          Star up ${can ? '' : atCap ? '(need duplicates)' : `(need Lv ${cap})`}
+        </button>`;
+    } else {
+      starUpHtml = `
+        <div class="detail-section">Star up</div>
+        <div class="detail-ability">Max stars reached — ${Progression.MAX_STARS}★.</div>`;
+    }
+
     this.detailsEl.innerHTML = `
       <div class="detail-name rarity-${def.rarity}">${def.name} <span class="detail-title">${def.title || ''}</span></div>
-      <div class="card-stars rarity-${def.rarity}">${'★'.repeat(def.rarity)}</div>
+      <div class="card-stars rarity-${def.rarity}">${starsText}</div>
+      <div class="detail-level">
+        Lv ${progress.level} / ${cap}
+        <span class="xp-text">${atCap ? 'MAX — star up to continue' : `XP ${progress.xp} / ${xpNeed}`}</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
       <div class="detail-stats">
-        HP ${def.stats.hp} · ATK ${def.stats.atk} · DEF ${def.stats.def} · SPD ${def.stats.speed}
+        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
       </div>
       <div class="detail-section">Abilities</div>
       ${abilitiesHtml}
@@ -226,6 +267,7 @@ class TeamScreen {
         ${def.positional.description}
         ${bonusLive ? '<br><b>★ Active in current slot</b>' : ''}
       </div>
+      ${starUpHtml}
       ${slotIndex !== null ? '<button id="remove-hero-btn" class="panel-btn danger">Remove from team</button>' : ''}
     `;
 
@@ -235,6 +277,13 @@ class TeamScreen {
         GameState.clearTeamSlot(slotIndex);
         this.selection = null;
         this.refresh();
+      });
+    }
+
+    const starUpBtn = document.getElementById('star-up-btn');
+    if (starUpBtn && !starUpBtn.disabled) {
+      starUpBtn.addEventListener('click', () => {
+        if (GameState.starUp(def.id)) this.refresh();
       });
     }
   }

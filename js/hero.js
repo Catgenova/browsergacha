@@ -2,20 +2,25 @@
 // Built from a definition object (js/data/heroes.js, js/data/enemies.js).
 
 class Unit {
-  constructor(def, team) {
+  // `progress` ({ level, stars }) scales base stats; omitted -> level 1
+  // at the def's own rarity (unscaled).
+  constructor(def, team, progress) {
     this.def = def;
     this.id = `${team}-${def.id}-${Math.floor(Math.random() * 1e6)}`;
     this.name = def.name;
     this.team = team;
+    this.level = progress?.level ?? 1;
+    this.stars = progress?.stars ?? def.rarity ?? 1;
 
-    // Base stats
-    this.maxHp = def.stats.hp;
-    this.hp = def.stats.hp;
-    this.baseAtk = def.stats.atk;
-    this.baseDef = def.stats.def;
-    this.speed = def.stats.speed;
-    this.baseCritChance = def.stats.critChance ?? 0.15; // 15% base
-    this.baseCritDamage = def.stats.critDamage ?? 1.5;  // crits deal 150%
+    // Base stats, scaled by level and stars.
+    const stats = Progression.scaledStats(def, this.level, this.stars);
+    this.maxHp = stats.hp;
+    this.hp = stats.hp;
+    this.baseAtk = stats.atk;
+    this.baseDef = stats.def;
+    this.speed = stats.speed;
+    this.baseCritChance = stats.critChance ?? 0.15; // 15% base
+    this.baseCritDamage = stats.critDamage ?? 1.5;  // crits deal 150%
 
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;

@@ -6,10 +6,16 @@ const GameState = (() => {
 
   const DEFAULTS = {
     gems: 3000,
-    roster: { florence: { copies: 1 } }, // heroId -> { copies }
+    // heroId -> { copies, level, xp, stars }
+    roster: { florence: { copies: 1 } },
     team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
     pity: 0,                             // pulls since last 5★
   };
+
+  function freshEntry(heroId) {
+    const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
+    return { copies: 1, level: 1, xp: 0, stars: def ? def.rarity : 1 };
+  }
 
   // Heroes every player owns, granted retroactively to existing saves too.
   const STARTERS = ['florence', 'vivian', 'coral', 'vex', 'emily'];
@@ -28,7 +34,7 @@ const GameState = (() => {
       loaded = structuredClone(DEFAULTS);
     }
     for (const id of STARTERS) {
-      if (!loaded.roster[id]) loaded.roster[id] = { copies: 1 };
+      if (!loaded.roster[id]) loaded.roster[id] = freshEntry(id);
     }
     // Scrub heroes that no longer exist (removed characters) from saves.
     if (typeof HEROES !== 'undefined') {
@@ -37,6 +43,12 @@ const GameState = (() => {
       }
       for (const [slot, id] of Object.entries(loaded.team)) {
         if (!HEROES[id]) delete loaded.team[slot];
+      }
+    }
+    // Migrate pre-progression saves: entries gain level/xp/stars.
+    for (const [id, entry] of Object.entries(loaded.roster)) {
+      if (entry.level === undefined) {
+        Object.assign(entry, { level: 1, xp: 0 }, { stars: freshEntry(id).stars });
       }
     }
     return loaded;
@@ -69,12 +81,60 @@ const GameState = (() => {
         save();
         return { isNew: false, copies: entry.copies };
       }
-      state.roster[heroId] = { copies: 1 };
+      state.roster[heroId] = freshEntry(heroId);
       save();
       return { isNew: true, copies: 1 };
     },
     ownedHeroIds() { return Object.keys(state.roster); },
     copiesOf(heroId) { return state.roster[heroId] ? state.roster[heroId].copies : 0; },
+
+    // ---- Progression ----
+    // { copies, level, xp, stars } for an owned hero (null if unowned).
+    progressOf(heroId) {
+      const e = state.roster[heroId];
+      return e ? { copies: e.copies, level: e.level, xp: e.xp, stars: e.stars } : null;
+    },
+
+    // Grant XP, chaining level-ups. XP gained at max level is discarded
+    // (star up to keep growing). Returns { levelsGained, level }.
+    addXp(heroId, amount) {
+      const e = state.roster[heroId];
+      if (!e) return null;
+      const cap = Progression.maxLevel(e.stars);
+      let gained = 0;
+      if (e.level < cap) {
+        e.xp += amount;
+        while (e.level < cap && e.xp >= Progression.xpToNext(e.level)) {
+          e.xp -= Progression.xpToNext(e.level);
+          e.level++;
+          gained++;
+        }
+        if (e.level >= cap) e.xp = 0; // parked at cap until star-up
+      }
+      save();
+      return { levelsGained: gained, level: e.level };
+    },
+
+    // Spend duplicates to star up. Requires max level and enough spare
+    // copies (the first copy is the hero itself). Resets level to 1.
+    canStarUp(heroId) {
+      const e = state.roster[heroId];
+      if (!e || e.stars >= Progression.MAX_STARS) return false;
+      return (
+        e.level >= Progression.maxLevel(e.stars) &&
+        e.copies - 1 >= Progression.starUpCost(e.stars)
+      );
+    },
+    starUp(heroId) {
+      if (!this.canStarUp(heroId)) return false;
+      const e = state.roster[heroId];
+      e.copies -= Progression.starUpCost(e.stars);
+      e.stars++;
+      e.level = 1;
+      e.xp = 0;
+      save();
+      return true;
+    },
 
     // ---- Team ----
     // team is { slotIndex: heroId }; a hero occupies at most one slot.

@@ -308,7 +308,7 @@ class Renderer {
     ctx.fillStyle = unit.team === TEAM.PLAYER ? '#bcd6ff' : '#ffc4b8';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(unit.name, x, top - 5);
+    ctx.fillText(`Lv${unit.level} ${unit.name}`, x, top - 5);
     ctx.restore();
   }
 

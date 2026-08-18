@@ -36,21 +36,32 @@ class BattleScreen {
     const team = GameState.getTeam();
     const battle = new Battle();
 
-    // Player side: saved team placements.
+    // Player side: saved team placements, at their saved level/stars.
+    const teamLevels = [];
     for (const [slot, heroId] of Object.entries(team)) {
       const def = HEROES[heroId];
       if (!def) continue;
-      battle.placeUnit(new Unit(def, TEAM.PLAYER), Number(slot));
+      const progress = GameState.progressOf(heroId);
+      teamLevels.push(progress ? progress.level : 1);
+      battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
 
-    // Enemy side: a random wave sized against the team.
+    // Enemy side: a random wave sized against the team, leveled around
+    // the party's average so difficulty (and XP) tracks progress.
+    const avgLevel = Math.max(
+      1,
+      Math.round(teamLevels.reduce((a, b) => a + b, 0) / (teamLevels.length || 1))
+    );
     const enemyDefs = Object.values(ENEMIES);
     const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
     const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
     this.rewardGems = 75 + 50 * count;
+    this.rewardXp = 0;
     for (let i = 0; i < count; i++) {
       const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
-      battle.placeUnit(new Unit(def, TEAM.ENEMY), slotOrder[i]);
+      const level = Math.max(1, avgLevel + Math.floor(Math.random() * 3) - 1);
+      this.rewardXp += Progression.enemyXp(level);
+      battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
     }
 
     // Load sprites (cached sheets, one animator per unit).
@@ -76,7 +87,17 @@ class BattleScreen {
     battle.onBattleEnd = (winner) => {
       if (winner === TEAM.PLAYER) {
         GameState.addGems(this.rewardGems);
-        this.ui.showBanner(winner, `+${this.rewardGems} 💎`);
+        // The whole party earns XP, fallen members included.
+        const levelUps = [];
+        for (const heroId of Object.values(GameState.getTeam())) {
+          const before = GameState.progressOf(heroId);
+          const r = GameState.addXp(heroId, this.rewardXp);
+          if (r && r.levelsGained > 0 && before) {
+            levelUps.push(`${HEROES[heroId].name} Lv ${r.level}!`);
+          }
+        }
+        const sub = [`+${this.rewardGems} 💎 · +${this.rewardXp} XP each`, ...levelUps];
+        this.ui.showBanner(winner, sub.join('<br>'));
       } else {
         this.ui.showBanner(winner, 'Your team was wiped out.');
       }
