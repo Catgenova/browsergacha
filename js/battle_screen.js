@@ -28,9 +28,18 @@ class BattleScreen {
   requestBattle(mode) {
     this.pendingMode = mode;
     this.cancelChain();
+    this.chainMode = mode;
     if (mode === 'wave') {
       const r = GameState.waveSettings.repeat;
       this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+    } else if (mode === 'boss') {
+      // Only already-cleared stages may be repeated.
+      const bs = GameState.bossSettings;
+      const cleared = GameState.bossStageCleared(BOSSES.dragon.id);
+      if (bs.stage <= cleared) {
+        const r = bs.repeat;
+        this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+      }
     }
   }
 
@@ -72,11 +81,12 @@ class BattleScreen {
     let bgPin = null;
     if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
-      // Stages: fight the next uncleared stage (replay the last once all
-      // 20 are done). Stage N = boss level 5*N.
+      // The player picks any unlocked stage (clearing one unlocks the
+      // next). Stage N = boss level 5*N.
       const def = BOSSES.dragon;
       const cleared = GameState.bossStageCleared(def.id);
-      const stage = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      const stage = Math.min(Math.max(1, GameState.bossSettings.stage), maxPick);
       const level = Progression.bossLevel(stage);
       this.bossFight = { bossId: def.id, stage };
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
@@ -164,9 +174,9 @@ class BattleScreen {
           GameState.addGear(piece);
           sub.push(`Loot: ${Gear.describe(piece)}`);
         }
-        // Battle chaining: keep hunting until the count runs out (or
-        // forever on ∞), pausing briefly on the rewards banner.
-        if (!this.bossFight && this.chainRemaining > 0) {
+        // Battle chaining (hunts and cleared boss stages): keep fighting
+        // until the count runs out, pausing briefly on the banner.
+        if (this.chainRemaining > 0) {
           const left = this.chainRemaining === Infinity
             ? '∞' : this.chainRemaining;
           sub.push(`Next battle in 2.5s… (${left} more)`);
@@ -174,7 +184,7 @@ class BattleScreen {
           this.chainTimer = setTimeout(() => {
             this.chainTimer = null;
             if (this.app.active === this && this.battle.state === BattleState.ENDED) {
-              this.startNewBattle('wave');
+              this.startNewBattle(this.chainMode || 'wave');
             }
           }, 2500);
         }

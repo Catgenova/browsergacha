@@ -58,7 +58,17 @@ class TeamScreen {
       this.app.screens.battle.requestBattle('wave');
       this.app.showScreen('battle');
     });
+    // Boss picker: stage (gated by clears) and repeat (cleared stages only).
     this.bossBtn = document.getElementById('boss-btn');
+    this.bossStageSel = document.getElementById('boss-stage-select');
+    this.bossRepeatSel = document.getElementById('boss-repeat-select');
+    this.bossRepeatSel.value = String(GameState.bossSettings.repeat);
+    const saveBoss = () => GameState.setBossSettings({
+      stage: Number(this.bossStageSel.value),
+      repeat: this.bossRepeatSel.value === 'inf' ? 'inf' : Number(this.bossRepeatSel.value),
+    });
+    this.bossStageSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
+    this.bossRepeatSel.addEventListener('change', saveBoss);
     this.bossBtn.addEventListener('click', () => {
       if (GameState.teamSize() === 0) return;
       this.app.screens.battle.requestBattle('boss');
@@ -104,11 +114,24 @@ class TeamScreen {
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
     this.fightBtn.disabled = size === 0;
     this.bossBtn.disabled = size === 0;
+
+    // Boss stage list: cleared stages ✓ (repeatable), the next stage
+    // open, everything past it locked.
     const cleared = GameState.bossStageCleared(BOSSES.dragon.id);
-    const stage = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
-    this.bossBtn.textContent = cleared >= Progression.BOSS_MAX_STAGE
-      ? `Boss! Stage ${Progression.BOSS_MAX_STAGE} ✓`
-      : `Boss! Stage ${stage} (Lv ${Progression.bossLevel(stage)})`;
+    const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+    const saved = Math.min(GameState.bossSettings.stage, maxPick);
+    this.bossStageSel.innerHTML = Array.from(
+      { length: Progression.BOSS_MAX_STAGE }, (_, i) => {
+        const s = i + 1;
+        const mark = s <= cleared ? ' ✓' : s === maxPick ? '' : ' 🔒';
+        return `<option value="${s}" ${s > maxPick ? 'disabled' : ''}>` +
+          `Stage ${s} (Lv ${Progression.bossLevel(s)})${mark}</option>`;
+      }).join('');
+    this.bossStageSel.value = String(saved);
+    // Uncleared stages can't be repeated: lock the repeat picker at ×1.
+    const uncleared = saved > cleared;
+    this.bossRepeatSel.disabled = uncleared;
+    this.bossRepeatSel.value = uncleared ? '1' : String(GameState.bossSettings.repeat);
   }
 
   // ---- Roster panel ------------------------------------------------------

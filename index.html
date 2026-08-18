@@ -57,11 +57,22 @@
               <option value="inf">∞</option>
             </select>
           </div>
+          <div id="boss-controls">
+            <span class="wave-label">Boss:</span>
+            <select id="boss-stage-select" title="Boss stage — clear a stage to unlock the next"></select>
+            <select id="boss-repeat-select" title="Repeats unlock once the stage is cleared">
+              <option value="1">×1</option>
+              <option value="3">×3</option>
+              <option value="5">×5</option>
+              <option value="10">×10</option>
+              <option value="inf">∞</option>
+            </select>
+            <button id="boss-btn" class="panel-btn danger" title="Take on the boss with your current team">Boss!</button>
+          </div>
           <div id="team-controls">
             <span id="team-count"></span>
             <button id="clear-team-btn" class="panel-btn danger">Clear team</button>
             <button id="fight-btn" class="panel-btn gold">Fight!</button>
-            <button id="boss-btn" class="panel-btn danger" title="Take on the boss with your current team">Boss!</button>
           </div>
         </div>
         <aside id="hero-details"></aside>
