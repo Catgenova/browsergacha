@@ -15,6 +15,7 @@
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
+        <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="battle">Battle</button>
       </nav>
       <div id="scroll-display" title="Common · Rare · Temporal summon scrolls">📜 <span id="scroll-common-count">0</span> · ✨ <span id="scroll-rare-count">0</span> · 🌀 <span id="scroll-temporal-count">0</span></div>
@@ -117,6 +118,11 @@
       </div>
     </section>
 
+    <!-- ================= Quests screen ================= -->
+    <section id="screen-quests" class="screen hidden">
+      <div id="quest-boards"></div>
+    </section>
+
     <!-- ================= Battle screen ================= -->
     <section id="screen-battle" class="screen hidden">
       <div id="battle-wrap">
@@ -161,6 +167,7 @@
   <script src="js/data/enemies.js?v=__BUILD__"></script>
   <script src="js/data/bosses.js?v=__BUILD__"></script>
   <script src="js/data/effects.js?v=__BUILD__"></script>
+  <script src="js/quests.js?v=__BUILD__"></script>
   <script src="js/state.js?v=__BUILD__"></script>
   <script src="js/gacha.js?v=__BUILD__"></script>
   <script src="js/battle.js?v=__BUILD__"></script>
@@ -169,6 +176,7 @@
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
+  <script src="js/quests_screen.js?v=__BUILD__"></script>
   <script src="js/summon_screen.js?v=__BUILD__"></script>
   <script src="js/main.js?v=__BUILD__"></script>
 </body>

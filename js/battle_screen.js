@@ -192,6 +192,8 @@ class BattleScreen {
         }
         GameState.addWhetstones(this.rewardWhetstones);
         GameState.addArcana(this.rewardArcana);
+        GameState.questBump('wins');
+        GameState.questBump(this.bossFight ? 'bossWins' : 'huntWins');
         const sub = [
           `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,

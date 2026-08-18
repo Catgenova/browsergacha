@@ -114,6 +114,99 @@ body {
 .rarity-4 { color: #d78aff; }
 .rarity-5 { color: #ffd76a; }
 
+/* ==== Quests screen ==== */
+#quest-badge {
+  margin-left: 4px;
+  color: #ffd76a;
+  font-weight: bold;
+}
+
+#quest-boards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quest-board {
+  padding: 12px 14px;
+  background: #1c1926;
+  border: 2px solid #3a3450;
+  border-radius: 6px;
+}
+
+.quest-board-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.quest-board-header h3 {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ffd76a;
+  text-transform: uppercase;
+}
+
+.quest-reset {
+  font-size: 11px;
+  color: #9a92b8;
+}
+
+.quest-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 6px;
+  border-top: 1px solid #2b2740;
+}
+
+.quest-info { flex: 1; }
+
+.quest-name {
+  font-size: 12px;
+  color: #e8e4d8;
+}
+
+.quest-claimed .quest-name { color: #6a6288; text-decoration: line-through; }
+.quest-done .quest-name { color: #ffd76a; }
+
+.quest-bar {
+  margin-top: 4px;
+  height: 5px;
+  width: 260px;
+  background: #14121a;
+  border: 1px solid #3a3450;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.quest-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ad46a, #8ecbff);
+}
+
+.quest-claimed .quest-fill { background: #4a4468; }
+
+.quest-progress {
+  margin-top: 2px;
+  font-size: 10px;
+  color: #9a92b8;
+}
+
+.quest-reward {
+  font-size: 12px;
+  color: #c8b88a;
+  min-width: 110px;
+  text-align: right;
+}
+
+.quest-claim {
+  min-width: 100px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
 /* ==== Battle screen ==== */
 #battle-wrap {
   position: relative;

@@ -17,6 +17,7 @@ const GameState = (() => {
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
     gear: {},                            // uid -> gear piece
+    quests: {},                          // { daily, monthly } progress
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -71,6 +72,7 @@ const GameState = (() => {
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
+    if (!loaded.quests) loaded.quests = {};
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
     // Gems are retired; grant scroll defaults to migrated saves.
@@ -233,6 +235,7 @@ const GameState = (() => {
       state.whetstones -= cost;
       piece.level++;
       save();
+      this.questBump('polishes');
       return true;
     },
 
@@ -276,10 +279,12 @@ const GameState = (() => {
       state.arcana -= cost;
       if (Math.random() >= Gear.enchantSuccessRate(piece.plus)) {
         save();
+        this.questBump('enchants');
         return { success: false };
       }
       const milestone = Gear.applyEnchant(piece);
       save();
+      this.questBump('enchants');
       return { success: true, milestone };
     },
 
@@ -311,6 +316,7 @@ const GameState = (() => {
       state.whetstones += whetstones;
       state.arcana += arcana;
       save();
+      this.questBump('salvages');
       return { whetstones, arcana };
     },
 
@@ -388,6 +394,56 @@ const GameState = (() => {
       if (!entry || !entry.equipment) return;
       delete entry.equipment[slot];
       save();
+    },
+
+    // ---- Quests ----
+    // Progress for one board ('daily' | 'monthly'), resetting whenever
+    // the stored period key no longer matches the current one.
+    questState(type) {
+      const key = Quests.periodKey(type);
+      let q = state.quests[type];
+      if (!q || q.period !== key) {
+        q = { period: key, counters: {}, claimed: {} };
+        state.quests[type] = q;
+        save();
+      }
+      return q;
+    },
+
+    // Bump a progress counter on every board.
+    questBump(counter, n = 1) {
+      if (typeof Quests === 'undefined') return;
+      for (const type of ['daily', 'weekly', 'monthly']) {
+        const q = this.questState(type);
+        q.counters[counter] = (q.counters[counter] || 0) + n;
+      }
+      save();
+    },
+
+    // Claim a completed quest's reward. Returns the reward or null.
+    claimQuest(type, id) {
+      const def = (Quests.DEFS[type] || []).find((d) => d.id === id);
+      if (!def) return null;
+      const q = this.questState(type);
+      if (q.claimed[id]) return null;
+      if ((q.counters[def.counter] || 0) < def.goal) return null;
+      q.claimed[id] = true;
+      Quests.grant(def.reward);
+      save();
+      return def.reward;
+    },
+
+    // Number of completed-but-unclaimed quests across all boards.
+    claimableQuestCount() {
+      if (typeof Quests === 'undefined') return 0;
+      let n = 0;
+      for (const type of ['daily', 'weekly', 'monthly']) {
+        const q = this.questState(type);
+        for (const def of Quests.DEFS[type]) {
+          if (!q.claimed[def.id] && (q.counters[def.counter] || 0) >= def.goal) n++;
+        }
+      }
+      return n;
     },
 
     // ---- Hunt settings (location / stage / repeat picker) ----
