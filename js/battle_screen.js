@@ -133,6 +133,9 @@ class BattleScreen {
       if (progress) progress.gear = GameState.equippedPieces(heroId);
       battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
+    // Race synergy: 3/5/7 heroes of one race empower each other.
+    this.raceBonuses = RACES.applyParty(
+      battle.units.filter((u) => u.team === TEAM.PLAYER));
 
     let bgPin = null;
     if (mode === 'boss') {
@@ -335,6 +338,11 @@ class BattleScreen {
     };
 
     if (this.introLog) battle.log(this.introLog, 'log-system');
+    for (const b of this.raceBonuses || []) {
+      battle.log(
+        `${RACES.NAMES[b.race]} pack ×${b.count}: ${b.labels.join(' · ')}`,
+        'log-system');
+    }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
   }
 

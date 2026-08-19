@@ -141,6 +141,30 @@ class TeamScreen {
   updateButtons() {
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
+
+    // Race synergy readout: which 3/5/7 pack bonuses the team has live
+    // (and the next tier within reach).
+    const raceEl = document.getElementById('race-bonuses');
+    if (raceEl) {
+      const defs = Object.values(GameState.getTeam())
+        .map((id) => HEROES[id]).filter(Boolean);
+      const tally = RACES.counts(defs);
+      const parts = [];
+      for (const [race, count] of Object.entries(tally)) {
+        if (count < 2) continue;
+        const tiers = RACES.activeTiers(race, count);
+        if (tiers.length > 0) {
+          parts.push(`<b>${RACES.NAMES[race]} ×${count}</b>: ` +
+            tiers.map((t) => t.label.replace(/^\d+: /, '')).join(' · '));
+        } else {
+          parts.push(`${RACES.NAMES[race]} ×${count} <span class="race-next">(3 unlocks a pack bonus)</span>`);
+        }
+      }
+      raceEl.innerHTML = parts.length
+        ? 'Pack bonuses — ' + parts.join(' &nbsp;|&nbsp; ')
+        : '';
+      raceEl.classList.toggle('hidden', parts.length === 0);
+    }
     this.fightBtn.disabled = size === 0;
     this.bossBtn.disabled = size === 0;
     this.towerBtn.disabled = size === 0;

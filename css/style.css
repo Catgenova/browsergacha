@@ -417,6 +417,16 @@ body {
   gap: 10px;
 }
 
+/* Race synergy readout under the team controls */
+#race-bonuses {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #c8c2da;
+  line-height: 1.5;
+}
+#race-bonuses b { color: #ffd76a; }
+#race-bonuses .race-next { color: #9a92b8; }
+
 #wave-controls,
 #boss-controls,
 #tower-controls {
