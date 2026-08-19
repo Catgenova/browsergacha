@@ -81,6 +81,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc1846.png',
       amulet: 'assets/icons/fc2179.png',
     },
+    bear: {
+      weapon: 'assets/icons/fc1602.png',
+      gloves: 'assets/icons/fc1491.png',
+      chest: 'assets/icons/fc1923.png',
+      boots: 'assets/icons/fc1937.png',
+      ring: 'assets/icons/fc1848.png',
+      amulet: 'assets/icons/fc2180.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -154,6 +162,16 @@ const Gear = (() => {
         { pieces: 2, stat: 'defPct', add: 0.20, label: '2pc: +20% DEF' },
         { pieces: 4, stat: 'defPct', add: 0.40, label: '4pc: +40% DEF' },
         { pieces: 6, stat: 'reflect', add: 0.15, label: '6pc: +15% chance to reflect all incoming damage' },
+      ],
+    },
+    bear: {
+      id: 'bear',
+      name: 'Bear',
+      bonuses: [
+        { pieces: 2, stat: 'hpPct', add: 0.20, label: '2pc: +20% HP' },
+        { pieces: 4, stat: 'hpPct', add: 0.40, label: '4pc: +40% HP' },
+        { pieces: 6, stat: 'regen', add: 0.10, label: '6pc: restores 10% max HP each turn' },
+        { pieces: 6, stat: 'healBoost', add: 0.20, label: '6pc: +20% Healing' },
       ],
     },
   };
@@ -331,6 +349,7 @@ const Gear = (() => {
       hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
       critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
       accuracy: 0, resistance: 0, dotBoost: 0, stun: 0, cdr: 0, reflect: 0,
+      regen: 0, healBoost: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -371,6 +390,8 @@ const Gear = (() => {
       stun: mods.stun,
       cdr: mods.cdr,
       reflect: mods.reflect,
+      regen: mods.regen,
+      healBoost: mods.healBoost,
     };
   }
 

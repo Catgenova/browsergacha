@@ -33,6 +33,8 @@ class Unit {
     this.gearStun = stats.stun || 0;
     this.gearCdr = stats.cdr || 0;
     this.gearReflect = stats.reflect || 0;
+    this.gearRegen = stats.regen || 0;
+    this.gearHealBoost = stats.healBoost || 0;
     this.gearAccuracy = stats.accuracy || 0;
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
@@ -175,6 +177,16 @@ class Unit {
     return Math.min(0.6, s);
   }
 
+  // Outgoing-healing amplifier (Bear set 6pc + healBoostAdd hooks):
+  // heals, HP%-heals, and HoTs this unit casts are this much stronger.
+  healingBoost() {
+    let h = this.gearHealBoost;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.healBoostAdd) h += p.hooks.healBoostAdd;
+    }
+    return h;
+  }
+
   // Chance to bounce an incoming hit entirely back at the attacker
   // (Boar set 6pc + reflectAdd passive hooks).
   reflectChance() {
@@ -283,6 +295,18 @@ class Unit {
         results.push({
           label: 'Regrowth',
           message: `${this.name} regrows ${healed} HP.`,
+          floats: [{ target: this, text: `+${healed}`, color: '#7ae87a' }],
+        });
+      }
+    }
+
+    // Gear regeneration (Bear set 6pc): a fixed cut of max HP per turn.
+    if (this.gearRegen > 0) {
+      const healed = this.heal(Math.round(this.maxHp * this.gearRegen));
+      if (healed > 0) {
+        results.push({
+          label: 'Regeneration',
+          message: `${this.name}'s gear restores ${healed} HP.`,
           floats: [{ target: this, text: `+${healed}`, color: '#7ae87a' }],
         });
       }

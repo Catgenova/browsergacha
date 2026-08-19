@@ -71,7 +71,8 @@ const Abilities = (() => {
         return { kind: 'damage', target, amount: dmg, crit };
       }
       case 'heal': {
-        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power);
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
         const healed = target.heal(amount);
         return { kind: 'heal', target, amount: healed };
       }
@@ -80,7 +81,8 @@ const Abilities = (() => {
         // front-row targets.
         const front = target.slot && target.slot.position === POSITION.FRONT;
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
-        const healed = target.heal(Math.round(caster.maxHp * pct * power));
+        const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost));
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {
@@ -88,7 +90,8 @@ const Abilities = (() => {
         // each of the target's turns.
         target.addStatusEffect({
           kind: 'hot',
-          amount: Math.round(caster.maxHp * effect.pct * power),
+          amount: Math.round(caster.maxHp * effect.pct * power *
+            (1 + (caster.healingBoost ? caster.healingBoost() : 0))),
           turns: effect.turns,
         });
         return { kind: 'hot', target, turns: effect.turns };
