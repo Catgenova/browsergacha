@@ -82,7 +82,7 @@ const HEROES = {
       passive: {
         name: 'Crystal Aegis',
         icon: 'assets/icons/fc308.png',
-        description: 'Begins battle with 6 crystal mirrors. Every hit she takes is halved and shatters one mirror. While in a front hex, she reforms 1 mirror at the start of her turn.',
+        description: 'Begins battle with 6 crystal mirrors. Every hit she takes shatters one mirror, reflecting 25% of the damage back at the attacker. While in a front hex, she reforms 1 mirror at the start of her turn.',
         hooks: {
           onTurnStart(unit) {
             // Position bonus: front-row Aniani reforms one mirror per turn.

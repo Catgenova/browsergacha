@@ -66,11 +66,11 @@ const Abilities = (() => {
         // Reflect (Boar set 6pc / bristle passives): the whole hit
         // bounces back to the attacker instead of landing.
         if (target.reflectChance && Math.random() < target.reflectChance()) {
-          const bounced = caster.takeDamage(dmg);
+          const bounced = caster.takeDamage(dmg, target);
           return { kind: 'damage', target, amount: 0, reflected: true,
             reflectAmount: bounced };
         }
-        const dealt = target.takeDamage(dmg);
+        const dealt = target.takeDamage(dmg, caster);
         return { kind: 'damage', target, amount: dealt, crit };
       }
       case 'heal': {
@@ -103,7 +103,7 @@ const Abilities = (() => {
         // Flat damage scaled off the caster's max HP (ignores DEF).
         const dmg = Math.round(caster.maxHp * effect.pct * power
           * caster.damageDealtMult(target) * target.damageTakenMult());
-        const dealt = target.takeDamage(dmg);
+        const dealt = target.takeDamage(dmg, caster);
         return { kind: 'damage', target, amount: dealt, crit: false };
       }
       case 'mirrors': {
