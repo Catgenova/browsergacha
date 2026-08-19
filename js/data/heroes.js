@@ -11,7 +11,8 @@
 const HEROES = {
   // ---- 5★ ------------------------------------------------------------------
 
-  // Echo, the first 5★: a water tank built around Crystal Mirrors — six
+  // Aniani (id 'echo', art in assets/heroes/Echo), the first 5★: a water
+  // tank built around Crystal Mirrors — six
   // floating shields that halve incoming hits (one shatters per hit) and
   // power her DEF-scaled skills. Every animation ships in seven variants
   // (assets/heroes/Echo/gen), one per active mirror count, and the battle
@@ -46,7 +47,7 @@ const HEROES = {
     return {
       id: 'echo',
       element: 'water',
-      name: 'Echo',
+      name: 'Aniani',
       title: 'Mirror Bulwark',
       rarity: 5,
       stats: { hp: 2400, atk: 110, def: 265, speed: 96 },
@@ -84,7 +85,7 @@ const HEROES = {
         description: 'Begins battle with 6 crystal mirrors. Every hit she takes is halved and shatters one mirror. While in a front hex, she reforms 1 mirror at the start of her turn.',
         hooks: {
           onTurnStart(unit) {
-            // Position bonus: front-row Echo reforms one mirror per turn.
+            // Position bonus: front-row Aniani reforms one mirror per turn.
             if (!unit.positionalActive || !unit.positionalActive()) return null;
             const gained = unit.addMirrors(1);
             if (gained <= 0) return null;
