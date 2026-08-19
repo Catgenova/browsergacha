@@ -73,6 +73,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc1844.png',
       amulet: 'assets/icons/fc2178.png',
     },
+    boar: {
+      weapon: 'assets/icons/fc1601.png',
+      gloves: 'assets/icons/fc1490.png',
+      chest: 'assets/icons/fc1922.png',
+      boots: 'assets/icons/fc1940.png',
+      ring: 'assets/icons/fc1846.png',
+      amulet: 'assets/icons/fc2179.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -137,6 +145,15 @@ const Gear = (() => {
         { pieces: 2, stat: 'stun', add: 0.10, label: '2pc: +10% Stun chance on single-target attacks' },
         { pieces: 4, stat: 'stun', add: 0.15, label: '4pc: +15% Stun chance on single-target attacks' },
         { pieces: 6, stat: 'cdr', add: 1, label: '6pc: -1 turn on all ability cooldowns' },
+      ],
+    },
+    boar: {
+      id: 'boar',
+      name: 'Boar',
+      bonuses: [
+        { pieces: 2, stat: 'defPct', add: 0.20, label: '2pc: +20% DEF' },
+        { pieces: 4, stat: 'defPct', add: 0.40, label: '4pc: +40% DEF' },
+        { pieces: 6, stat: 'reflect', add: 0.15, label: '6pc: +15% chance to reflect all incoming damage' },
       ],
     },
   };
@@ -313,7 +330,7 @@ const Gear = (() => {
       hpPct: 0, atkPct: 0, defPct: 0,
       hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
       critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
-      accuracy: 0, resistance: 0, dotBoost: 0, stun: 0, cdr: 0,
+      accuracy: 0, resistance: 0, dotBoost: 0, stun: 0, cdr: 0, reflect: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -353,6 +370,7 @@ const Gear = (() => {
       dotBoost: mods.dotBoost,
       stun: mods.stun,
       cdr: mods.cdr,
+      reflect: mods.reflect,
     };
   }
 

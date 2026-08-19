@@ -385,7 +385,12 @@ class Battle {
     }
     for (const res of results) {
       if (res.kind === 'damage') {
-        if (res.dodged) {
+        if (res.reflected) {
+          this.addFloatingText(res.target, 'REFLECT!', '#ffd76a', true);
+          this.addFloatingText(caster, `-${res.reflectAmount}`, '#ff6a6a');
+          this.log(`${res.target.name} REFLECTS ${caster.name}'s ${ability.name} — ${res.reflectAmount} damage bounces back!`, cls);
+          if (!caster.alive) this.log(`${caster.name} is defeated!`, 'log-system');
+        } else if (res.dodged) {
           this.addFloatingText(res.target, 'DODGE', '#8ee8ff');
           this.log(`${res.target.name} dodges ${caster.name}'s ${ability.name}!`, cls);
         } else if (res.crit) {

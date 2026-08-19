@@ -32,6 +32,7 @@ class Unit {
     this.gearExtraTurn = stats.extraTurn || 0;
     this.gearStun = stats.stun || 0;
     this.gearCdr = stats.cdr || 0;
+    this.gearReflect = stats.reflect || 0;
     this.gearAccuracy = stats.accuracy || 0;
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
@@ -172,6 +173,16 @@ class Unit {
       if (p.hooks && p.hooks.stunAdd) s += p.hooks.stunAdd;
     }
     return Math.min(0.6, s);
+  }
+
+  // Chance to bounce an incoming hit entirely back at the attacker
+  // (Boar set 6pc + reflectAdd passive hooks).
+  reflectChance() {
+    let r = this.gearReflect;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.reflectAdd) r += p.hooks.reflectAdd;
+    }
+    return Math.min(0.5, r);
   }
 
   // Chance to immediately take another turn after acting.
