@@ -203,7 +203,8 @@ class BattleScreen {
       this.towerFight = null;
       const ws = GameState.waveSettings;
       bgPin = ws.location;
-      const baseLevel = ws.stage * 5;
+      // Stage 0 is the level-1 training ground; stage N is level ~5N.
+      const baseLevel = ws.stage === 0 ? 1 : ws.stage * 5;
       // Each location fields its own enemy race (clearing rats, canyon
       // birds); fall back to the clearing pool for safety.
       const poolIds = LOCATION_ENEMIES[ws.location] || LOCATION_ENEMIES[0];
@@ -214,7 +215,10 @@ class BattleScreen {
       let totalEnemyLevels = 0;
       for (let i = 0; i < count; i++) {
         const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
-        const level = Math.max(1, baseLevel + Math.floor(Math.random() * 3) - 1);
+        // The training ground stays exactly level 1; real stages jitter.
+        const level = ws.stage === 0
+          ? 1
+          : Math.max(1, baseLevel + Math.floor(Math.random() * 3) - 1);
         totalEnemyLevels += level;
         this.rewardXp += Progression.enemyXp(level);
         battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
