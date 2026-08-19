@@ -46,7 +46,10 @@ const Abilities = (() => {
         // 'damageDef' scales off the caster's DEF instead of ATK (Boar
         // tank-bruiser kits); everything downstream is identical.
         const scaleStat = effect.type === 'damageDef' ? 'def' : 'atk';
-        let raw = caster.effectiveStat(scaleStat) * effect.mult * power *
+        // perMirror: extra multiplier per active crystal mirror (Echo).
+        const mult = effect.mult +
+          (effect.perMirror || 0) * (caster.mirrors || 0);
+        let raw = caster.effectiveStat(scaleStat) * mult * power *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
         // Combo hits: multiplied damage against a marked status — by
@@ -63,12 +66,12 @@ const Abilities = (() => {
         // Reflect (Boar set 6pc / bristle passives): the whole hit
         // bounces back to the attacker instead of landing.
         if (target.reflectChance && Math.random() < target.reflectChance()) {
-          caster.takeDamage(dmg);
+          const bounced = caster.takeDamage(dmg);
           return { kind: 'damage', target, amount: 0, reflected: true,
-            reflectAmount: dmg };
+            reflectAmount: bounced };
         }
-        target.takeDamage(dmg);
-        return { kind: 'damage', target, amount: dmg, crit };
+        const dealt = target.takeDamage(dmg);
+        return { kind: 'damage', target, amount: dealt, crit };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
@@ -100,8 +103,13 @@ const Abilities = (() => {
         // Flat damage scaled off the caster's max HP (ignores DEF).
         const dmg = Math.round(caster.maxHp * effect.pct * power
           * caster.damageDealtMult(target) * target.damageTakenMult());
-        target.takeDamage(dmg);
-        return { kind: 'damage', target, amount: dmg, crit: false };
+        const dealt = target.takeDamage(dmg);
+        return { kind: 'damage', target, amount: dealt, crit: false };
+      }
+      case 'mirrors': {
+        // Replenish crystal mirrors (clamped to the unit's own maximum).
+        const gained = target.addMirrors ? target.addMirrors(effect.count) : 0;
+        return { kind: 'mirrors', target, amount: gained };
       }
       case 'cleanse': {
         // Strip all debuffs (poisons included) from the target.

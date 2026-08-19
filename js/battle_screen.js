@@ -235,6 +235,12 @@ class BattleScreen {
       unit.animator = new AnimationPlayer(sheet);
       unit.animator.play('idle');
       unit.animator.elapsed = Math.random() * 0.5; // desync idle bobbing
+      // Mirror-count sprite variants (Echo): start on the sheet matching
+      // the unit's opening mirror count.
+      if (unit.def.mirrorSprites) {
+        unit.mirrorSheets = await Sprites.getMirrorSheets(unit.def);
+        unit.syncMirrorSheet();
+      }
     }
 
     // Preload impact/projectile effect sheets (null when art is absent).

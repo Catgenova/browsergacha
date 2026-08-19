@@ -123,8 +123,14 @@ class AnimationPlayer {
       this.variantTimer -= dt;
       if (this.variantTimer <= 0) {
         const variants = this.variantsOf('idle');
-        const pick = variants[Math.floor(Math.random() * variants.length)];
         this.variantTimer = this.rollVariantDelay();
+        // The sheet may have been swapped (mirror variants) to one with no
+        // idle fidgets: re-check periodically in case it swaps back.
+        if (variants.length === 0) {
+          if (!isFinite(this.variantTimer)) this.variantTimer = 10;
+          return;
+        }
+        const pick = variants[Math.floor(Math.random() * variants.length)];
         this.play(pick.name);
         return;
       }
@@ -455,6 +461,18 @@ const Sprites = (() => {
     return sheetCache.get(def.id);
   }
 
+  // Mirror-count sprite variants (Echo): def.mirrorSprites is an array of
+  // sprite defs indexed by active-mirror count. Resolves to a parallel
+  // array of SpriteSheets (cached per def).
+  function getMirrorSheets(def) {
+    const key = `${def.id}:mirrors`;
+    if (!sheetCache.has(key)) {
+      sheetCache.set(key, Promise.all(
+        def.mirrorSprites.map((s) => load(s, def.tint || {}))));
+    }
+    return sheetCache.get(key);
+  }
+
   // Frame-per-file sequences ('##' in the pattern is the zero-padded
   // index): stitched into a horizontal strip at load, bottom-aligned so
   // ground effects sit on their baseline.
@@ -561,5 +579,5 @@ const Sprites = (() => {
     );
   }
 
-  return { load, getSheet, getEffectSheet, drawPortrait, loadImage, assetUrl };
+  return { load, getSheet, getMirrorSheets, getEffectSheet, drawPortrait, loadImage, assetUrl };
 })();

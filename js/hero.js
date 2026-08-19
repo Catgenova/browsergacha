@@ -44,6 +44,12 @@ class Unit {
     // Party synergy (Light resonance 7pc): flat incoming-damage cut.
     this.synergyTakenMult = 1;
 
+    // Crystal mirrors (Echo): charges that halve incoming hits, breaking
+    // one per hit. Sprite variants per count live in unit.mirrorSheets.
+    this.mirrorMax = def.mirrors ? def.mirrors.max : 0;
+    this.mirrors = def.mirrors ? (def.mirrors.start ?? def.mirrors.max) : 0;
+    this.mirrorSheets = null; // count -> SpriteSheet, loaded with the animator
+
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
 
@@ -237,7 +243,16 @@ class Unit {
 
   // ---- Health ------------------------------------------------------------
 
+  // Returns the damage actually dealt (mirrors can halve the hit).
   takeDamage(amount) {
+    // Crystal mirrors: every hit is halved and shatters one mirror.
+    if (this.mirrors > 0 && amount > 0) {
+      amount = Math.max(1, Math.round(amount / 2));
+      this.addMirrors(-1);
+      if (typeof Battle !== 'undefined' && Battle.active) {
+        Battle.active.addFloatingText(this, '◆ SHATTER', '#8ee8ff');
+      }
+    }
     this.hp = Math.max(0, this.hp - amount);
     this.hitFlash = 0.18;
     if (!this.alive) {
@@ -248,6 +263,25 @@ class Unit {
         this.animator.play('death');
       }
     }
+    return amount;
+  }
+
+  // Gain (or lose) crystal mirrors, clamped to 0..max. Returns the actual
+  // change; swaps the sprite sheet to the matching mirror-count variant.
+  addMirrors(n) {
+    if (this.mirrorMax <= 0) return 0;
+    const before = this.mirrors;
+    this.mirrors = Math.max(0, Math.min(this.mirrorMax, this.mirrors + n));
+    if (this.mirrors !== before) this.syncMirrorSheet();
+    return this.mirrors - before;
+  }
+
+  syncMirrorSheet() {
+    if (!this.animator || !this.mirrorSheets) return;
+    const sheet = this.mirrorSheets[this.mirrors];
+    // Variant sheets mirror the base sheet's animation structure, so the
+    // player's current animation and frame stay valid across the swap.
+    if (sheet) this.animator.sheet = sheet;
   }
 
   // Return from the dead at a fraction of max HP.
@@ -330,12 +364,12 @@ class Unit {
     // Damage-over-time ticks (poison etc.) — these can kill.
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'dot' || !this.alive) continue;
-      this.takeDamage(fx.amount);
+      const dealt = this.takeDamage(fx.amount);
       results.push({
         label: 'Poison',
-        message: `${this.name} suffers ${fx.amount} poison damage.` +
+        message: `${this.name} suffers ${dealt} poison damage.` +
           (this.alive ? '' : ` ${this.name} succumbs!`),
-        floats: [{ target: this, text: `-${fx.amount}`, color: '#a8e85a' }],
+        floats: [{ target: this, text: `-${dealt}`, color: '#a8e85a' }],
       });
     }
 

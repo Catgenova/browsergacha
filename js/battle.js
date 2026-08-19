@@ -419,6 +419,11 @@ class Battle {
       } else if (res.kind === 'meter') {
         this.addFloatingText(res.target, 'METER ▼', '#d78aff');
         this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+      } else if (res.kind === 'mirrors') {
+        if (res.amount > 0) {
+          this.addFloatingText(res.target, `◆ +${res.amount}`, '#8ee8ff');
+          this.log(`${res.target.name} reforms ${res.amount} crystal mirror${res.amount > 1 ? 's' : ''}.`, cls);
+        }
       } else if (res.kind === 'stun') {
         this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
         this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
