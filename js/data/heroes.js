@@ -453,6 +453,976 @@ const HEROES = {
   },
 
 
+
+  // ---- Placeholder rat cohort (filling the roster to 25) -----------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional paths (assets/heroes/<id>/<id-no-underscore>idle.png).
+
+  rat_warrior: {
+    id: 'rat_warrior',
+    element: 'fire',
+    name: 'Rat Warrior',
+    title: 'Sword of the Warren',
+    rarity: 1,
+    stats: { hp: 850, atk: 112, def: 72, speed: 92 },
+    tint: { body: '#7a4a3a', helm: '#9a6a4a', weapon: '#d8d8e0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_warrior/ratwarrioridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warren_slash', name: 'Warren Slash',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A steady sword cut for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'shield_splitter', name: 'Shield Splitter',
+        icon: 'assets/icons/fc1476.png',
+        description: 'Smash armor: 125% ATK and -15% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'battle_roar', name: 'Battle Roar',
+        icon: 'assets/icons/fc869.png',
+        description: 'Bellow a challenge: +30% ATK for 2 turns.',
+        cooldown: 5, targeting: 'self', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Second Wind',
+      icon: 'assets/icons/fc1112.png',
+      description: 'Recovers 6% max HP at turn start while below half HP.',
+      hooks: {
+        onTurnStart(unit) {
+          if (unit.hp / unit.maxHp >= 0.5) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.06));
+          if (healed <= 0) return null;
+          return {
+            label: 'Second Wind',
+            message: `${unit.name} catches a second wind for ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.1,
+      description: 'Vanguard: +10% ATK while in a front hex.',
+    },
+  },
+
+  rat_slinger: {
+    id: 'rat_slinger',
+    element: 'water',
+    name: 'Rat Slinger',
+    title: 'Gutter Stonecast',
+    rarity: 1,
+    stats: { hp: 720, atk: 114, def: 58, speed: 98 },
+    tint: { body: '#4a6a7a', helm: '#6a8a9a', weapon: '#a8a098', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_slinger/ratslingeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pebble_toss', name: 'Pebble Toss',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Whip a stone for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'skull_crack', name: 'Skull Crack',
+        icon: 'assets/icons/fc1516.png',
+        description: 'A dazing shot: 120% ATK and drains 15% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+      {
+        id: 'rock_volley', name: 'Rock Volley',
+        icon: 'assets/icons/fc807.png',
+        description: 'Rain stones on ALL enemies for 65% ATK.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.65 }],
+      },
+    ],
+    passive: {
+      name: 'Rear Sniper',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 12% extra damage to back-row enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.slot && target.slot.position === POSITION.BACK ? 1.12 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Long Toss: +15% ATK while in a back hex.',
+    },
+  },
+
+  rat_scout: {
+    id: 'rat_scout',
+    element: 'wind',
+    name: 'Rat Scout',
+    title: 'Whisker in the Weeds',
+    rarity: 1,
+    stats: { hp: 750, atk: 108, def: 62, speed: 102 },
+    tint: { body: '#5a7a5a', helm: '#7a9a7a', weapon: '#b8a878', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_scout/ratscoutidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'quick_nick', name: 'Quick Nick',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A darting cut for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'mark_target', name: 'Mark Target',
+        icon: 'assets/icons/fc862.png',
+        description: 'Expose a weakness: the target takes +25% damage for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'debuff', stat: 'damageTaken', mult: 1.25, turns: 2 }],
+      },
+      {
+        id: 'hit_and_run', name: 'Hit and Run',
+        icon: 'assets/icons/fc882.png',
+        description: 'Strike for 130% ATK, then gain +30% SPD for 2 turns.',
+        cooldown: 5, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.3 }],
+        selfEffects: [{ type: 'buff', stat: 'speed', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Pathfinder',
+      icon: 'assets/icons/fc868.png',
+      description: '+10% chance to dodge attacks.',
+      hooks: { dodgeAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.1,
+      description: 'Outrider: +10% SPD while in a back hex.',
+    },
+  },
+
+  rat_miner: {
+    id: 'rat_miner',
+    element: 'fire',
+    name: 'Rat Miner',
+    title: 'Deep Warren Digger',
+    rarity: 1,
+    stats: { hp: 880, atk: 110, def: 78, speed: 88 },
+    tint: { body: '#6a5a3a', helm: '#c8a83a', weapon: '#a8a0a8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_miner/ratmineridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pick_swing', name: 'Pick Swing',
+        icon: 'assets/icons/fc1472.png',
+        description: 'A heavy pickaxe blow for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'lantern_flash', name: 'Lantern Flash',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Blind with lamplight: the target loses 15% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 }],
+      },
+      {
+        id: 'cave_in', name: 'Cave-In',
+        icon: 'assets/icons/fc767.png',
+        description: 'Bring the roof down on a hex row for 85% ATK.',
+        cooldown: 5, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.85 }],
+      },
+    ],
+    passive: {
+      name: 'Ore Sense',
+      icon: 'assets/icons/fc867.png',
+      description: '+15% debuff accuracy.',
+      hooks: { accuracyAdd: 0.15 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Pit Prop: +12% DEF while in a front hex.',
+    },
+  },
+
+  rat_cook: {
+    id: 'rat_cook',
+    element: 'water',
+    name: 'Rat Cook',
+    title: 'Stewmaster of the Sump',
+    rarity: 1,
+    stats: { hp: 800, atk: 104, def: 70, speed: 94 },
+    tint: { body: '#e8e0d8', helm: '#f8f0e8', weapon: '#a8a0a8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_cook/ratcookidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ladle_whack', name: 'Ladle Whack',
+        icon: 'assets/icons/fc663.png',
+        description: 'Bonk with the big spoon for 90% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 0.9 }],
+      },
+      {
+        id: 'hot_soup', name: 'Hot Soup',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Serve an ally soup: heals 150% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [{ type: 'heal', mult: 1.5 }],
+      },
+      {
+        id: 'grand_feast', name: 'Grand Feast',
+        icon: 'assets/icons/fc800.png',
+        description: 'Lay a feast: ALL allies regenerate 4% of the Cook\'s max HP for 3 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'hot', pct: 0.04, turns: 3 }],
+      },
+    ],
+    passive: {
+      name: "Soup's On",
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, feeds the most wounded ally 3% of the Cook\'s max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team)
+            .filter((u) => u.hp < u.maxHp);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          const target = allies[0];
+          const healed = target.heal(Math.round(unit.maxHp * 0.03));
+          if (healed <= 0) return null;
+          return {
+            label: "Soup's On",
+            message: `${unit.name} slips ${target.name} a snack for ${healed} HP.`,
+            floats: [{ target, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Kitchen Post: +15% DEF while in the center hex.',
+    },
+  },
+
+  rat_torchbearer: {
+    id: 'rat_torchbearer',
+    element: 'fire',
+    name: 'Rat Torchbearer',
+    title: 'Lightbringer Below',
+    rarity: 1,
+    stats: { hp: 780, atk: 112, def: 64, speed: 96 },
+    tint: { body: '#8a5a2a', helm: '#e8a83a', weapon: '#f8c84a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_torchbearer/rattorchbeareridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'torch_jab', name: 'Torch Jab',
+        icon: 'assets/icons/fc981.png',
+        description: 'Thrust the burning brand for 95% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.95 }],
+      },
+      {
+        id: 'set_alight', name: 'Set Alight',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Hit for 80% ATK and burn for 25% ATK per turn for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'dot', pct: 0.25, turns: 2 },
+        ],
+      },
+      {
+        id: 'wall_of_flame', name: 'Wall of Flame',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Ignite ALL enemies: 20% ATK burn per turn for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'dot', pct: 0.20, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Kindling',
+      icon: 'assets/icons/fc1003.png',
+      description: '+35% DoT damage.',
+      hooks: { dotBoostAdd: 0.35 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Beacon: +12% ATK while in the center hex.',
+    },
+  },
+
+  // ---- 2★ placeholder rats ------------------------------------------------
+
+  rat_knight: {
+    id: 'rat_knight',
+    element: 'water',
+    name: 'Rat Knight',
+    title: 'Sworn Shield of the Nest',
+    rarity: 2,
+    stats: { hp: 1000, atk: 118, def: 95, speed: 90 },
+    tint: { body: '#7a7a8a', helm: '#a8a8b8', weapon: '#d8d8e0', shield: '#5a6a9a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_knight/ratknightidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'mace_strike', name: 'Mace Strike',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A disciplined mace blow for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'pommel_bash', name: 'Pommel Bash',
+        icon: 'assets/icons/fc762.png',
+        description: 'Stagger the target: 115% ATK and drains 10% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'turnMeter', amount: -0.10 },
+        ],
+      },
+      {
+        id: 'phalanx_guard', name: 'Phalanx Guard',
+        icon: 'assets/icons/fc855.png',
+        description: 'Brace the front line: front-hex allies gain +30% DEF for 2 turns.',
+        cooldown: 5, targeting: 'front-allies', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Bulwark',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 10% less damage from all sources.',
+      hooks: {
+        damageTakenMult() { return 0.9; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Oathkeeper: +20% DEF while in a front hex.',
+    },
+  },
+
+  rat_shaman: {
+    id: 'rat_shaman',
+    element: 'water',
+    name: 'Rat Shaman',
+    title: 'Voice of Old Whiskers',
+    rarity: 2,
+    stats: { hp: 860, atk: 126, def: 72, speed: 100 },
+    tint: { body: '#4a5a8a', helm: '#8a6ab8', weapon: '#b8a878', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_shaman/ratshamanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'whisker_hex', name: 'Whisker Hex',
+        icon: 'assets/icons/fc1052.png',
+        description: 'A crackle of warren magic for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'spirit_mend', name: 'Spirit Mend',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Heal an ally for 130% of ATK and cleanse their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.3 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'ancestors_wrath', name: "Ancestor's Wrath",
+        icon: 'assets/icons/fc1084.png',
+        description: 'Call the old spirits: 75% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.75 }],
+      },
+    ],
+    passive: {
+      name: 'Spirit Ward',
+      icon: 'assets/icons/fc854.png',
+      description: '+20% debuff resistance.',
+      hooks: { resistanceAdd: 0.20 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Warded Circle: +15% DEF while in a back hex.',
+    },
+  },
+
+  rat_monk: {
+    id: 'rat_monk',
+    element: 'wind',
+    name: 'Rat Monk',
+    title: 'Fist of the Still Water',
+    rarity: 2,
+    stats: { hp: 900, atk: 130, def: 76, speed: 108 },
+    tint: { body: '#c88a3a', helm: '#b8b0a8', weapon: '#b8b0a8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_monk/ratmonkidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'palm_strike', name: 'Palm Strike',
+        icon: 'assets/icons/fc663.png',
+        description: 'A focused palm blow for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'chi_burst', name: 'Chi Burst',
+        icon: 'assets/icons/fc1030.png',
+        description: 'Channel chi into a strike for 150% ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [{ type: 'damage', mult: 1.5 }],
+      },
+      {
+        id: 'meditate', name: 'Meditate',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Center the self: cleanse own debuffs and recover 25% max HP.',
+        cooldown: 5, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'cleanse' },
+          { type: 'healHpPct', pct: 0.25 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Flow State',
+      icon: 'assets/icons/fc882.png',
+      description: '+8% chance to take an extra turn after acting.',
+      hooks: { extraTurnAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
+      description: 'Perfect Balance: +10% SPD while in the center hex.',
+    },
+  },
+
+  rat_gunner: {
+    id: 'rat_gunner',
+    element: 'fire',
+    name: 'Rat Gunner',
+    title: 'Powderwhisker',
+    rarity: 2,
+    stats: { hp: 820, atk: 138, def: 60, speed: 97 },
+    tint: { body: '#3a3a3a', helm: '#8a2a2a', weapon: '#6a6a7a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_gunner/ratgunneridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'musket_shot', name: 'Musket Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'A crack of powder for 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.1 }],
+      },
+      {
+        id: 'piercing_round', name: 'Piercing Round',
+        icon: 'assets/icons/fc1621.png',
+        description: 'A punched slug for 145% ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.45 }],
+      },
+      {
+        id: 'grapeshot', name: 'Grapeshot',
+        icon: 'assets/icons/fc807.png',
+        description: 'Spray the front line for 90% ATK.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.9 }],
+      },
+    ],
+    passive: {
+      name: 'Steady Aim',
+      icon: 'assets/icons/fc1516.png',
+      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.10, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.18,
+      description: 'Firing Line: +18% ATK while in a back hex.',
+    },
+  },
+
+  rat_thief: {
+    id: 'rat_thief',
+    element: 'wind',
+    name: 'Rat Thief',
+    title: 'Fingers of the Fog',
+    rarity: 2,
+    stats: { hp: 810, atk: 132, def: 62, speed: 112 },
+    tint: { body: '#4a4a5a', helm: '#2a2a3a', weapon: '#b8b0c8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_thief/ratthiefidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snatch_strike', name: 'Snatch Strike',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Strike for 100% ATK and gain 10% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+        selfEffects: [{ type: 'turnMeter', amount: 0.10 }],
+      },
+      {
+        id: 'hamstring', name: 'Hamstring',
+        icon: 'assets/icons/fc825.png',
+        description: 'Cut low: 110% ATK and -15% SPD for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'smoke_bomb', name: 'Smoke Bomb',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Choking smoke: ALL enemies lose 10% ATK for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'debuff', stat: 'atk', mult: 0.9, turns: 1 }],
+      },
+    ],
+    passive: {
+      name: 'Cutpurse',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 15% extra damage to enemies above half turn meter.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter > CONFIG.TURN_METER_MAX * 0.5 ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Ambusher: +12% damage dealt from a back hex.',
+    },
+  },
+
+  rat_herbalist: {
+    id: 'rat_herbalist',
+    element: 'water',
+    name: 'Rat Herbalist',
+    title: 'Rootpicker',
+    rarity: 2,
+    stats: { hp: 840, atk: 122, def: 68, speed: 99 },
+    tint: { body: '#4a7a4a', helm: '#6a9a5a', weapon: '#8ab86a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_herbalist/ratherbalistidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'thorn_flick', name: 'Thorn Flick',
+        icon: 'assets/icons/fc981.png',
+        description: 'Flick a barbed seed for 95% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.95 }],
+      },
+      {
+        id: 'healing_herbs', name: 'Healing Herbs',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Dress wounds: heals 120% of ATK, then 3% of the Herbalist\'s max HP for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.2 },
+          { type: 'hot', pct: 0.03, turns: 2 },
+        ],
+      },
+      {
+        id: 'bitter_remedy', name: 'Bitter Remedy',
+        icon: 'assets/icons/fc855.png',
+        description: 'A foul tonic that cleanses ALL allies\' debuffs.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'cleanse' }],
+      },
+    ],
+    passive: {
+      name: 'Poultice',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Sheds one debuff from herself at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          const idx = unit.statusEffects.findIndex(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+          if (idx === -1) return null;
+          unit.statusEffects.splice(idx, 1);
+          return {
+            label: 'Poultice',
+            message: `${unit.name}'s poultice draws out an affliction.`,
+            floats: [{ target: unit, text: 'CLEANSE', color: '#7ae8e8' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Herb Cart: +12% DEF while in the center hex.',
+    },
+  },
+
+  // ---- 3★ placeholder rats ------------------------------------------------
+
+  rat_captain: {
+    id: 'rat_captain',
+    element: 'water',
+    name: 'Rat Captain',
+    title: 'Commodore of the Culvert',
+    rarity: 3,
+    stats: { hp: 1180, atk: 165, def: 92, speed: 102 },
+    tint: { body: '#2a4a8a', helm: '#e8c83a', weapon: '#d8d8e0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_captain/ratcaptainidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'sabre_cut', name: 'Sabre Cut',
+        icon: 'assets/icons/fc1587.png',
+        description: 'An officer\'s sabre stroke for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'hold_the_line', name: 'Hold the Line',
+        icon: 'assets/icons/fc855.png',
+        description: 'Steel the ranks: ALL allies gain +25% DEF for 2 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'buff', stat: 'def', mult: 1.25, turns: 2 }],
+      },
+      {
+        id: 'charge_order', name: 'Charge Order',
+        icon: 'assets/icons/fc869.png',
+        description: 'Sound the charge: ALL allies gain 20% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [{ type: 'turnMeter', amount: 0.20 }],
+      },
+    ],
+    passive: {
+      name: 'Rally Cry',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, ALL allies gain +5% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 1 });
+          }
+          return {
+            label: 'Rally Cry',
+            message: `${unit.name} rallies the warren: +5% ATK.`,
+            floats: [],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'Flagship Post: +15% ATK while in the center hex.',
+    },
+  },
+
+  rat_ninja: {
+    id: 'rat_ninja',
+    element: 'wind',
+    name: 'Rat Ninja',
+    title: 'Silent Whisker',
+    rarity: 3,
+    stats: { hp: 1080, atk: 180, def: 82, speed: 110 },
+    tint: { body: '#2a2a3a', helm: '#3a3a4a', weapon: '#d8d8e0', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_ninja/ratninjaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shuriken_toss', name: 'Shuriken Toss',
+        icon: 'assets/icons/fc728.png',
+        description: 'A spinning star for 105% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.05 }],
+      },
+      {
+        id: 'shadow_strike', name: 'Shadow Strike',
+        icon: 'assets/icons/fc825.png',
+        description: 'Blink through shadow for 170% ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.7 }],
+      },
+      {
+        id: 'silent_end', name: 'Silent End',
+        icon: 'assets/icons/fc734.png',
+        description: 'One perfect cut: 230% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 2.3 }],
+      },
+    ],
+    passive: {
+      name: 'Smoke Veil',
+      icon: 'assets/icons/fc862.png',
+      description: 'Takes 15% less damage while in a back hex.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.BACK ? 0.85 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Night Blade: +15% damage dealt from a back hex.',
+    },
+  },
+
+  rat_pyromancer: {
+    id: 'rat_pyromancer',
+    element: 'fire',
+    name: 'Rat Pyromancer',
+    title: 'Ember Sage',
+    rarity: 3,
+    stats: { hp: 1060, atk: 182, def: 80, speed: 101 },
+    tint: { body: '#8a2a1a', helm: '#e86a2a', weapon: '#f8a83a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_pyromancer/ratpyromanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cinder_bolt', name: 'Cinder Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A searing bolt for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'immolate', name: 'Immolate',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Hit for 60% ATK and burn for 40% ATK per turn for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.6 },
+          { type: 'dot', pct: 0.40, turns: 2 },
+        ],
+      },
+      {
+        id: 'firestorm', name: 'Firestorm',
+        icon: 'assets/icons/fc1044.png',
+        description: '85% ATK to ALL enemies — burning targets take 50% more.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.85, bonusVs: { kind: 'dot', mult: 1.5 } }],
+      },
+    ],
+    passive: {
+      name: 'Accelerant',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Deals 25% extra damage to enemies suffering damage over time.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'dot') ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Cinder Perch: +15% ATK while in a back hex.',
+    },
+  },
+
+  rat_tidecaller: {
+    id: 'rat_tidecaller',
+    element: 'water',
+    name: 'Rat Tidecaller',
+    title: 'Drainsinger',
+    rarity: 3,
+    stats: { hp: 1100, atk: 172, def: 86, speed: 104 },
+    tint: { body: '#2a5a8a', helm: '#4a8ab8', weapon: '#7ac8e8', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_tidecaller/rattidecalleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'water_whip', name: 'Water Whip',
+        icon: 'assets/icons/fc819.png',
+        description: 'A lash of water for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'tidal_slam', name: 'Tidal Slam',
+        icon: 'assets/icons/fc1622.png',
+        description: 'A crushing wave: 150% ATK and drains 20% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'turnMeter', amount: -0.20 },
+        ],
+      },
+      {
+        id: 'great_wave', name: 'Great Wave',
+        icon: 'assets/icons/fc800.png',
+        description: 'Sweep ALL enemies for 80% ATK and drain 10% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'turnMeter', amount: -0.10 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Undertow',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, 25% chance to drain 10% turn meter from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (Math.random() >= 0.25) return null;
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * 0.10);
+          return {
+            label: 'Undertow',
+            message: `${unit.name}'s undertow drags at ${target.name}.`,
+            floats: [{ target, text: '-10% METER', color: '#7ac8e8' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Tidepool: +12% ATK while in the center hex.',
+    },
+  },
+
+  rat_stormcaller: {
+    id: 'rat_stormcaller',
+    element: 'wind',
+    name: 'Rat Stormcaller',
+    title: 'Gale of the Gutters',
+    rarity: 3,
+    stats: { hp: 1070, atk: 178, def: 81, speed: 106 },
+    tint: { body: '#5a5a8a', helm: '#8a8ac8', weapon: '#e8e84a', skin: '#b8b0a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_stormcaller/ratstormcalleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spark_lash', name: 'Spark Lash',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A whipcrack of static for 100% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.0 }],
+      },
+      {
+        id: 'chain_lightning', name: 'Chain Lightning',
+        icon: 'assets/icons/fc1030.png',
+        description: 'Arc through a hex row for 95% ATK.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [{ type: 'damage', mult: 0.95 }],
+      },
+      {
+        id: 'thunderhead', name: 'Thunderhead',
+        icon: 'assets/icons/fc807.png',
+        description: 'A rolling storm: 70% ATK to ALL enemies and -10% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Static Charge',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +8% ATK for 2 turns at the start of each turn.',
+      hooks: {
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.08, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Storm Perch: +15% ATK while in a back hex.',
+    },
+  },
+
   // ---- Bird cohort --------------------------------------------------------
   // Idle-only art for now, like the rats; attack/death strips can land
   // later without kit changes.
