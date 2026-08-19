@@ -128,7 +128,9 @@ class Unit {
   dodgeChance() {
     let d = this.gearDodge;
     for (const p of this.passives) {
-      if (p.hooks && p.hooks.dodgeAdd) d += p.hooks.dodgeAdd;
+      const hook = p.hooks && p.hooks.dodgeAdd;
+      // Numbers add flat; functions gate the bonus on state (hex, HP...).
+      if (hook) d += typeof hook === 'function' ? (hook(this) || 0) : hook;
     }
     return Math.min(0.75, d);
   }
