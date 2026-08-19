@@ -48,8 +48,11 @@ class TeamScreen {
         const open = !!LOCATION_ENEMIES[i];
         return `<option value="${i}" ${open ? '' : 'disabled'}>${n}${open ? '' : ' 🔒'}</option>`;
       }).join('');
-    this.stageSel.innerHTML = Array.from({ length: 20 }, (_, i) =>
-      `<option value="${i + 1}">Stage ${i + 1} (Lv ${(i + 1) * 5})</option>`).join('');
+    // Stage 0 is the training ground: level 1 enemies for fresh teams.
+    this.stageSel.innerHTML =
+      '<option value="0">Stage 0 (Lv 1)</option>' +
+      Array.from({ length: 20 }, (_, i) =>
+        `<option value="${i + 1}">Stage ${i + 1} (Lv ${(i + 1) * 5})</option>`).join('');
     const ws = GameState.waveSettings;
     if (!LOCATION_ENEMIES[ws.location]) {
       GameState.setWaveSettings({ location: 0 }); // saved biome got locked
