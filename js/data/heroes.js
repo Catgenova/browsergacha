@@ -19963,6 +19963,4056 @@ const HEROES = {
     },
   },
 
+  // ---- Champion cohorts: 4-star heroes for every race ---------------------
+  // Elemental champions summon from Rare Scrolls; dark/light champions
+  // from Temporal Scrolls. Placeholder art until idle sheets land.
+
+  rat_warpike: {
+    id: 'rat_warpike',
+    element: 'water',
+    name: 'Rat Warpike',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1390, atk: 196, def: 102, speed: 100 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_warpike/ratwarpikeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_warpike_strike', name: 'Warpike\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 71% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_warpike_onslaught', name: 'Warpike\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 154% ATK, then +7% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.54 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.07, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_warpike_supremacy', name: 'Warpike\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 205% ATK and -6% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.05 },
+          { type: 'debuff', stat: 'def', mult: 0.94, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Warpike Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 5% more and takes 3% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.05; },
+        damageTakenMult() { return 0.97; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  rat_hexcrown: {
+    id: 'rat_hexcrown',
+    element: 'fire',
+    name: 'Rat Hexcrown',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1402, atk: 202, def: 106, speed: 103 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_hexcrown/rathexcrownidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_hexcrown_bolt', name: 'Hexcrown\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 72% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_hexcrown_torrent', name: 'Hexcrown\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 95% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_hexcrown_cataclysm', name: 'Hexcrown\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 111% ATK to ALL enemies and -7% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.11 },
+          { type: 'debuff', stat: 'atk', mult: 0.93, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexcrown Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\\u0027s ATK.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.015));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  rat_wallwhisker: {
+    id: 'rat_wallwhisker',
+    element: 'wind',
+    name: 'Rat Wallwhisker',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1414, atk: 208, def: 110, speed: 106 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_wallwhisker/ratwallwhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_wallwhisker_bash', name: 'Wallwhisker\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 73% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_wallwhisker_bulwark', name: 'Wallwhisker\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +9% DEF for 2 turns and take 3% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.09, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.97, turns: 1 },
+        ],
+      },
+      {
+        id: 'rat_wallwhisker_stand', name: 'Wallwhisker\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 26% less damage for 2 turns and heals 8% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.74, turns: 2 },
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallwhisker Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 15% less damage while holding a front hex above half HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp > 0.5 ? 0.85 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  rat_longsight: {
+    id: 'rat_longsight',
+    element: 'water',
+    name: 'Rat Longsight',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1426, atk: 214, def: 114, speed: 109 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_longsight/ratlongsightidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_longsight_shot', name: 'Longsight\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 74% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_longsight_deadeye', name: 'Longsight\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 167% ATK and drains 7% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.67 },
+          { type: 'turnMeter', amount: -0.07 },
+        ],
+      },
+      {
+        id: 'rat_longsight_barrage', name: 'Longsight\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 93% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'turnMeter', amount: -0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Longsight Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.10, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.10, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  rat_mistmender: {
+    id: 'rat_mistmender',
+    element: 'fire',
+    name: 'Rat Mistmender',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1438, atk: 220, def: 118, speed: 112 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_mistmender/ratmistmenderidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_mistmender_touch', name: 'Mistmender\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 75% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_mistmender_blessing', name: 'Mistmender\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 12% of max HP plus 1.5% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.12 },
+          { type: 'hot', pct: 0.015, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_mistmender_renewal', name: 'Mistmender\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 38% of ATK, are cleansed, and gain +4% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.38 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.04, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistmender Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.13 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  rat_nullfang: {
+    id: 'rat_nullfang',
+    element: 'dark',
+    name: 'Rat Nullfang',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1450, atk: 226, def: 122, speed: 115 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_nullfang/ratnullfangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_nullfang_grasp', name: 'Nullfang\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 76% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_nullfang_devour', name: 'Nullfang\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 149% ATK, healing this hero for 26% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.49 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.26 },
+        ],
+      },
+      {
+        id: 'rat_nullfang_oblivion', name: 'Nullfang\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 220% ATK and the target takes +16% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.2 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.16, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullfang Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 1% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.01));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  rat_glorytail: {
+    id: 'rat_glorytail',
+    element: 'light',
+    name: 'Rat Glorytail',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1462, atk: 196, def: 126, speed: 101 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_glorytail/ratglorytailidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_glorytail_radiance', name: 'Glorytail\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 77% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'rat_glorytail_benediction', name: 'Glorytail\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 14% of max HP and grants 8% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.14 },
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'rat_glorytail_ascension', name: 'Glorytail\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 44% of ATK and gain +5% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.44 },
+          { type: 'buff', stat: 'atk', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glorytail Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.4% of this hero\\u0027s max HP and gain a small atk blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.004));
+            a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.02, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  osprey_seahammer: {
+    id: 'osprey_seahammer',
+    element: 'fire',
+    name: 'Osprey Seahammer',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1406, atk: 200, def: 105, speed: 102 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Ospreyseahammeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'osprey_seahammer_strike', name: 'Seahammer\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 78% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'osprey_seahammer_onslaught', name: 'Seahammer\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 161% ATK, then +8% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.61 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
+        ],
+      },
+      {
+        id: 'osprey_seahammer_supremacy', name: 'Seahammer\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 212% ATK and -7% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.12 },
+          { type: 'debuff', stat: 'def', mult: 0.93, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Seahammer Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 7% more and takes 5% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.07; },
+        damageTakenMult() { return 0.95; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  kestrel_spellgale: {
+    id: 'kestrel_spellgale',
+    element: 'wind',
+    name: 'Kestrel Spellgale',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1418, atk: 206, def: 109, speed: 105 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Kestrelspellgaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'kestrel_spellgale_bolt', name: 'Spellgale\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 79% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.79 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'kestrel_spellgale_torrent', name: 'Spellgale\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 102% ATK to ALL enemies and -5% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.02 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
+        ],
+      },
+      {
+        id: 'kestrel_spellgale_cataclysm', name: 'Spellgale\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 118% ATK to ALL enemies and -8% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.18 },
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Spellgale Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 0.8% of this hero\\u0027s max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.008));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  condor_skywall: {
+    id: 'condor_skywall',
+    element: 'water',
+    name: 'Condor Skywall',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1430, atk: 212, def: 113, speed: 108 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Condorskywallidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'condor_skywall_bash', name: 'Skywall\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 80% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'condor_skywall_bulwark', name: 'Skywall\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +10% DEF for 2 turns and take 4% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'condor_skywall_stand', name: 'Skywall\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 27% less damage for 2 turns and heals 9% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.73, turns: 2 },
+          { type: 'healHpPct', pct: 0.09 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Skywall Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 16% less damage while holding the center hex above half HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.CENTER && unit.hp / unit.maxHp > 0.5 ? 0.84 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  harrier_farstrike: {
+    id: 'harrier_farstrike',
+    element: 'fire',
+    name: 'Harrier Farstrike',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1442, atk: 218, def: 117, speed: 111 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Harrierfarstrikeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'harrier_farstrike_shot', name: 'Farstrike\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 81% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.81 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'harrier_farstrike_deadeye', name: 'Farstrike\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 174% ATK and drains 8% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.74 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'harrier_farstrike_barrage', name: 'Farstrike\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 100% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'turnMeter', amount: -0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farstrike Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.04, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.07, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  flamingo_rosemyst: {
+    id: 'flamingo_rosemyst',
+    element: 'wind',
+    name: 'Flamingo Rosemyst',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1454, atk: 224, def: 121, speed: 114 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Flamingorosemystidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'flamingo_rosemyst_touch', name: 'Rosemyst\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 82% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'flamingo_rosemyst_blessing', name: 'Rosemyst\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 13% of max HP plus 1.7% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.13 },
+          { type: 'hot', pct: 0.017, turns: 2 },
+        ],
+      },
+      {
+        id: 'flamingo_rosemyst_renewal', name: 'Rosemyst\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 40% of ATK, are cleansed, and gain +5% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.4 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Rosemyst Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.17 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  skua_voidbeak: {
+    id: 'skua_voidbeak',
+    element: 'dark',
+    name: 'Skua Voidbeak',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1466, atk: 230, def: 125, speed: 100 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Skuavoidbeakidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'skua_voidbeak_grasp', name: 'Voidbeak\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 83% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.83 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'skua_voidbeak_devour', name: 'Voidbeak\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 156% ATK, healing this hero for 28% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.56 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.28 },
+        ],
+      },
+      {
+        id: 'skua_voidbeak_oblivion', name: 'Voidbeak\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 227% ATK and the target takes +17% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.27 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.17, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Voidbeak Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 1.3% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.013));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  tern_lightcrest: {
+    id: 'tern_lightcrest',
+    element: 'light',
+    name: 'Tern Lightcrest',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1478, atk: 200, def: 103, speed: 103 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Ternlightcrestidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tern_lightcrest_radiance', name: 'Lightcrest\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 84% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'tern_lightcrest_benediction', name: 'Lightcrest\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 15% of max HP and grants 9% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.15 },
+          { type: 'turnMeter', amount: 0.09 },
+        ],
+      },
+      {
+        id: 'tern_lightcrest_ascension', name: 'Lightcrest\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 46% of ATK and gain +6% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.46 },
+          { type: 'buff', stat: 'atk', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightcrest Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.6% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.006));
+            a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.03, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_gorebrand: {
+    id: 'minotaur_gorebrand',
+    element: 'wind',
+    name: 'Minotaur Gorebrand',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1422, atk: 204, def: 108, speed: 104 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgorebrandidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_gorebrand_strike', name: 'Gorebrand\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 85% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_gorebrand_onslaught', name: 'Gorebrand\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 168% ATK, then +9% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.68 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.09, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_gorebrand_supremacy', name: 'Gorebrand\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 219% ATK and -8% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.19 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gorebrand Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 9% more and takes 6% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.09; },
+        damageTakenMult() { return 0.94; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  minotaur_runemaw: {
+    id: 'minotaur_runemaw',
+    element: 'water',
+    name: 'Minotaur Runemaw',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1434, atk: 210, def: 112, speed: 107 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurrunemawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_runemaw_bolt', name: 'Runemaw\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 86% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_runemaw_torrent', name: 'Runemaw\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 109% ATK to ALL enemies and -6% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.09 },
+          { type: 'debuff', stat: 'speed', mult: 0.94, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_runemaw_cataclysm', name: 'Runemaw\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 125% ATK to ALL enemies and -9% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runemaw Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2% of this hero\\u0027s DEF.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.02));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_gatecolossus: {
+    id: 'minotaur_gatecolossus',
+    element: 'fire',
+    name: 'Minotaur Gatecolossus',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1446, atk: 216, def: 116, speed: 110 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgatecolossusidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_gatecolossus_bash', name: 'Gatecolossus\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 87% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_gatecolossus_bulwark', name: 'Gatecolossus\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +11% DEF for 2 turns and take 5% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.11, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'minotaur_gatecolossus_stand', name: 'Gatecolossus\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 28% less damage for 2 turns and heals 10% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.72, turns: 2 },
+          { type: 'healHpPct', pct: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gatecolossus Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 22% less damage while holding a front hex below half HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp < 0.5 ? 0.78 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_longhorn: {
+    id: 'minotaur_longhorn',
+    element: 'wind',
+    name: 'Minotaur Longhorn',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1458, atk: 222, def: 120, speed: 113 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurlonghornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_longhorn_shot', name: 'Longhorn\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 88% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_longhorn_deadeye', name: 'Longhorn\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 181% ATK and drains 9% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.81 },
+          { type: 'turnMeter', amount: -0.09 },
+        ],
+      },
+      {
+        id: 'minotaur_longhorn_barrage', name: 'Longhorn\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 107% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.07 },
+          { type: 'turnMeter', amount: -0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Longhorn Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.06, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.09, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  minotaur_mazemyst: {
+    id: 'minotaur_mazemyst',
+    element: 'water',
+    name: 'Minotaur Mazemyst',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1470, atk: 228, def: 124, speed: 116 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurmazemystidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_mazemyst_touch', name: 'Mazemyst\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 89% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_mazemyst_blessing', name: 'Mazemyst\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 14% of max HP plus 1.9% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.14 },
+          { type: 'hot', pct: 0.019, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_mazemyst_renewal', name: 'Mazemyst\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 42% of ATK, are cleansed, and gain +6% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.42 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mazemyst Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.19 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_nullhorn: {
+    id: 'minotaur_nullhorn',
+    element: 'dark',
+    name: 'Minotaur Nullhorn',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1482, atk: 198, def: 102, speed: 102 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurnullhornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_nullhorn_grasp', name: 'Nullhorn\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 90% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_nullhorn_devour', name: 'Nullhorn\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 163% ATK, healing this hero for 30% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.63 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.3 },
+        ],
+      },
+      {
+        id: 'minotaur_nullhorn_oblivion', name: 'Nullhorn\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 234% ATK and the target takes +18% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.34 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.18, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullhorn Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 1.7% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.017));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  minotaur_gloryhorn: {
+    id: 'minotaur_gloryhorn',
+    element: 'light',
+    name: 'Minotaur Gloryhorn',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1494, atk: 204, def: 106, speed: 105 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgloryhornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_gloryhorn_radiance', name: 'Gloryhorn\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 91% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'minotaur_gloryhorn_benediction', name: 'Gloryhorn\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 16% of max HP and grants 10% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.16 },
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+      {
+        id: 'minotaur_gloryhorn_ascension', name: 'Gloryhorn\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 48% of ATK and gain +7% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.48 },
+          { type: 'buff', stat: 'atk', mult: 1.07, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gloryhorn Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.8% of this hero\\u0027s max HP and gain a small crit blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.008));
+            a.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.02, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  snake_fangbrand: {
+    id: 'snake_fangbrand',
+    element: 'water',
+    name: 'Snake Fangbrand',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1438, atk: 208, def: 111, speed: 106 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakefangbrandidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_fangbrand_strike', name: 'Fangbrand\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 92% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_fangbrand_onslaught', name: 'Fangbrand\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 175% ATK, then +10% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.75 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_fangbrand_supremacy', name: 'Fangbrand\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 226% ATK and -9% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.26 },
+          { type: 'debuff', stat: 'def', mult: 0.91, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Fangbrand Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 10% more and takes 4% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.1; },
+        damageTakenMult() { return 0.96; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  snake_spellscale: {
+    id: 'snake_spellscale',
+    element: 'fire',
+    name: 'Snake Spellscale',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1450, atk: 214, def: 115, speed: 109 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakespellscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_spellscale_bolt', name: 'Spellscale\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 93% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_spellscale_torrent', name: 'Spellscale\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 116% ATK to ALL enemies and -7% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.16 },
+          { type: 'debuff', stat: 'speed', mult: 0.93, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_spellscale_cataclysm', name: 'Spellscale\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 132% ATK to ALL enemies and -7% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.32 },
+          { type: 'debuff', stat: 'atk', mult: 0.93, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Spellscale Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\\u0027s ATK.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.025));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  snake_wallcoil: {
+    id: 'snake_wallcoil',
+    element: 'wind',
+    name: 'Snake Wallcoil',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1462, atk: 220, def: 119, speed: 112 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakewallcoilidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_wallcoil_bash', name: 'Wallcoil\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 94% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_wallcoil_bulwark', name: 'Wallcoil\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +12% DEF for 2 turns and take 3% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.12, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.97, turns: 1 },
+        ],
+      },
+      {
+        id: 'snake_wallcoil_stand', name: 'Wallcoil\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 29% less damage for 2 turns and heals 11% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.71, turns: 2 },
+          { type: 'healHpPct', pct: 0.11 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallcoil Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 13% less damage while in a back hex.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.BACK ? 0.87 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  snake_farfang: {
+    id: 'snake_farfang',
+    element: 'water',
+    name: 'Snake Farfang',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1474, atk: 226, def: 123, speed: 115 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakefarfangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_farfang_shot', name: 'Farfang\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 95% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_farfang_deadeye', name: 'Farfang\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 188% ATK and drains 10% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.88 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+      {
+        id: 'snake_farfang_barrage', name: 'Farfang\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 114% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.14 },
+          { type: 'turnMeter', amount: -0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farfang Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.22, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  snake_mystcoil: {
+    id: 'snake_mystcoil',
+    element: 'fire',
+    name: 'Snake Mystcoil',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1486, atk: 196, def: 127, speed: 101 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakemystcoilidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_mystcoil_touch', name: 'Mystcoil\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 96% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_mystcoil_blessing', name: 'Mystcoil\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 15% of max HP plus 2.1% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.15 },
+          { type: 'hot', pct: 0.021, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_mystcoil_renewal', name: 'Mystcoil\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 44% of ATK, are cleansed, and gain +4% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.44 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.04, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mystcoil Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.21 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  snake_nullscale: {
+    id: 'snake_nullscale',
+    element: 'dark',
+    name: 'Snake Nullscale',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1498, atk: 202, def: 105, speed: 104 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakenullscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_nullscale_grasp', name: 'Nullscale\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 97% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_nullscale_devour', name: 'Nullscale\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 170% ATK, healing this hero for 32% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.7 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.32 },
+        ],
+      },
+      {
+        id: 'snake_nullscale_oblivion', name: 'Nullscale\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 241% ATK and the target takes +19% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.41 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.19, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullscale Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 1.9% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.019));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  snake_glorycoil: {
+    id: 'snake_glorycoil',
+    element: 'light',
+    name: 'Snake Glorycoil',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1510, atk: 208, def: 109, speed: 107 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeglorycoilidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_glorycoil_radiance', name: 'Glorycoil\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 98% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'snake_glorycoil_benediction', name: 'Glorycoil\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 17% of max HP and grants 11% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.17 },
+          { type: 'turnMeter', amount: 0.11 },
+        ],
+      },
+      {
+        id: 'snake_glorycoil_ascension', name: 'Glorycoil\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 50% of ATK and gain +8% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.5 },
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glorycoil Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 1.2% of this hero\\u0027s max HP and gain a small speed blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.012));
+            a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.02, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_bladefang: {
+    id: 'wolf_bladefang',
+    element: 'fire',
+    name: 'Wolf Bladefang',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1454, atk: 212, def: 114, speed: 108 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfbladefangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_bladefang_strike', name: 'Bladefang\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 99% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'wolf_bladefang_onslaught', name: 'Bladefang\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 182% ATK, then +11% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.82 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.11, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_bladefang_supremacy', name: 'Bladefang\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 233% ATK and -10% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.33 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bladefang Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 4% more and takes 7% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.04; },
+        damageTakenMult() { return 0.93; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  wolf_runehowl: {
+    id: 'wolf_runehowl',
+    element: 'wind',
+    name: 'Wolf Runehowl',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1466, atk: 218, def: 118, speed: 111 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfrunehowlidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_runehowl_bolt', name: 'Runehowl\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 100% then 43% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'damage', mult: 0.43 },
+        ],
+      },
+      {
+        id: 'wolf_runehowl_torrent', name: 'Runehowl\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 123% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.23 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_runehowl_cataclysm', name: 'Runehowl\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 139% ATK to ALL enemies and -8% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.39 },
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runehowl Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.2% of this hero\\u0027s max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.012));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_shieldmane: {
+    id: 'wolf_shieldmane',
+    element: 'water',
+    name: 'Wolf Shieldmane',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1478, atk: 224, def: 122, speed: 114 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfshieldmaneidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_shieldmane_bash', name: 'Shieldmane\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 71% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'wolf_shieldmane_bulwark', name: 'Shieldmane\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +13% DEF for 2 turns and take 4% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.13, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'wolf_shieldmane_stand', name: 'Shieldmane\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 30% less damage for 2 turns and heals 12% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.7, turns: 2 },
+          { type: 'healHpPct', pct: 0.12 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Shieldmane Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 13% less damage while above 65% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.hp / unit.maxHp > 0.65 ? 0.87 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_farhowl: {
+    id: 'wolf_farhowl',
+    element: 'fire',
+    name: 'Wolf Farhowl',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1490, atk: 230, def: 126, speed: 100 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolffarhowlidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_farhowl_shot', name: 'Farhowl\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 72% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'wolf_farhowl_deadeye', name: 'Farhowl\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 195% ATK and drains 11% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.95 },
+          { type: 'turnMeter', amount: -0.11 },
+        ],
+      },
+      {
+        id: 'wolf_farhowl_barrage', name: 'Farhowl\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 121% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.21 },
+          { type: 'turnMeter', amount: -0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farhowl Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.13, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  wolf_mistmane: {
+    id: 'wolf_mistmane',
+    element: 'wind',
+    name: 'Wolf Mistmane',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1502, atk: 200, def: 104, speed: 103 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfmistmaneidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_mistmane_touch', name: 'Mistmane\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 73% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'wolf_mistmane_blessing', name: 'Mistmane\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 16% of max HP plus 2.3% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.16 },
+          { type: 'hot', pct: 0.023, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_mistmane_renewal', name: 'Mistmane\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 46% of ATK, are cleansed, and gain +5% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.46 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistmane Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.23 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_nullmaw: {
+    id: 'wolf_nullmaw',
+    element: 'dark',
+    name: 'Wolf Nullmaw',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1514, atk: 206, def: 108, speed: 106 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfnullmawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_nullmaw_grasp', name: 'Nullmaw\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 74% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'wolf_nullmaw_devour', name: 'Nullmaw\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 177% ATK, healing this hero for 34% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.77 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.34 },
+        ],
+      },
+      {
+        id: 'wolf_nullmaw_oblivion', name: 'Nullmaw\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 248% ATK and the target takes +20% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.48 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.2, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullmaw Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 2.1% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.021));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  wolf_glorymane: {
+    id: 'wolf_glorymane',
+    element: 'light',
+    name: 'Wolf Glorymane',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1526, atk: 212, def: 112, speed: 109 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfglorymaneidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_glorymane_radiance', name: 'Glorymane\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 75% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'wolf_glorymane_benediction', name: 'Glorymane\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 18% of max HP and grants 12% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.18 },
+          { type: 'turnMeter', amount: 0.12 },
+        ],
+      },
+      {
+        id: 'wolf_glorymane_ascension', name: 'Glorymane\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 52% of ATK and gain +5% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.52 },
+          { type: 'buff', stat: 'atk', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glorymane Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.5% of this hero\\u0027s max HP and gain a small atk blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.005));
+            a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.03, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  boar_battletusk: {
+    id: 'boar_battletusk',
+    element: 'wind',
+    name: 'Boar Battletusk',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1470, atk: 216, def: 117, speed: 110 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarbattletuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_battletusk_strike', name: 'Battletusk\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 76% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_battletusk_onslaught', name: 'Battletusk\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 189% ATK, then +12% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.89 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.12, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_battletusk_supremacy', name: 'Battletusk\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 240% ATK and -6% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.4 },
+          { type: 'debuff', stat: 'def', mult: 0.94, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Battletusk Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 11% more and takes 2% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.11; },
+        damageTakenMult() { return 0.98; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  boar_runesnout: {
+    id: 'boar_runesnout',
+    element: 'water',
+    name: 'Boar Runesnout',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1482, atk: 222, def: 121, speed: 113 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarrunesnoutidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_runesnout_bolt', name: 'Runesnout\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 77% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_runesnout_torrent', name: 'Runesnout\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 130% ATK to ALL enemies and -5% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_runesnout_cataclysm', name: 'Runesnout\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 146% ATK to ALL enemies and -9% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.46 },
+          { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runesnout Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1% of this hero\\u0027s DEF.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.01));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  boar_wallhide: {
+    id: 'boar_wallhide',
+    element: 'fire',
+    name: 'Boar Wallhide',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1494, atk: 228, def: 125, speed: 116 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarwallhideidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_wallhide_bash', name: 'Wallhide\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 78% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_wallhide_bulwark', name: 'Wallhide\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +14% DEF for 2 turns and take 5% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.14, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'boar_wallhide_stand', name: 'Wallhide\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 31% less damage for 2 turns and heals 13% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.69, turns: 2 },
+          { type: 'healHpPct', pct: 0.13 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallhide Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 18% less damage while below 45% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.45 ? 0.82 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  boar_fartusk: {
+    id: 'boar_fartusk',
+    element: 'wind',
+    name: 'Boar Fartusk',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1506, atk: 198, def: 103, speed: 102 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarfartuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_fartusk_shot', name: 'Fartusk\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 79% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.79 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_fartusk_deadeye', name: 'Fartusk\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 202% ATK and drains 12% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.02 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'boar_fartusk_barrage', name: 'Fartusk\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 128% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+          { type: 'turnMeter', amount: -0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Fartusk Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.11, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  boar_mistbristle: {
+    id: 'boar_mistbristle',
+    element: 'water',
+    name: 'Boar Mistbristle',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1518, atk: 204, def: 107, speed: 105 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarmistbristleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_mistbristle_touch', name: 'Mistbristle\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 80% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_mistbristle_blessing', name: 'Mistbristle\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 17% of max HP plus 2.5% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.17 },
+          { type: 'hot', pct: 0.025, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_mistbristle_renewal', name: 'Mistbristle\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 48% of ATK, are cleansed, and gain +6% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.48 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistbristle Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.27 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  boar_nulltusk: {
+    id: 'boar_nulltusk',
+    element: 'dark',
+    name: 'Boar Nulltusk',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1530, atk: 210, def: 111, speed: 108 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarnulltuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_nulltusk_grasp', name: 'Nulltusk\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 81% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.81 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_nulltusk_devour', name: 'Nulltusk\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 184% ATK, healing this hero for 36% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.84 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.36 },
+        ],
+      },
+      {
+        id: 'boar_nulltusk_oblivion', name: 'Nulltusk\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 255% ATK and the target takes +21% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.55 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.21, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nulltusk Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 2.3% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.023));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  boar_glorytusk: {
+    id: 'boar_glorytusk',
+    element: 'light',
+    name: 'Boar Glorytusk',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1542, atk: 216, def: 115, speed: 111 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarglorytuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_glorytusk_radiance', name: 'Glorytusk\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 82% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'boar_glorytusk_benediction', name: 'Glorytusk\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 19% of max HP and grants 13% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.19 },
+          { type: 'turnMeter', amount: 0.13 },
+        ],
+      },
+      {
+        id: 'boar_glorytusk_ascension', name: 'Glorytusk\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 54% of ATK and gain +6% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.54 },
+          { type: 'buff', stat: 'atk', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glorytusk Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.9% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.009));
+            a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.02, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  bear_warclaw: {
+    id: 'bear_warclaw',
+    element: 'water',
+    name: 'Bear Warclaw',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1486, atk: 220, def: 120, speed: 112 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearwarclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_warclaw_strike', name: 'Warclaw\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 83% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.83 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_warclaw_onslaught', name: 'Warclaw\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 196% ATK, then +13% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.96 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.13, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_warclaw_supremacy', name: 'Warclaw\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 247% ATK and -7% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.47 },
+          { type: 'debuff', stat: 'def', mult: 0.93, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Warclaw Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 3% more and takes 8% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.03; },
+        damageTakenMult() { return 0.92; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  bear_runefur: {
+    id: 'bear_runefur',
+    element: 'fire',
+    name: 'Bear Runefur',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1498, atk: 226, def: 124, speed: 115 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearrunefuridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_runefur_bolt', name: 'Runefur\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 84% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_runefur_torrent', name: 'Runefur\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 137% ATK to ALL enemies and -6% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.37 },
+          { type: 'debuff', stat: 'speed', mult: 0.94, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_runefur_cataclysm', name: 'Runefur\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 153% ATK to ALL enemies and -7% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.53 },
+          { type: 'debuff', stat: 'atk', mult: 0.93, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runefur Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 0.5% of this hero\\u0027s ATK.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.005));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  bear_wallpaw: {
+    id: 'bear_wallpaw',
+    element: 'wind',
+    name: 'Bear Wallpaw',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1510, atk: 196, def: 102, speed: 101 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearwallpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_wallpaw_bash', name: 'Wallpaw\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 85% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_wallpaw_bulwark', name: 'Wallpaw\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +15% DEF for 2 turns and take 3% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.15, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.97, turns: 1 },
+        ],
+      },
+      {
+        id: 'bear_wallpaw_stand', name: 'Wallpaw\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 32% less damage for 2 turns and heals 14% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.68, turns: 2 },
+          { type: 'healHpPct', pct: 0.14 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallpaw Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 16% less damage while below 55% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.55 ? 0.84 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  bear_farwatch: {
+    id: 'bear_farwatch',
+    element: 'water',
+    name: 'Bear Farwatch',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1522, atk: 202, def: 106, speed: 104 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearfarwatchidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_farwatch_shot', name: 'Farwatch\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 86% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_farwatch_deadeye', name: 'Farwatch\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 209% ATK and drains 13% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.09 },
+          { type: 'turnMeter', amount: -0.13 },
+        ],
+      },
+      {
+        id: 'bear_farwatch_barrage', name: 'Farwatch\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 135% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'turnMeter', amount: -0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farwatch Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.09, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  bear_mistfur: {
+    id: 'bear_mistfur',
+    element: 'fire',
+    name: 'Bear Mistfur',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1534, atk: 208, def: 110, speed: 107 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearmistfuridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_mistfur_touch', name: 'Mistfur\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 87% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_mistfur_blessing', name: 'Mistfur\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 18% of max HP plus 2.7% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.18 },
+          { type: 'hot', pct: 0.027, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_mistfur_renewal', name: 'Mistfur\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 50% of ATK, are cleansed, and gain +4% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.5 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.04, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistfur Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.09, dodgeAdd: 0.06 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  bear_nullpaw: {
+    id: 'bear_nullpaw',
+    element: 'dark',
+    name: 'Bear Nullpaw',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1546, atk: 214, def: 114, speed: 110 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearnullpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_nullpaw_grasp', name: 'Nullpaw\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 88% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_nullpaw_devour', name: 'Nullpaw\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 191% ATK, healing this hero for 38% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.91 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.38 },
+        ],
+      },
+      {
+        id: 'bear_nullpaw_oblivion', name: 'Nullpaw\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 262% ATK and the target takes +22% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.62 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.22, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullpaw Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 2.5% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.025));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  bear_gloryclaw: {
+    id: 'bear_gloryclaw',
+    element: 'light',
+    name: 'Bear Gloryclaw',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1558, atk: 220, def: 118, speed: 113 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beargloryclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_gloryclaw_radiance', name: 'Gloryclaw\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 89% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'bear_gloryclaw_benediction', name: 'Gloryclaw\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 20% of max HP and grants 14% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.2 },
+          { type: 'turnMeter', amount: 0.14 },
+        ],
+      },
+      {
+        id: 'bear_gloryclaw_ascension', name: 'Gloryclaw\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 56% of ATK and gain +7% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.56 },
+          { type: 'buff', stat: 'atk', mult: 1.07, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gloryclaw Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 1.1% of this hero\\u0027s max HP and gain a small crit blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.011));
+            a.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.03, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  cat_bladewhisker: {
+    id: 'cat_bladewhisker',
+    element: 'fire',
+    name: 'Cat Bladewhisker',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1502, atk: 224, def: 123, speed: 114 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catbladewhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_bladewhisker_strike', name: 'Bladewhisker\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 90% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_bladewhisker_onslaught', name: 'Bladewhisker\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 203% ATK, then +14% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.03 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.14, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_bladewhisker_supremacy', name: 'Bladewhisker\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 254% ATK and -8% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.54 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bladewhisker Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 12% more and takes 3% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.12; },
+        damageTakenMult() { return 0.97; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  cat_runepurr: {
+    id: 'cat_runepurr',
+    element: 'wind',
+    name: 'Cat Runepurr',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1514, atk: 230, def: 127, speed: 100 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catrunepurridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_runepurr_bolt', name: 'Runepurr\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 91% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_runepurr_torrent', name: 'Runepurr\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 144% ATK to ALL enemies and -7% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.44 },
+          { type: 'debuff', stat: 'speed', mult: 0.93, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_runepurr_cataclysm', name: 'Runepurr\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 160% ATK to ALL enemies and -8% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.6 },
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runepurr Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\\u0027s max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.015));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  cat_walltail: {
+    id: 'cat_walltail',
+    element: 'water',
+    name: 'Cat Walltail',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1526, atk: 200, def: 105, speed: 103 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catwalltailidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_walltail_bash', name: 'Walltail\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 92% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_walltail_bulwark', name: 'Walltail\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +16% DEF for 2 turns and take 4% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.16, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'cat_walltail_stand', name: 'Walltail\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 33% less damage for 2 turns and heals 15% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.67, turns: 2 },
+          { type: 'healHpPct', pct: 0.15 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Walltail Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 17% less damage while holding a front hex above 70% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp > 0.7 ? 0.83 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  cat_farwhisker: {
+    id: 'cat_farwhisker',
+    element: 'fire',
+    name: 'Cat Farwhisker',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1538, atk: 206, def: 109, speed: 106 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catfarwhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_farwhisker_shot', name: 'Farwhisker\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 93% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_farwhisker_deadeye', name: 'Farwhisker\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 216% ATK and drains 14% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.16 },
+          { type: 'turnMeter', amount: -0.14 },
+        ],
+      },
+      {
+        id: 'cat_farwhisker_barrage', name: 'Farwhisker\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 142% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.42 },
+          { type: 'turnMeter', amount: -0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farwhisker Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.06, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.06, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  cat_mistpaw: {
+    id: 'cat_mistpaw',
+    element: 'wind',
+    name: 'Cat Mistpaw',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1550, atk: 212, def: 113, speed: 109 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catmistpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_mistpaw_touch', name: 'Mistpaw\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 94% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_mistpaw_blessing', name: 'Mistpaw\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 19% of max HP plus 2.9% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.19 },
+          { type: 'hot', pct: 0.029, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_mistpaw_renewal', name: 'Mistpaw\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 52% of ATK, are cleansed, and gain +5% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.52 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistpaw Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.07, resistanceAdd: 0.12 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  cat_nullwhisker: {
+    id: 'cat_nullwhisker',
+    element: 'dark',
+    name: 'Cat Nullwhisker',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1562, atk: 218, def: 117, speed: 112 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catnullwhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_nullwhisker_grasp', name: 'Nullwhisker\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 95% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_nullwhisker_devour', name: 'Nullwhisker\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 198% ATK, healing this hero for 40% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.98 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.4 },
+        ],
+      },
+      {
+        id: 'cat_nullwhisker_oblivion', name: 'Nullwhisker\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 269% ATK and the target takes +23% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.69 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.23, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullwhisker Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 2.7% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.027));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  cat_glorypaw: {
+    id: 'cat_glorypaw',
+    element: 'light',
+    name: 'Cat Glorypaw',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1574, atk: 224, def: 121, speed: 115 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catglorypawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_glorypaw_radiance', name: 'Glorypaw\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 96% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'cat_glorypaw_benediction', name: 'Glorypaw\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 21% of max HP and grants 15% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.21 },
+          { type: 'turnMeter', amount: 0.15 },
+        ],
+      },
+      {
+        id: 'cat_glorypaw_ascension', name: 'Glorypaw\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 58% of ATK and gain +8% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.58 },
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glorypaw Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 0.3% of this hero\\u0027s max HP and gain a small speed blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.003));
+            a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.04, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  drake_warscale: {
+    id: 'drake_warscale',
+    element: 'wind',
+    name: 'Drake Warscale',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1518, atk: 228, def: 126, speed: 116 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakewarscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_warscale_strike', name: 'Warscale\'s Strike',
+        icon: 'assets/icons/fc730.png',
+        description: 'Two champion blows: 97% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'drake_warscale_onslaught', name: 'Warscale\'s Onslaught',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Press the advantage: 210% ATK, then +15% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.1 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_warscale_supremacy', name: 'Warscale\'s Supremacy',
+        icon: 'assets/icons/fc767.png',
+        description: 'Settle it: 261% ATK and -9% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.61 },
+          { type: 'debuff', stat: 'def', mult: 0.91, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Warscale Supremacy',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 6% more and takes 6% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.06; },
+        damageTakenMult() { return 0.94; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  drake_runewing: {
+    id: 'drake_runewing',
+    element: 'water',
+    name: 'Drake Runewing',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1530, atk: 198, def: 104, speed: 102 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakerunewingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_runewing_bolt', name: 'Runewing\'s Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Twin arcane bolts: 98% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'drake_runewing_torrent', name: 'Runewing\'s Torrent',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A torrent of power: 151% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.51 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_runewing_cataclysm', name: 'Runewing\'s Cataclysm',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The big one: 166% ATK to ALL enemies and -9% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.67 },
+          { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runewing Resonance',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\\u0027s DEF.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.025));
+          for (const e of enemies) e.takeDamage(amount);
+          return null; // silent — small rolling resonance
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  drake_wallscale: {
+    id: 'drake_wallscale',
+    element: 'fire',
+    name: 'Drake Wallscale',
+    title: 'Champion of the Fire',
+    rarity: 4,
+    stats: { hp: 1542, atk: 204, def: 108, speed: 105 },
+    tint: { body: '#8a3a2a', helm: '#b85a3a', weapon: '#f8a03a', skin: '#c8a088' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakewallscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_wallscale_bash', name: 'Wallscale\'s Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield strikes: 99% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'drake_wallscale_bulwark', name: 'Wallscale\'s Bulwark',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the line: ALL allies gain +17% DEF for 2 turns and take 5% less damage for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.17, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'drake_wallscale_stand', name: 'Wallscale\'s Stand',
+        icon: 'assets/icons/fc856.png',
+        description: 'Refuse to fall: takes 34% less damage for 2 turns and heals 16% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.66, turns: 2 },
+          { type: 'healHpPct', pct: 0.16 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallscale Aegis',
+      icon: 'assets/icons/fc868.png',
+      description: 'Takes 10% less damage while holding the center hex.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.9 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  drake_farwing: {
+    id: 'drake_farwing',
+    element: 'wind',
+    name: 'Drake Farwing',
+    title: 'Champion of the Wind',
+    rarity: 4,
+    stats: { hp: 1554, atk: 210, def: 112, speed: 108 },
+    tint: { body: '#4a7a5a', helm: '#6a9a7a', weapon: '#b8e8a8', skin: '#b8c8b0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakefarwingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_farwing_shot', name: 'Farwing\'s Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'Two placed shots: 100% then 49% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'damage', mult: 0.49 },
+        ],
+      },
+      {
+        id: 'drake_farwing_deadeye', name: 'Farwing\'s Deadeye',
+        icon: 'assets/icons/fc1516.png',
+        description: 'The perfect line: 223% ATK and drains 15% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.23 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+      {
+        id: 'drake_farwing_barrage', name: 'Farwing\'s Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Fill the sky: 149% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.49 },
+          { type: 'turnMeter', amount: -0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Farwing Focus',
+      icon: 'assets/icons/fc862.png',
+      description: 'The shot is already lined up (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.11, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.03, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  drake_mistflame: {
+    id: 'drake_mistflame',
+    element: 'water',
+    name: 'Drake Mistflame',
+    title: 'Champion of the Water',
+    rarity: 4,
+    stats: { hp: 1566, atk: 216, def: 116, speed: 111 },
+    tint: { body: '#3a5a8a', helm: '#5a7aaa', weapon: '#8ac8e8', skin: '#b8c0c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakemistflameidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_mistflame_touch', name: 'Mistflame\'s Touch',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Two chastening touches: 71% then 21% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.21 },
+        ],
+      },
+      {
+        id: 'drake_mistflame_blessing', name: 'Mistflame\'s Blessing',
+        icon: 'assets/icons/fc800.png',
+        description: 'Mend an ally: 20% of max HP plus 3.1% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.2 },
+          { type: 'hot', pct: 0.031, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_mistflame_renewal', name: 'Mistflame\'s Renewal',
+        icon: 'assets/icons/fc869.png',
+        description: 'The circle holds: ALL allies heal 54% of ATK, are cleansed, and gain +6% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.54 },
+          { type: 'cleanse' },
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mistflame Communion',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Healing woven a little stronger.',
+      hooks: { healBoostAdd: 0.31 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
+  drake_nullflame: {
+    id: 'drake_nullflame',
+    element: 'dark',
+    name: 'Drake Nullflame',
+    title: 'Champion of the Dark',
+    rarity: 4,
+    stats: { hp: 1578, atk: 222, def: 120, speed: 114 },
+    tint: { body: '#241f33', helm: '#3d3350', weapon: '#9a7ad0', skin: '#8a82a0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakenullflameidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_nullflame_grasp', name: 'Nullflame\'s Grasp',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two grasping shadows: 72% then 21% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.21 },
+        ],
+      },
+      {
+        id: 'drake_nullflame_devour', name: 'Nullflame\'s Devour',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed the void: 205% ATK, healing this hero for 42% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.05 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.42 },
+        ],
+      },
+      {
+        id: 'drake_nullflame_oblivion', name: 'Nullflame\'s Oblivion',
+        icon: 'assets/icons/fc734.png',
+        description: 'Unmake them: 276% ATK and the target takes +24% damage for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.76 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.24, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nullflame Thirst',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, drains 1.1% of max HP from the weakest enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          enemies.sort((a, b) => a.hp - b.hp);
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.011));
+          enemies[0].takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling thirst
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
+    },
+  },
+
+  drake_gloryflame: {
+    id: 'drake_gloryflame',
+    element: 'light',
+    name: 'Drake Gloryflame',
+    title: 'Champion of the Dawn',
+    rarity: 4,
+    stats: { hp: 1590, atk: 228, def: 124, speed: 100 },
+    tint: { body: '#e0d3a8', helm: '#f5e9c0', weapon: '#ffdf70', skin: '#f0e4c8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakegloryflameidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_gloryflame_radiance', name: 'Gloryflame\'s Radiance',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two radiant strikes: 73% then 21% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.21 },
+        ],
+      },
+      {
+        id: 'drake_gloryflame_benediction', name: 'Gloryflame\'s Benediction',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Bless an ally: heals 22% of max HP and grants 16% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.22 },
+          { type: 'turnMeter', amount: 0.16 },
+        ],
+      },
+      {
+        id: 'drake_gloryflame_ascension', name: 'Gloryflame\'s Ascension',
+        icon: 'assets/icons/fc855.png',
+        description: 'Lift the whole line: ALL allies heal 60% of ATK and gain +5% ATK for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.6 },
+          { type: 'buff', stat: 'atk', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gloryflame Benevolence',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 1.3% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) {
+            a.heal(Math.round(unit.maxHp * 0.013));
+            a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.04, turns: 1 });
+          }
+          return null; // silent — small rolling benevolence
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',
