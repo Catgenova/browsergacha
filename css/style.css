@@ -19,6 +19,13 @@ body {
 #game-root {
   position: relative;
   width: 960px;
+  /* The body is a flex container, so without this a narrow window would
+     compress the layout itself (squeezing flexible panels like the hero
+     details aside into a sliver) on top of the fit-to-screen scaling.
+     Keep the layout at its design width; scaling alone handles small
+     windows. */
+  flex-shrink: 0;
+  min-width: 960px;
   /* Anchor scaling to the top so tall pages (big rosters) grow downward
      and scroll, instead of shrinking into a centered sliver. */
   transform-origin: top center;
