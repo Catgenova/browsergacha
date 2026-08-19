@@ -243,14 +243,26 @@ class Unit {
 
   // ---- Health ------------------------------------------------------------
 
-  // Returns the damage actually dealt (mirrors can halve the hit).
-  takeDamage(amount) {
-    // Crystal mirrors: every hit is halved and shatters one mirror.
+  // Returns the damage actually dealt. `attacker` (when known) is who
+  // dealt it — crystal mirrors reflect a cut of the hit back at them.
+  takeDamage(amount, attacker = null) {
+    // Crystal mirrors: every hit shatters one mirror, which reflects 25%
+    // of the damage back at the attacker. The reflected hit is dealt
+    // without an attacker, so mirrors can never chain off each other.
     if (this.mirrors > 0 && amount > 0) {
-      amount = Math.max(1, Math.round(amount / 2));
       this.addMirrors(-1);
       if (typeof Battle !== 'undefined' && Battle.active) {
         Battle.active.addFloatingText(this, '◆ SHATTER', '#8ee8ff');
+      }
+      if (attacker && attacker !== this && attacker.alive) {
+        const back = Math.max(1, Math.round(amount * 0.25));
+        attacker.takeDamage(back);
+        if (typeof Battle !== 'undefined' && Battle.active) {
+          Battle.active.addFloatingText(attacker, `-${back}`, '#8ee8ff');
+          Battle.active.log(
+            `${this.name}'s mirror shatters — ${back} damage reflects back at ${attacker.name}!` +
+            (attacker.alive ? '' : ` ${attacker.name} is defeated!`), 'log-system');
+        }
       }
     }
     this.hp = Math.max(0, this.hp - amount);
