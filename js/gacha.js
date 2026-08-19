@@ -4,7 +4,8 @@
 //   - Rare Summon Scroll:     3★ 80% / 4★ 18% / 5★ 2%
 //   - Temporal Summon Scroll: 1★ 30% / 2★ 30% / 3★ 25% / 4★ 12% / 5★ 3%
 // Common/Rare scrolls summon Wind/Water/Fire heroes; Dark and Light
-// heroes come ONLY from Temporal Scrolls (1% drop from boss stage 15+).
+// heroes come ONLY from Temporal Scrolls (1% drop from normal hunts and
+// from boss stage 15+, plus every 50th tower floor).
 // One scroll per summon. Pity: a 5★ is guaranteed within PITY_LIMIT
 // rare-scroll pulls (once a 5★ hero exists in the pool).
 

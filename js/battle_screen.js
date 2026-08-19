@@ -287,6 +287,12 @@ class BattleScreen {
             GameState.addScrolls('rare', 1);
             sub.push('A RARE Summon Scroll drops! ✨');
           }
+          // Normal hunts can also shed a Temporal Scroll (1%); bosses
+          // keep their own stage-15+ roll below.
+          if (!this.bossFight && Math.random() < 0.01) {
+            GameState.addScrolls('temporal', 1);
+            sub.push('A TEMPORAL Scroll shimmers into being! 🌀');
+          }
         }
         if (this.towerFight) {
           const floor = this.towerFight.floor;
