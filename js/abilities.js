@@ -239,6 +239,23 @@ const Abilities = (() => {
       const res = applyEffect(effect, caster, caster, power);
       if (res) results.push(res);
     }
+    // Cat set: any damaged target can lose 20% of its turn meter.
+    const drainChance = caster.apDrainChance ? caster.apDrainChance() : 0;
+    if (drainChance > 0) {
+      const damaged = new Set();
+      for (const res of results) {
+        if (res.kind === 'damage' && res.amount > 0 && !res.dodged &&
+            !res.reflected && res.target.alive) {
+          damaged.add(res.target);
+        }
+      }
+      for (const victim of damaged) {
+        if (Math.random() < drainChance) {
+          victim.turnMeter = Math.max(0, victim.turnMeter - CONFIG.TURN_METER_MAX * 0.20);
+          results.push({ kind: 'meter', target: victim, amount: -0.20 });
+        }
+      }
+    }
     // Wolf set: single-target damaging attacks can stun the victim.
     const stunChance = caster.stunChance ? caster.stunChance() : 0;
     if (stunChance > 0 && ability.targeting === 'enemy' &&

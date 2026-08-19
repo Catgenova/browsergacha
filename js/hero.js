@@ -35,6 +35,8 @@ class Unit {
     this.gearReflect = stats.reflect || 0;
     this.gearRegen = stats.regen || 0;
     this.gearHealBoost = stats.healBoost || 0;
+    this.gearApDrain = stats.apDrain || 0;
+    this.gearApGain = stats.apGain || 0;
     this.gearAccuracy = stats.accuracy || 0;
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
@@ -175,6 +177,16 @@ class Unit {
       if (p.hooks && p.hooks.stunAdd) s += p.hooks.stunAdd;
     }
     return Math.min(0.6, s);
+  }
+
+  // Chance to drain 20% of a damaged target's turn meter (Cat set +
+  // apDrainAdd passive hooks).
+  apDrainChance() {
+    let a = this.gearApDrain;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.apDrainAdd) a += p.hooks.apDrainAdd;
+    }
+    return Math.min(0.6, a);
   }
 
   // Outgoing-healing amplifier (Bear set 6pc + healBoostAdd hooks):

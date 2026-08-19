@@ -89,6 +89,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc1848.png',
       amulet: 'assets/icons/fc2180.png',
     },
+    cat: {
+      weapon: 'assets/icons/fc1603.png',
+      gloves: 'assets/icons/fc1492.png',
+      chest: 'assets/icons/fc1924.png',
+      boots: 'assets/icons/fc1936.png',
+      ring: 'assets/icons/fc1849.png',
+      amulet: 'assets/icons/fc2182.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -172,6 +180,15 @@ const Gear = (() => {
         { pieces: 4, stat: 'hpPct', add: 0.40, label: '4pc: +40% HP' },
         { pieces: 6, stat: 'regen', add: 0.10, label: '6pc: restores 10% max HP each turn' },
         { pieces: 6, stat: 'healBoost', add: 0.20, label: '6pc: +20% Healing' },
+      ],
+    },
+    cat: {
+      id: 'cat',
+      name: 'Cat',
+      bonuses: [
+        { pieces: 2, stat: 'apDrain', add: 0.10, label: '2pc: +10% chance to drain 20% AP on attack' },
+        { pieces: 4, stat: 'apDrain', add: 0.15, label: '4pc: +15% chance to drain 20% AP on attack' },
+        { pieces: 6, stat: 'apGain', add: 0.05, label: '6pc: gains 5% AP on every character turn' },
       ],
     },
   };
@@ -349,7 +366,7 @@ const Gear = (() => {
       hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
       critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
       accuracy: 0, resistance: 0, dotBoost: 0, stun: 0, cdr: 0, reflect: 0,
-      regen: 0, healBoost: 0,
+      regen: 0, healBoost: 0, apDrain: 0, apGain: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -392,6 +409,8 @@ const Gear = (() => {
       reflect: mods.reflect,
       regen: mods.regen,
       healBoost: mods.healBoost,
+      apDrain: mods.apDrain,
+      apGain: mods.apGain,
     };
   }
 
