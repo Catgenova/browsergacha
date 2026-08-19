@@ -20,6 +20,14 @@ class TeamScreen {
     this.rosterSort = document.getElementById('roster-sort');
     this.rosterSearch.addEventListener('input', () => this.buildRoster());
     this.rosterSort.addEventListener('change', () => this.buildRoster());
+    // "Hide maxed" declutters heroes already at their level cap. The
+    // preference sticks across sessions (display-only, not part of the save).
+    this.hideMaxed = document.getElementById('hide-maxed');
+    try { this.hideMaxed.checked = localStorage.getItem('bg_hideMaxed') === '1'; } catch (e) {}
+    this.hideMaxed.addEventListener('change', () => {
+      try { localStorage.setItem('bg_hideMaxed', this.hideMaxed.checked ? '1' : '0'); } catch (e) {}
+      this.buildRoster();
+    });
     this.detailsEl = document.getElementById('hero-details');
     this.fightBtn = document.getElementById('fight-btn');
     this.clearBtn = document.getElementById('clear-team-btn');
@@ -235,6 +243,13 @@ class TeamScreen {
         const h = HEROES[id];
         return h.name.toLowerCase().includes(query) ||
           (h.element || '').toLowerCase().includes(query);
+      })
+      // "Hide maxed": drop heroes at their level cap (the cards tagged
+      // MAX). Team members stay visible so placements are never hidden.
+      .filter((id) => {
+        if (!this.hideMaxed.checked || inTeam.has(id)) return true;
+        const pr = p(id);
+        return pr.level < Progression.maxLevel(pr.stars);
       })
       .sort(SORTS[this.rosterSort.value] || SORTS.level);
 
