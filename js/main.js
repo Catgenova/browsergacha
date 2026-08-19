@@ -36,13 +36,20 @@ const App = {
   fitToScreen() {
     const root = document.getElementById('game-root');
     root.style.transform = 'none';
-    const h = root.offsetHeight;
-    const k = Math.max(0.4, Math.min(
+    // Fit the WIDTH and the core play area's height only. Long content
+    // (the roster grid, summon results) scrolls instead of shrinking the
+    // whole game — a 400-hero roster must never zoom the UI out.
+    const CORE_H = 980; // topbar + canvas + controls; lists overflow below
+    const h = Math.min(root.offsetHeight, CORE_H);
+    const k = Math.max(0.5, Math.min(
       (window.innerWidth - 24) / root.offsetWidth,
       (window.innerHeight - 24) / h,
       2.5 // sanity cap for huge monitors
     ));
     root.style.transform = `scale(${k})`;
+    // Scaling from the top-left leaves the layout box at its unscaled
+    // size; trim the leftover so the page scroll matches what's visible.
+    root.style.marginBottom = `${Math.round(root.offsetHeight * (k - 1))}px`;
 
     // Match canvas backing resolution to what's actually on screen, so
     // sprites are resampled once (source -> device pixels), not twice.

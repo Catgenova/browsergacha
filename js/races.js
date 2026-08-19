@@ -80,6 +80,39 @@ const RACES = (() => {
     ],
   };
 
+  // Element synergy: fielding 3/5/7 heroes of one ELEMENT also grants
+  // stacking bonuses, themed to the element's identity.
+  const ELEMENT_NAMES = {
+    water: 'Water', fire: 'Fire', wind: 'Wind', dark: 'Dark', light: 'Light',
+  };
+  const ELEMENT_BONUSES = {
+    water: [
+      { count: 3, mods: { healBoost: 0.08 }, label: '3: +8% Healing' },
+      { count: 5, mods: { healBoost: 0.08 }, label: '5: +8% more Healing' },
+      { count: 7, mods: { regen: 0.02 }, label: '7: restores 2% max HP each turn' },
+    ],
+    fire: [
+      { count: 3, mods: { atkPct: 0.04 }, label: '3: +4% ATK' },
+      { count: 5, mods: { atkPct: 0.04 }, label: '5: +4% more ATK' },
+      { count: 7, mods: { critDamage: 0.15 }, label: '7: +15% Crit Damage' },
+    ],
+    wind: [
+      { count: 3, mods: { spdPct: 0.04 }, label: '3: +4% SPD' },
+      { count: 5, mods: { spdPct: 0.04 }, label: '5: +4% more SPD' },
+      { count: 7, mods: { dodge: 0.05 }, label: '7: +5% Dodge' },
+    ],
+    dark: [
+      { count: 3, mods: { critChance: 0.05 }, label: '3: +5% Crit Chance' },
+      { count: 5, mods: { critChance: 0.05 }, label: '5: +5% more Crit Chance' },
+      { count: 7, mods: { atkPct: 0.08 }, label: '7: +8% ATK' },
+    ],
+    light: [
+      { count: 3, mods: { resistance: 0.06 }, label: '3: +6% Resistance' },
+      { count: 5, mods: { resistance: 0.06 }, label: '5: +6% more Resistance' },
+      { count: 7, mods: { takenMult: 0.96 }, label: '7: takes 4% less damage' },
+    ],
+  };
+
   // Race headcount for a list of hero defs (or units).
   function counts(defs) {
     const tally = {};
@@ -88,6 +121,20 @@ const RACES = (() => {
       if (r) tally[r] = (tally[r] || 0) + 1;
     }
     return tally;
+  }
+
+  // Element headcount for a list of hero defs (or units).
+  function elementCounts(defs) {
+    const tally = {};
+    for (const d of defs) {
+      const el = (d.def || d).element;
+      if (el) tally[el] = (tally[el] || 0) + 1;
+    }
+    return tally;
+  }
+
+  function activeElementTiers(element, count) {
+    return (ELEMENT_BONUSES[element] || []).filter((t) => count >= t.count);
   }
 
   // The tiers a given headcount unlocks for one race.
@@ -113,13 +160,19 @@ const RACES = (() => {
     if (mods.apGain) unit.gearApGain += mods.apGain;
     if (mods.accuracy) unit.gearAccuracy += mods.accuracy;
     if (mods.dotBoost) unit.gearDotBoost += mods.dotBoost;
+    if (mods.healBoost) unit.gearHealBoost += mods.healBoost;
+    if (mods.resistance) unit.gearResistance += mods.resistance;
+    if (mods.critChance) unit.baseCritChance += mods.critChance;
+    if (mods.critDamage) unit.baseCritDamage += mods.critDamage;
+    if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
   }
 
-  // Apply party synergy to a built player team. Returns a summary of
-  // active bonuses for the battle log: [{ race, count, labels: [...] }].
+  // Apply party synergy (race packs AND element resonance) to a built
+  // player team. Returns a battle-log summary:
+  //   [{ title, count, labels: [...] }].
   function applyParty(units) {
-    const tally = counts(units);
     const active = [];
+    const tally = counts(units);
     for (const [race, count] of Object.entries(tally)) {
       const tiers = activeTiers(race, count);
       if (tiers.length === 0) continue;
@@ -127,10 +180,26 @@ const RACES = (() => {
         if (of(unit.def) !== race) continue;
         for (const tier of tiers) applyModsToUnit(unit, tier.mods);
       }
-      active.push({ race, count, labels: tiers.map((t) => t.label) });
+      active.push({ title: `${NAMES[race]} pack`, count,
+        labels: tiers.map((t) => t.label) });
+    }
+    const elTally = elementCounts(units);
+    for (const [el, count] of Object.entries(elTally)) {
+      const tiers = activeElementTiers(el, count);
+      if (tiers.length === 0) continue;
+      for (const unit of units) {
+        if (unit.def.element !== el) continue;
+        for (const tier of tiers) applyModsToUnit(unit, tier.mods);
+      }
+      active.push({ title: `${ELEMENT_NAMES[el]} resonance`, count,
+        labels: tiers.map((t) => t.label) });
     }
     return active;
   }
 
-  return { of, NAMES, BONUSES, counts, activeTiers, applyParty };
+  return {
+    of, NAMES, BONUSES, counts, activeTiers,
+    ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
+    applyParty,
+  };
 })();

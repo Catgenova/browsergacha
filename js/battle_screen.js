@@ -339,9 +339,7 @@ class BattleScreen {
 
     if (this.introLog) battle.log(this.introLog, 'log-system');
     for (const b of this.raceBonuses || []) {
-      battle.log(
-        `${RACES.NAMES[b.race]} pack ×${b.count}: ${b.labels.join(' · ')}`,
-        'log-system');
+      battle.log(`${b.title} ×${b.count}: ${b.labels.join(' · ')}`, 'log-system');
     }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
   }
