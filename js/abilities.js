@@ -115,8 +115,13 @@ const Abilities = (() => {
         }
         const amount = Math.round(caster.effectiveStat('atk') * effect.pct *
           power * (1 + caster.dotBoost()));
-        target.addStatusEffect({ kind: 'dot', amount, turns: effect.turns });
-        return { kind: 'dot', target, amount, turns: effect.turns };
+        // Clinging-flame passives can extend inflicted DoT durations.
+        let dotTurns = effect.turns;
+        for (const p of caster.passives || []) {
+          if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
+        }
+        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns });
+        return { kind: 'dot', target, amount, turns: dotTurns };
       }
       case 'buff':
       case 'debuff': {
