@@ -47,9 +47,13 @@ const App = {
       2.5 // sanity cap for huge monitors
     ));
     root.style.transform = `scale(${k})`;
-    // Scaling from the top-left leaves the layout box at its unscaled
-    // size; trim the leftover so the page scroll matches what's visible.
+    // Scaling leaves the layout box at its unscaled size; trim the
+    // leftover so page scroll matches what's visible. Height scales from
+    // the top (one margin); width from the center (split both sides).
     root.style.marginBottom = `${Math.round(root.offsetHeight * (k - 1))}px`;
+    const mx = Math.round(root.offsetWidth * (k - 1) / 2);
+    root.style.marginLeft = `${mx}px`;
+    root.style.marginRight = `${mx}px`;
 
     // Match canvas backing resolution to what's actually on screen, so
     // sprites are resampled once (source -> device pixels), not twice.
