@@ -30,6 +30,8 @@ class Unit {
     this.baseCritDamage = stats.critDamage ?? 1.5;  // crits deal 150%
     this.gearDodge = stats.dodge || 0;
     this.gearExtraTurn = stats.extraTurn || 0;
+    this.gearStun = stats.stun || 0;
+    this.gearCdr = stats.cdr || 0;
     this.gearAccuracy = stats.accuracy || 0;
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
@@ -160,6 +162,16 @@ class Unit {
       if (p.hooks && p.hooks.dotBoostAdd) d += p.hooks.dotBoostAdd;
     }
     return d;
+  }
+
+  // Chance to stun the target of a single-target attack (Wolf set +
+  // stunAdd passive hooks). Stuns are resisted like any debuff.
+  stunChance() {
+    let s = this.gearStun;
+    for (const p of this.passives) {
+      if (p.hooks && p.hooks.stunAdd) s += p.hooks.stunAdd;
+    }
+    return Math.min(0.6, s);
   }
 
   // Chance to immediately take another turn after acting.
@@ -296,7 +308,9 @@ class Unit {
   }
 
   useAbility(abilityState) {
-    abilityState.cooldownRemaining = abilityState.def.cooldown;
+    // Cooldown reduction (Wolf set 6pc) shortens every real cooldown.
+    const cd = abilityState.def.cooldown;
+    abilityState.cooldownRemaining = cd > 0 ? Math.max(0, cd - this.gearCdr) : 0;
     this.turnMeter = 0;
   }
 }

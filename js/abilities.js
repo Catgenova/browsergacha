@@ -123,6 +123,19 @@ const Abilities = (() => {
         target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns });
         return { kind: 'dot', target, amount, turns: dotTurns };
       }
+      case 'stun': {
+        // Stun: the target skips its next turn(s). `chance` gates the
+        // roll (default always), then resistance applies like a debuff.
+        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+          return null; // the stun simply doesn't trigger — no log noise
+        }
+        if (!debuffLands(caster, target)) {
+          return { kind: 'debuff', target, stat: 'stun', resisted: true };
+        }
+        const turns = effect.turns || 1;
+        target.addStatusEffect({ kind: 'debuff', stat: 'stun', turns });
+        return { kind: 'stun', target, turns };
+      }
       case 'buff':
       case 'debuff': {
         // Debuffs can be resisted (accuracy vs resistance); buffs always
@@ -211,6 +224,20 @@ const Abilities = (() => {
     for (const effect of ability.selfEffects || []) {
       const res = applyEffect(effect, caster, caster, power);
       if (res) results.push(res);
+    }
+    // Wolf set: single-target damaging attacks can stun the victim.
+    const stunChance = caster.stunChance ? caster.stunChance() : 0;
+    if (stunChance > 0 && ability.targeting === 'enemy' &&
+        ability.effects.some((e) => e.type === 'damage') &&
+        chosenTarget && chosenTarget.alive &&
+        !chosenTarget.statusEffects.some((fx) => fx.stat === 'stun') &&
+        Math.random() < stunChance) {
+      if (debuffLands(caster, chosenTarget)) {
+        chosenTarget.addStatusEffect({ kind: 'debuff', stat: 'stun', turns: 1 });
+        results.push({ kind: 'stun', target: chosenTarget, turns: 1 });
+      } else {
+        results.push({ kind: 'debuff', target: chosenTarget, stat: 'stun', resisted: true });
+      }
     }
     return results;
   }

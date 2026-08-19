@@ -418,4 +418,90 @@ const BOSSES = {
     ],
     positional: null,
   },
+  winter_alpha: {
+    id: 'boss_winter_alpha',
+    element: 'water',
+    gearSet: 'wolf',
+    name: 'Winter Alpha',
+    title: 'Sovereign of the Snowfield',
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_snowfield.png',
+    stats: { hp: 15000, atk: 490, def: 310, speed: 142 }, // lv5 reference
+    // Exact anchors: stage 1 (Lv 5) and stage 20 (Lv 100), interpolated.
+    stats5: { hp: 15000, atk: 490, def: 310, speed: 142 },
+    stats100: { hp: 105000, atk: 12000, def: 2100, speed: 142 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/bosses/winteralphaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'winterfang', name: 'Winterfang',
+        icon: 'assets/icons/fc734.png',
+        description: 'Single out a hero: 140% ATK with a 30% chance to ' +
+          'STUN for 1 turn (resistible).',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'stun', chance: 0.3, turns: 1 },
+        ],
+      },
+      {
+        id: 'blizzard_howl', name: 'Blizzard Howl',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A killing wind: 85% ATK to ALL heroes and a deep ' +
+          'chill: -20% SPD for 2 turns (resistible).',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'debuff', stat: 'speed', mult: 0.8, turns: 2 },
+        ],
+      },
+      {
+        id: 'avalanche_pounce', name: 'Avalanche Pounce',
+        icon: 'assets/icons/fc767.png',
+        description: 'Crash down on the front line for 150% ATK — heroes ' +
+          'frozen stiff (stunned) are crushed for DOUBLE damage.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5, bonusVs: { stat: 'stun', mult: 2 } },
+        ],
+      },
+    ],
+    // Bosses carry three unique passives (and no positional bonuses).
+    passives: [
+      {
+        name: 'Alpha Predator',
+        icon: 'assets/icons/fc863.png',
+        description: 'Deals 30% extra damage to slowed or stunned heroes.',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.statusEffects.some((fx) =>
+              fx.kind === 'debuff' && (fx.stat === 'speed' || fx.stat === 'stun'))
+              ? 1.3 : 1;
+          },
+        },
+      },
+      {
+        name: 'Winter Coat',
+        icon: 'assets/icons/fc856.png',
+        description: 'Takes 30% less damage while above half HP.',
+        hooks: {
+          damageTakenMult(unit) {
+            return unit.hp / unit.maxHp > 0.5 ? 0.7 : 1;
+          },
+        },
+      },
+      {
+        name: 'Endless Hunt',
+        icon: 'assets/icons/fc882.png',
+        description: '15% chance to take another turn after acting.',
+        hooks: { extraTurnAdd: 0.15 },
+      },
+    ],
+    positional: null,
+  },
 };
