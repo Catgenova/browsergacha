@@ -9408,6 +9408,1612 @@ const HEROES = {
     },
   },
 
+  // ---- Bear cohort (the Valley) -------------------------------------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional flat paths (assets/heroes/bear<role>idle.png).
+
+  bear_cub: {
+    id: 'bear_cub',
+    element: 'wind',
+    name: 'Bear Cub',
+    title: 'Small Now, Notably Temporary',
+    rarity: 1,
+    stats: { hp: 950, atk: 98, def: 70, speed: 92 },
+    tint: { body: '#a8845a', helm: '#c8a87a', weapon: '#c8c0b0', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearcubidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'clumsy_swipe', name: 'Clumsy Swipe',
+        icon: 'assets/icons/fc663.png',
+        description: 'An overeager swipe: 95% ATK, tumbling into +6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'surprise_tackle', name: 'Surprise Tackle',
+        icon: 'assets/icons/fc762.png',
+        description: 'Heavier than he looks: 128% ATK and drains 6% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'call_for_mother', name: 'Call for Mother',
+        icon: 'assets/icons/fc868.png',
+        description: 'A cry that promises consequences: an ally gains +15% ATK for 2 turns and 10% turn meter.',
+        cooldown: 6, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Growing Boy',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, mends 1% max HP and gains +3% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.heal(Math.round(unit.maxHp * 0.01));
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.03, turns: 1 });
+          return null; // silent — small rolling growth
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.12,
+      description: 'Behind Mother: +12% max HP while in a back hex.',
+    },
+  },
+
+  bear_fisher: {
+    id: 'bear_fisher',
+    element: 'water',
+    name: 'Bear Fisher',
+    title: 'Standing in the River, Winning',
+    rarity: 1,
+    stats: { hp: 1020, atk: 100, def: 72, speed: 90 },
+    tint: { body: '#6a5a4a', helm: '#8a7a5a', weapon: '#a8d8e8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearfisheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'paw_scoop', name: 'Paw Scoop',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A practiced scoop: 96% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+        ],
+      },
+      {
+        id: 'salmon_slap', name: 'Salmon Slap',
+        icon: 'assets/icons/fc981.png',
+        description: 'Assault with a fresh salmon: 125% ATK and -5% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'critChance', add: -0.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'bounty_of_the_river', name: 'Bounty of the River',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Share the catch: ALL allies heal 65% of ATK.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.65 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'River Patience',
+      icon: 'assets/icons/fc856.png',
+      description: 'Well fed: regenerates 3% max HP at turn start while above half HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp <= 0.5 || unit.hp >= unit.maxHp) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+          if (healed <= 0) return null;
+          return {
+            label: 'River Patience',
+            message: `${unit.name} digests: +${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
+      description: 'Fishing Hole: +12% max HP while in the center hex.',
+    },
+  },
+
+  bear_honeypaw: {
+    id: 'bear_honeypaw',
+    element: 'fire',
+    name: 'Bear Honeypaw',
+    title: 'Sticky and Unashamed',
+    rarity: 1,
+    stats: { hp: 980, atk: 96, def: 74, speed: 91 },
+    tint: { body: '#c8a83a', helm: '#e8c85a', weapon: '#e8d8a8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearhoneypawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'sticky_swat', name: 'Sticky Swat',
+        icon: 'assets/icons/fc663.png',
+        description: 'A honey-heavy swat: 92% ATK and -4% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'honey_share', name: 'Honey Share',
+        icon: 'assets/icons/fc1112.png',
+        description: 'A dollop for a friend: heals an ally 140% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.4 },
+        ],
+      },
+      {
+        id: 'hive_toss', name: 'Hive Toss',
+        icon: 'assets/icons/fc807.png',
+        description: 'Throw the whole hive: 60% ATK to ALL enemies plus a 9% ATK sting for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.6 },
+          { type: 'dot', pct: 0.09, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Honey Reserves',
+      icon: 'assets/icons/fc1003.png',
+      description: 'His healing is 15% stronger.',
+      hooks: { healBoostAdd: 0.15 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Honey Stash: +12% DEF while in the center hex.',
+    },
+  },
+
+  bear_forestwalker: {
+    id: 'bear_forestwalker',
+    element: 'wind',
+    name: 'Bear Forestwalker',
+    title: 'The Trees Report to Him',
+    rarity: 1,
+    stats: { hp: 990, atk: 102, def: 73, speed: 95 },
+    tint: { body: '#5a7a4a', helm: '#7a9a5a', weapon: '#a8c86a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearforestwalkeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'branch_swat', name: 'Branch Swat',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A tree-limb swat for 106% ATK, braced by the trunk: +4% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.06 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.04, turns: 1 },
+        ],
+      },
+      {
+        id: 'canopy_drop', name: 'Canopy Drop',
+        icon: 'assets/icons/fc825.png',
+        description: 'Fall out of a tree on purpose: 8% of his max HP as crushing damage.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageHpPct', pct: 0.08 },
+        ],
+      },
+      {
+        id: 'rooted_calm', name: 'Rooted Calm',
+        icon: 'assets/icons/fc854.png',
+        description: 'Stand like the forest: +20% DEF for 2 turns and heals 12% max HP.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.2, turns: 2 },
+          { type: 'healHpPct', pct: 0.12 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Forest Stride',
+      icon: 'assets/icons/fc882.png',
+      description: '+8% chance to dodge attacks.',
+      hooks: { dodgeAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
+      description: 'Old Growth: +12% max HP while in a front hex.',
+    },
+  },
+
+  bear_riverguard: {
+    id: 'bear_riverguard',
+    element: 'water',
+    name: 'Bear Riverguard',
+    title: 'Nobody Crosses Unannounced',
+    rarity: 1,
+    stats: { hp: 1050, atk: 99, def: 78, speed: 88 },
+    tint: { body: '#4a6a7a', helm: '#6a8a9a', weapon: '#c8c0b0', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearriverguardidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ford_check', name: 'Ford Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'A blocking shoulder: 100% ATK, holding the line: +6% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'undertow_drag', name: 'Undertow Drag',
+        icon: 'assets/icons/fc862.png',
+        description: 'Drag them into the current: 118% ATK and -10% SPD for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.18 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 1 },
+        ],
+      },
+      {
+        id: 'river_rise', name: 'River Rise',
+        icon: 'assets/icons/fc855.png',
+        description: 'The river answers: ALL allies gain +10% DEF and heal 30% of ATK.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 2 },
+          { type: 'heal', mult: 0.3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'River Stance',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 10% less damage while above 75% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.hp / unit.maxHp > 0.75 ? 0.9 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Ford Post: +12% DEF while in a front hex.',
+    },
+  },
+
+  bear_stonepaw: {
+    id: 'bear_stonepaw',
+    element: 'fire',
+    name: 'Bear Stonepaw',
+    title: 'Punches Geology-Grade',
+    rarity: 1,
+    stats: { hp: 1010, atk: 104, def: 80, speed: 87 },
+    tint: { body: '#7a6a5a', helm: '#9a8a6a', weapon: '#a8a098', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearstonepawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'granite_jab', name: 'Granite Jab',
+        icon: 'assets/icons/fc663.png',
+        description: 'A stone one-two: two hits of 57% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.57 },
+          { type: 'damage', mult: 0.57 },
+        ],
+      },
+      {
+        id: 'boulder_break', name: 'Boulder Break',
+        icon: 'assets/icons/fc762.png',
+        description: 'A blow that cracks stone: 146% ATK and -8% DEF for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.46 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 1 },
+        ],
+      },
+      {
+        id: 'landslide_left', name: 'Landslide Left',
+        icon: 'assets/icons/fc767.png',
+        description: 'The whole hillside swings: 9% of his max HP as damage plus -8% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageHpPct', pct: 0.09 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Stone Fists',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, gains +10% DEF and +5% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Quarry Floor: +12% ATK while in a front hex.',
+    },
+  },
+
+  bear_berrypicker: {
+    id: 'bear_berrypicker',
+    element: 'water',
+    name: 'Bear Berrypicker',
+    title: 'Season One Berry Ahead',
+    rarity: 1,
+    stats: { hp: 960, atk: 97, def: 71, speed: 93 },
+    tint: { body: '#8a5a7a', helm: '#a87a9a', weapon: '#c8a8c8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearberrypickeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bramble_swat', name: 'Bramble Swat',
+        icon: 'assets/icons/fc981.png',
+        description: 'A thorny swat: 94% ATK plus a 6% ATK scratch for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'dot', pct: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'berry_share', name: 'Berry Share',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Handful of the good ones: heals an ally 105% of ATK plus 2.5% of her max HP for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.05 },
+          { type: 'hot', pct: 0.025, turns: 2 },
+        ],
+      },
+      {
+        id: 'winter_stores', name: 'Winter Stores',
+        icon: 'assets/icons/fc800.png',
+        description: 'Open the caches: ALL allies regenerate 3% of her max HP for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'hot', pct: 0.03, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Berry Stash',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, a random ally is slipped berries: heals 2% of her max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team)
+            .filter((u) => u !== unit && u.hp < u.maxHp);
+          if (allies.length === 0) return null;
+          const ally = allies[Math.floor(Math.random() * allies.length)];
+          ally.heal(Math.round(unit.maxHp * 0.02));
+          return null; // silent — small rolling snack
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.12,
+      description: 'Berry Thicket: +12% max HP while in a back hex.',
+    },
+  },
+
+  bear_napper: {
+    id: 'bear_napper',
+    element: 'fire',
+    name: 'Bear Napper',
+    title: 'Do Not Wake',
+    rarity: 1,
+    stats: { hp: 1080, atk: 95, def: 76, speed: 85 },
+    tint: { body: '#8a7a6a', helm: '#a89a8a', weapon: '#c8b898', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearnapperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'groggy_swipe', name: 'Groggy Swipe',
+        icon: 'assets/icons/fc663.png',
+        description: 'A half-asleep swipe that still hurts: 128% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+        ],
+      },
+      {
+        id: 'rude_awakening', name: 'Rude Awakening',
+        icon: 'assets/icons/fc767.png',
+        description: 'You woke him: 158% ATK with a 10% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.58 },
+          { type: 'stun', chance: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'five_more_minutes', name: 'Five More Minutes',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Roll over: heals 18% max HP and takes 15% less damage for 1 turn.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.18 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Deep Sleeper',
+      icon: 'assets/icons/fc856.png',
+      description: 'Naps through the pain: below 30% HP, heals 8% max HP at turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.3) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.08));
+          if (healed <= 0) return null;
+          return {
+            label: 'Deep Sleeper',
+            message: `${unit.name} snores through it: +${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
+      description: 'Nap Spot: +15% max HP while in the center hex.',
+    },
+  },
+
+  bear_growler: {
+    id: 'bear_growler',
+    element: 'wind',
+    name: 'Bear Growler',
+    title: 'Subwoofer with Claws',
+    rarity: 1,
+    stats: { hp: 970, atk: 101, def: 72, speed: 94 },
+    tint: { body: '#5a5a5a', helm: '#7a7a7a', weapon: '#c8c0b0', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beargrowleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'low_growl', name: 'Low Growl',
+        icon: 'assets/icons/fc1003.png',
+        description: 'A chest-deep growl: 89% ATK and -5% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'debuff', stat: 'atk', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'sonic_snarl', name: 'Sonic Snarl',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A snarl you feel in your teeth: 122% ATK and drains 10% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.22 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+      {
+        id: 'valley_echo', name: 'Valley Echo',
+        icon: 'assets/icons/fc807.png',
+        description: 'The valley growls back: 52% ATK to ALL enemies and -4% ATK for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.52 },
+          { type: 'debuff', stat: 'atk', mult: 0.96, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Warning Growl',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, ALL enemies lose 2% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.98, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Growling Ground: +12% DEF while in a front hex.',
+    },
+  },
+
+  bear_shieldpaw: {
+    id: 'bear_shieldpaw',
+    element: 'water',
+    name: 'Bear Shieldpaw',
+    title: 'A Door That Hits Back',
+    rarity: 2,
+    stats: { hp: 1180, atk: 112, def: 96, speed: 86 },
+    tint: { body: '#5a6a7a', helm: '#7a8a9a', weapon: '#c8c0b0', shield: '#8a9ab8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearshieldpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'paw_block_counter', name: 'Paw Block Counter',
+        icon: 'assets/icons/fc854.png',
+        description: 'Catch and return: 98% ATK, guarding: takes 5% less damage until next turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'door_slam', name: 'Door Slam',
+        icon: 'assets/icons/fc1476.png',
+        description: 'Shut the door on them: 134% ATK and -10% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.34 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+      {
+        id: 'den_defense', name: 'Den Defense',
+        icon: 'assets/icons/fc855.png',
+        description: 'Nobody gets past: front-hex allies gain +14% DEF and 2% of his max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'front-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.14, turns: 2 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Shield Paw',
+      icon: 'assets/icons/fc856.png',
+      description: 'At turn start, raises the paw: takes 6% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.94, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
+      description: 'Den Door: +15% max HP while in a front hex.',
+    },
+  },
+
+  bear_salmoncaller: {
+    id: 'bear_salmoncaller',
+    element: 'water',
+    name: 'Bear Salmoncaller',
+    title: 'The Run Comes When She Sings',
+    rarity: 2,
+    stats: { hp: 1060, atk: 118, def: 80, speed: 96 },
+    tint: { body: '#7a8a9a', helm: '#9aaab8', weapon: '#a8d8e8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearsalmoncalleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spawn_surge', name: 'Spawn Surge',
+        icon: 'assets/icons/fc819.png',
+        description: 'A silver surge: 101% ATK and -6% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.01 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'leaping_run', name: 'Leaping Run',
+        icon: 'assets/icons/fc1622.png',
+        description: 'The run arrives all at once: 137% ATK, and the school carries her: +8% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.37 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'great_spawning', name: 'Great Spawning',
+        icon: 'assets/icons/fc1112.png',
+        description: 'The river gives: ALL allies heal 50% of ATK and gain 6% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.5 },
+          { type: 'turnMeter', amount: 0.06 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Salmon Run',
+      icon: 'assets/icons/fc882.png',
+      description: 'Whenever an ally is healed, that ally also gains 3% turn meter.',
+      hooks: {
+        onAllyHealed(unit, healedUnit) {
+          if (healedUnit === unit) return;
+          healedUnit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            healedUnit.turnMeter + CONFIG.TURN_METER_MAX * 0.03);
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.12,
+      description: 'Riverbank: +12% max HP while in a back hex.',
+    },
+  },
+
+  bear_emberpelt: {
+    id: 'bear_emberpelt',
+    element: 'fire',
+    name: 'Bear Emberpelt',
+    title: 'Warm for the Wrong Reasons',
+    rarity: 2,
+    stats: { hp: 1090, atk: 120, def: 84, speed: 93 },
+    tint: { body: '#8a4a2a', helm: '#a86a3a', weapon: '#e8843a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearemberpeltidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'smolder_swipe', name: 'Smolder Swipe',
+        icon: 'assets/icons/fc981.png',
+        description: 'A smoking swipe: 96% ATK plus an 11% ATK burn for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'dot', pct: 0.11, turns: 2 },
+        ],
+      },
+      {
+        id: 'pelt_flare', name: 'Pelt Flare',
+        icon: 'assets/icons/fc1050.png',
+        description: 'The pelt catches: 131% ATK plus an 18% ATK burn for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.31 },
+          { type: 'dot', pct: 0.18, turns: 1 },
+        ],
+      },
+      {
+        id: 'warmth_of_the_burn', name: 'Warmth of the Burn',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Heat shared generously: 62% ATK to ALL enemies while the glow mends him 8% max HP.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.62 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ember Pelt',
+      icon: 'assets/icons/fc1052.png',
+      description: '+15% DoT damage and takes 5% less damage.',
+      hooks: {
+        dotBoostAdd: 0.15,
+        damageTakenMult() { return 0.95; },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
+      description: 'Warm Hollow: +12% max HP while in the center hex.',
+    },
+  },
+
+  bear_nightmaw: {
+    id: 'bear_nightmaw',
+    element: 'dark',
+    name: 'Bear Nightmaw',
+    title: 'The Cave Dreams of Teeth',
+    rarity: 2,
+    stats: { hp: 1100, atk: 126, def: 82, speed: 98 },
+    tint: { body: '#2a2a3a', helm: '#3a3a4a', weapon: '#8a6ab8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearnightmawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'lightless_bite', name: 'Lightless Bite',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A bite from pure dark: 99% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+        ],
+      },
+      {
+        id: 'dream_eater', name: 'Dream Eater',
+        icon: 'assets/icons/fc825.png',
+        description: 'Feed on their resolve: 139% ATK, healing himself for 30% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.39 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.3 },
+        ],
+      },
+      {
+        id: 'cave_dark', name: 'Cave Dark',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The dark closes in: ALL enemies lose 7% crit chance and 3% ATK for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'critChance', add: -0.07, turns: 1 },
+          { type: 'debuff', stat: 'atk', mult: 0.97, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Midnight Appetite',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to enemies carrying no buffs.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && !target.statusEffects.some((fx) => fx.kind === 'buff') ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Cave Mouth Shadow: +12% damage dealt from a back hex.',
+    },
+  },
+
+  bear_timberjack: {
+    id: 'bear_timberjack',
+    element: 'wind',
+    name: 'Bear Timberjack',
+    title: 'Clears His Own Path',
+    rarity: 2,
+    stats: { hp: 1120, atk: 122, def: 86, speed: 92 },
+    tint: { body: '#7a5a3a', helm: '#9a7a4a', weapon: '#c8c0b0', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beartimberjackidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'log_swing', name: 'Log Swing',
+        icon: 'assets/icons/fc1472.png',
+        description: 'Swing the whole log: 127% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.27 },
+        ],
+      },
+      {
+        id: 'timber_fall', name: 'Timber Fall',
+        icon: 'assets/icons/fc767.png',
+        description: 'Drop a trunk across a hex row: 92% ATK and -5% SPD for 1 turn.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'clear_cut', name: 'Clear Cut',
+        icon: 'assets/icons/fc730.png',
+        description: 'Everything comes down: 168% ATK and -12% DEF for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.68 },
+          { type: 'debuff', stat: 'def', mult: 0.88, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lumber Rhythm',
+      icon: 'assets/icons/fc882.png',
+      description: '+7% chance to take an extra turn after acting.',
+      hooks: { extraTurnAdd: 0.07 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Felling Line: +12% ATK while in a front hex.',
+    },
+  },
+
+  bear_denwarden: {
+    id: 'bear_denwarden',
+    element: 'water',
+    name: 'Bear Denwarden',
+    title: 'The Den Outlasts the Winter',
+    rarity: 2,
+    stats: { hp: 1200, atk: 110, def: 94, speed: 87 },
+    tint: { body: '#4a5a6a', helm: '#6a7a8a', weapon: '#a8a0a8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beardenwardenidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warden_swat', name: 'Warden Swat',
+        icon: 'assets/icons/fc1471.png',
+        description: 'An evicting swat: 10% of his max HP as damage.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageHpPct', pct: 0.1 },
+        ],
+      },
+      {
+        id: 'cave_in_hug', name: 'Cave-In Hug',
+        icon: 'assets/icons/fc762.png',
+        description: 'An overwhelming embrace: 124% ATK with a 12% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.24 },
+          { type: 'stun', chance: 0.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'winter_den', name: 'Winter Den',
+        icon: 'assets/icons/fc855.png',
+        description: 'Everyone inside: ALL allies take 8% less damage and regenerate 2% of his max HP for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.92, turns: 2 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Den Warden',
+      icon: 'assets/icons/fc856.png',
+      description: 'At turn start, tends the most wounded ally: +6% DEF for 1 turn and heals 1% of his max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.06, turns: 1 });
+          allies[0].heal(Math.round(unit.maxHp * 0.01));
+          return null; // silent — small rolling care
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.18,
+      description: 'Den Threshold: +18% max HP while in a front hex.',
+    },
+  },
+
+  bear_slugger: {
+    id: 'bear_slugger',
+    element: 'fire',
+    name: 'Bear Slugger',
+    title: 'Undefeated in Tavern Rules',
+    rarity: 2,
+    stats: { hp: 1070, atk: 128, def: 78, speed: 97 },
+    tint: { body: '#8a6a4a', helm: '#a8845a', weapon: '#c8a878', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearsluggeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'haymaker_paw', name: 'Haymaker Paw',
+        icon: 'assets/icons/fc663.png',
+        description: 'The old one-two, minus the one: 118% ATK with a 6% chance to STUN for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.18 },
+          { type: 'stun', chance: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'gut_punch', name: 'Gut Punch',
+        icon: 'assets/icons/fc762.png',
+        description: 'Right in the wind: 142% ATK and drains 12% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.42 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'closing_time', name: 'Closing Time',
+        icon: 'assets/icons/fc767.png',
+        description: 'Everybody out: 172% ATK with a 20% chance to STUN for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.72 },
+          { type: 'stun', chance: 0.2, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Heavy Hands',
+      icon: 'assets/icons/fc867.png',
+      description: '+6% Stun chance on single-target attacks.',
+      hooks: { stunAdd: 0.06 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Ring Corner: +15% ATK while in a front hex.',
+    },
+  },
+
+  bear_galeclaw: {
+    id: 'bear_galeclaw',
+    element: 'wind',
+    name: 'Bear Galeclaw',
+    title: 'Faster Than the Weather',
+    rarity: 2,
+    stats: { hp: 1040, atk: 124, def: 76, speed: 104 },
+    tint: { body: '#6a8a8a', helm: '#8aaaa8', weapon: '#e8e8f8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beargaleclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wind_rake', name: 'Wind Rake',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A whistling rake: 104% ATK, gliding on: +5% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.04 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'gale_rush', name: 'Gale Rush',
+        icon: 'assets/icons/fc744.png',
+        description: 'Arrive with the front: 141% ATK and +6% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.41 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.06 },
+        ],
+      },
+      {
+        id: 'claw_cyclone', name: 'Claw Cyclone',
+        icon: 'assets/icons/fc729.png',
+        description: 'A spinning storm of claws: two hits of 62% ATK to a hex row.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.62 },
+          { type: 'damage', mult: 0.62 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gale Claws',
+      icon: 'assets/icons/fc868.png',
+      description: '+10% chance to dodge while in a back hex.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.slot && unit.slot.position === POSITION.BACK ? 0.10 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.12,
+      description: 'Weather Side: +12% SPD while in a back hex.',
+    },
+  },
+
+  bear_herbmother: {
+    id: 'bear_herbmother',
+    element: 'water',
+    name: 'Bear Herbmother',
+    title: 'Poultices Strong as Paws',
+    rarity: 2,
+    stats: { hp: 1110, atk: 114, def: 84, speed: 94 },
+    tint: { body: '#6a8a5a', helm: '#8aaa6a', weapon: '#a8c86a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearherbmotheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pestle_thump', name: 'Pestle Thump',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A mortar-and-pestle thump: 97% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+        ],
+      },
+      {
+        id: 'strong_medicine', name: 'Strong Medicine',
+        icon: 'assets/icons/fc1112.png',
+        description: 'It tastes terrible and works: heals an ally 16% of her max HP and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.16 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'grove_remedy', name: 'Grove Remedy',
+        icon: 'assets/icons/fc800.png',
+        description: 'The whole pharmacopoeia: ALL allies heal 45% of ATK plus 2% of her max HP for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.45 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Herb Bundles',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Her healing is 25% stronger.',
+      hooks: { healBoostAdd: 0.25 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.12,
+      description: 'Herb Garden: +12% max HP while in a back hex.',
+    },
+  },
+
+  bear_drumbelly: {
+    id: 'bear_drumbelly',
+    element: 'fire',
+    name: 'Bear Drumbelly',
+    title: 'Percussion Section of One',
+    rarity: 2,
+    stats: { hp: 1150, atk: 116, def: 88, speed: 90 },
+    tint: { body: '#a87a4a', helm: '#c89a5a', weapon: '#c8b898', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beardrumbellyidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'belly_bounce', name: 'Belly Bounce',
+        icon: 'assets/icons/fc762.png',
+        description: 'Bounce them off the belly: 11% of his max HP as damage.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damageHpPct', pct: 0.11 },
+        ],
+      },
+      {
+        id: 'resonant_slam', name: 'Resonant Slam',
+        icon: 'assets/icons/fc767.png',
+        description: 'A slam you can hum along to: 133% ATK and -8% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.33 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'festival_beat', name: 'Festival Beat',
+        icon: 'assets/icons/fc869.png',
+        description: 'The good drum: ALL allies gain +8% ATK and 4% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Belly Drum',
+      icon: 'assets/icons/fc882.png',
+      description: 'A full belly sings: whenever he is healed, gains +5% ATK for 2 turns.',
+      hooks: {
+        onAllyHealed(unit, healedUnit) {
+          if (healedUnit !== unit) return;
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 2 });
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
+      description: 'Drum Circle Middle: +15% max HP while in the center hex.',
+    },
+  },
+
+  bear_patriarch: {
+    id: 'bear_patriarch',
+    element: 'fire',
+    name: 'Bear Patriarch',
+    title: 'The Valley Remembers His Father',
+    rarity: 3,
+    stats: { hp: 1450, atk: 158, def: 100, speed: 94 },
+    tint: { body: '#7a5a3a', helm: '#e8c83a', weapon: '#d8d8e0', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearpatriarchidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'patriarchs_swat', name: 'Patriarch\'s Swat',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A swat with generations behind it: 126% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.26 },
+        ],
+      },
+      {
+        id: 'lay_down_the_law', name: 'Lay Down the Law',
+        icon: 'assets/icons/fc730.png',
+        description: 'The old law: 156% ATK, -10% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.56 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'elders_blessing', name: 'Elder\'s Blessing',
+        icon: 'assets/icons/fc869.png',
+        description: 'The line endures: ALL allies gain +8% ATK for 2 turns and heal 3% of his max HP over 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
+          { type: 'hot', pct: 0.03, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Patriarch\'s Watch',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, ALL allies gain +4% ATK for 1 turn and heal 0.5% of his max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.04, turns: 1 });
+            ally.heal(Math.round(unit.maxHp * 0.005));
+          }
+          return null; // silent — small rolling stewardship
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
+      description: 'Family Seat: +15% max HP while in the center hex.',
+    },
+  },
+
+  bear_frostmane: {
+    id: 'bear_frostmane',
+    element: 'water',
+    name: 'Bear Frostmane',
+    title: 'Winter Kept as a Pet',
+    rarity: 3,
+    stats: { hp: 1380, atk: 162, def: 98, speed: 96 },
+    tint: { body: '#a8c8d8', helm: '#c8e8f8', weapon: '#a8d8e8', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearfrostmaneidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rime_swat', name: 'Rime Swat',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A frost-caked swat: 105% ATK and -6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'debuff', stat: 'speed', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'frozen_hug', name: 'Frozen Hug',
+        icon: 'assets/icons/fc762.png',
+        description: 'Affection at absolute zero: 144% ATK with a 22% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.44 },
+          { type: 'stun', chance: 0.22, turns: 1 },
+        ],
+      },
+      {
+        id: 'manes_blizzard', name: 'Mane\'s Blizzard',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Shake out the mane: 66% ATK to ALL enemies and -10% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.66 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Frostmane',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 12% less damage while any enemy is slowed.',
+      hooks: {
+        damageTakenMult(unit) {
+          if (typeof Battle === 'undefined' || !Battle.active) return 1;
+          return Battle.active.livingUnits(unit.enemyTeam()).some((e) =>
+            e.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'speed'))
+            ? 0.88 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
+      description: 'Cold Front: +15% max HP while in a front hex.',
+    },
+  },
+
+  bear_thunderhide: {
+    id: 'bear_thunderhide',
+    element: 'wind',
+    name: 'Bear Thunderhide',
+    title: 'Weather System, Self-Contained',
+    rarity: 3,
+    stats: { hp: 1420, atk: 156, def: 102, speed: 92 },
+    tint: { body: '#5a5a8a', helm: '#7a7aa8', weapon: '#e8e84a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearthunderhideidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'static_swat', name: 'Static Swat',
+        icon: 'assets/icons/fc1030.png',
+        description: 'A crackling swat: 107% ATK and drains 7% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.07 },
+          { type: 'turnMeter', amount: -0.07 },
+        ],
+      },
+      {
+        id: 'thunder_roll', name: 'Thunder Roll',
+        icon: 'assets/icons/fc767.png',
+        description: 'Roll through a hex row like weather: 12% of his max HP as damage.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damageHpPct', pct: 0.12 },
+        ],
+      },
+      {
+        id: 'stormfront_hide', name: 'Stormfront Hide',
+        icon: 'assets/icons/fc854.png',
+        description: 'Wear the storm: takes 30% less damage for 2 turns while sparks mend 4% max HP over 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.7, turns: 2 },
+          { type: 'hot', pct: 0.04, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Thunder Hide',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, static grounds through ALL enemies for 1% of his max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.01));
+          for (const e of enemies) e.takeDamage(amount);
+          return {
+            label: 'Thunder Hide',
+            message: `${unit.name}'s static grounds through the field.`,
+            floats: enemies.map((e) => ({ target: e, text: `-${amount}`, color: '#e8e84a' })),
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.18,
+      description: 'Storm Shelter: +18% max HP while in a front hex.',
+    },
+  },
+
+  bear_ancientroot: {
+    id: 'bear_ancientroot',
+    element: 'water',
+    name: 'Bear Ancientroot',
+    title: 'Older Than the Path Through',
+    rarity: 3,
+    stats: { hp: 1500, atk: 150, def: 104, speed: 88 },
+    tint: { body: '#4a5a3a', helm: '#6a7a4a', weapon: '#8a9a7a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearancientrootidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'root_heave', name: 'Root Heave',
+        icon: 'assets/icons/fc1472.png',
+        description: 'Heave a root the size of a road: 13% of his max HP as damage.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageHpPct', pct: 0.13 },
+        ],
+      },
+      {
+        id: 'sap_surge', name: 'Sap Surge',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Old sap rises: heals an ally 18% of his max HP and grants +12% DEF for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.18 },
+          { type: 'buff', stat: 'def', mult: 1.12, turns: 2 },
+        ],
+      },
+      {
+        id: 'grove_awakening', name: 'Grove Awakening',
+        icon: 'assets/icons/fc855.png',
+        description: 'The grove stands up: ALL allies gain +12% DEF and regenerate 2.5% of his max HP for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.12, turns: 2 },
+          { type: 'hot', pct: 0.025, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ancient Roots',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, every ally below 70% HP draws 2% of his max HP through the roots.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const thirsty = battle.livingUnits(unit.team)
+            .filter((u) => u.hp / u.maxHp < 0.7);
+          if (thirsty.length === 0) return null;
+          let total = 0;
+          for (const ally of thirsty) total += ally.heal(Math.round(unit.maxHp * 0.02));
+          if (total <= 0) return null;
+          return {
+            label: 'Ancient Roots',
+            message: `${unit.name}'s roots carry ${total} HP to the thirsty.`,
+            floats: [],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.2,
+      description: 'Heartwood: +20% max HP while in the center hex.',
+    },
+  },
+
+  bear_flamemaw: {
+    id: 'bear_flamemaw',
+    element: 'fire',
+    name: 'Bear Flamemaw',
+    title: 'Eats Campfires Whole',
+    rarity: 3,
+    stats: { hp: 1360, atk: 166, def: 94, speed: 98 },
+    tint: { body: '#8a3a1a', helm: '#e8632a', weapon: '#f8a83a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearflamemawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'coalbite', name: 'Coalbite',
+        icon: 'assets/icons/fc981.png',
+        description: 'A glowing bite: 110% ATK plus a 9% ATK burn for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'dot', pct: 0.09, turns: 2 },
+        ],
+      },
+      {
+        id: 'swallow_the_bonfire', name: 'Swallow the Bonfire',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Down in one: heals himself 14% max HP and his next breath scorches: 128% ATK plus a 22% ATK burn for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+          { type: 'dot', pct: 0.22, turns: 1 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.14 },
+        ],
+      },
+      {
+        id: 'mawfire', name: 'Mawfire',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Open the furnace: 72% ATK to ALL enemies plus a 14% ATK burn for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'dot', pct: 0.14, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Flame Maw',
+      icon: 'assets/icons/fc1093.png',
+      description: '+20% DoT damage, and devouring flame mends: +10% Healing.',
+      hooks: { dotBoostAdd: 0.20, healBoostAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Fire Pit Throne: +12% ATK while in the center hex.',
+    },
+  },
+
+  bear_sunmother: {
+    id: 'bear_sunmother',
+    element: 'light',
+    name: 'Bear Sunmother',
+    title: 'Every Cub Counted at Dusk',
+    rarity: 3,
+    stats: { hp: 1440, atk: 152, def: 96, speed: 95 },
+    tint: { body: '#e8d8a8', helm: '#f8e8c8', weapon: '#f8d86a', skin: '#d8b898' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearsunmotheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'gilded_swat', name: 'Gilded Swat',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A golden swat: 99% ATK, and the light lifts her: heals 8% of her max HP.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+      {
+        id: 'gather_the_cubs', name: 'Gather the Cubs',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Everyone accounted for: heals an ally 20% of her max HP and grants 8% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.2 },
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'long_summer', name: 'Long Summer',
+        icon: 'assets/icons/fc800.png',
+        description: 'A season of plenty: ALL allies heal 40% of ATK, regenerate 2% of her max HP for 3 turns, and gain +6% DEF for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.4 },
+          { type: 'hot', pct: 0.02, turns: 3 },
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sun Mother',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, ALL allies heal 1% of her max HP and gain 2% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.heal(Math.round(unit.maxHp * 0.01));
+            if (ally !== unit) {
+              ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+                ally.turnMeter + CONFIG.TURN_METER_MAX * 0.02);
+            }
+          }
+          return null; // silent — small rolling warmth
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
+      description: 'Sunning Ledge: +15% max HP while in the center hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',

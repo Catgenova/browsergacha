@@ -582,4 +582,94 @@ const BOSSES = {
     ],
     positional: null,
   },
+  elder_bear: {
+    id: 'boss_elder_bear',
+    element: 'fire',
+    gearSet: 'bear',
+    name: 'Elder Bear',
+    title: 'Old God of the Valley',
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_valley.png',
+    stats: { hp: 20000, atk: 440, def: 300, speed: 115 }, // lv5 reference
+    // Exact anchors: stage 1 (Lv 5) and stage 20 (Lv 100), interpolated.
+    stats5: { hp: 20000, atk: 440, def: 300, speed: 115 },
+    stats100: { hp: 140000, atk: 10000, def: 2200, speed: 115 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/bosses/elderbearidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ancient_maul', name: 'Ancient Maul',
+        icon: 'assets/icons/fc767.png',
+        description: 'Maul a hero for 150% ATK, feeding on the blow: ' +
+          'heals himself for 50% of his ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.5 }],
+        selfEffects: [{ type: 'heal', mult: 0.5 }],
+      },
+      {
+        id: 'ursine_roar', name: 'Ursine Roar',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A roar older than the valley: 80% ATK to ALL heroes ' +
+          'and -15% ATK for 2 turns (resistible).',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'hibernate', name: 'Hibernate',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Curl into the long sleep: heals 20% of his max HP ' +
+          'and takes 25% less damage for 2 turns. Wounds that fester ' +
+          '(DoTs) still burn through it.',
+        cooldown: 7, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.75, turns: 2 },
+        ],
+      },
+    ],
+    // Bosses carry three unique passives (and no positional bonuses).
+    passives: [
+      {
+        name: 'Old Blood',
+        icon: 'assets/icons/fc1093.png',
+        description: 'Regenerates 6% max HP at the start of each turn.',
+        hooks: {
+          onTurnStart(unit) {
+            const healed = unit.heal(Math.round(unit.maxHp * 0.06));
+            if (healed <= 0) return null;
+            return {
+              label: 'Old Blood',
+              message: `${unit.name}'s old blood knits ${healed} HP.`,
+              floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+            };
+          },
+        },
+      },
+      {
+        name: 'Guttural Vigor',
+        icon: 'assets/icons/fc1003.png',
+        description: 'His healing is 30% stronger.',
+        hooks: { healBoostAdd: 0.30 },
+      },
+      {
+        name: 'Crushing Paws',
+        icon: 'assets/icons/fc863.png',
+        description: 'Deals 25% extra damage to heroes at full HP.',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
+          },
+        },
+      },
+    ],
+    positional: null,
+  },
 };
