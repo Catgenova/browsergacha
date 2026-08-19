@@ -14208,6 +14208,5761 @@ const HEROES = {
     },
   },
 
+  // ---- Twilight cohorts: dark & light 3-star heroes for every race --------
+  // Summoned exclusively from Temporal Scrolls, like all Dark/Light heroes.
+  // Procedural placeholder art renders until real idle sheets land.
+
+  rat_gravecarver: {
+    id: 'rat_gravecarver',
+    element: 'dark',
+    name: 'Rat Gravecarver',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1060, atk: 158, def: 78, speed: 96 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_gravecarver/ratgravecarveridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_gravecarver_edge', name: 'Gravecarver\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 71% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_gravecarver_sentence', name: 'Gravecarver\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 121% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.21 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'rat_gravecarver_end', name: 'Gravecarver\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 197% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.97 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gravecarver\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 22% extra damage to enemies below 45% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.45 ? 1.22 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  rat_hexweaver: {
+    id: 'rat_hexweaver',
+    element: 'dark',
+    name: 'Rat Hexweaver',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1069, atk: 163, def: 81, speed: 98 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_hexweaver/rathexweaveridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_hexweaver_lash', name: 'Hexweaver Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 72% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_hexweaver_bane', name: 'Hexweaver Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 122% ATK, -8% ATK and -4% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.22 },
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.96, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_hexweaver_pall', name: 'Hexweaver Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 76% ATK to ALL enemies and -3% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'debuff', stat: 'speed', mult: 0.97, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexweaver Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.12, dotBoostAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  rat_bloodleech: {
+    id: 'rat_bloodleech',
+    element: 'dark',
+    name: 'Rat Bloodleech',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1078, atk: 168, def: 84, speed: 100 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_bloodleech/ratbloodleechidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_bloodleech_sip', name: 'Bloodleech\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 73% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_bloodleech_feast', name: 'Bloodleech\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 123% ATK, healing himself for 30% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.23 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.3 },
+        ],
+      },
+      {
+        id: 'rat_bloodleech_toll', name: 'Bloodleech\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 67% ATK to ALL enemies while he mends 6% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.67 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.06 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodleech Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 1.2% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.012));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  rat_nightfang: {
+    id: 'rat_nightfang',
+    element: 'dark',
+    name: 'Rat Nightfang',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1087, atk: 173, def: 87, speed: 102 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_nightfang/ratnightfangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_nightfang_flick', name: 'Nightfang Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 74% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_nightfang_waltz', name: 'Nightfang Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 124% ATK and +6% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.24 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'rat_nightfang_finale', name: 'Nightfang Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 188% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.88, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nightfang Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.07, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.03, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  rat_doomcrier: {
+    id: 'rat_doomcrier',
+    element: 'dark',
+    name: 'Rat Doomcrier',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1096, atk: 178, def: 90, speed: 104 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_doomcrier/ratdoomcrieridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_doomcrier_knell', name: 'Doomcrier Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 75% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_doomcrier_omen', name: 'Doomcrier Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 105% ATK and -9% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_doomcrier_chorus', name: 'Doomcrier Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 74% ATK to ALL enemies and -4% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'debuff', stat: 'critChance', add: -0.04, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Doomcrier Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 2% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.98, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  rat_lightmender: {
+    id: 'rat_lightmender',
+    element: 'light',
+    name: 'Rat Lightmender',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1105, atk: 183, def: 93, speed: 106 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_lightmender/ratlightmenderidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_lightmender_rebuke', name: 'Lightmender\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 76% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_lightmender_grace', name: 'Lightmender\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 105% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.05 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'rat_lightmender_communion', name: 'Lightmender\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 55% of ATK plus 1.1% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.55 },
+          { type: 'hot', pct: 0.01, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightmender Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.12 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  rat_aegisbearer: {
+    id: 'rat_aegisbearer',
+    element: 'light',
+    name: 'Rat Aegisbearer',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1114, atk: 158, def: 96, speed: 108 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_aegisbearer/rataegisbeareridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_aegisbearer_check', name: 'Aegisbearer\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 77% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_aegisbearer_ward', name: 'Aegisbearer\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 12% less damage for 2 turns and heal 46% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.88, turns: 2 },
+          { type: 'heal', mult: 0.46 },
+        ],
+      },
+      {
+        id: 'rat_aegisbearer_vigil', name: 'Aegisbearer\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +5% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegisbearer Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 10% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.9, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  rat_dawnblade: {
+    id: 'rat_dawnblade',
+    element: 'light',
+    name: 'Rat Dawnblade',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1123, atk: 163, def: 99, speed: 110 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_dawnblade/ratdawnbladeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_dawnblade_stroke', name: 'Dawnblade Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 78% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_dawnblade_flare', name: 'Dawnblade Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 128% ATK, and the light mends 5% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.05 },
+        ],
+      },
+      {
+        id: 'rat_dawnblade_zenith', name: 'Dawnblade Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 191% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.91 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnblade Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 3% max HP at turn start while below 65% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.65) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.03));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnblade Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  rat_sunherald: {
+    id: 'rat_sunherald',
+    element: 'light',
+    name: 'Rat Sunherald',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1132, atk: 168, def: 78, speed: 112 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_sunherald/ratsunheraldidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_sunherald_call', name: 'Sunherald\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 79% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.79 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_sunherald_proclamation', name: 'Sunherald\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +10% ATK for 2 turns and 6% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 2 },
+          { type: 'turnMeter', amount: 0.06 },
+        ],
+      },
+      {
+        id: 'rat_sunherald_triumph', name: 'Sunherald\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +5% SPD for 2 turns and 3% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+          { type: 'turnMeter', amount: 0.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunherald Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +2% ATK and +2% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.02, turns: 1 }); a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.02, turns: 1 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  rat_lightjudge: {
+    id: 'rat_lightjudge',
+    element: 'light',
+    name: 'Rat Lightjudge',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1141, atk: 173, def: 81, speed: 96 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 70,
+      strips: {
+        idle: { src: 'assets/heroes/rat_lightjudge/ratlightjudgeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rat_lightjudge_gavel', name: 'Lightjudge\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 80% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'rat_lightjudge_inquest', name: 'Lightjudge\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 120% ATK and the target takes +14% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.14, turns: 2 },
+        ],
+      },
+      {
+        id: 'rat_lightjudge_verdict', name: 'Lightjudge\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 193% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.93 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightjudge Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 15% extra damage to buffed enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'buff') ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  crow_headsman: {
+    id: 'crow_headsman',
+    element: 'dark',
+    name: 'Crow Headsman',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1074, atk: 161, def: 80, speed: 97 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Crowheadsmanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'crow_headsman_edge', name: 'Headsman\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 81% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.81 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'crow_headsman_sentence', name: 'Headsman\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 131% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.31 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'crow_headsman_end', name: 'Headsman\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 207% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.07 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Headsman\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 24% extra damage to enemies below 40% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.4 ? 1.24 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cuckoo_hexmother: {
+    id: 'cuckoo_hexmother',
+    element: 'dark',
+    name: 'Cuckoo Hexmother',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1083, atk: 166, def: 83, speed: 99 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Cuckoohexmotheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cuckoo_hexmother_lash', name: 'Hexmother Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 82% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'cuckoo_hexmother_bane', name: 'Hexmother Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 132% ATK, -9% ATK and -5% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.32 },
+          { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.95, turns: 2 },
+        ],
+      },
+      {
+        id: 'cuckoo_hexmother_pall', name: 'Hexmother Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 86% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexmother Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.08, dotBoostAdd: 0.18 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  shrike_bloodtithe: {
+    id: 'shrike_bloodtithe',
+    element: 'dark',
+    name: 'Shrike Bloodtithe',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1092, atk: 171, def: 86, speed: 101 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Shrikebloodtitheidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shrike_bloodtithe_sip', name: 'Bloodtithe\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 83% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.83 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'shrike_bloodtithe_feast', name: 'Bloodtithe\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 133% ATK, healing himself for 32% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.33 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.32 },
+        ],
+      },
+      {
+        id: 'shrike_bloodtithe_toll', name: 'Bloodtithe\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 77% ATK to ALL enemies while he mends 7% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.07 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodtithe Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 1.4% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.014));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  nightjar_duskblade: {
+    id: 'nightjar_duskblade',
+    element: 'dark',
+    name: 'Nightjar Duskblade',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1101, atk: 176, def: 89, speed: 103 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Nightjarduskbladeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'nightjar_duskblade_flick', name: 'Duskblade Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 84% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'nightjar_duskblade_waltz', name: 'Duskblade Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 134% ATK and +7% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.34 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.07, turns: 1 },
+        ],
+      },
+      {
+        id: 'nightjar_duskblade_finale', name: 'Duskblade Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 198% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.98, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskblade Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.18, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.02, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  whippoorwill_doomsinger: {
+    id: 'whippoorwill_doomsinger',
+    element: 'dark',
+    name: 'Whippoorwill Doomsinger',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1110, atk: 181, def: 92, speed: 105 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Whippoorwilldoomsingeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'whippoorwill_doomsinger_knell', name: 'Doomsinger Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 85% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'whippoorwill_doomsinger_omen', name: 'Doomsinger Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 115% ATK and -10% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'whippoorwill_doomsinger_chorus', name: 'Doomsinger Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 84% ATK to ALL enemies and -5% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'debuff', stat: 'critChance', add: -0.05, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Doomsinger Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 2% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.98, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  dove_peacebringer: {
+    id: 'dove_peacebringer',
+    element: 'light',
+    name: 'Dove Peacebringer',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1119, atk: 186, def: 95, speed: 107 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Dovepeacebringeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'dove_peacebringer_rebuke', name: 'Peacebringer\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 86% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'dove_peacebringer_grace', name: 'Peacebringer\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 114% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.15 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'dove_peacebringer_communion', name: 'Peacebringer\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 64% of ATK plus 1.2% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.65 },
+          { type: 'hot', pct: 0.011, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Peacebringer Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.18 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  egret_aegiswing: {
+    id: 'egret_aegiswing',
+    element: 'light',
+    name: 'Egret Aegiswing',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1128, atk: 161, def: 98, speed: 109 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Egretaegiswingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'egret_aegiswing_check', name: 'Aegiswing\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 87% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'egret_aegiswing_ward', name: 'Aegiswing\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 13% less damage for 2 turns and heal 55% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.87, turns: 2 },
+          { type: 'heal', mult: 0.56 },
+        ],
+      },
+      {
+        id: 'egret_aegiswing_vigil', name: 'Aegiswing\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +7% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.07, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegiswing Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 11% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.89, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  goldfinch_dawnlancer: {
+    id: 'goldfinch_dawnlancer',
+    element: 'light',
+    name: 'Goldfinch Dawnlancer',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1137, atk: 166, def: 101, speed: 111 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Goldfinchdawnlanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'goldfinch_dawnlancer_stroke', name: 'Dawnlancer Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 88% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'goldfinch_dawnlancer_flare', name: 'Dawnlancer Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 138% ATK, and the light mends 6% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.38 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.06 },
+        ],
+      },
+      {
+        id: 'goldfinch_dawnlancer_zenith', name: 'Dawnlancer Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 201% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnlancer Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 5% max HP at turn start while below 45% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.45) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.05));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnlancer Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  lark_brightcall: {
+    id: 'lark_brightcall',
+    element: 'light',
+    name: 'Lark Brightcall',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1146, atk: 171, def: 80, speed: 113 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Larkbrightcallidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'lark_brightcall_call', name: 'Brightcall\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 89% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'lark_brightcall_proclamation', name: 'Brightcall\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +11% ATK for 2 turns and 7% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.11, turns: 2 },
+          { type: 'turnMeter', amount: 0.07 },
+        ],
+      },
+      {
+        id: 'lark_brightcall_triumph', name: 'Brightcall\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +6% SPD for 2 turns and 4% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 2 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Brightcall Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +5% DEF for 1 turn and a sliver of healing.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.05, turns: 1 }); a.heal(Math.round(unit.maxHp * 0.003)); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  ibis_truthbeak: {
+    id: 'ibis_truthbeak',
+    element: 'light',
+    name: 'Ibis Truthbeak',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1155, atk: 176, def: 83, speed: 97 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/Ibistruthbeakidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ibis_truthbeak_gavel', name: 'Truthbeak\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 90% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'ibis_truthbeak_inquest', name: 'Truthbeak\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 130% ATK and the target takes +15% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'ibis_truthbeak_verdict', name: 'Truthbeak\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 203% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Truthbeak Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 35% extra damage to enemies with 3 or more afflictions.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.filter((fx) => fx.kind === 'debuff' || fx.kind === 'dot').length >= 3 ? 1.35 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_headtaker: {
+    id: 'minotaur_headtaker',
+    element: 'dark',
+    name: 'Minotaur Headtaker',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1088, atk: 164, def: 82, speed: 98 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurheadtakeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_headtaker_edge', name: 'Headtaker\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 91% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_headtaker_sentence', name: 'Headtaker\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 141% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.41 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'minotaur_headtaker_end', name: 'Headtaker\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 217% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.17 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Headtaker\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 32% extra damage to enemies below 28% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.28 ? 1.32 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  minotaur_runecurser: {
+    id: 'minotaur_runecurser',
+    element: 'dark',
+    name: 'Minotaur Runecurser',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1097, atk: 169, def: 85, speed: 100 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurrunecurseridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_runecurser_lash', name: 'Runecurser Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 92% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_runecurser_bane', name: 'Runecurser Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 142% ATK, -10% ATK and -6% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.42 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.94, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_runecurser_pall', name: 'Runecurser Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 96% ATK to ALL enemies and -5% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Runecurser Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.22 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  minotaur_soulgorger: {
+    id: 'minotaur_soulgorger',
+    element: 'dark',
+    name: 'Minotaur Soulgorger',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1106, atk: 174, def: 88, speed: 102 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaursoulgorgeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_soulgorger_sip', name: 'Soulgorger\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 93% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_soulgorger_feast', name: 'Soulgorger\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 143% ATK, healing himself for 34% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.43 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.34 },
+        ],
+      },
+      {
+        id: 'minotaur_soulgorger_toll', name: 'Soulgorger\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 87% ATK to ALL enemies while he mends 8% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Soulgorger Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 1.6% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.016));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  minotaur_duskhorn: {
+    id: 'minotaur_duskhorn',
+    element: 'dark',
+    name: 'Minotaur Duskhorn',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1115, atk: 179, def: 91, speed: 104 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurduskhornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_duskhorn_flick', name: 'Duskhorn Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 94% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_duskhorn_waltz', name: 'Duskhorn Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 144% ATK and +8% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.44 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.08, turns: 1 },
+        ],
+      },
+      {
+        id: 'minotaur_duskhorn_finale', name: 'Duskhorn Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 208% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.08, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskhorn Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.09, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.05, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  minotaur_terrorbellow: {
+    id: 'minotaur_terrorbellow',
+    element: 'dark',
+    name: 'Minotaur Terrorbellow',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1124, atk: 184, def: 94, speed: 106 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurterrorbellowidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_terrorbellow_knell', name: 'Terrorbellow Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 95% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_terrorbellow_omen', name: 'Terrorbellow Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 125% ATK and -11% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'atk', mult: 0.89, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_terrorbellow_chorus', name: 'Terrorbellow Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 94% ATK to ALL enemies and -6% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'debuff', stat: 'critChance', add: -0.06, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Terrorbellow Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 3% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.97, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  minotaur_dawnpriest: {
+    id: 'minotaur_dawnpriest',
+    element: 'light',
+    name: 'Minotaur Dawnpriest',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1133, atk: 159, def: 97, speed: 108 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurdawnpriestidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_dawnpriest_rebuke', name: 'Dawnpriest\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 96% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_dawnpriest_grace', name: 'Dawnpriest\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 125% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.25 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'minotaur_dawnpriest_communion', name: 'Dawnpriest\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 75% of ATK plus 1.2% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.75 },
+          { type: 'hot', pct: 0.013, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnpriest Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.22 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_aegishorn: {
+    id: 'minotaur_aegishorn',
+    element: 'light',
+    name: 'Minotaur Aegishorn',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1142, atk: 164, def: 100, speed: 110 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotauraegishornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_aegishorn_check', name: 'Aegishorn\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 97% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_aegishorn_ward', name: 'Aegishorn\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 6% less damage for 2 turns and heal 66% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.93, turns: 2 },
+          { type: 'heal', mult: 0.66 },
+        ],
+      },
+      {
+        id: 'minotaur_aegishorn_vigil', name: 'Aegishorn\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +9% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.09, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegishorn Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 4% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_radiantaxe: {
+    id: 'minotaur_radiantaxe',
+    element: 'light',
+    name: 'Minotaur Radiantaxe',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1151, atk: 169, def: 79, speed: 112 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurradiantaxeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_radiantaxe_stroke', name: 'Radiantaxe Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 98% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_radiantaxe_flare', name: 'Radiantaxe Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 148% ATK, and the light mends 7% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.48 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.07 },
+        ],
+      },
+      {
+        id: 'minotaur_radiantaxe_zenith', name: 'Radiantaxe Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 211% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.11 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Radiantaxe Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 4% max HP at turn start while below 55% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.55) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.04));
+          if (healed <= 0) return null;
+          return {
+            label: 'Radiantaxe Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_sunbellow: {
+    id: 'minotaur_sunbellow',
+    element: 'light',
+    name: 'Minotaur Sunbellow',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1160, atk: 174, def: 82, speed: 96 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaursunbellowidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_sunbellow_call', name: 'Sunbellow\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 99% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_sunbellow_proclamation', name: 'Sunbellow\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +12% ATK for 2 turns and 8% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.12, turns: 2 },
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'minotaur_sunbellow_triumph', name: 'Sunbellow\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +7% SPD for 2 turns and 5% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.07, turns: 2 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunbellow Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +4% crit chance for 1 turn and 1% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.04, turns: 1 }); if (a !== unit) a.turnMeter = Math.min(CONFIG.TURN_METER_MAX, a.turnMeter + CONFIG.TURN_METER_MAX * 0.01); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  minotaur_lawhorn: {
+    id: 'minotaur_lawhorn',
+    element: 'light',
+    name: 'Minotaur Lawhorn',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1169, atk: 179, def: 85, speed: 98 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurlawhornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minotaur_lawhorn_gavel', name: 'Lawhorn\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 100% then 25% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'damage', mult: 0.25 },
+        ],
+      },
+      {
+        id: 'minotaur_lawhorn_inquest', name: 'Lawhorn\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 140% ATK and the target takes +16% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.16, turns: 2 },
+        ],
+      },
+      {
+        id: 'minotaur_lawhorn_verdict', name: 'Lawhorn\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 213% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.13 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lawhorn Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 30% extra damage to stunned enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.stat === 'stun') ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  snake_gravecoil: {
+    id: 'snake_gravecoil',
+    element: 'dark',
+    name: 'Snake Gravecoil',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1102, atk: 167, def: 84, speed: 99 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakegravecoilidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_gravecoil_edge', name: 'Gravecoil\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 71% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_gravecoil_sentence', name: 'Gravecoil\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 151% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.51 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'snake_gravecoil_end', name: 'Gravecoil\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 227% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.27 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gravecoil\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 38% extra damage to enemies below 22% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.22 ? 1.38 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  snake_hexscale: {
+    id: 'snake_hexscale',
+    element: 'dark',
+    name: 'Snake Hexscale',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1111, atk: 172, def: 87, speed: 101 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakehexscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_hexscale_lash', name: 'Hexscale Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 72% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_hexscale_bane', name: 'Hexscale Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 152% ATK, -11% ATK and -7% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.52 },
+          { type: 'debuff', stat: 'atk', mult: 0.89, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.93, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_hexscale_pall', name: 'Hexscale Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 106% ATK to ALL enemies and -3% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.06 },
+          { type: 'debuff', stat: 'speed', mult: 0.97, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexscale Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.18, dotBoostAdd: 0.05 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  snake_bloodadder: {
+    id: 'snake_bloodadder',
+    element: 'dark',
+    name: 'Snake Bloodadder',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1120, atk: 177, def: 90, speed: 103 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakebloodadderidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_bloodadder_sip', name: 'Bloodadder\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 73% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_bloodadder_feast', name: 'Bloodadder\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 153% ATK, healing himself for 36% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.53 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.36 },
+        ],
+      },
+      {
+        id: 'snake_bloodadder_toll', name: 'Bloodadder\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 97% ATK to ALL enemies while he mends 9% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.09 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodadder Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 1.8% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.018));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  snake_nightslither: {
+    id: 'snake_nightslither',
+    element: 'dark',
+    name: 'Snake Nightslither',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1129, atk: 182, def: 93, speed: 105 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakenightslitheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_nightslither_flick', name: 'Nightslither Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 74% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_nightslither_waltz', name: 'Nightslither Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 154% ATK and +9% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.54 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.09, turns: 1 },
+        ],
+      },
+      {
+        id: 'snake_nightslither_finale', name: 'Nightslither Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 218% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.18, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nightslither Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.07, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.02, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  snake_dreadhood: {
+    id: 'snake_dreadhood',
+    element: 'dark',
+    name: 'Snake Dreadhood',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1138, atk: 187, def: 96, speed: 107 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakedreadhoodidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_dreadhood_knell', name: 'Dreadhood Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 75% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_dreadhood_omen', name: 'Dreadhood Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 135% ATK and -12% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'debuff', stat: 'atk', mult: 0.88, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_dreadhood_chorus', name: 'Dreadhood Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 104% ATK to ALL enemies and -7% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.04 },
+          { type: 'debuff', stat: 'critChance', add: -0.07, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dreadhood Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 2% crit chance for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'critChance', add: -0.02, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  snake_dawnpriestess: {
+    id: 'snake_dawnpriestess',
+    element: 'light',
+    name: 'Snake Dawnpriestess',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1147, atk: 162, def: 99, speed: 109 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakedawnpriestessidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_dawnpriestess_rebuke', name: 'Dawnpriestess\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 76% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_dawnpriestess_grace', name: 'Dawnpriestess\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 135% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.35 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'snake_dawnpriestess_communion', name: 'Dawnpriestess\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 85% of ATK plus 1.4% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.85 },
+          { type: 'hot', pct: 0.014, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnpriestess Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.28 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  snake_aegiscoil: {
+    id: 'snake_aegiscoil',
+    element: 'light',
+    name: 'Snake Aegiscoil',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1156, atk: 167, def: 78, speed: 111 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeaegiscoilidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_aegiscoil_check', name: 'Aegiscoil\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 77% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_aegiscoil_ward', name: 'Aegiscoil\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 8% less damage for 2 turns and heal 76% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.91, turns: 2 },
+          { type: 'heal', mult: 0.76 },
+        ],
+      },
+      {
+        id: 'snake_aegiscoil_vigil', name: 'Aegiscoil\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +3% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.03, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegiscoil Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 6% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.93, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  snake_radiantfang: {
+    id: 'snake_radiantfang',
+    element: 'light',
+    name: 'Snake Radiantfang',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1165, atk: 172, def: 81, speed: 113 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeradiantfangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_radiantfang_stroke', name: 'Radiantfang Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 78% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_radiantfang_flare', name: 'Radiantfang Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 158% ATK, and the light mends 8% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.58 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+      {
+        id: 'snake_radiantfang_zenith', name: 'Radiantfang Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 221% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.21 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Radiantfang Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 7% max HP at turn start while below 35% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.35) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.07));
+          if (healed <= 0) return null;
+          return {
+            label: 'Radiantfang Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  snake_sunwhisper: {
+    id: 'snake_sunwhisper',
+    element: 'light',
+    name: 'Snake Sunwhisper',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1174, atk: 177, def: 84, speed: 97 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakesunwhisperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_sunwhisper_call', name: 'Sunwhisper\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 79% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.79 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_sunwhisper_proclamation', name: 'Sunwhisper\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +13% ATK for 2 turns and 9% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.13, turns: 2 },
+          { type: 'turnMeter', amount: 0.09 },
+        ],
+      },
+      {
+        id: 'snake_sunwhisper_triumph', name: 'Sunwhisper\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +8% SPD for 2 turns and 3% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.08, turns: 2 },
+          { type: 'turnMeter', amount: 0.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunwhisper Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +3% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.03, turns: 1 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  snake_truthscale: {
+    id: 'snake_truthscale',
+    element: 'light',
+    name: 'Snake Truthscale',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1183, atk: 182, def: 87, speed: 99 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snaketruthscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snake_truthscale_gavel', name: 'Truthscale\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 80% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'snake_truthscale_inquest', name: 'Truthscale\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 150% ATK and the target takes +17% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.17, turns: 2 },
+        ],
+      },
+      {
+        id: 'snake_truthscale_verdict', name: 'Truthscale\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 223% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.23 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Truthscale Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 30% extra damage to slowed enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'speed') ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_gallowsjaw: {
+    id: 'wolf_gallowsjaw',
+    element: 'dark',
+    name: 'Wolf Gallowsjaw',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1116, atk: 170, def: 86, speed: 100 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfgallowsjawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_gallowsjaw_edge', name: 'Gallowsjaw\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 81% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.81 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_gallowsjaw_sentence', name: 'Gallowsjaw\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 161% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.61 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'wolf_gallowsjaw_end', name: 'Gallowsjaw\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 237% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.37 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gallowsjaw\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 18% extra damage to enemies below 48% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.48 ? 1.18 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  wolf_cursehowl: {
+    id: 'wolf_cursehowl',
+    element: 'dark',
+    name: 'Wolf Cursehowl',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1125, atk: 175, def: 89, speed: 102 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfcursehowlidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_cursehowl_lash', name: 'Cursehowl Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 82% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_cursehowl_bane', name: 'Cursehowl Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 162% ATK, -12% ATK and -8% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.62 },
+          { type: 'debuff', stat: 'atk', mult: 0.88, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_cursehowl_pall', name: 'Cursehowl Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 116% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.16 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Cursehowl Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.06, resistanceAdd: 0.18 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  wolf_bloodmuzzle: {
+    id: 'wolf_bloodmuzzle',
+    element: 'dark',
+    name: 'Wolf Bloodmuzzle',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1134, atk: 180, def: 92, speed: 104 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfbloodmuzzleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_bloodmuzzle_sip', name: 'Bloodmuzzle\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 83% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.83 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_bloodmuzzle_feast', name: 'Bloodmuzzle\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 163% ATK, healing himself for 38% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.63 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.38 },
+        ],
+      },
+      {
+        id: 'wolf_bloodmuzzle_toll', name: 'Bloodmuzzle\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 107% ATK to ALL enemies while he mends 10% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.07 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodmuzzle Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 2.2% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.022));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  wolf_duskprowler: {
+    id: 'wolf_duskprowler',
+    element: 'dark',
+    name: 'Wolf Duskprowler',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1143, atk: 185, def: 95, speed: 106 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfduskprowleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_duskprowler_flick', name: 'Duskprowler Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 84% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_duskprowler_waltz', name: 'Duskprowler Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 164% ATK and +10% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.64 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'wolf_duskprowler_finale', name: 'Duskprowler Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 228% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.28, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskprowler Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.05, turns: 2 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.05, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  wolf_direomen: {
+    id: 'wolf_direomen',
+    element: 'dark',
+    name: 'Wolf Direomen',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1152, atk: 160, def: 98, speed: 108 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfdireomenidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_direomen_knell', name: 'Direomen Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 85% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_direomen_omen', name: 'Direomen Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 145% ATK and -13% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.45 },
+          { type: 'debuff', stat: 'atk', mult: 0.87, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_direomen_chorus', name: 'Direomen Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 114% ATK to ALL enemies and -4% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.14 },
+          { type: 'debuff', stat: 'critChance', add: -0.04, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Direomen Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 1.5% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.turnMeter = Math.max(0, e.turnMeter - CONFIG.TURN_METER_MAX * 0.015);
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  wolf_lightmuzzle: {
+    id: 'wolf_lightmuzzle',
+    element: 'light',
+    name: 'Wolf Lightmuzzle',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1161, atk: 165, def: 101, speed: 110 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolflightmuzzleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_lightmuzzle_rebuke', name: 'Lightmuzzle\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 86% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_lightmuzzle_grace', name: 'Lightmuzzle\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 145% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.45 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'wolf_lightmuzzle_communion', name: 'Lightmuzzle\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 95% of ATK plus 1.4% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.95 },
+          { type: 'hot', pct: 0.014, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightmuzzle Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.08, resistanceAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_aegisfur: {
+    id: 'wolf_aegisfur',
+    element: 'light',
+    name: 'Wolf Aegisfur',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1170, atk: 170, def: 80, speed: 112 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfaegisfuridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_aegisfur_check', name: 'Aegisfur\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 87% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_aegisfur_ward', name: 'Aegisfur\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 10% less damage for 2 turns and heal 86% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.89, turns: 2 },
+          { type: 'heal', mult: 0.86 },
+        ],
+      },
+      {
+        id: 'wolf_aegisfur_vigil', name: 'Aegisfur\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +11% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.11, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegisfur Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 8% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.91, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_dawnfang: {
+    id: 'wolf_dawnfang',
+    element: 'light',
+    name: 'Wolf Dawnfang',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1179, atk: 175, def: 83, speed: 96 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfdawnfangidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_dawnfang_stroke', name: 'Dawnfang Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 88% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_dawnfang_flare', name: 'Dawnfang Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 168% ATK, and the light mends 9% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.68 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.09 },
+        ],
+      },
+      {
+        id: 'wolf_dawnfang_zenith', name: 'Dawnfang Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 231% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.31 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnfang Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 2% max HP at turn start while below 75% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.75) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.02));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnfang Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_sunhowl: {
+    id: 'wolf_sunhowl',
+    element: 'light',
+    name: 'Wolf Sunhowl',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1188, atk: 180, def: 86, speed: 98 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfsunhowlidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_sunhowl_call', name: 'Sunhowl\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 89% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_sunhowl_proclamation', name: 'Sunhowl\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +14% ATK for 2 turns and 10% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.14, turns: 2 },
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+      {
+        id: 'wolf_sunhowl_triumph', name: 'Sunhowl\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +5% SPD for 2 turns and 4% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunhowl Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain 2% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { if (a !== unit) a.turnMeter = Math.min(CONFIG.TURN_METER_MAX, a.turnMeter + CONFIG.TURN_METER_MAX * 0.02); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  wolf_oathkeeper: {
+    id: 'wolf_oathkeeper',
+    element: 'light',
+    name: 'Wolf Oathkeeper',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1197, atk: 185, def: 89, speed: 100 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/wolfoathkeeperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wolf_oathkeeper_gavel', name: 'Oathkeeper\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 90% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'wolf_oathkeeper_inquest', name: 'Oathkeeper\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 160% ATK and the target takes +18% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.6 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.18, turns: 2 },
+        ],
+      },
+      {
+        id: 'wolf_oathkeeper_verdict', name: 'Oathkeeper\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 233% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.33 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Oathkeeper Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 30% extra damage to enemies suffering damage over time.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'dot') ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  boar_tombtusk: {
+    id: 'boar_tombtusk',
+    element: 'dark',
+    name: 'Boar Tombtusk',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1130, atk: 173, def: 88, speed: 101 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boartombtuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_tombtusk_edge', name: 'Tombtusk\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 91% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_tombtusk_sentence', name: 'Tombtusk\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 171% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.71 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'boar_tombtusk_end', name: 'Tombtusk\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 246% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.47 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tombtusk\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 26% extra damage to enemies below 33% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.33 ? 1.26 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  boar_hexbristle: {
+    id: 'boar_hexbristle',
+    element: 'dark',
+    name: 'Boar Hexbristle',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1139, atk: 178, def: 91, speed: 103 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarhexbristleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_hexbristle_lash', name: 'Hexbristle Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 92% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_hexbristle_bane', name: 'Hexbristle Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 172% ATK, -13% ATK and -9% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.72 },
+          { type: 'debuff', stat: 'atk', mult: 0.87, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.91, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_hexbristle_pall', name: 'Hexbristle Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 126% ATK to ALL enemies and -5% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.26 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexbristle Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.14, resistanceAdd: 0.06 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  boar_bloodsnout: {
+    id: 'boar_bloodsnout',
+    element: 'dark',
+    name: 'Boar Bloodsnout',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1148, atk: 183, def: 94, speed: 105 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarbloodsnoutidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_bloodsnout_sip', name: 'Bloodsnout\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 93% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_bloodsnout_feast', name: 'Bloodsnout\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 173% ATK, healing himself for 40% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.73 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.4 },
+        ],
+      },
+      {
+        id: 'boar_bloodsnout_toll', name: 'Bloodsnout\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 116% ATK to ALL enemies while he mends 11% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.17 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.11 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodsnout Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 2.4% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.024));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  boar_nightrooter: {
+    id: 'boar_nightrooter',
+    element: 'dark',
+    name: 'Boar Nightrooter',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1157, atk: 158, def: 97, speed: 107 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarnightrooteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_nightrooter_flick', name: 'Nightrooter Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 94% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_nightrooter_waltz', name: 'Nightrooter Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 174% ATK and +11% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.74 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.11, turns: 1 },
+        ],
+      },
+      {
+        id: 'boar_nightrooter_finale', name: 'Nightrooter Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 238% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.38, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nightrooter Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.14, turns: 2 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.02, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  boar_doomgrunter: {
+    id: 'boar_doomgrunter',
+    element: 'dark',
+    name: 'Boar Doomgrunter',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1166, atk: 163, def: 100, speed: 109 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boardoomgrunteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_doomgrunter_knell', name: 'Doomgrunter Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 95% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_doomgrunter_omen', name: 'Doomgrunter Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 155% ATK and -14% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.55 },
+          { type: 'debuff', stat: 'atk', mult: 0.86, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_doomgrunter_chorus', name: 'Doomgrunter Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 124% ATK to ALL enemies and -5% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.24 },
+          { type: 'debuff', stat: 'critChance', add: -0.05, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Doomgrunter Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 3% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.97, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  boar_lightsnout: {
+    id: 'boar_lightsnout',
+    element: 'light',
+    name: 'Boar Lightsnout',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1175, atk: 168, def: 79, speed: 111 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarlightsnoutidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_lightsnout_rebuke', name: 'Lightsnout\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 96% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_lightsnout_grace', name: 'Lightsnout\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 155% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.55 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'boar_lightsnout_communion', name: 'Lightsnout\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 105% of ATK plus 1.6% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.05 },
+          { type: 'hot', pct: 0.015, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightsnout Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.14, dodgeAdd: 0.04 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  boar_aegisback: {
+    id: 'boar_aegisback',
+    element: 'light',
+    name: 'Boar Aegisback',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1184, atk: 173, def: 82, speed: 113 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boaraegisbackidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_aegisback_check', name: 'Aegisback\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 97% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_aegisback_ward', name: 'Aegisback\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 14% less damage for 2 turns and heal 96% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.86, turns: 2 },
+          { type: 'heal', mult: 0.96 },
+        ],
+      },
+      {
+        id: 'boar_aegisback_vigil', name: 'Aegisback\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +2% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.02, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegisback Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 12% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.88, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  boar_dawntusk: {
+    id: 'boar_dawntusk',
+    element: 'light',
+    name: 'Boar Dawntusk',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1193, atk: 178, def: 85, speed: 97 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boardawntuskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_dawntusk_stroke', name: 'Dawntusk Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 98% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_dawntusk_flare', name: 'Dawntusk Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 178% ATK, and the light mends 10% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.78 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.1 },
+        ],
+      },
+      {
+        id: 'boar_dawntusk_zenith', name: 'Dawntusk Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 241% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.41 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawntusk Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 9% max HP at turn start while below 25% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.25) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.09));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawntusk Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  boar_sunbristle: {
+    id: 'boar_sunbristle',
+    element: 'light',
+    name: 'Boar Sunbristle',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1202, atk: 183, def: 88, speed: 99 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarsunbristleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_sunbristle_call', name: 'Sunbristle\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 99% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_sunbristle_proclamation', name: 'Sunbristle\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +15% ATK for 2 turns and 11% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+          { type: 'turnMeter', amount: 0.11 },
+        ],
+      },
+      {
+        id: 'boar_sunbristle_triumph', name: 'Sunbristle\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +6% SPD for 2 turns and 5% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 2 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunbristle Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +3% ATK and +2% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.03, turns: 1 }); a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.02, turns: 1 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  boar_oathtusker: {
+    id: 'boar_oathtusker',
+    element: 'light',
+    name: 'Boar Oathtusker',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1211, atk: 158, def: 91, speed: 101 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boaroathtuskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'boar_oathtusker_gavel', name: 'Oathtusker\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 100% then 31% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'damage', mult: 0.31 },
+        ],
+      },
+      {
+        id: 'boar_oathtusker_inquest', name: 'Oathtusker\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 170% ATK and the target takes +19% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.7 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.19, turns: 2 },
+        ],
+      },
+      {
+        id: 'boar_oathtusker_verdict', name: 'Oathtusker\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 243% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.43 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Oathtusker Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 30% extra damage to enemies with lowered crit chance.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'critChance') ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  bear_gravemauler: {
+    id: 'bear_gravemauler',
+    element: 'dark',
+    name: 'Bear Gravemauler',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1144, atk: 176, def: 90, speed: 102 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beargravemauleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_gravemauler_edge', name: 'Gravemauler\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 71% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.71 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_gravemauler_sentence', name: 'Gravemauler\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 181% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.81 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'bear_gravemauler_end', name: 'Gravemauler\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 257% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.57 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gravemauler\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 23% extra damage to enemies below 38% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.38 ? 1.23 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  bear_hexclaw: {
+    id: 'bear_hexclaw',
+    element: 'dark',
+    name: 'Bear Hexclaw',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1153, atk: 181, def: 93, speed: 104 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearhexclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_hexclaw_lash', name: 'Hexclaw Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 72% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_hexclaw_bane', name: 'Hexclaw Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 182% ATK, -14% ATK and -10% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.82 },
+          { type: 'debuff', stat: 'atk', mult: 0.86, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_hexclaw_pall', name: 'Hexclaw Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 136% ATK to ALL enemies and -3% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.36 },
+          { type: 'debuff', stat: 'speed', mult: 0.97, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexclaw Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.09, dotBoostAdd: 0.09 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  bear_bloodhoney: {
+    id: 'bear_bloodhoney',
+    element: 'dark',
+    name: 'Bear Bloodhoney',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1162, atk: 186, def: 96, speed: 106 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearbloodhoneyidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_bloodhoney_sip', name: 'Bloodhoney\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 73% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.73 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_bloodhoney_feast', name: 'Bloodhoney\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 183% ATK, healing himself for 42% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.83 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.42 },
+        ],
+      },
+      {
+        id: 'bear_bloodhoney_toll', name: 'Bloodhoney\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 127% ATK to ALL enemies while he mends 12% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.27 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.12 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodhoney Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 2.6% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.026));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  bear_duskpelt: {
+    id: 'bear_duskpelt',
+    element: 'dark',
+    name: 'Bear Duskpelt',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1171, atk: 161, def: 99, speed: 108 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearduskpeltidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_duskpelt_flick', name: 'Duskpelt Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 74% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.74 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_duskpelt_waltz', name: 'Duskpelt Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 184% ATK and +12% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.84 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'bear_duskpelt_finale', name: 'Duskpelt Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 248% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.48, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskpelt Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.09, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.06, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  bear_dreadroar: {
+    id: 'bear_dreadroar',
+    element: 'dark',
+    name: 'Bear Dreadroar',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1180, atk: 166, def: 78, speed: 110 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beardreadroaridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_dreadroar_knell', name: 'Dreadroar Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 75% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_dreadroar_omen', name: 'Dreadroar Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 165% ATK and -15% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.65 },
+          { type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_dreadroar_chorus', name: 'Dreadroar Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 134% ATK to ALL enemies and -6% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.34 },
+          { type: 'debuff', stat: 'critChance', add: -0.06, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dreadroar Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 3% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.97, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  bear_lightpaw: {
+    id: 'bear_lightpaw',
+    element: 'light',
+    name: 'Bear Lightpaw',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1189, atk: 171, def: 81, speed: 112 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearlightpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_lightpaw_rebuke', name: 'Lightpaw\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 76% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.76 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_lightpaw_grace', name: 'Lightpaw\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 165% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.65 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'bear_lightpaw_communion', name: 'Lightpaw\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 114% of ATK plus 1.7% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.15 },
+          { type: 'hot', pct: 0.017, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightpaw Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.16, resistanceAdd: 0.05 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  bear_aegishide: {
+    id: 'bear_aegishide',
+    element: 'light',
+    name: 'Bear Aegishide',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1198, atk: 176, def: 84, speed: 96 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearaegishideidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_aegishide_check', name: 'Aegishide\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 77% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.77 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_aegishide_ward', name: 'Aegishide\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 7% less damage for 2 turns and heal 106% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.92, turns: 2 },
+          { type: 'heal', mult: 1.06 },
+        ],
+      },
+      {
+        id: 'bear_aegishide_vigil', name: 'Aegishide\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +12% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.13, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegishide Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 5% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.94, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  bear_dawnclaw: {
+    id: 'bear_dawnclaw',
+    element: 'light',
+    name: 'Bear Dawnclaw',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1207, atk: 181, def: 87, speed: 98 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/beardawnclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_dawnclaw_stroke', name: 'Dawnclaw Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 78% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_dawnclaw_flare', name: 'Dawnclaw Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 188% ATK, and the light mends 11% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.88 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.11 },
+        ],
+      },
+      {
+        id: 'bear_dawnclaw_zenith', name: 'Dawnclaw Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 251% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.51 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnclaw Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 1.5% max HP at turn start while below 85% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.85) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.015));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnclaw Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  bear_sunroarer: {
+    id: 'bear_sunroarer',
+    element: 'light',
+    name: 'Bear Sunroarer',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1216, atk: 186, def: 90, speed: 100 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearsunroareridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_sunroarer_call', name: 'Sunroarer\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 79% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.79 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_sunroarer_proclamation', name: 'Sunroarer\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +16% ATK for 2 turns and 12% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.16, turns: 2 },
+          { type: 'turnMeter', amount: 0.12 },
+        ],
+      },
+      {
+        id: 'bear_sunroarer_triumph', name: 'Sunroarer\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +7% SPD for 2 turns and 3% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.07, turns: 2 },
+          { type: 'turnMeter', amount: 0.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunroarer Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +5% crit damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.05, turns: 1 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  bear_oathguard: {
+    id: 'bear_oathguard',
+    element: 'light',
+    name: 'Bear Oathguard',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1225, atk: 161, def: 93, speed: 102 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/bearoathguardidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bear_oathguard_gavel', name: 'Oathguard\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 80% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'bear_oathguard_inquest', name: 'Oathguard\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 180% ATK and the target takes +20% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.8 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.2, turns: 2 },
+        ],
+      },
+      {
+        id: 'bear_oathguard_verdict', name: 'Oathguard\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 253% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.53 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Oathguard Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 30% extra damage to weakened (ATK-debuffed) enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'atk') ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  cat_headhunter: {
+    id: 'cat_headhunter',
+    element: 'dark',
+    name: 'Cat Headhunter',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1158, atk: 179, def: 92, speed: 103 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catheadhunteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_headhunter_edge', name: 'Headhunter\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 81% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.81 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_headhunter_sentence', name: 'Headhunter\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 191% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.91 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'cat_headhunter_end', name: 'Headhunter\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 267% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.67 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Headhunter\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 21% extra damage to enemies below 42% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.42 ? 1.21 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cat_hexwhisker: {
+    id: 'cat_hexwhisker',
+    element: 'dark',
+    name: 'Cat Hexwhisker',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1167, atk: 184, def: 95, speed: 105 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cathexwhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_hexwhisker_lash', name: 'Hexwhisker Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 82% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_hexwhisker_bane', name: 'Hexwhisker Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 192% ATK, -15% ATK and -11% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.92 },
+          { type: 'debuff', stat: 'atk', mult: 0.85, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.89, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_hexwhisker_pall', name: 'Hexwhisker Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 145% ATK to ALL enemies and -4% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.46 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexwhisker Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.16, dotBoostAdd: 0.04 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cat_bloodlapper: {
+    id: 'cat_bloodlapper',
+    element: 'dark',
+    name: 'Cat Bloodlapper',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1176, atk: 159, def: 98, speed: 107 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catbloodlapperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_bloodlapper_sip', name: 'Bloodlapper\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 83% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.83 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_bloodlapper_feast', name: 'Bloodlapper\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 193% ATK, healing himself for 44% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.93 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.44 },
+        ],
+      },
+      {
+        id: 'cat_bloodlapper_toll', name: 'Bloodlapper\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 137% ATK to ALL enemies while he mends 13% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.37 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.13 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodlapper Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 2.8% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.028));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cat_duskstalker: {
+    id: 'cat_duskstalker',
+    element: 'dark',
+    name: 'Cat Duskstalker',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1185, atk: 164, def: 101, speed: 109 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catduskstalkeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_duskstalker_flick', name: 'Duskstalker Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 84% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_duskstalker_waltz', name: 'Duskstalker Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 194% ATK and +13% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.94 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.13, turns: 1 },
+        ],
+      },
+      {
+        id: 'cat_duskstalker_finale', name: 'Duskstalker Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 258% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.58, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskstalker Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.04, turns: 2 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.06, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cat_doomyowler: {
+    id: 'cat_doomyowler',
+    element: 'dark',
+    name: 'Cat Doomyowler',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1194, atk: 169, def: 80, speed: 111 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catdoomyowleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_doomyowler_knell', name: 'Doomyowler Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 85% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_doomyowler_omen', name: 'Doomyowler Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 175% ATK and -16% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.75 },
+          { type: 'debuff', stat: 'atk', mult: 0.84, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_doomyowler_chorus', name: 'Doomyowler Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 144% ATK to ALL enemies and -7% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.44 },
+          { type: 'debuff', stat: 'critChance', add: -0.07, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Doomyowler Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 2.5% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.turnMeter = Math.max(0, e.turnMeter - CONFIG.TURN_METER_MAX * 0.025);
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  cat_lightpurr: {
+    id: 'cat_lightpurr',
+    element: 'light',
+    name: 'Cat Lightpurr',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1203, atk: 174, def: 83, speed: 113 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catlightpurridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_lightpurr_rebuke', name: 'Lightpurr\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 86% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_lightpurr_grace', name: 'Lightpurr\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 175% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.75 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'cat_lightpurr_communion', name: 'Lightpurr\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 125% of ATK plus 1.8% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.25 },
+          { type: 'hot', pct: 0.017, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightpurr Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.24, dodgeAdd: 0.02 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  cat_aegistail: {
+    id: 'cat_aegistail',
+    element: 'light',
+    name: 'Cat Aegistail',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1212, atk: 179, def: 86, speed: 97 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cataegistailidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_aegistail_check', name: 'Aegistail\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 87% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_aegistail_ward', name: 'Aegistail\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 5% less damage for 2 turns and heal 116% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 2 },
+          { type: 'heal', mult: 1.16 },
+        ],
+      },
+      {
+        id: 'cat_aegistail_vigil', name: 'Aegistail\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +13% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.14, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegistail Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 3% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.97, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  cat_dawnpouncer: {
+    id: 'cat_dawnpouncer',
+    element: 'light',
+    name: 'Cat Dawnpouncer',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1221, atk: 184, def: 89, speed: 99 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catdawnpounceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_dawnpouncer_stroke', name: 'Dawnpouncer Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 88% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_dawnpouncer_flare', name: 'Dawnpouncer Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 198% ATK, and the light mends 12% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.98 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.12 },
+        ],
+      },
+      {
+        id: 'cat_dawnpouncer_zenith', name: 'Dawnpouncer Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 261% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.61 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnpouncer Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 12% max HP at turn start while below 15% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.15) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.12));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnpouncer Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  cat_sunsinger: {
+    id: 'cat_sunsinger',
+    element: 'light',
+    name: 'Cat Sunsinger',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1230, atk: 159, def: 92, speed: 101 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catsunsingeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_sunsinger_call', name: 'Sunsinger\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 89% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_sunsinger_proclamation', name: 'Sunsinger\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +17% ATK for 2 turns and 13% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.17, turns: 2 },
+          { type: 'turnMeter', amount: 0.13 },
+        ],
+      },
+      {
+        id: 'cat_sunsinger_triumph', name: 'Sunsinger\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +8% SPD for 2 turns and 4% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.08, turns: 2 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunsinger Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +2% SPD for 2 turns.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.02, turns: 2 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  cat_oathclaw: {
+    id: 'cat_oathclaw',
+    element: 'light',
+    name: 'Cat Oathclaw',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1239, atk: 164, def: 95, speed: 103 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catoathclawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cat_oathclaw_gavel', name: 'Oathclaw\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 90% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'cat_oathclaw_inquest', name: 'Oathclaw\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 190% ATK and the target takes +21% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.9 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.21, turns: 2 },
+        ],
+      },
+      {
+        id: 'cat_oathclaw_verdict', name: 'Oathclaw\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 263% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.63 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Oathclaw Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 25% extra damage to armor-broken enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'def') ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  drake_gravewing: {
+    id: 'drake_gravewing',
+    element: 'dark',
+    name: 'Drake Gravewing',
+    title: 'The sentence is the swing.',
+    rarity: 3,
+    stats: { hp: 1172, atk: 182, def: 94, speed: 104 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakegravewingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_gravewing_edge', name: 'Gravewing\'s Edge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Two dark cuts: 91% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_gravewing_sentence', name: 'Gravewing\'s Sentence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Pass judgment: 200% ATK and the target takes +12% damage for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.01 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'drake_gravewing_end', name: 'Gravewing\'s End',
+        icon: 'assets/icons/fc728.png',
+        description: 'Carry it out: 277% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.77 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gravewing\'s Due',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 34% extra damage to enemies below 26% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp / target.maxHp < 0.26 ? 1.34 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  drake_hexscorch: {
+    id: 'drake_hexscorch',
+    element: 'dark',
+    name: 'Drake Hexscorch',
+    title: 'Carries every curse worth having.',
+    rarity: 3,
+    stats: { hp: 1181, atk: 187, def: 97, speed: 106 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakehexscorchidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_hexscorch_lash', name: 'Hexscorch Lash',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two cursed lashes: 92% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_hexscorch_bane', name: 'Hexscorch Bane',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A layered curse: 202% ATK, -16% ATK and -12% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.02 },
+          { type: 'debuff', stat: 'atk', mult: 0.84, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.88, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_hexscorch_pall', name: 'Hexscorch Pall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A pall over everything: 156% ATK to ALL enemies and -5% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.56 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexscorch Craft',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Curses honed in the dark.',
+      hooks: { accuracyAdd: 0.11, resistanceAdd: 0.13 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  drake_bloodember: {
+    id: 'drake_bloodember',
+    element: 'dark',
+    name: 'Drake Bloodember',
+    title: 'Your vigor, redistributed.',
+    rarity: 3,
+    stats: { hp: 1190, atk: 162, def: 100, speed: 108 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakebloodemberidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_bloodember_sip', name: 'Bloodember\'s Sip',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two draining touches: 93% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_bloodember_feast', name: 'Bloodember\'s Feast',
+        icon: 'assets/icons/fc825.png',
+        description: 'Drink deep: 202% ATK, healing himself for 46% of ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.03 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.46 },
+        ],
+      },
+      {
+        id: 'drake_bloodember_toll', name: 'Bloodember\'s Toll',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Tax the living: 147% ATK to ALL enemies while he mends 14% of his max HP.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.47 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.14 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodember Hunger',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, siphons 1.5% of his max HP from a random enemy.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.015));
+          target.takeDamage(amount);
+          unit.heal(amount);
+          return null; // silent — small rolling hunger
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  drake_duskflier: {
+    id: 'drake_duskflier',
+    element: 'dark',
+    name: 'Drake Duskflier',
+    title: 'The dark keeps its edge honed.',
+    rarity: 3,
+    stats: { hp: 1199, atk: 167, def: 79, speed: 110 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakeduskflieridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_duskflier_flick', name: 'Duskflier Flick',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Two flickering cuts: 94% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_duskflier_waltz', name: 'Duskflier Waltz',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A step through shadow: 204% ATK and +14% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.04 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.14, turns: 1 },
+        ],
+      },
+      {
+        id: 'drake_duskflier_finale', name: 'Duskflier Finale',
+        icon: 'assets/icons/fc723.png',
+        description: 'The last figure: 268% ATK — 25% more against debuffed prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.68, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Duskflier Poise',
+      icon: 'assets/icons/fc862.png',
+      description: 'A blade kept perfectly balanced (small rolling buffs each turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.11, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.03, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  drake_dreadfume: {
+    id: 'drake_dreadfume',
+    element: 'dark',
+    name: 'Drake Dreadfume',
+    title: 'Fear arrives before the blow.',
+    rarity: 3,
+    stats: { hp: 1208, atk: 172, def: 82, speed: 112 },
+    tint: { body: '#2a2438', helm: '#443a56', weapon: '#8a6ab8', skin: '#9a92a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakedreadfumeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_dreadfume_knell', name: 'Dreadfume Knell',
+        icon: 'assets/icons/fc1003.png',
+        description: 'Two tolling blows: 95% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_dreadfume_omen', name: 'Dreadfume Omen',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Name their doom: 184% ATK and -17% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.85 },
+          { type: 'debuff', stat: 'atk', mult: 0.83, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_dreadfume_chorus', name: 'Dreadfume Chorus',
+        icon: 'assets/icons/fc807.png',
+        description: 'The dread chorus: 154% ATK to ALL enemies and -4% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.54 },
+          { type: 'debuff', stat: 'critChance', add: -0.04, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dreadfume Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, dread spreads: ALL enemies lose 1.5% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const e of battle.livingUnits(unit.enemyTeam())) {
+            e.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.985, turns: 1 });
+          }
+          return null; // silent — small rolling dread
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Twilight Ground: +12% ATK from the chosen hex.',
+    },
+  },
+
+  drake_lightscale: {
+    id: 'drake_lightscale',
+    element: 'light',
+    name: 'Drake Lightscale',
+    title: 'Every wound answers to the light.',
+    rarity: 3,
+    stats: { hp: 1217, atk: 177, def: 85, speed: 96 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakelightscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_lightscale_rebuke', name: 'Lightscale\'s Rebuke',
+        icon: 'assets/icons/fc1471.png',
+        description: 'Two shining raps: 96% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_lightscale_grace', name: 'Lightscale\'s Grace',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Pour in the light: heals an ally 185% of ATK and cleanses their debuffs.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.85 },
+          { type: 'cleanse' },
+        ],
+      },
+      {
+        id: 'drake_lightscale_communion', name: 'Lightscale\'s Communion',
+        icon: 'assets/icons/fc800.png',
+        description: 'Shared light: ALL allies heal 135% of ATK plus 1.9% of max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.35 },
+          { type: 'hot', pct: 0.018, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lightscale Devotion',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Healing hands, steadied by faith.',
+      hooks: { healBoostAdd: 0.26 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  drake_aegisplate: {
+    id: 'drake_aegisplate',
+    element: 'light',
+    name: 'Drake Aegisplate',
+    title: 'A shield the sun would envy.',
+    rarity: 3,
+    stats: { hp: 1226, atk: 182, def: 88, speed: 98 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakeaegisplateidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_aegisplate_check', name: 'Aegisplate\'s Check',
+        icon: 'assets/icons/fc854.png',
+        description: 'Two shield checks: 97% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_aegisplate_ward', name: 'Aegisplate\'s Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the aegis over an ally: they take 16% less damage for 2 turns and heal 126% of ATK.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.84, turns: 2 },
+          { type: 'heal', mult: 1.26 },
+        ],
+      },
+      {
+        id: 'drake_aegisplate_vigil', name: 'Aegisplate\'s Vigil',
+        icon: 'assets/icons/fc856.png',
+        description: 'The unbroken vigil: ALL allies gain +1% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.01, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Aegisplate Constancy',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, shields the most wounded ally: takes 14% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.86, turns: 1 });
+          return null; // silent — small rolling shelter
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  drake_dawnflare: {
+    id: 'drake_dawnflare',
+    element: 'light',
+    name: 'Drake Dawnflare',
+    title: 'Morning, sharpened.',
+    rarity: 3,
+    stats: { hp: 1235, atk: 187, def: 91, speed: 100 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakedawnflareidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_dawnflare_stroke', name: 'Dawnflare Stroke',
+        icon: 'assets/icons/fc1587.png',
+        description: 'Two dawn-lit strokes: 98% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_dawnflare_flare', name: 'Dawnflare Flare',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A flare of morning: 208% ATK, and the light mends 13% of max HP.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.08 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.13 },
+        ],
+      },
+      {
+        id: 'drake_dawnflare_zenith', name: 'Dawnflare Zenith',
+        icon: 'assets/icons/fc730.png',
+        description: 'High noon: 271% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.71 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawnflare Resolve',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Heals 3.5% max HP at turn start while below 60% HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp >= 0.6) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.035));
+          if (healed <= 0) return null;
+          return {
+            label: 'Dawnflare Resolve',
+            message: `${unit.name}'s light knits ${healed} HP.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  drake_sunspire: {
+    id: 'drake_sunspire',
+    element: 'light',
+    name: 'Drake Sunspire',
+    title: 'Good news travels armed.',
+    rarity: 3,
+    stats: { hp: 1244, atk: 162, def: 94, speed: 102 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakesunspireidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_sunspire_call', name: 'Sunspire\'s Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Two ringing notes: 99% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_sunspire_proclamation', name: 'Sunspire\'s Proclamation',
+        icon: 'assets/icons/fc869.png',
+        description: 'Lift an ally: +18% ATK for 2 turns and 14% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.18, turns: 2 },
+          { type: 'turnMeter', amount: 0.14 },
+        ],
+      },
+      {
+        id: 'drake_sunspire_triumph', name: 'Sunspire\'s Triumph',
+        icon: 'assets/icons/fc882.png',
+        description: 'Declare the day won: ALL allies gain +5% SPD for 2 turns and 5% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Sunspire Anthem',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start: ALL allies gain +2.5% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.025, turns: 1 }); }
+          return null; // silent — small rolling anthem
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
+  drake_oathflame: {
+    id: 'drake_oathflame',
+    element: 'light',
+    name: 'Drake Oathflame',
+    title: 'Verdicts delivered in person.',
+    rarity: 3,
+    stats: { hp: 1253, atk: 167, def: 97, speed: 104 },
+    tint: { body: '#d8cba0', helm: '#f0e4b8', weapon: '#f8d86a', skin: '#e8dcc0' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/drakeoathflameidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drake_oathflame_gavel', name: 'Oathflame\'s Gavel',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Two measured blows: 100% then 37% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'damage', mult: 0.37 },
+        ],
+      },
+      {
+        id: 'drake_oathflame_inquest', name: 'Oathflame\'s Inquest',
+        icon: 'assets/icons/fc862.png',
+        description: 'Open the case: 200% ATK and the target takes +22% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.0 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.22, turns: 2 },
+        ],
+      },
+      {
+        id: 'drake_oathflame_verdict', name: 'Oathflame\'s Verdict',
+        icon: 'assets/icons/fc744.png',
+        description: 'Deliver the verdict: 273% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.73 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Oathflame Justice',
+      icon: 'assets/icons/fc863.png',
+      description: 'Justice sees clearly: deals 28% extra damage to exposed (vulnerability-marked) enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.stat === 'damageTaken' && fx.kind === 'debuff') ? 1.28 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Radiant Ground: +12% DEF in the chosen hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',
