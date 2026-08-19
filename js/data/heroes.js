@@ -2373,6 +2373,1143 @@ const HEROES = {
   },
 
 
+  // ---- Placeholder minotaur cohort (filling the roster to 25) ------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional flat paths (assets/heroes/minotaur<role>idle.png).
+
+  minotaur_axeman: {
+    id: 'minotaur_axeman',
+    element: 'fire',
+    name: 'Minotaur Axeman',
+    title: 'Feller of Pillars',
+    rarity: 1,
+    stats: { hp: 890, atk: 113, def: 72, speed: 90 },
+    tint: { body: '#7a5a3a', helm: '#9a7a4a', weapon: '#c8c0b0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotauraxemanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'chop', name: 'Chop',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A workmanlike chop for 109% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.09 },
+        ],
+      },
+      {
+        id: 'overhand_hew', name: 'Overhand Hew',
+        icon: 'assets/icons/fc730.png',
+        description: 'A full-shoulder hew: 150% ATK, and the swing loosens him up: +8% ATK for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 1 },
+        ],
+      },
+      {
+        id: 'timber', name: 'Timber!',
+        icon: 'assets/icons/fc767.png',
+        description: 'Drop the tree on a hex row: 100% ATK and -8% DEF for 1 turn.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Chopping Cadence',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +10% crit damage for 2 turns at each turn start (briefly stacks).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.10, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Fell Stance: +12% ATK while in a front hex.',
+    },
+  },
+
+  minotaur_herder: {
+    id: 'minotaur_herder',
+    element: 'water',
+    name: 'Minotaur Herder',
+    title: 'Driver of the Long Horns',
+    rarity: 1,
+    stats: { hp: 860, atk: 104, def: 70, speed: 94 },
+    tint: { body: '#6a7a5a', helm: '#8a9a6a', weapon: '#b8a878', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurherderidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'crook_swipe', name: 'Crook Swipe',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A hooking swipe: 97% ATK that drains 7% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'turnMeter', amount: -0.07 },
+        ],
+      },
+      {
+        id: 'herding_call', name: 'Herding Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'Drive an ally onward: +25% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: 0.25 },
+        ],
+      },
+      {
+        id: 'stampede_whistle', name: 'Stampede Whistle',
+        icon: 'assets/icons/fc869.png',
+        description: 'Whistle the charge: ALL allies gain +10% ATK for 2 turns and 5% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 2 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Watchful Herd',
+      icon: 'assets/icons/fc863.png',
+      description: 'At turn start, the ally lowest on the turn meter gains 10% meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.turnMeter - b.turnMeter);
+          const ally = allies[0];
+          ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            ally.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+          return null; // silent — small rolling push
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Fold Gate: +12% DEF while in the center hex.',
+    },
+  },
+
+  minotaur_digger: {
+    id: 'minotaur_digger',
+    element: 'water',
+    name: 'Minotaur Digger',
+    title: 'Spade of the Bonefield',
+    rarity: 1,
+    stats: { hp: 920, atk: 107, def: 78, speed: 87 },
+    tint: { body: '#5a5a4a', helm: '#7a7a5a', weapon: '#a8a098', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurdiggeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shovel_whack', name: 'Shovel Whack',
+        icon: 'assets/icons/fc1472.png',
+        description: 'A flat-of-the-spade whack for 101% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.01 },
+        ],
+      },
+      {
+        id: 'undermine', name: 'Undermine',
+        icon: 'assets/icons/fc862.png',
+        description: 'Dig out their footing: -20% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'def', mult: 0.8, turns: 2 },
+        ],
+      },
+      {
+        id: 'tunnel_collapse', name: 'Tunnel Collapse',
+        icon: 'assets/icons/fc767.png',
+        description: 'Drop the gallery on a hex row: 105% ATK and -10% turn meter.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Digs In',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 15% less damage while below half HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.5 ? 0.85 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Trenchwork: +12% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_piper: {
+    id: 'minotaur_piper',
+    element: 'wind',
+    name: 'Minotaur Piper',
+    title: 'Wind of the Warrens',
+    rarity: 1,
+    stats: { hp: 800, atk: 109, def: 65, speed: 98 },
+    tint: { body: '#4a6a6a', helm: '#6a8a8a', weapon: '#e8d8a8', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurpiperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'skirl_blast', name: 'Skirl Blast',
+        icon: 'assets/icons/fc1003.png',
+        description: 'A skirling blast: 87% ATK and -6% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.87 },
+          { type: 'debuff', stat: 'atk', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'droning_dirge', name: 'Droning Dirge',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A leaden drone: ALL enemies lose 6% turn meter and 4% SPD for 1 turn.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: -0.06 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'battle_anthem', name: 'Battle Anthem',
+        icon: 'assets/icons/fc869.png',
+        description: 'A soaring anthem: ALL allies gain +8% crit chance for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'critChance', add: 0.08, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Encore',
+      icon: 'assets/icons/fc882.png',
+      description: '+5% chance to take an extra turn after acting.',
+      hooks: { extraTurnAdd: 0.05 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.1,
+      description: 'Piper\'s Knoll: +10% SPD while in a back hex.',
+    },
+  },
+
+  minotaur_butcher: {
+    id: 'minotaur_butcher',
+    element: 'fire',
+    name: 'Minotaur Butcher',
+    title: 'Purveyor of Cuts',
+    rarity: 1,
+    stats: { hp: 930, atk: 118, def: 68, speed: 91 },
+    tint: { body: '#8a4a4a', helm: '#a86a5a', weapon: '#d8d8e0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurbutcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'meat_hook', name: 'Meat Hook',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A dragging hook: 93% ATK that opens a 10% ATK bleed for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'dot', pct: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'carve', name: 'Carve',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A carving stroke: 125% ATK plus a 25% ATK bleed for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'dot', pct: 0.25, turns: 2 },
+        ],
+      },
+      {
+        id: 'butchers_special', name: 'Butcher\'s Special',
+        icon: 'assets/icons/fc734.png',
+        description: 'The good cut: 150% ATK — 70% more against bleeding prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5, bonusVs: { kind: 'dot', mult: 1.7 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bloodletter',
+      icon: 'assets/icons/fc1093.png',
+      description: '+20% DoT damage.',
+      hooks: { dotBoostAdd: 0.20 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Chopping Block: +12% ATK while in a front hex.',
+    },
+  },
+
+  minotaur_sentry: {
+    id: 'minotaur_sentry',
+    element: 'wind',
+    name: 'Minotaur Sentry',
+    title: 'Eyes of the Long Night',
+    rarity: 1,
+    stats: { hp: 980, atk: 103, def: 82, speed: 89 },
+    tint: { body: '#4a4a6a', helm: '#6a6a8a', weapon: '#c8c0b0', shield: '#8a8aa8', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaursentryidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'halberd_poke', name: 'Halberd Poke',
+        icon: 'assets/icons/fc1461.png',
+        description: 'A halberd poke: 99% ATK, held in guard: +5% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'hold_fast', name: 'Hold Fast',
+        icon: 'assets/icons/fc854.png',
+        description: 'Set the halberd: takes 25% less damage and +20% DEF for 1 turn.',
+        cooldown: 3, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.75, turns: 1 },
+          { type: 'buff', stat: 'def', mult: 1.2, turns: 1 },
+        ],
+      },
+      {
+        id: 'alarm_bellow', name: 'Alarm Bellow',
+        icon: 'assets/icons/fc869.png',
+        description: 'Rouse the watch: ALL allies gain +18% DEF and 1.5% max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.18, turns: 2 },
+          { type: 'hot', pct: 0.015, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Line Watch',
+      icon: 'assets/icons/fc856.png',
+      description: '+12% chance to dodge while holding a front hex.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT ? 0.12 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Watchpost: +15% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_thrower: {
+    id: 'minotaur_thrower',
+    element: 'fire',
+    name: 'Minotaur Thrower',
+    title: 'Sixty-Yard Grudge',
+    rarity: 1,
+    stats: { hp: 870, atk: 114, def: 66, speed: 93 },
+    tint: { body: '#7a6a4a', helm: '#9a8a5a', weapon: '#a8a098', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurthroweridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rock_hurl', name: 'Rock Hurl',
+        icon: 'assets/icons/fc1515.png',
+        description: 'A shoulder-turned hurl for 116% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.16 },
+        ],
+      },
+      {
+        id: 'boulder_toss', name: 'Boulder Toss',
+        icon: 'assets/icons/fc1516.png',
+        description: 'A flung boulder: 155% ATK that drains 18% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.55 },
+          { type: 'turnMeter', amount: -0.18 },
+        ],
+      },
+      {
+        id: 'rockslide', name: 'Rockslide',
+        icon: 'assets/icons/fc807.png',
+        description: 'Bury ALL enemies: 72% ATK and -5% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.72 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Long Arm',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to enemies holding the center hex.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.slot && target.slot.position === POSITION.CENTER ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Throwing Lane: +15% ATK while in a back hex.',
+    },
+  },
+
+  minotaur_ravager: {
+    id: 'minotaur_ravager',
+    element: 'fire',
+    name: 'Minotaur Ravager',
+    title: 'Wrecker of Gates',
+    rarity: 2,
+    stats: { hp: 950, atk: 142, def: 70, speed: 102 },
+    tint: { body: '#8a3a3a', helm: '#a85a4a', weapon: '#c8c0b0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurravageridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rip_and_gore', name: 'Rip and Gore',
+        icon: 'assets/icons/fc746.png',
+        description: 'Horn and hoof: 65% then 55% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.65 },
+          { type: 'damage', mult: 0.55 },
+        ],
+      },
+      {
+        id: 'gore_charge', name: 'Gore Charge',
+        icon: 'assets/icons/fc763.png',
+        description: 'A goring charge: 142% ATK; the momentum grants 8% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.42 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'rampage', name: 'Rampage',
+        icon: 'assets/icons/fc800.png',
+        description: 'Wreck everything: 85% ATK to ALL enemies, then +15% ATK for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Red Mist',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Deals 30% extra damage while below 30% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.hp / unit.maxHp < 0.3 ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Ram Position: +15% ATK while in a front hex.',
+    },
+  },
+
+  minotaur_warden: {
+    id: 'minotaur_warden',
+    element: 'water',
+    name: 'Minotaur Warden',
+    title: 'Keeper of the Inner Gate',
+    rarity: 2,
+    stats: { hp: 1080, atk: 118, def: 98, speed: 86 },
+    tint: { body: '#3a4a6a', helm: '#5a6a8a', weapon: '#d8d8e0', shield: '#6a7a9a', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurwardenidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wardens_cudgel', name: 'Warden\'s Cudgel',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A jailer\'s cudgel: 91% ATK, raised guard: takes 8% less damage until next turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.92, turns: 1 },
+        ],
+      },
+      {
+        id: 'chain_snare', name: 'Chain Snare',
+        icon: 'assets/icons/fc862.png',
+        description: 'Snare in chains: 105% ATK and -25% SPD for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'debuff', stat: 'speed', mult: 0.75, turns: 1 },
+        ],
+      },
+      {
+        id: 'gaol_wall', name: 'Gaol Wall',
+        icon: 'assets/icons/fc855.png',
+        description: 'Bar the gate: front-hex allies gain +22% DEF and take 10% less damage for 2 turns.',
+        cooldown: 6, targeting: 'front-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.22, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Iron Custody',
+      icon: 'assets/icons/fc856.png',
+      description: '+10% debuff accuracy and +10% debuff resistance.',
+      hooks: { accuracyAdd: 0.10, resistanceAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.18,
+      description: 'Gatekeeper: +18% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_skirmisher: {
+    id: 'minotaur_skirmisher',
+    element: 'wind',
+    name: 'Minotaur Skirmisher',
+    title: 'Quick for His Size',
+    rarity: 2,
+    stats: { hp: 900, atk: 132, def: 72, speed: 106 },
+    tint: { body: '#5a7a6a', helm: '#7a9a8a', weapon: '#c8c0b0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurskirmisheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'twin_horns', name: 'Twin Horns',
+        icon: 'assets/icons/fc746.png',
+        description: 'A double hook of the horns: 62% ATK each.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.62 },
+          { type: 'damage', mult: 0.62 },
+        ],
+      },
+      {
+        id: 'horn_sweep', name: 'Horn Sweep',
+        icon: 'assets/icons/fc724.png',
+        description: 'Sweep a hex row: 85% ATK and -6% turn meter.',
+        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'blindside', name: 'Blindside',
+        icon: 'assets/icons/fc825.png',
+        description: 'Hit where they aren\'t looking: 170% ATK, then slip away: +20% SPD for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.7 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.2, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Pivot Point',
+      icon: 'assets/icons/fc867.png',
+      description: 'Deals 15% extra damage while holding the center hex.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.slot && unit.slot.position === POSITION.CENTER ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
+      description: 'Pivot: +12% SPD while in the center hex.',
+    },
+  },
+
+  minotaur_runesmith: {
+    id: 'minotaur_runesmith',
+    element: 'water',
+    name: 'Minotaur Runesmith',
+    title: 'Letters in Stone',
+    rarity: 2,
+    stats: { hp: 940, atk: 128, def: 80, speed: 96 },
+    tint: { body: '#4a5a7a', helm: '#6a7a9a', weapon: '#7ac8e8', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurrunesmithidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rune_bolt', name: 'Rune Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A carved bolt: 84% ATK, and the sigil steadies him: +6% crit chance for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.84 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'inscribe_ward', name: 'Inscribe Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Cut a ward into an ally\'s hide: heals 50% of ATK and they take 15% less damage for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.5 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'detonate_runes', name: 'Detonate Runes',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Crack every sigil: 78% ATK to ALL enemies — 40% more against exposed (marked) foes.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78, bonusVs: { stat: 'damageTaken', mult: 1.4 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Rune Shield',
+      icon: 'assets/icons/fc854.png',
+      description: 'At turn start, etches himself an 8% damage-reduction rune for 2 turns (briefly stacks).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.92, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Anvil Stone: +15% DEF while in the center hex.',
+    },
+  },
+
+  minotaur_wrestler: {
+    id: 'minotaur_wrestler',
+    element: 'fire',
+    name: 'Minotaur Wrestler',
+    title: 'Undefeated in the Dark',
+    rarity: 2,
+    stats: { hp: 1000, atk: 130, def: 84, speed: 94 },
+    tint: { body: '#6a4a3a', helm: '#8a6a4a', weapon: '#a88a6a', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurwrestleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'clinch', name: 'Clinch',
+        icon: 'assets/icons/fc663.png',
+        description: 'Lock up: 89% ATK and -6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.89 },
+          { type: 'debuff', stat: 'speed', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'suplex', name: 'Suplex',
+        icon: 'assets/icons/fc762.png',
+        description: 'Lift and drop: 135% ATK that dumps 22% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'turnMeter', amount: -0.22 },
+        ],
+      },
+      {
+        id: 'ring_out', name: 'Ring Out',
+        icon: 'assets/icons/fc767.png',
+        description: 'Throw them from the ring: 125% ATK, -18% ATK for 2 turns and -10% DEF for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'debuff', stat: 'atk', mult: 0.82, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Heavyweight',
+      icon: 'assets/icons/fc856.png',
+      description: 'Built like a wall: deals 8% more and takes 8% less damage.',
+      hooks: {
+        damageDealtMult() { return 1.08; },
+        damageTakenMult() { return 0.92; },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Corner Post: +15% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_geomancer: {
+    id: 'minotaur_geomancer',
+    element: 'water',
+    name: 'Minotaur Geomancer',
+    title: 'Speaker to Bedrock',
+    rarity: 2,
+    stats: { hp: 890, atk: 140, def: 74, speed: 100 },
+    tint: { body: '#5a6a5a', helm: '#7a8a6a', weapon: '#a8c86a', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurgeomanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pebble_barrage', name: 'Pebble Barrage',
+        icon: 'assets/icons/fc807.png',
+        description: 'Five whipped stones for 22% ATK each.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.22 },
+          { type: 'damage', mult: 0.22 },
+          { type: 'damage', mult: 0.22 },
+          { type: 'damage', mult: 0.22 },
+          { type: 'damage', mult: 0.22 },
+        ],
+      },
+      {
+        id: 'earthen_spike', name: 'Earthen Spike',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A spear of rock: 148% ATK and -15% SPD for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.48 },
+          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 1 },
+        ],
+      },
+      {
+        id: 'quicksand_field', name: 'Quicksand Field',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The field liquefies: ALL enemies lose 20% SPD for 2 turns and 10% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.8, turns: 2 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tremor Sense',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, 25% chance to slow a random enemy: -10% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (Math.random() >= 0.25) return null;
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.9, turns: 1 });
+          return {
+            label: 'Tremor Sense',
+            message: `${unit.name}'s tremor staggers ${target.name}.`,
+            floats: [{ target, text: 'SLOWED', color: '#a8c86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Ley Line: +12% ATK while in a back hex.',
+    },
+  },
+
+  minotaur_veteran: {
+    id: 'minotaur_veteran',
+    element: 'wind',
+    name: 'Minotaur Veteran',
+    title: 'Half the Scars Are His',
+    rarity: 2,
+    stats: { hp: 970, atk: 134, def: 82, speed: 97 },
+    tint: { body: '#6a6a5a', helm: '#8a8a6a', weapon: '#c8c0b0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurveteranidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'practiced_cut', name: 'Practiced Cut',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Nothing fancy, nothing wasted: 114% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.14 },
+        ],
+      },
+      {
+        id: 'old_tricks', name: 'Old Tricks',
+        icon: 'assets/icons/fc723.png',
+        description: 'A trick they never learn: 130% ATK — 35% more against debuffed foes.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3, bonusVs: { kind: 'debuff', mult: 1.35 } },
+        ],
+      },
+      {
+        id: 'last_lesson', name: 'Last Lesson',
+        icon: 'assets/icons/fc728.png',
+        description: 'The lesson ends: 195% ATK, delivered from behind a raised guard (takes 15% less damage until next turn).',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.95 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Survivor\'s Instinct',
+      icon: 'assets/icons/fc862.png',
+      description: '+20% chance to dodge while below 30% HP.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.3 ? 0.20 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Old Ground: +12% ATK while in a front hex.',
+    },
+  },
+
+  minotaur_warlord: {
+    id: 'minotaur_warlord',
+    element: 'fire',
+    name: 'Minotaur Warlord',
+    title: 'Crown of Broken Horns',
+    rarity: 3,
+    stats: { hp: 1220, atk: 170, def: 94, speed: 101 },
+    tint: { body: '#7a2a2a', helm: '#e8c83a', weapon: '#d8d8e0', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurwarlordidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warlords_edict', name: 'Warlord\'s Edict',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A decree in iron: 100% ATK, and his fury builds: +7% ATK for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.07, turns: 2 },
+        ],
+      },
+      {
+        id: 'command_the_charge', name: 'Command the Charge',
+        icon: 'assets/icons/fc869.png',
+        description: 'Sound the horns: ALL allies gain 15% turn meter and +8% ATK for 1 turn.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: 0.15 },
+          { type: 'buff', stat: 'atk', mult: 1.08, turns: 1 },
+        ],
+      },
+      {
+        id: 'decapitating_sweep', name: 'Decapitating Sweep',
+        icon: 'assets/icons/fc730.png',
+        description: 'Sweep the front line for 130% ATK.',
+        cooldown: 7, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Warlord\'s Presence',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, ALL allies gain +4% ATK and +4% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.04, turns: 1 });
+            ally.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.04, turns: 1 });
+          }
+          return null; // silent — small rolling aura
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'War Banner: +15% ATK while in the center hex.',
+    },
+  },
+
+  minotaur_colossus: {
+    id: 'minotaur_colossus',
+    element: 'water',
+    name: 'Minotaur Colossus',
+    title: 'The Walking Rampart',
+    rarity: 3,
+    stats: { hp: 1350, atk: 158, def: 105, speed: 84 },
+    tint: { body: '#4a4a5a', helm: '#6a6a7a', weapon: '#a8a0a8', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurcolossusidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'colossal_fist', name: 'Colossal Fist',
+        icon: 'assets/icons/fc663.png',
+        description: 'A fist like a falling wall: 122% ATK, but so slow it costs 6% of his own meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.22 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'seismic_slam', name: 'Seismic Slam',
+        icon: 'assets/icons/fc767.png',
+        description: 'Slam a hex row: 115% ATK and -12% turn meter.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'unmovable', name: 'Unmovable',
+        icon: 'assets/icons/fc854.png',
+        description: 'Become the wall: takes 50% less damage for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.5, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Too Big to Fall',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 35% less damage while below 20% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.2 ? 0.65 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Rampart: +20% DEF while in a front hex.',
+    },
+  },
+
+  minotaur_hexhorn: {
+    id: 'minotaur_hexhorn',
+    element: 'wind',
+    name: 'Minotaur Hexhorn',
+    title: 'Cursed at Both Ends',
+    rarity: 3,
+    stats: { hp: 1100, atk: 180, def: 82, speed: 104 },
+    tint: { body: '#5a3a6a', helm: '#7a5a8a', weapon: '#b86ae8', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaurhexhornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'hex_horn', name: 'Hex Horn',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A cursed gore: 86% ATK and -5% DEF for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.86 },
+          { type: 'debuff', stat: 'def', mult: 0.95, turns: 2 },
+        ],
+      },
+      {
+        id: 'curse_of_the_maze', name: 'Curse of the Maze',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The walls whisper: ALL enemies lose 10% ATK for 2 turns and 5% crit chance for 1 turn.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+          { type: 'debuff', stat: 'critChance', add: -0.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'horns_of_ruin', name: 'Horns of Ruin',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Ruin arrives: 185% ATK — 40% more against debuffed foes.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.85, bonusVs: { kind: 'debuff', mult: 1.4 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hexed Blood',
+      icon: 'assets/icons/fc1052.png',
+      description: '+15% debuff accuracy and +15% debuff resistance.',
+      hooks: { accuracyAdd: 0.15, resistanceAdd: 0.15 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Cursing Distance: +15% ATK while in a back hex.',
+    },
+  },
+
+  minotaur_sunbrand: {
+    id: 'minotaur_sunbrand',
+    element: 'fire',
+    name: 'Minotaur Sunbrand',
+    title: 'Dawn Held in a Fist',
+    rarity: 3,
+    stats: { hp: 1130, atk: 174, def: 86, speed: 106 },
+    tint: { body: '#a8622a', helm: '#e8a83a', weapon: '#f8c84a', skin: '#a88a6a' },
+    sprite: {
+      displayH: 76,
+      strips: {
+        idle: { src: 'assets/heroes/minotaursunbrandidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'brand_slash', name: 'Brand Slash',
+        icon: 'assets/icons/fc981.png',
+        description: 'A burning stroke: 105% ATK plus an 8% ATK burn for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'dot', pct: 0.08, turns: 2 },
+        ],
+      },
+      {
+        id: 'searing_brand', name: 'Searing Brand',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Press the brand in: the target takes +25% damage and burns for 20% ATK, both for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'damageTaken', mult: 1.25, turns: 2 },
+          { type: 'dot', pct: 0.2, turns: 2 },
+        ],
+      },
+      {
+        id: 'solar_flare', name: 'Solar Flare',
+        icon: 'assets/icons/fc1044.png',
+        description: 'A blinding flare: 90% ATK to ALL enemies and -6% crit chance for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'critChance', add: -0.06, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Daybreak Fury',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Gains +6% ATK and +6% crit chance for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.06, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.06, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Sun Disc: +12% ATK while in the center hex.',
+    },
+  },
+
   // ---- Snake cohort -------------------------------------------------------
   // Marshland natives; poison (DoT) specialists. Idle-only art for now.
 
@@ -2794,6 +3931,1143 @@ const HEROES = {
     positional: {
       position: POSITION.BACK, stat: 'hp', mult: 1.15,
       description: 'Sheltered Coil: +15% max HP while in a back hex.',
+    },
+  },
+
+  // ---- Placeholder snake cohort (filling the roster to 25) ---------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional flat paths (assets/heroes/snake<role>idle.png).
+
+  snake_skirmisher: {
+    id: 'snake_skirmisher',
+    element: 'wind',
+    name: 'Snake Skirmisher',
+    title: 'Reed-Blade Runner',
+    rarity: 1,
+    stats: { hp: 740, atk: 112, def: 58, speed: 104 },
+    tint: { body: '#5a8a5a', helm: '#7aaa6a', weapon: '#c8c0b0', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeskirmisheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'twin_fang_jab', name: 'Twin Fang Jab',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Two needle jabs for 55% ATK each.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.55 },
+          { type: 'damage', mult: 0.55 },
+        ],
+      },
+      {
+        id: 'slipstrike', name: 'Slipstrike',
+        icon: 'assets/icons/fc825.png',
+        description: 'Slide past the guard: 135% ATK and 5% turn meter back.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+      {
+        id: 'sand_spray', name: 'Sand Spray',
+        icon: 'assets/icons/fc807.png',
+        description: 'Kick sand at ALL enemies: 55% ATK and -5% SPD for 1 turn.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.55 },
+          { type: 'debuff', stat: 'speed', mult: 0.95, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ambush Coil',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to enemies about to act (turn meter above 80%).',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter > CONFIG.TURN_METER_MAX * 0.8 ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.12,
+      description: 'Reed Runner: +12% SPD while in a back hex.',
+    },
+  },
+
+  snake_spitter: {
+    id: 'snake_spitter',
+    element: 'water',
+    name: 'Snake Spitter',
+    title: 'Gutter Geyser',
+    rarity: 1,
+    stats: { hp: 760, atk: 115, def: 60, speed: 97 },
+    tint: { body: '#4a7a8a', helm: '#6a9aaa', weapon: '#8ab8c8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakespitteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'venom_spit', name: 'Venom Spit',
+        icon: 'assets/icons/fc981.png',
+        description: 'A gob of spit: 75% ATK plus 22% ATK venom for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'dot', pct: 0.22, turns: 1 },
+        ],
+      },
+      {
+        id: 'blinding_spray', name: 'Blinding Spray',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Spray the eyes: 100% ATK and -15% crit chance for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'debuff', stat: 'critChance', add: -0.15, turns: 1 },
+        ],
+      },
+      {
+        id: 'drowning_gout', name: 'Drowning Gout',
+        icon: 'assets/icons/fc819.png',
+        description: 'A choking torrent: 130% ATK that drains 25% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'turnMeter', amount: -0.25 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Spitting Arc',
+      icon: 'assets/icons/fc862.png',
+      description: 'Deals 12% extra damage while holding a back hex.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.slot && unit.slot.position === POSITION.BACK ? 1.12 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'High Ground: +15% ATK while in a back hex.',
+    },
+  },
+
+  snake_grappler: {
+    id: 'snake_grappler',
+    element: 'fire',
+    name: 'Snake Grappler',
+    title: 'Coil of the Pit',
+    rarity: 1,
+    stats: { hp: 900, atk: 108, def: 74, speed: 90 },
+    tint: { body: '#8a5a3a', helm: '#aa7a4a', weapon: '#c8a878', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakegrappleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'coil_grab', name: 'Coil Grab',
+        icon: 'assets/icons/fc663.png',
+        description: 'Seize and squeeze: 90% ATK and -10% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 1 },
+        ],
+      },
+      {
+        id: 'constricting_squeeze', name: 'Constricting Squeeze',
+        icon: 'assets/icons/fc762.png',
+        description: 'Crush the air out: 110% ATK and -15% ATK for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'debuff', stat: 'atk', mult: 0.85, turns: 1 },
+        ],
+      },
+      {
+        id: 'python_slam', name: 'Python Slam',
+        icon: 'assets/icons/fc767.png',
+        description: 'Whip-slam for 175% ATK, then harden scales: +15% DEF for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.75 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.15, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Iron Coils',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 12% less damage while above 70% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.hp / unit.maxHp > 0.7 ? 0.88 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Anchor Coil: +15% DEF while in a front hex.',
+    },
+  },
+
+  snake_flutist: {
+    id: 'snake_flutist',
+    element: 'wind',
+    name: 'Snake Flutist',
+    title: 'Charmer Charmed',
+    rarity: 1,
+    stats: { hp: 780, atk: 106, def: 66, speed: 99 },
+    tint: { body: '#7a6aa8', helm: '#9a8ac8', weapon: '#e8d8a8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeflutistidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'charming_note', name: 'Charming Note',
+        icon: 'assets/icons/fc1003.png',
+        description: 'A jarring note: 80% ATK that drains 10% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+      {
+        id: 'soothing_melody', name: 'Soothing Melody',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Mend an ally for 100% of ATK and quicken them: +10% SPD for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.0 },
+          { type: 'buff', stat: 'speed', mult: 1.1, turns: 2 },
+        ],
+      },
+      {
+        id: 'marching_tune', name: 'Marching Tune',
+        icon: 'assets/icons/fc868.png',
+        description: 'A driving tune: ALL allies gain +12% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.12, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mesmer Rhythm',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, 20% chance to grant a random ally 10% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (Math.random() >= 0.20) return null;
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          const ally = allies[Math.floor(Math.random() * allies.length)];
+          ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            ally.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+          return {
+            label: 'Mesmer Rhythm',
+            message: `${unit.name}'s rhythm carries ${ally.name} forward.`,
+            floats: [{ target: ally, text: '+10% METER', color: '#c8a8e8' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
+      description: 'Bandstand: +10% SPD while in the center hex.',
+    },
+  },
+
+  snake_broodtender: {
+    id: 'snake_broodtender',
+    element: 'water',
+    name: 'Snake Broodtender',
+    title: 'Keeper of the Clutch',
+    rarity: 1,
+    stats: { hp: 850, atk: 100, def: 72, speed: 93 },
+    tint: { body: '#6a8a6a', helm: '#e8e0c8', weapon: '#c8b898', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakebroodtenderidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shell_crack', name: 'Shell Crack',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A rap of the staff for 106% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.06 },
+        ],
+      },
+      {
+        id: 'nourishing_yolk', name: 'Nourishing Yolk',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Feed an ally: heals 110% of ATK and +10% DEF for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.1 },
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 2 },
+        ],
+      },
+      {
+        id: 'brood_shield', name: 'Brood Shield',
+        icon: 'assets/icons/fc855.png',
+        description: 'Shelter the clutch: ALL allies take 10% less damage for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tender\'s Watch',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, mends ALL allies for 1% of her max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          let any = 0;
+          for (const ally of battle.livingUnits(unit.team)) {
+            any += ally.heal(Math.round(unit.maxHp * 0.01));
+          }
+          if (any <= 0) return null;
+          return {
+            label: "Tender's Watch",
+            message: `${unit.name} tends the brood for ${any} HP.`,
+            floats: [],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Nest Post: +12% DEF while in the center hex.',
+    },
+  },
+
+  snake_fireeater: {
+    id: 'snake_fireeater',
+    element: 'fire',
+    name: 'Snake Fire-Eater',
+    title: 'Swallower of Sparks',
+    rarity: 1,
+    stats: { hp: 770, atk: 116, def: 62, speed: 95 },
+    tint: { body: '#a84a2a', helm: '#e8843a', weapon: '#f8c84a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakefireeateridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'flame_gulp', name: 'Flame Gulp',
+        icon: 'assets/icons/fc981.png',
+        description: 'Spit stolen fire: 100% ATK plus a 12% ATK burn for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'dot', pct: 0.12, turns: 1 },
+        ],
+      },
+      {
+        id: 'belch_flame', name: 'Belch Flame',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Belch fire over the front line for 80% ATK.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+        ],
+      },
+      {
+        id: 'swallow_the_sun', name: 'Swallow the Sun',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Gorge on flame: +40% ATK for 1 turn and 5% max HP regen for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.4, turns: 1 },
+          { type: 'hot', pct: 0.05, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Inner Furnace',
+      icon: 'assets/icons/fc1052.png',
+      description: 'Pain feeds the furnace: deals 20% extra damage while poisoned or debuffed.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.statusEffects.some((fx) => fx.kind === 'dot' || fx.kind === 'debuff') ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Fire Pit: +12% ATK while in the center hex.',
+    },
+  },
+
+  snake_rattler: {
+    id: 'snake_rattler',
+    element: 'wind',
+    name: 'Snake Rattler',
+    title: 'Dread Percussionist',
+    rarity: 1,
+    stats: { hp: 750, atk: 110, def: 64, speed: 101 },
+    tint: { body: '#8a7a4a', helm: '#a8985a', weapon: '#c8b878', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakerattleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rattle_strike', name: 'Rattle Strike',
+        icon: 'assets/icons/fc1444.png',
+        description: 'An unnerving strike: 95% ATK and -5% crit chance for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'debuff', stat: 'critChance', add: -0.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'fear_rattle', name: 'Fear Rattle',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A dreadful rattle: ALL enemies lose 7% ATK for 1 turn.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'atk', mult: 0.93, turns: 1 },
+        ],
+      },
+      {
+        id: 'snap_bite', name: 'Snap Bite',
+        icon: 'assets/icons/fc734.png',
+        description: 'A lightning lunge for 205% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Unnerving Presence',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, a random enemy loses 3% ATK for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.97, turns: 1 });
+          return null; // silent — small rolling malus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Rattle Range: +12% ATK while in a back hex.',
+    },
+  },
+
+  snake_lancer: {
+    id: 'snake_lancer',
+    element: 'water',
+    name: 'Snake Lancer',
+    title: 'Scalepoint Rider',
+    rarity: 2,
+    stats: { hp: 920, atk: 128, def: 78, speed: 100 },
+    tint: { body: '#3a6a9a', helm: '#5a8aba', weapon: '#d8d8e0', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakelanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'scale_lance', name: 'Scale Lance',
+        icon: 'assets/icons/fc1461.png',
+        description: 'A lance thrust for 113% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.13 },
+        ],
+      },
+      {
+        id: 'piercing_coil', name: 'Piercing Coil',
+        icon: 'assets/icons/fc1791.png',
+        description: 'Drive the lance home: 150% ATK and -10% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'serpent_charge', name: 'Serpent Charge',
+        icon: 'assets/icons/fc724.png',
+        description: 'Charge a hex row for 120% ATK; momentum grants 10% turn meter.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Fangs of Pursuit',
+      icon: 'assets/icons/fc1801.png',
+      description: 'Deals 25% extra damage to slowed (SPD-debuffed) enemies.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'speed') ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Couched Lance: +12% ATK while in a front hex.',
+    },
+  },
+
+  snake_winddancer: {
+    id: 'snake_winddancer',
+    element: 'wind',
+    name: 'Snake Winddancer',
+    title: 'Sister of the Gale',
+    rarity: 2,
+    stats: { hp: 840, atk: 134, def: 62, speed: 114 },
+    tint: { body: '#6a9a8a', helm: '#8abaa8', weapon: '#e8e8d8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakewinddanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'zephyr_cut', name: 'Zephyr Cut',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A gliding cut for 96% ATK; the follow-through grants +5% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'cyclone_spin', name: 'Cyclone Spin',
+        icon: 'assets/icons/fc729.png',
+        description: 'Whirl through a hex row for 105% ATK.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+        ],
+      },
+      {
+        id: 'dance_of_gales', name: 'Dance of Gales',
+        icon: 'assets/icons/fc882.png',
+        description: 'Become the storm: +35% SPD and +10% crit chance for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.35, turns: 2 },
+          { type: 'buff', stat: 'critChance', add: 0.1, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tailwind',
+      icon: 'assets/icons/fc868.png',
+      description: '+15% chance to dodge while in a back hex.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.slot && unit.slot.position === POSITION.BACK ? 0.15 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Gale Step: +12% damage dealt from a back hex.',
+    },
+  },
+
+  snake_bogwitch: {
+    id: 'snake_bogwitch',
+    element: 'water',
+    name: 'Snake Bog Witch',
+    title: 'Whisperer in the Weeds',
+    rarity: 2,
+    stats: { hp: 880, atk: 138, def: 66, speed: 102 },
+    tint: { body: '#4a5a3a', helm: '#6a7a4a', weapon: '#a8c86a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakebogwitchidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bog_bolt', name: 'Bog Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A muddy bolt: 90% ATK that leaves the target taking +10% damage for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'sinking_mire', name: 'Sinking Mire',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The ground swallows: ALL enemies lose 12% SPD for 2 turns.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.88, turns: 2 },
+        ],
+      },
+      {
+        id: 'hex_of_rot', name: 'Hex of Rot',
+        icon: 'assets/icons/fc1052.png',
+        description: 'A rotting hex: 110% ATK plus 30% ATK decay for 3 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'dot', pct: 0.3, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Marsh Power',
+      icon: 'assets/icons/fc1093.png',
+      description: '+15% DoT damage and +10% debuff accuracy.',
+      hooks: { dotBoostAdd: 0.15, accuracyAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Weed Blind: +15% ATK while in a back hex.',
+    },
+  },
+
+  snake_shieldscale: {
+    id: 'snake_shieldscale',
+    element: 'fire',
+    name: 'Snake Shieldscale',
+    title: 'Ember Bulwark',
+    rarity: 2,
+    stats: { hp: 1020, atk: 116, def: 92, speed: 88 },
+    tint: { body: '#8a3a2a', helm: '#a85a3a', weapon: '#d8d8e0', shield: '#c88a3a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeshieldscaleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'scale_bash', name: 'Scale Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'Bash for 92% ATK and shrug behind the scales: takes 5% less damage until next turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.92 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'shell_slam', name: 'Shell Slam',
+        icon: 'assets/icons/fc1476.png',
+        description: 'A ringing slam: 128% ATK that drains 12% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'molten_carapace', name: 'Molten Carapace',
+        icon: 'assets/icons/fc855.png',
+        description: 'Glow white-hot: takes 30% less damage and regenerates 3% max HP for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.7, turns: 2 },
+          { type: 'hot', pct: 0.03, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Heatproof Scales',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 20% less damage while holding the center hex.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.8 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Hearthstone: +15% DEF while in the center hex.',
+    },
+  },
+
+  snake_venomsmith: {
+    id: 'snake_venomsmith',
+    element: 'water',
+    name: 'Snake Venomsmith',
+    title: 'Artisan of Agony',
+    rarity: 2,
+    stats: { hp: 870, atk: 130, def: 70, speed: 98 },
+    tint: { body: '#5a7a3a', helm: '#7a9a4a', weapon: '#a8e85a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakevenomsmithidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'toxin_dart', name: 'Toxin Dart',
+        icon: 'assets/icons/fc981.png',
+        description: 'A coated dart: 70% ATK plus 28% ATK venom for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'dot', pct: 0.28, turns: 1 },
+        ],
+      },
+      {
+        id: 'coat_blades', name: 'Coat Blades',
+        icon: 'assets/icons/fc869.png',
+        description: 'Pass out envenomed edges: ALL allies gain +15% ATK for 2 turns.',
+        cooldown: 4, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'overdose', name: 'Overdose',
+        icon: 'assets/icons/fc1093.png',
+        description: 'Trigger the toxins: 90% ATK — 120% more against poisoned prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9, bonusVs: { kind: 'dot', mult: 2.2 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Leaky Vials',
+      icon: 'assets/icons/fc863.png',
+      description: 'At turn start, a random enemy suffers a small poison (5% of his ATK for 1 turn).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.05));
+          target.addStatusEffect({ kind: 'dot', amount, turns: 1 });
+          return null; // silent — small rolling poison
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Workbench: +12% ATK while in a back hex.',
+    },
+  },
+
+  snake_oracle: {
+    id: 'snake_oracle',
+    element: 'wind',
+    name: 'Snake Oracle',
+    title: 'Reader of Sheddings',
+    rarity: 2,
+    stats: { hp: 860, atk: 126, def: 72, speed: 103 },
+    tint: { body: '#8a8ab8', helm: '#a8a8d8', weapon: '#e8e8f8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeoracleidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'portent_bolt', name: 'Portent Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A foreseen strike: 94% ATK and +15% crit damage for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critDamage', add: 0.15, turns: 1 },
+        ],
+      },
+      {
+        id: 'foretell_doom', name: 'Foretell Doom',
+        icon: 'assets/icons/fc862.png',
+        description: 'Name the hour: the target takes +35% damage for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'damageTaken', mult: 1.35, turns: 1 },
+        ],
+      },
+      {
+        id: 'rewrite_fate', name: 'Rewrite Fate',
+        icon: 'assets/icons/fc855.png',
+        description: 'Unwind misfortune: cleanses ALL allies and grants 10% turn meter.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'cleanse' },
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Glimpse Ahead',
+      icon: 'assets/icons/fc882.png',
+      description: '+15% chance to dodge while above half HP.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.hp / unit.maxHp > 0.5 ? 0.15 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Sheltered Sight: +15% DEF while in a back hex.',
+    },
+  },
+
+  snake_pitfighter: {
+    id: 'snake_pitfighter',
+    element: 'fire',
+    name: 'Snake Pitfighter',
+    title: 'Champion of the Sand Pit',
+    rarity: 2,
+    stats: { hp: 940, atk: 136, def: 72, speed: 101 },
+    tint: { body: '#7a4a4a', helm: '#9a6a5a', weapon: '#c8c0b0', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakepitfighteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pit_jab', name: 'Pit Jab',
+        icon: 'assets/icons/fc663.png',
+        description: 'A dirty jab: 103% ATK — 20% more against debuffed foes.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.03, bonusVs: { kind: 'debuff', mult: 1.2 } },
+        ],
+      },
+      {
+        id: 'dirty_handful', name: 'Dirty Handful',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Sand in the eyes: 115% ATK and -8% crit chance for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'debuff', stat: 'critChance', add: -0.08, turns: 2 },
+        ],
+      },
+      {
+        id: 'pit_finish', name: 'Pit Finish',
+        icon: 'assets/icons/fc734.png',
+        description: 'End it: 155% ATK — 50% more against exposed (vulnerability-marked) foes.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.55, bonusVs: { stat: 'damageTaken', mult: 1.5 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Scrapper\'s Fury',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +8% ATK and +4% SPD for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.08, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.04, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Pit Footing: +12% ATK while in a front hex.',
+    },
+  },
+
+  snake_basilisk: {
+    id: 'snake_basilisk',
+    element: 'fire',
+    name: 'Snake Basilisk',
+    title: 'The Widowing Gaze',
+    rarity: 3,
+    stats: { hp: 1150, atk: 176, def: 88, speed: 103 },
+    tint: { body: '#6a6a3a', helm: '#8a8a4a', weapon: '#e8e86a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakebasiliskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'petrifying_gaze', name: 'Petrifying Gaze',
+        icon: 'assets/icons/fc1084.png',
+        description: 'A stony stare: 88% ATK that drains 12% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'stone_stare', name: 'Stone Stare',
+        icon: 'assets/icons/fc862.png',
+        description: 'Flesh stiffens: the target loses 30% SPD and 10% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.7, turns: 2 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'gorgons_wrath', name: 'Gorgon\'s Wrath',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Shatter the statue: 180% ATK and the target takes +20% damage for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.8 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.2, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Stonescale',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 5% less damage and +15% debuff resistance.',
+      hooks: {
+        damageTakenMult() { return 0.95; },
+        resistanceAdd: 0.15,
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'Plinth: +15% ATK while in the center hex.',
+    },
+  },
+
+  snake_leviathan: {
+    id: 'snake_leviathan',
+    element: 'water',
+    name: 'Snake Leviathan',
+    title: 'Terror of the Drowned Road',
+    rarity: 3,
+    stats: { hp: 1200, atk: 168, def: 90, speed: 100 },
+    tint: { body: '#2a4a6a', helm: '#3a6a8a', weapon: '#7ac8e8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeleviathanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tide_fang', name: 'Tide Fang',
+        icon: 'assets/icons/fc819.png',
+        description: 'Bite and tail-lash: 95% then 45% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'damage', mult: 0.45 },
+        ],
+      },
+      {
+        id: 'whirlpool_coil', name: 'Whirlpool Coil',
+        icon: 'assets/icons/fc800.png',
+        description: 'Drag ALL enemies under: 65% ATK and -8% turn meter.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.65 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'leviathan_crash', name: 'Leviathan Crash',
+        icon: 'assets/icons/fc1622.png',
+        description: 'Fall like a tide wall: 250% ATK.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.5 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Crushing Depths',
+      icon: 'assets/icons/fc863.png',
+      description: 'Preys on the exhausted: +25% damage to enemies below 25% turn meter.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.25 ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Riverbed Anchor: +15% ATK while in a front hex.',
+    },
+  },
+
+  snake_plaguebearer: {
+    id: 'snake_plaguebearer',
+    element: 'wind',
+    name: 'Snake Plaguebearer',
+    title: 'Gift That Keeps Giving',
+    rarity: 3,
+    stats: { hp: 1090, atk: 178, def: 80, speed: 105 },
+    tint: { body: '#5a6a4a', helm: '#7a8a5a', weapon: '#a8c87a', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakeplaguebeareridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'plague_touch', name: 'Plague Touch',
+        icon: 'assets/icons/fc1093.png',
+        description: 'A mere touch: 20% ATK sickness per turn for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'dot', pct: 0.2, turns: 2 },
+        ],
+      },
+      {
+        id: 'spreading_sickness', name: 'Spreading Sickness',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The plague leaps: ALL enemies sicken for 15% ATK per turn for 2 turns.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'dot', pct: 0.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'pandemic', name: 'Pandemic',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Ripen the plague: 60% ATK to ALL enemies — 80% more against the diseased.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.6, bonusVs: { kind: 'dot', mult: 1.8 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Virulent Strains',
+      icon: 'assets/icons/fc1003.png',
+      description: '+15% debuff accuracy and +15% DoT damage.',
+      hooks: { accuracyAdd: 0.15, dotBoostAdd: 0.15 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Quarantine Distance: +15% ATK while in a back hex.',
+    },
+  },
+
+  snake_sandviper: {
+    id: 'snake_sandviper',
+    element: 'fire',
+    name: 'Snake Sandviper',
+    title: 'Death Under the Dune',
+    rarity: 3,
+    stats: { hp: 1070, atk: 184, def: 78, speed: 108 },
+    tint: { body: '#b8904a', helm: '#d8b06a', weapon: '#e8d8a8', skin: '#9ab87a' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/snakesandviperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'sidewind_strike', name: 'Sidewind Strike',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A sidewinding cut: 120% ATK and +6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'ambush_from_below', name: 'Ambush from Below',
+        icon: 'assets/icons/fc825.png',
+        description: 'Erupt from the sand: 165% ATK — 25% more against debuffed prey.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.65, bonusVs: { kind: 'debuff', mult: 1.25 } },
+        ],
+      },
+      {
+        id: 'sand_burial', name: 'Sand Burial',
+        icon: 'assets/icons/fc767.png',
+        description: 'Drag them under: 140% ATK, -20% SPD for 2 turns and -15% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'debuff', stat: 'speed', mult: 0.8, turns: 2 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Desert Patience',
+      icon: 'assets/icons/fc882.png',
+      description: 'Outpaces prey: +20% damage to enemies slower than him.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && unit.effectiveStat('speed') > target.effectiveStat('speed') ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Dune Blind: +15% damage dealt from a back hex.',
     },
   },
 
