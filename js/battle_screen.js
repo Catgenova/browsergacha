@@ -263,37 +263,40 @@ class BattleScreen {
           `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
         ];
-        // Scroll drops: 10% Common, 3% Rare per victory.
-        if (Math.random() < 0.10) {
-          GameState.addScrolls('common', 1);
-          sub.push('A Common Summon Scroll drops! 📜');
-        }
-        if (Math.random() < 0.03) {
-          GameState.addScrolls('rare', 1);
-          sub.push('A RARE Summon Scroll drops! ✨');
+        // Random scroll drops (10% Common, 3% Rare) apply outside the
+        // tower — tower floors pay guaranteed scrolls instead.
+        if (!this.towerFight) {
+          if (Math.random() < 0.10) {
+            GameState.addScrolls('common', 1);
+            sub.push('A Common Summon Scroll drops! 📜');
+          }
+          if (Math.random() < 0.03) {
+            GameState.addScrolls('rare', 1);
+            sub.push('A RARE Summon Scroll drops! ✨');
+          }
         }
         if (this.towerFight) {
           const floor = this.towerFight.floor;
           GameState.recordTowerClear(floor);
           sub.unshift(`Tower floor ${floor} cleared!`);
-          // Milestones: gear chest every 5 floors (rarity climbs with
-          // height), a Temporal Scroll every 20.
+          // Guaranteed scroll ladder: a Common every floor, a Rare
+          // every 5th, a Temporal (Dark/Light) every 50th.
+          GameState.addScrolls('common', 1);
+          sub.push('Floor reward: a Common Summon Scroll 📜');
           if (floor % 5 === 0) {
-            const sets = Object.keys(Gear.SETS);
-            const piece = Gear.drop(
-              sets[Math.floor(Math.random() * sets.length)],
-              Math.min(20, Math.ceil(floor / 3)));
-            GameState.addGear(piece);
-            sub.push(`Milestone chest: ${Gear.describe(piece)}`);
+            GameState.addScrolls('rare', 1);
+            sub.push('Floor reward: a RARE Summon Scroll! ✨');
+          }
+          if (floor % 50 === 0) {
+            GameState.addScrolls('temporal', 1);
+            sub.push('Floor reward: a TEMPORAL Scroll! 🌀');
           }
           if (floor % 20 === 0) {
-            GameState.addScrolls('temporal', 1);
-            sub.push('Milestone chest: a TEMPORAL Scroll! 🌀');
             // Skill Tomes drop ONLY here — every 20th floor, scaling
             // with height (floor 20 -> 1 tome, 40 -> 2, 60 -> 3 ...).
             const tomes = floor / 20;
             GameState.addTomes(tomes);
-            sub.push(`Milestone chest: ${tomes} Skill Tome${tomes > 1 ? 's' : ''}! 📖`);
+            sub.push(`Floor reward: ${tomes} Skill Tome${tomes > 1 ? 's' : ''}! 📖`);
           }
         }
         if (this.bossFight) {
