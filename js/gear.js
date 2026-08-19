@@ -65,6 +65,14 @@ const Gear = (() => {
       ring: 'assets/icons/fc1847.png',
       amulet: 'assets/icons/fc2065.png',
     },
+    wolf: {
+      weapon: 'assets/icons/fc1600.png',
+      gloves: 'assets/icons/fc1489.png',
+      chest: 'assets/icons/fc1920.png',
+      boots: 'assets/icons/fc1939.png',
+      ring: 'assets/icons/fc1844.png',
+      amulet: 'assets/icons/fc2178.png',
+    },
   };
 
   const RARITY_ORDER = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -120,6 +128,15 @@ const Gear = (() => {
         { pieces: 2, stat: 'accuracy', add: 0.20, label: '2pc: +20% Debuff Accuracy' },
         { pieces: 4, stat: 'accuracy', add: 0.40, label: '4pc: +40% Debuff Accuracy' },
         { pieces: 6, stat: 'dotBoost', add: 0.50, label: '6pc: +50% DoT Damage' },
+      ],
+    },
+    wolf: {
+      id: 'wolf',
+      name: 'Wolf',
+      bonuses: [
+        { pieces: 2, stat: 'stun', add: 0.10, label: '2pc: +10% Stun chance on single-target attacks' },
+        { pieces: 4, stat: 'stun', add: 0.15, label: '4pc: +15% Stun chance on single-target attacks' },
+        { pieces: 6, stat: 'cdr', add: 1, label: '6pc: -1 turn on all ability cooldowns' },
       ],
     },
   };
@@ -296,7 +313,7 @@ const Gear = (() => {
       hpPct: 0, atkPct: 0, defPct: 0,
       hpFlat: 0, atkFlat: 0, defFlat: 0, spdFlat: 0, spdPct: 0,
       critChance: 0, critDamage: 0, dodge: 0, extraTurn: 0,
-      accuracy: 0, resistance: 0, dotBoost: 0,
+      accuracy: 0, resistance: 0, dotBoost: 0, stun: 0, cdr: 0,
     };
     const add = (stat, value) => {
       if (stat in mods) mods[stat] += value;
@@ -334,6 +351,8 @@ const Gear = (() => {
       accuracy: mods.accuracy,
       resistance: mods.resistance,
       dotBoost: mods.dotBoost,
+      stun: mods.stun,
+      cdr: mods.cdr,
     };
   }
 

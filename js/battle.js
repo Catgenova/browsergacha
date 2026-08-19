@@ -126,6 +126,10 @@ class Battle {
     this.activeUnit = unit;
     unit.turnMeter = CONFIG.TURN_METER_MAX;
 
+    // Stun check happens BEFORE startTurn ticks statuses away: a stunned
+    // unit loses this turn (its DoTs/HoTs and cooldowns still tick).
+    const stunned = unit.statusEffects.some((fx) => fx.stat === 'stun');
+
     // Alert stance while it's this unit's turn (falls back to idle if the
     // hero has no ready animation).
     if (unit.animator) unit.animator.play('ready');
@@ -149,6 +153,19 @@ class Battle {
 
     // Poison can kill a unit at the start of its own turn: skip the act.
     if (!unit.alive) {
+      this.activeUnit = null;
+      this.state = BattleState.TICKING;
+      return;
+    }
+
+    // Stunned: the turn is spent recovering — no action.
+    if (stunned) {
+      unit.turnMeter = 0;
+      this.addFloatingText(unit, 'STUNNED', '#8ee8ff', true);
+      this.log(`${unit.name} is stunned and loses the turn!`, 'log-system');
+      if (unit.animator && unit.animator.current === 'ready') {
+        unit.animator.play('idle');
+      }
       this.activeUnit = null;
       this.state = BattleState.TICKING;
       return;
@@ -396,6 +413,9 @@ class Battle {
       } else if (res.kind === 'meter') {
         this.addFloatingText(res.target, 'METER ▼', '#d78aff');
         this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+      } else if (res.kind === 'stun') {
+        this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
+        this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
       } else if (res.kind === 'dot') {
         this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
         this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
