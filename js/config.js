@@ -21,11 +21,12 @@ const CONFIG = {
     'assets/battle_bg_savanna.png',
     'assets/battle_bg_glade.png',
     'assets/battle_bg_snowfield.png',
+    'assets/battle_bg_volcano.png',
   ],
   // Player-facing names for the hunt-location picker, same order.
   LOCATION_NAMES: [
     'Clearing', 'Canyon', 'Bonefield', 'Meadow', 'Valley',
-    'Savanna', 'Glade', 'Snowfield',
+    'Savanna', 'Glade', 'Snowfield', 'Volcano',
   ],
 
   // Turn meter: fills at unit.speed points/sec; unit acts when full.
