@@ -9,6 +9,100 @@
 // Rarity drives gacha rates and rough stat budgets (3★ < 4★ < 5★).
 
 const HEROES = {
+  // ---- 5★ ------------------------------------------------------------------
+
+  // Echo, the first 5★: a water tank built around Crystal Mirrors — six
+  // floating shields that halve incoming hits (one shatters per hit) and
+  // power her DEF-scaled skills. Every animation ships in seven variants
+  // (assets/heroes/Echo/gen), one per active mirror count, and the battle
+  // swaps her sheet live as mirrors break and reform.
+  echo: (() => {
+    const A = 'assets/heroes/Echo';
+    // Strip set for a given mirror count; 6 = the untouched originals.
+    const strips = (k) => {
+      const v = (gen, orig) => (k === 6 ? `${A}/${orig}` : `${A}/gen/${gen}_m${k}.png`);
+      const s = {
+        idle:   { src: v('echoidle', 'Echoidle.png'), frames: 9, fps: 5, loop: true },
+        ready:  { src: v('echoready', 'Echoready.png'), frames: 9, fps: 6, loop: true },
+        // Skills 1 & 2 share the strip: mirrors swirl forward and fire.
+        attack: { src: v('echoskill12', 'Echoskill1and2.png'), frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        // Skill 3: the mirrors converge and detonate in a resonant burst.
+        skill3: { src: v('echoskill3', 'echoskill3.png'), frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        death:  { src: v('echodeath', 'Echodeath.png'), frames: 24, fps: 8, loop: false,
+                  freeze: true },
+      };
+      if (k === 6) {
+        // Idle fidgets (crystal pulses) exist only as full-mirror art, so
+        // only the six-mirror sheet plays them.
+        s.idle2 = { src: `${A}/Echoidle2.png`, frames: 9, fps: 7, loop: false,
+                    variantOf: 'idle', every: [8, 16] };
+        s.idle3 = { src: `${A}/echoidle1.png`, frames: 9, fps: 7, loop: false,
+                    variantOf: 'idle', every: [8, 16] };
+      }
+      return s;
+    };
+    return {
+      id: 'echo',
+      element: 'water',
+      name: 'Echo',
+      title: 'Mirror Bulwark',
+      rarity: 5,
+      stats: { hp: 2400, atk: 110, def: 265, speed: 96 },
+      tint: { body: '#9ab8c8', helm: '#d8e8f0', weapon: '#8ad8ff', shield: '#c8a83a' },
+      mirrors: { max: 6, start: 6 },
+      sprite: { displayH: 92, strips: strips(6) },
+      mirrorSprites: [0, 1, 2, 3, 4, 5, 6].map((k) => ({ displayH: 92, strips: strips(k) })),
+      abilities: [
+        {
+          id: 'mirror_lance', name: 'Mirror Lance',
+          icon: 'assets/icons/fc305.png',
+          description: 'Strike one enemy for 60% DEF, +30% DEF per active crystal mirror.',
+          cooldown: 0, targeting: 'enemy', animation: 'attack',
+          effects: [{ type: 'damageDef', mult: 0.6, perMirror: 0.3 }],
+        },
+        {
+          id: 'prism_wave', name: 'Prism Wave',
+          icon: 'assets/icons/fc306.png',
+          description: 'Sweep an enemy row for 40% DEF, +20% DEF per active crystal mirror.',
+          cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+          effects: [{ type: 'damageDef', mult: 0.4, perMirror: 0.2 }],
+        },
+        {
+          id: 'resonant_shatter', name: 'Resonant Shatter',
+          icon: 'assets/icons/fc307.png',
+          description: 'Blast one enemy for 70% DEF, +40% DEF per active crystal mirror, then reform 2 mirrors.',
+          cooldown: 5, targeting: 'enemy', animation: 'skill3',
+          effects: [{ type: 'damageDef', mult: 0.7, perMirror: 0.4 }],
+          selfEffects: [{ type: 'mirrors', count: 2 }],
+        },
+      ],
+      passive: {
+        name: 'Crystal Aegis',
+        icon: 'assets/icons/fc308.png',
+        description: 'Begins battle with 6 crystal mirrors. Every hit she takes is halved and shatters one mirror. While in a front hex, she reforms 1 mirror at the start of her turn.',
+        hooks: {
+          onTurnStart(unit) {
+            // Position bonus: front-row Echo reforms one mirror per turn.
+            if (!unit.positionalActive || !unit.positionalActive()) return null;
+            const gained = unit.addMirrors(1);
+            if (gained <= 0) return null;
+            return {
+              label: 'Crystal Aegis',
+              message: `${unit.name} reforms a crystal mirror.`,
+              floats: [{ target: unit, text: '◆ +1', color: '#8ee8ff' }],
+            };
+          },
+        },
+      },
+      positional: {
+        position: POSITION.FRONT, stat: 'damage', mult: 1.0,
+        description: 'Resonance: reforms 1 crystal mirror at the start of her turn while in a front hex.',
+      },
+    };
+  })(),
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
