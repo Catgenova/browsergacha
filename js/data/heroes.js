@@ -85,9 +85,12 @@ const HEROES = {
       {
         id: 'jab', name: 'Jab',
         icon: 'assets/icons/fc663.png',
-        description: 'A quick jab for 100% ATK.',
+        description: 'Two quick jabs for 50% ATK each.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.5 },
+          { type: 'damage', mult: 0.5 },
+        ],
       },
       {
         id: 'haymaker', name: 'Haymaker',
@@ -144,16 +147,21 @@ const HEROES = {
       {
         id: 'poke', name: 'Poke',
         icon: 'assets/icons/fc1461.png',
-        description: 'A spear thrust for 100% ATK.',
+        description: 'A spear thrust for 108% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 1.08 },
+        ],
       },
       {
         id: 'lunge', name: 'Lunge',
         icon: 'assets/icons/fc1791.png',
-        description: 'A deep lunge for 140% ATK.',
+        description: 'A deep lunge: 130% ATK and -10% SPD for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.4 }],
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 1 },
+        ],
       },
       {
         id: 'sweeping_thrust', name: 'Sweeping Thrust',
@@ -166,10 +174,10 @@ const HEROES = {
     passive: {
       name: 'Set Spear',
       icon: 'assets/icons/fc1801.png',
-      description: 'Deals 10% extra damage to front-row enemies.',
+      description: 'Deals 15% extra damage while holding a front hex.',
       hooks: {
-        damageDealtMult(unit, target) {
-          return target && target.slot && target.slot.position === POSITION.FRONT ? 1.1 : 1;
+        damageDealtMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT ? 1.15 : 1;
         },
       },
     },
@@ -206,9 +214,11 @@ const HEROES = {
       {
         id: 'backstab', name: 'Backstab',
         icon: 'assets/icons/fc825.png',
-        description: 'Slip behind for 150% ATK.',
+        description: 'Slip behind for 145% ATK — 30% more against debuffed prey.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.5 }],
+        effects: [
+          { type: 'damage', mult: 1.45, bonusVs: { kind: 'debuff', mult: 1.3 } },
+        ],
       },
       {
         id: 'throat_cut', name: 'Throat Cut',
@@ -252,9 +262,14 @@ const HEROES = {
       {
         id: 'wild_swing', name: 'Wild Swing',
         icon: 'assets/icons/fc744.png',
-        description: 'A frenzied swing for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'A reckless swing: 130% ATK, but drops his guard (-10% DEF for 1 turn).',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 0.9, turns: 1 },
+        ],
       },
       {
         id: 'reckless_cleave', name: 'Reckless Cleave',
@@ -305,9 +320,11 @@ const HEROES = {
       {
         id: 'club_smash', name: 'Club Smash',
         icon: 'assets/icons/fc1471.png',
-        description: 'A heavy blow for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'A club blow for 115% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+        ],
       },
       {
         id: 'bone_crusher', name: 'Bone Crusher',
@@ -361,16 +378,26 @@ const HEROES = {
       {
         id: 'riposte', name: 'Riposte',
         icon: 'assets/icons/fc1454.png',
-        description: 'A precise thrust for 105% ATK.',
+        description: 'A measured riposte: 95% ATK, then +25% crit damage for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.95 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critDamage', add: 0.25, turns: 1 },
+        ],
       },
       {
         id: 'flourish', name: 'Flourish',
         icon: 'assets/icons/fc729.png',
-        description: 'A dazzling combination for 150% ATK.',
+        description: 'A dazzling feint: 135% ATK and +15% crit chance for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.5 }],
+        effects: [
+          { type: 'damage', mult: 1.35 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.15, turns: 1 },
+        ],
       },
       {
         id: 'coup_de_grace', name: 'Coup de Grâce',
@@ -417,16 +444,21 @@ const HEROES = {
       {
         id: 'iai_cut', name: 'Iai Cut',
         icon: 'assets/icons/fc1587.png',
-        description: 'A lightning draw-cut for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'A single flawless draw-cut for 125% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+        ],
       },
       {
         id: 'cross_slash', name: 'Cross Slash',
         icon: 'assets/icons/fc1030.png',
-        description: 'Two crossing cuts for 155% ATK.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.55 }],
+        description: 'Two crossing cuts for 80% ATK each.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'damage', mult: 0.8 },
+        ],
       },
       {
         id: 'crescent_moon', name: 'Crescent Moon',
@@ -476,9 +508,14 @@ const HEROES = {
       {
         id: 'warren_slash', name: 'Warren Slash',
         icon: 'assets/icons/fc1447.png',
-        description: 'A steady sword cut for 100% ATK.',
+        description: 'Cut for 100% ATK, then raise the shield: +10% DEF for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 1.0 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 1 },
+        ],
       },
       {
         id: 'shield_splitter', name: 'Shield Splitter',
@@ -539,9 +576,12 @@ const HEROES = {
       {
         id: 'pebble_toss', name: 'Pebble Toss',
         icon: 'assets/icons/fc1515.png',
-        description: 'Whip a stone for 100% ATK.',
+        description: 'A stinging stone: 90% ATK and -8% ATK for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 1 },
+        ],
       },
       {
         id: 'skull_crack', name: 'Skull Crack',
@@ -595,9 +635,14 @@ const HEROES = {
       {
         id: 'quick_nick', name: 'Quick Nick',
         icon: 'assets/icons/fc1444.png',
-        description: 'A darting cut for 100% ATK.',
+        description: 'A darting cut for 92% ATK; footwork grants +8% SPD for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.92 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.08, turns: 1 },
+        ],
       },
       {
         id: 'mark_target', name: 'Mark Target',
@@ -645,9 +690,14 @@ const HEROES = {
       {
         id: 'pick_swing', name: 'Pick Swing',
         icon: 'assets/icons/fc1472.png',
-        description: 'A heavy pickaxe blow for 100% ATK.',
+        description: 'An over-heavy swing: 120% ATK, but costs 10% of his own turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 1.2 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.10 },
+        ],
       },
       {
         id: 'lantern_flash', name: 'Lantern Flash',
@@ -667,8 +717,13 @@ const HEROES = {
     passive: {
       name: 'Ore Sense',
       icon: 'assets/icons/fc867.png',
-      description: '+15% debuff accuracy.',
-      hooks: { accuracyAdd: 0.15 },
+      description: 'Deals 18% extra damage to enemies with weakened DEF.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some(
+            (fx) => fx.kind === 'debuff' && fx.stat === 'def') ? 1.18 : 1;
+        },
+      },
     },
     positional: {
       position: POSITION.FRONT, stat: 'def', mult: 1.12,
@@ -708,9 +763,12 @@ const HEROES = {
       {
         id: 'grand_feast', name: 'Grand Feast',
         icon: 'assets/icons/fc800.png',
-        description: 'Lay a feast: ALL allies regenerate 4% of the Cook\'s max HP for 3 turns.',
+        description: 'Lay a feast: heals ALL allies for 80% of ATK plus 2% of the Cook\'s max HP for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
-        effects: [{ type: 'hot', pct: 0.04, turns: 3 }],
+        effects: [
+          { type: 'heal', mult: 0.8 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
       },
     ],
     passive: {
@@ -758,9 +816,12 @@ const HEROES = {
       {
         id: 'torch_jab', name: 'Torch Jab',
         icon: 'assets/icons/fc981.png',
-        description: 'Thrust the burning brand for 95% ATK.',
+        description: 'Thrust the brand: 90% ATK and a singe of 8% ATK for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.95 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'dot', pct: 0.08, turns: 1 },
+        ],
       },
       {
         id: 'set_alight', name: 'Set Alight',
@@ -783,8 +844,8 @@ const HEROES = {
     passive: {
       name: 'Kindling',
       icon: 'assets/icons/fc1003.png',
-      description: '+35% DoT damage.',
-      hooks: { dotBoostAdd: 0.35 },
+      description: 'His burns cling: damage-over-time he inflicts lasts 1 extra turn.',
+      hooks: { dotExtraTurns: 1 },
     },
     positional: {
       position: POSITION.CENTER, stat: 'atk', mult: 1.12,
@@ -812,9 +873,14 @@ const HEROES = {
       {
         id: 'mace_strike', name: 'Mace Strike',
         icon: 'assets/icons/fc1471.png',
-        description: 'A disciplined mace blow for 100% ATK.',
+        description: 'Strike for 95% ATK and brace behind the shield: takes 10% less damage until his next turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.95 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.9, turns: 1 },
+        ],
       },
       {
         id: 'pommel_bash', name: 'Pommel Bash',
@@ -829,17 +895,22 @@ const HEROES = {
       {
         id: 'phalanx_guard', name: 'Phalanx Guard',
         icon: 'assets/icons/fc855.png',
-        description: 'Brace the front line: front-hex allies gain +30% DEF for 2 turns.',
+        description: 'Brace the front line: +20% DEF and 2% of the Knight\'s max HP regen for 2 turns.',
         cooldown: 5, targeting: 'front-allies', animation: 'attack',
-        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.2, turns: 2 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
       },
     ],
     passive: {
       name: 'Bulwark',
       icon: 'assets/icons/fc856.png',
-      description: 'Takes 10% less damage from all sources.',
+      description: 'Takes 12% less damage while holding a front hex.',
       hooks: {
-        damageTakenMult() { return 0.9; },
+        damageTakenMult(unit) {
+          return unit.slot && unit.slot.position === POSITION.FRONT ? 0.88 : 1;
+        },
       },
     },
     positional: {
@@ -866,9 +937,12 @@ const HEROES = {
       {
         id: 'whisker_hex', name: 'Whisker Hex',
         icon: 'assets/icons/fc1052.png',
-        description: 'A crackle of warren magic for 100% ATK.',
+        description: 'A jinx for 90% ATK that softens armor: -7% DEF for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'debuff', stat: 'def', mult: 0.93, turns: 1 },
+        ],
       },
       {
         id: 'spirit_mend', name: 'Spirit Mend',
@@ -883,16 +957,19 @@ const HEROES = {
       {
         id: 'ancestors_wrath', name: "Ancestor's Wrath",
         icon: 'assets/icons/fc1084.png',
-        description: 'Call the old spirits: 75% ATK to ALL enemies.',
+        description: 'The old spirits rend ALL enemies: 70% ATK and -5% DEF for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.75 }],
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'debuff', stat: 'def', mult: 0.95, turns: 1 },
+        ],
       },
     ],
     passive: {
       name: 'Spirit Ward',
       icon: 'assets/icons/fc854.png',
-      description: '+20% debuff resistance.',
-      hooks: { resistanceAdd: 0.20 },
+      description: '+35% debuff resistance.',
+      hooks: { resistanceAdd: 0.35 },
     },
     positional: {
       position: POSITION.BACK, stat: 'def', mult: 1.15,
@@ -918,9 +995,14 @@ const HEROES = {
       {
         id: 'palm_strike', name: 'Palm Strike',
         icon: 'assets/icons/fc663.png',
-        description: 'A focused palm blow for 105% ATK.',
+        description: 'A flowing palm blow: 105% ATK and 8% turn meter back.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 1.05 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.08 },
+        ],
       },
       {
         id: 'chi_burst', name: 'Chi Burst',
@@ -970,9 +1052,14 @@ const HEROES = {
       {
         id: 'musket_shot', name: 'Musket Shot',
         icon: 'assets/icons/fc1515.png',
-        description: 'A crack of powder for 110% ATK.',
+        description: 'A crack of powder: 125% ATK, then reloads (-8% of his own turn meter).',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.1 }],
+        effects: [
+          { type: 'damage', mult: 1.25 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.08 },
+        ],
       },
       {
         id: 'piercing_round', name: 'Piercing Round',
@@ -992,10 +1079,10 @@ const HEROES = {
     passive: {
       name: 'Steady Aim',
       icon: 'assets/icons/fc1516.png',
-      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      description: 'Gains +5% crit chance for 2 turns at each turn start (briefly stacks).',
       hooks: {
         onTurnStart(unit) {
-          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.10, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.05, turns: 2 });
           return null; // silent — small rolling bonus
         },
       },
@@ -1147,9 +1234,12 @@ const HEROES = {
       {
         id: 'sabre_cut', name: 'Sabre Cut',
         icon: 'assets/icons/fc1587.png',
-        description: 'An officer\'s sabre stroke for 105% ATK.',
+        description: 'An officer\'s stroke: 110% ATK that drains 5% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
       },
       {
         id: 'hold_the_line', name: 'Hold the Line',
@@ -1207,9 +1297,12 @@ const HEROES = {
       {
         id: 'shuriken_toss', name: 'Shuriken Toss',
         icon: 'assets/icons/fc728.png',
-        description: 'A spinning star for 105% ATK.',
+        description: 'Two spinning stars for 60% ATK each.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.6 },
+          { type: 'damage', mult: 0.6 },
+        ],
       },
       {
         id: 'shadow_strike', name: 'Shadow Strike',
@@ -1260,9 +1353,12 @@ const HEROES = {
       {
         id: 'cinder_bolt', name: 'Cinder Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A searing bolt for 100% ATK.',
+        description: 'A searing bolt: 80% ATK plus a 10% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'dot', pct: 0.10, turns: 2 },
+        ],
       },
       {
         id: 'immolate', name: 'Immolate',
@@ -1316,9 +1412,12 @@ const HEROES = {
       {
         id: 'water_whip', name: 'Water Whip',
         icon: 'assets/icons/fc819.png',
-        description: 'A lash of water for 100% ATK.',
+        description: 'A dragging lash: 90% ATK that drains 8% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
       },
       {
         id: 'tidal_slam', name: 'Tidal Slam',
@@ -1384,9 +1483,12 @@ const HEROES = {
       {
         id: 'spark_lash', name: 'Spark Lash',
         icon: 'assets/icons/fc1050.png',
-        description: 'A whipcrack of static for 100% ATK.',
+        description: 'A forking arc that hits for 70% then 40% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'damage', mult: 0.4 },
+        ],
       },
       {
         id: 'chain_lightning', name: 'Chain Lightning',
@@ -1444,9 +1546,12 @@ const HEROES = {
       {
         id: 'peck_and_tear', name: 'Peck & Tear',
         icon: 'assets/icons/fc746.png',
-        description: 'Rip at a foe for 100% ATK.',
+        description: 'Rip for 90% ATK and open a bleed: 12% ATK per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'dot', pct: 0.12, turns: 2 },
+        ],
       },
       {
         id: 'carrion_swoop', name: 'Carrion Swoop',
@@ -1466,10 +1571,10 @@ const HEROES = {
     passive: {
       name: 'Scavenger',
       icon: 'assets/icons/fc863.png',
-      description: 'Deals 15% extra damage to enemies below half HP.',
+      description: 'Smells death: deals 35% extra damage to enemies below 30% HP.',
       hooks: {
         damageDealtMult(unit, target) {
-          return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.15 : 1;
+          return target && target.alive && target.hp / target.maxHp < 0.3 ? 1.35 : 1;
         },
       },
     },
@@ -1496,16 +1601,20 @@ const HEROES = {
       {
         id: 'dive_stab', name: 'Dive Stab',
         icon: 'assets/icons/fc1621.png',
-        description: 'A darting thrust for 105% ATK.',
+        description: 'A darting thrust for 110% ATK — 25% more against bleeding or poisoned prey.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 1.1, bonusVs: { kind: 'dot', mult: 1.25 } },
+        ],
       },
       {
         id: 'skewer', name: 'Skewer',
         icon: 'assets/icons/fc1622.png',
-        description: 'Spear a foe clean through for 150% ATK.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.5 }],
+        description: 'Spear a foe clean through for 160% ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.6 },
+        ],
       },
       {
         id: 'riptide_lance', name: 'Riptide Lance',
@@ -1518,11 +1627,12 @@ const HEROES = {
     passive: {
       name: "Fisher's Patience",
       icon: 'assets/icons/fc719.png',
-      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      description: 'While at full HP, gains +20% crit chance for 1 turn at turn start.',
       hooks: {
         onTurnStart(unit) {
-          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.1, turns: 1 });
-          return null; // silent - fires every turn
+          if (unit.hp < unit.maxHp) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.20, turns: 1 });
+          return null; // silent — patient hunter
         },
       },
     },
@@ -1549,32 +1659,40 @@ const HEROES = {
       {
         id: 'cleave', name: 'Cleave',
         icon: 'assets/icons/fc1447.png',
-        description: 'A heavy cut for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'A heavy cleave for 118% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.18 },
+        ],
       },
       {
         id: 'cross_cut', name: 'Cross Cut',
         icon: 'assets/icons/fc723.png',
-        description: 'Two crossing strokes for 155% ATK.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.55 }],
+        description: 'A guarded cut: 145% ATK that dulls the foe\'s edge (-10% crit chance for 2 turns).',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.45 },
+          { type: 'debuff', stat: 'critChance', add: -0.10, turns: 2 },
+        ],
       },
       {
         id: 'murder_stroke', name: 'Murder Stroke',
         icon: 'assets/icons/fc734.png',
-        description: 'An executioner\'s blow: 200% ATK.',
-        cooldown: 6, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 2.0 }],
+        description: 'The mordhau: two strikes of 105% ATK each.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'damage', mult: 1.05 },
+        ],
       },
     ],
     passive: {
       name: 'Corvid Cunning',
       icon: 'assets/icons/fc862.png',
-      description: 'Deals 15% extra damage to enemies at full HP.',
+      description: 'Strikes the unready: deals 15% extra damage to enemies below half turn meter.',
       hooks: {
         damageDealtMult(unit, target) {
-          return target && target.alive && target.hp >= target.maxHp ? 1.15 : 1;
+          return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.5 ? 1.15 : 1;
         },
       },
     },
@@ -1601,23 +1719,38 @@ const HEROES = {
       {
         id: 'flurry_peck', name: 'Flurry Peck',
         icon: 'assets/icons/fc1454.png',
-        description: 'A rapid thrust for 105% ATK.',
+        description: 'Four rapid pecks for 28% ATK each.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.28 },
+          { type: 'damage', mult: 0.28 },
+          { type: 'damage', mult: 0.28 },
+          { type: 'damage', mult: 0.28 },
+        ],
       },
       {
         id: 'gallant_lunge', name: 'Gallant Lunge',
         icon: 'assets/icons/fc736.png',
-        description: 'A flamboyant lunge for 150% ATK.',
+        description: 'A gallant advance: 145% ATK and +10% SPD for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.5 }],
+        effects: [
+          { type: 'damage', mult: 1.45 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.1, turns: 1 },
+        ],
       },
       {
         id: 'crowing_coup', name: 'Crowing Coup',
         icon: 'assets/icons/fc728.png',
-        description: 'The dawn strike: 185% ATK.',
+        description: 'A finishing flurry: 175% ATK, then crows in triumph: +15% SPD for 2 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.85 }],
+        effects: [
+          { type: 'damage', mult: 1.75 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.15, turns: 2 },
+        ],
       },
     ],
     passive: {
@@ -1654,9 +1787,11 @@ const HEROES = {
       {
         id: 'talon_jab', name: 'Talon Jab',
         icon: 'assets/icons/fc981.png',
-        description: 'A piercing jab for 100% ATK.',
+        description: 'A talon jab for 102% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 1.02 },
+        ],
       },
       {
         id: 'shield_bash', name: 'Shield Bash',
@@ -1709,9 +1844,14 @@ const HEROES = {
       {
         id: 'hammer_blow', name: 'Hammer Blow',
         icon: 'assets/icons/fc1472.png',
-        description: 'A crushing blow for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'A crushing blow: 135% ATK, but the windup costs 12% of his own turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.12 },
+        ],
       },
       {
         id: 'skyfall_smash', name: 'Skyfall Smash',
@@ -1731,10 +1871,10 @@ const HEROES = {
     passive: {
       name: "Champion's Might",
       icon: 'assets/icons/fc869.png',
-      description: 'Deals 15% extra damage to enemies above half HP.',
+      description: 'Deals 25% extra damage while himself at full HP.',
       hooks: {
-        damageDealtMult(unit, target) {
-          return target && target.alive && target.hp / target.maxHp >= 0.5 ? 1.15 : 1;
+        damageDealtMult(unit) {
+          return unit.hp >= unit.maxHp ? 1.25 : 1;
         },
       },
     },
@@ -1761,9 +1901,12 @@ const HEROES = {
       {
         id: 'hex_bolt', name: 'Hex Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A bolt of dark magic for 105% ATK.',
+        description: 'A croaking bolt: 85% ATK and -8% SPD for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.85 },
+          { type: 'debuff', stat: 'speed', mult: 0.92, turns: 1 },
+        ],
       },
       {
         id: 'withering_curse', name: 'Withering Curse',
@@ -1789,10 +1932,8 @@ const HEROES = {
     passive: {
       name: 'Dark Omen',
       icon: 'assets/icons/fc1084.png',
-      description: 'Debuffs this hero inflicts last 1 extra turn.',
-      hooks: {
-        debuffExtraTurns: 1,
-      },
+      description: '+25% debuff accuracy.',
+      hooks: { accuracyAdd: 0.25 },
     },
     positional: {
       position: POSITION.BACK, stat: 'damage', mult: 1.15,
@@ -1821,16 +1962,20 @@ const HEROES = {
       {
         id: 'maze_slash', name: 'Maze Slash',
         icon: 'assets/icons/fc1447.png',
-        description: 'A soldier\'s cut for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'A wide slash for 112% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.12 },
+        ],
       },
       {
         id: 'war_cleave', name: 'War Cleave',
         icon: 'assets/icons/fc730.png',
-        description: 'A heavy cleave for 145% ATK.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.45 }],
+        description: 'Cleave a hex row for 90% ATK.',
+        cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+        ],
       },
       {
         id: 'rallying_bellow', name: 'Rallying Bellow',
@@ -1874,16 +2019,23 @@ const HEROES = {
       {
         id: 'pummel', name: 'Pummel',
         icon: 'assets/icons/fc663.png',
-        description: 'A meaty fist for 100% ATK.',
+        description: 'A flurry of three blows for 35% ATK each.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.35 },
+          { type: 'damage', mult: 0.35 },
+          { type: 'damage', mult: 0.35 },
+        ],
       },
       {
         id: 'headbutt', name: 'Headbutt',
         icon: 'assets/icons/fc762.png',
-        description: 'Horns first: 140% ATK.',
+        description: 'A concussive headbutt: 125% ATK that drains 15% turn meter.',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.4 }],
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
       },
       {
         id: 'ground_stomp', name: 'Ground Stomp',
@@ -1896,16 +2048,10 @@ const HEROES = {
     passive: {
       name: 'Thick Skull',
       icon: 'assets/icons/fc1112.png',
-      description: 'Recovers 2% max HP at the start of each turn.',
+      description: 'Dense bone: takes 20% less damage while above 90% HP.',
       hooks: {
-        onTurnStart(unit) {
-          const healed = unit.heal(Math.round(unit.maxHp * 0.02));
-          if (healed <= 0) return null;
-          return {
-            label: 'Thick Skull',
-            message: `${unit.name} shakes it off (+${healed} HP).`,
-            floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
-          };
+        damageTakenMult(unit) {
+          return unit.hp / unit.maxHp > 0.9 ? 0.8 : 1;
         },
       },
     },
@@ -1932,35 +2078,40 @@ const HEROES = {
       {
         id: 'shield_strike', name: 'Shield Strike',
         icon: 'assets/icons/fc854.png',
-        description: 'A shield-first blow for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'A shield shove: 95% ATK that drains 5% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
       },
       {
         id: 'bulwark_slam', name: 'Bulwark Slam',
         icon: 'assets/icons/fc1476.png',
-        description: 'Deals 135% ATK and dents armor: -15% DEF for 2 turns.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slam',
+        description: 'A jarring slam: 130% ATK that saps -12% ATK for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.35 },
-          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+          { type: 'damage', mult: 1.3 },
+          { type: 'debuff', stat: 'atk', mult: 0.88, turns: 2 },
         ],
       },
       {
         id: 'phalanx_wall', name: 'Phalanx Wall',
         icon: 'assets/icons/fc855.png',
-        description: 'Wall off the front row: +30% DEF for 2 turns.',
+        description: 'Lock shields: front-hex allies take 20% less damage for 2 turns.',
         cooldown: 6, targeting: 'front-allies', animation: 'attack',
-        effects: [{ type: 'buff', stat: 'def', mult: 1.3, turns: 2 }],
+        effects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.8, turns: 2 },
+        ],
       },
     ],
     passive: {
       name: 'Warden\'s Resolve',
       icon: 'assets/icons/fc856.png',
-      description: 'Takes 10% less damage from all attacks.',
+      description: 'A wall to the last: takes 25% less damage while below 30% HP.',
       hooks: {
-        damageTakenMult() {
-          return 0.9;
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.3 ? 0.75 : 1;
         },
       },
     },
@@ -1987,16 +2138,20 @@ const HEROES = {
       {
         id: 'bolt', name: 'Bolt',
         icon: 'assets/icons/fc1481.png',
-        description: 'A crossbow bolt for 105% ATK.',
+        description: 'A snap shot for 100% ATK — 35% more against exposed (vulnerability-marked) targets.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 1.0, bonusVs: { stat: 'damageTaken', mult: 1.35 } },
+        ],
       },
       {
         id: 'piercing_bolt', name: 'Piercing Bolt',
         icon: 'assets/icons/fc1484.png',
-        description: 'A heavy bolt for 150% ATK.',
+        description: 'An armor-punching bolt: 140% ATK — 50% more against weakened armor.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.5 }],
+        effects: [
+          { type: 'damage', mult: 1.4, bonusVs: { stat: 'def', mult: 1.5 } },
+        ],
       },
       {
         id: 'bolt_storm', name: 'Bolt Storm',
@@ -2009,11 +2164,11 @@ const HEROES = {
     passive: {
       name: 'Deadeye',
       icon: 'assets/icons/fc719.png',
-      description: 'Gains +10% crit chance for 1 turn at the start of each turn.',
+      description: 'Gains +25% crit damage for 1 turn at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
-          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.1, turns: 1 });
-          return null; // silent - fires every turn
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.25, turns: 1 });
+          return null; // silent — small rolling bonus
         },
       },
     },
@@ -2040,16 +2195,26 @@ const HEROES = {
       {
         id: 'arena_strike', name: 'Arena Strike',
         icon: 'assets/icons/fc1527.png',
-        description: 'A showy strike for 105% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        description: 'Strike for 100% ATK as the crowd roars: +10% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 1 },
+        ],
       },
       {
         id: 'crowd_pleaser', name: 'Crowd Pleaser',
         icon: 'assets/icons/fc729.png',
-        description: 'A spinning flourish for 155% ATK.',
-        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.55 }],
+        description: 'A showboat strike: 155% ATK, and the roar grants 15% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.55 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.15 },
+        ],
       },
       {
         id: 'executioners_round', name: 'Executioner\'s Round',
@@ -2062,12 +2227,9 @@ const HEROES = {
     passive: {
       name: 'Showman',
       icon: 'assets/icons/fc868.png',
-      description: 'Gains +10% ATK for 1 turn at the start of each turn.',
+      description: 'Always performing: deals 10% extra damage.',
       hooks: {
-        onTurnStart(unit) {
-          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 1 });
-          return null; // silent - fires every turn
-        },
+        damageDealtMult() { return 1.1; },
       },
     },
     positional: {
@@ -2093,9 +2255,14 @@ const HEROES = {
       {
         id: 'spirit_jolt', name: 'Spirit Jolt',
         icon: 'assets/icons/fc970.png',
-        description: 'A jolt of spirit energy for 100% ATK.',
+        description: 'A siphoning jolt: 90% ATK that heals the Shaman for 15% of his ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.9 },
+        ],
+        selfEffects: [
+          { type: 'heal', mult: 0.15 },
+        ],
       },
       {
         id: 'mending_totem', name: 'Mending Totem',
@@ -2107,9 +2274,11 @@ const HEROES = {
       {
         id: 'ancestral_winds', name: 'Ancestral Winds',
         icon: 'assets/icons/fc1113.png',
-        description: 'Bless ALL allies with regrowth: 4% of the shaman\'s max HP per turn for 3 turns.',
+        description: 'Winds mend ALL allies for 5% of the Shaman\'s max HP over 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
-        effects: [{ type: 'hot', pct: 0.04, turns: 3 }],
+        effects: [
+          { type: 'hot', pct: 0.05, turns: 2 },
+        ],
       },
     ],
     passive: {
@@ -2149,9 +2318,12 @@ const HEROES = {
       {
         id: 'grave_bolt', name: 'Grave Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A bolt of grave-chill for 105% ATK.',
+        description: 'A withering bolt: 95% ATK and -10% ATK for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 1 },
+        ],
       },
       {
         id: 'soul_rot', name: 'Soul Rot',
@@ -2174,10 +2346,23 @@ const HEROES = {
     passive: {
       name: 'Harvester',
       icon: 'assets/icons/fc863.png',
-      description: 'Deals 20% extra damage to enemies below half HP.',
+      description: 'At turn start, siphons 2% of his max HP from a random enemy.',
       hooks: {
-        damageDealtMult(unit, target) {
-          return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.2 : 1;
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const amount = Math.max(1, Math.round(unit.maxHp * 0.02));
+          target.takeDamage(amount);
+          const healed = unit.heal(amount);
+          return {
+            label: 'Harvester',
+            message: `${unit.name} harvests ${amount} HP from ${target.name}.`,
+            floats: [
+              { target, text: `-${amount}`, color: '#b86ae8' },
+              { target: unit, text: `+${healed}`, color: '#7ae87a' },
+            ],
+          };
         },
       },
     },
@@ -2208,9 +2393,12 @@ const HEROES = {
       {
         id: 'fang_slash', name: 'Fang Slash',
         icon: 'assets/icons/fc726.png',
-        description: 'A curved cut for 100% ATK.',
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'Slash for 95% ATK with a lick of venom: 15% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'dot', pct: 0.15, turns: 1 },
+        ],
       },
       {
         id: 'venom_cut', name: 'Venom Cut',
@@ -2233,14 +2421,17 @@ const HEROES = {
     passive: {
       name: 'Scaled Hide',
       icon: 'assets/icons/fc1112.png',
-      description: 'Recovers 2% max HP at the start of each turn.',
+      description: 'Thrives in filth: recovers 5% max HP at turn start while poisoned or debuffed.',
       hooks: {
         onTurnStart(unit) {
-          const healed = unit.heal(Math.round(unit.maxHp * 0.02));
+          const afflicted = unit.statusEffects.some(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+          if (!afflicted) return null;
+          const healed = unit.heal(Math.round(unit.maxHp * 0.05));
           if (healed <= 0) return null;
           return {
             label: 'Scaled Hide',
-            message: `${unit.name} sheds the damage (+${healed} HP).`,
+            message: `${unit.name}'s scales knit ${healed} HP back.`,
             floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
           };
         },
@@ -2269,9 +2460,11 @@ const HEROES = {
       {
         id: 'reed_shot', name: 'Reed Shot',
         icon: 'assets/icons/fc1515.png',
-        description: 'A hissing arrow for 100% ATK.',
+        description: 'A reed arrow for 98% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.98 },
+        ],
       },
       {
         id: 'venom_arrow', name: 'Venom Arrow',
@@ -2286,19 +2479,22 @@ const HEROES = {
       {
         id: 'arrow_hiss', name: 'Arrow Hiss',
         icon: 'assets/icons/fc807.png',
-        description: 'Pepper ALL enemies for 70% ATK.',
+        description: 'A venom-tipped volley: 60% ATK to ALL enemies plus a 10% ATK poison for 1 turn.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'damage', mult: 0.7 }],
+        effects: [
+          { type: 'damage', mult: 0.6 },
+          { type: 'dot', pct: 0.10, turns: 1 },
+        ],
       },
     ],
     passive: {
       name: 'Slither Step',
       icon: 'assets/icons/fc882.png',
-      description: 'Gains +8% SPD for 1 turn at the start of each turn.',
+      description: 'Gains +6% SPD for 2 turns at each turn start (briefly stacks).',
       hooks: {
         onTurnStart(unit) {
-          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.08, turns: 1 });
-          return null; // silent - fires every turn
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.06, turns: 2 });
+          return null; // silent — small rolling bonus
         },
       },
     },
@@ -2325,9 +2521,12 @@ const HEROES = {
       {
         id: 'viper_stab', name: 'Viper Stab',
         icon: 'assets/icons/fc1444.png',
-        description: 'A lightning stab for 105% ATK.',
+        description: 'A lightning stab: 100% ATK plus 20% ATK venom for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'dot', pct: 0.20, turns: 1 },
+        ],
       },
       {
         id: 'envenom', name: 'Envenom',
@@ -2342,9 +2541,11 @@ const HEROES = {
       {
         id: 'fang_finish', name: 'Fang Finish',
         icon: 'assets/icons/fc734.png',
-        description: 'Strike the throat: 190% ATK.',
+        description: 'An executioner\'s bite: 160% ATK — 60% more against poisoned prey.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.9 }],
+        effects: [
+          { type: 'damage', mult: 1.6, bonusVs: { kind: 'dot', mult: 1.6 } },
+        ],
       },
     ],
     passive: {
@@ -2381,9 +2582,12 @@ const HEROES = {
       {
         id: 'venom_bolt', name: 'Venom Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A searing bolt for 105% ATK.',
+        description: 'A gob of venom: 80% ATK plus an 18% ATK poison for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'dot', pct: 0.18, turns: 2 },
+        ],
       },
       {
         id: 'corrosive_blast', name: 'Corrosive Blast',
@@ -2435,9 +2639,12 @@ const HEROES = {
       {
         id: 'acid_splash', name: 'Acid Splash',
         icon: 'assets/icons/fc121.png',
-        description: 'A vial of acid for 100% ATK.',
+        description: 'Acid for 80% ATK that eats armor: -10% DEF for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 1 },
+        ],
       },
       {
         id: 'caustic_brew', name: 'Caustic Brew',
@@ -2489,16 +2696,24 @@ const HEROES = {
       {
         id: 'spirit_fang', name: 'Spirit Fang',
         icon: 'assets/icons/fc970.png',
-        description: 'A spectral bite for 100% ATK.',
+        description: 'A spectral bite for 85% ATK; spirits knit the Shaman for 2% max HP over 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
-        effects: [{ type: 'damage', mult: 1.0 }],
+        effects: [
+          { type: 'damage', mult: 0.85 },
+        ],
+        selfEffects: [
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
       },
       {
         id: 'swamp_blessing', name: 'Swamp Blessing',
         icon: 'assets/icons/fc1073.png',
-        description: 'Heal an ally for 12% of the shaman\'s max HP (15% if front row).',
+        description: 'Swamp mud mends an ally for 10% of the Shaman\'s max HP and armors them: +15% DEF for 2 turns.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
-        effects: [{ type: 'healHpPct', pct: 0.12, frontPct: 0.15 }],
+        effects: [
+          { type: 'healHpPct', pct: 0.10 },
+          { type: 'buff', stat: 'def', mult: 1.15, turns: 2 },
+        ],
       },
       {
         id: 'miasma', name: 'Miasma',
@@ -2565,10 +2780,14 @@ const HEROES = {
     passive: {
       name: 'Radiant Scales',
       icon: 'assets/icons/fc853.png',
-      description: 'Takes 10% less damage from all attacks.',
+      description: 'At turn start, shelters the most wounded ally: +12% DEF for 1 turn.',
       hooks: {
-        damageTakenMult() {
-          return 0.9;
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.12, turns: 1 });
+          return null; // silent — small rolling shelter
         },
       },
     },
@@ -2675,12 +2894,14 @@ const HEROES = {
       {
         id: 'crystal_slash', name: 'Crystal Slash',
         icon: 'assets/icons/fc1609.png',
-        description: 'Leap to an enemy and slash clean through for 100% ATK.',
-        // Slash impact rotated flat and mirrored vertically so the sweep
-        // reads bottom-left to bottom-right, following the sword tip.
-        cooldown: 0, targeting: 'enemy', animation: 'jumpslash', impact: 'slash',
-        impactRotate: -64, impactFlipY: true,
-        effects: [{ type: 'damage', mult: 1.0 }],
+        description: 'A crystal-edged cut for 100% ATK that focuses her: +5% crit chance for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.05, turns: 1 },
+        ],
       },
       {
         id: 'crystal_resonance', name: 'Crystal Resonance',
@@ -2703,15 +2924,12 @@ const HEROES = {
     passive: {
       name: 'Blade Dance',
       icon: 'assets/icons/fc731.png',
-      description: 'Gains +15% SPD for 1 turn at the start of each turn.',
+      description: 'Gains +15% SPD and +5% crit chance for 1 turn at the start of each turn.',
       hooks: {
         onTurnStart(unit) {
           unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.15, turns: 1 });
-          return {
-            label: 'Blade Dance',
-            message: `${unit.name} flows into the next stance (+15% SPD).`,
-            floats: [{ target: unit, text: 'SPD ▲', color: '#8ad8ff' }],
-          };
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.05, turns: 1 });
+          return null; // silent — too minor to log every turn
         },
       },
     },
