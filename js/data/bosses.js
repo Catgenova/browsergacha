@@ -504,4 +504,82 @@ const BOSSES = {
     ],
     positional: null,
   },
+  boar_king: {
+    id: 'boss_boar_king',
+    element: 'wind',
+    gearSet: 'boar',
+    name: 'Boar King',
+    title: 'Unmoved Monarch of the Savanna',
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_savanna.png',
+    stats: { hp: 17000, atk: 460, def: 360, speed: 118 }, // lv5 reference
+    // Exact anchors: stage 1 (Lv 5) and stage 20 (Lv 100), interpolated.
+    stats5: { hp: 17000, atk: 460, def: 360, speed: 118 },
+    stats100: { hp: 120000, atk: 10500, def: 2600, speed: 118 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/bosses/boarkingidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tusk_gore', name: 'Tusk Gore',
+        icon: 'assets/icons/fc746.png',
+        description: 'Gore a hero for 145% ATK and split their armor: ' +
+          '-15% DEF for 2 turns (resistible).',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.45 },
+          { type: 'debuff', stat: 'def', mult: 0.85, turns: 2 },
+        ],
+      },
+      {
+        id: 'earthshaker_charge', name: 'Earthshaker Charge',
+        icon: 'assets/icons/fc767.png',
+        description: 'Shake the whole savanna: 80% ATK to ALL heroes and ' +
+          '-10% turn meter.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'turnMeter', amount: -0.10 },
+        ],
+      },
+      {
+        id: 'shieldbreaker_stampede', name: 'Shieldbreaker Stampede',
+        icon: 'assets/icons/fc730.png',
+        description: 'Trample the front line for 160% ATK — heroes whose ' +
+          'DEF is altered (buffed or broken) are crushed for 75% more.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.6, bonusVs: { stat: 'def', mult: 1.75 } },
+        ],
+      },
+    ],
+    // Bosses carry three unique passives (and no positional bonuses).
+    passives: [
+      {
+        name: 'Ironhide',
+        icon: 'assets/icons/fc856.png',
+        description: '20% chance to reflect all incoming damage.',
+        hooks: { reflectAdd: 0.20 },
+      },
+      {
+        name: "Sovereign's Bulk",
+        icon: 'assets/icons/fc854.png',
+        description: 'Takes 20% less damage from all sources.',
+        hooks: {
+          damageTakenMult() { return 0.8; },
+        },
+      },
+      {
+        name: 'Trample Momentum',
+        icon: 'assets/icons/fc882.png',
+        description: '12% chance to take another turn after acting.',
+        hooks: { extraTurnAdd: 0.12 },
+      },
+    ],
+    positional: null,
+  },
 };

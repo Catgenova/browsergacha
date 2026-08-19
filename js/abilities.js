@@ -37,12 +37,16 @@ const Abilities = (() => {
   // effect belongs to; it scales damage/heal/poison numbers only.
   function applyEffect(effect, caster, target, power = 1) {
     switch (effect.type) {
-      case 'damage': {
+      case 'damage':
+      case 'damageDef': {
         // Dodge: a fully evaded hit deals nothing.
         if (Math.random() < (target.dodgeChance ? target.dodgeChance() : 0)) {
           return { kind: 'damage', target, amount: 0, dodged: true };
         }
-        let raw = caster.effectiveStat('atk') * effect.mult * power *
+        // 'damageDef' scales off the caster's DEF instead of ATK (Boar
+        // tank-bruiser kits); everything downstream is identical.
+        const scaleStat = effect.type === 'damageDef' ? 'def' : 'atk';
+        let raw = caster.effectiveStat(scaleStat) * effect.mult * power *
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
         // Combo hits: multiplied damage against a marked status — by
@@ -56,6 +60,13 @@ const Abilities = (() => {
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
         dmg = Math.round(dmg * target.damageTakenMult());
+        // Reflect (Boar set 6pc / bristle passives): the whole hit
+        // bounces back to the attacker instead of landing.
+        if (target.reflectChance && Math.random() < target.reflectChance()) {
+          caster.takeDamage(dmg);
+          return { kind: 'damage', target, amount: 0, reflected: true,
+            reflectAmount: dmg };
+        }
         target.takeDamage(dmg);
         return { kind: 'damage', target, amount: dmg, crit };
       }

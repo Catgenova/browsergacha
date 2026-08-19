@@ -7841,6 +7841,1573 @@ const HEROES = {
     },
   },
 
+  // ---- Boar cohort (the Savanna) ------------------------------------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional flat paths (assets/heroes/boar<role>idle.png).
+
+  boar_tusker: {
+    id: 'boar_tusker',
+    element: 'fire',
+    name: 'Boar Tusker',
+    title: 'Two Points of Argument',
+    rarity: 1,
+    stats: { hp: 860, atk: 110, def: 76, speed: 90 },
+    tint: { body: '#8a5a3a', helm: '#a87a4a', weapon: '#e8e0d8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boartuskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tusk_jab', name: 'Tusk Jab',
+        icon: 'assets/icons/fc746.png',
+        description: 'A hooking tusk for 111% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.11 },
+        ],
+      },
+      {
+        id: 'goring_rush', name: 'Goring Rush',
+        icon: 'assets/icons/fc763.png',
+        description: 'A short, brutal rush: 142% ATK and -7% DEF for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.42 },
+          { type: 'debuff', stat: 'def', mult: 0.93, turns: 1 },
+        ],
+      },
+      {
+        id: 'double_gore', name: 'Double Gore',
+        icon: 'assets/icons/fc744.png',
+        description: 'Both tusks: two hits of 82% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.82 },
+          { type: 'damage', mult: 0.82 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'First Gore',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 18% extra damage to enemies at full HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.alive && target.hp >= target.maxHp ? 1.18 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Tusk Line: +12% ATK while in a front hex.',
+    },
+  },
+
+  boar_forager: {
+    id: 'boar_forager',
+    element: 'water',
+    name: 'Boar Forager',
+    title: 'Finds Lunch Anywhere',
+    rarity: 1,
+    stats: { hp: 880, atk: 102, def: 78, speed: 89 },
+    tint: { body: '#7a6a5a', helm: '#9a8a6a', weapon: '#b8a878', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarforageridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'snout_shove', name: 'Snout Shove',
+        icon: 'assets/icons/fc663.png',
+        description: 'A rooting shove: 96% ATK that drains 6% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'share_the_find', name: 'Share the Find',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Split the truffle: heals an ally 115% of ATK and grants 5% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 1.15 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+      {
+        id: 'forage_feast', name: 'Forage Feast',
+        icon: 'assets/icons/fc800.png',
+        description: 'Lay out the haul: ALL allies heal 45% of ATK and gain +8% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.45 },
+          { type: 'buff', stat: 'def', mult: 1.08, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Truffle Cache',
+      icon: 'assets/icons/fc1093.png',
+      description: 'At turn start, eats a little: heals himself 2% and the most wounded other ally 1% of his max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const self = unit.heal(Math.round(unit.maxHp * 0.02));
+          const allies = battle.livingUnits(unit.team)
+            .filter((u) => u !== unit && u.hp < u.maxHp);
+          if (allies.length > 0) {
+            allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+            allies[0].heal(Math.round(unit.maxHp * 0.01));
+          }
+          return null; // silent — small rolling snack
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.12,
+      description: 'Root Larder: +12% DEF while in the center hex.',
+    },
+  },
+
+  boar_mudback: {
+    id: 'boar_mudback',
+    element: 'water',
+    name: 'Boar Mudback',
+    title: 'Armored in the Wallow',
+    rarity: 1,
+    stats: { hp: 940, atk: 100, def: 84, speed: 86 },
+    tint: { body: '#5a4a3a', helm: '#7a6a4a', weapon: '#a8a098', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarmudbackidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'mud_slap', name: 'Mud Slap',
+        icon: 'assets/icons/fc981.png',
+        description: 'A wet slap of mud: 88% ATK and -5% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.88 },
+          { type: 'debuff', stat: 'atk', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'wallow_charge', name: 'Wallow Charge',
+        icon: 'assets/icons/fc762.png',
+        description: 'A slithering charge: 126% ATK, recoated: +10% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.26 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 2 },
+        ],
+      },
+      {
+        id: 'mudslide', name: 'Mudslide',
+        icon: 'assets/icons/fc767.png',
+        description: 'Send the wallow downhill: 80% ATK to a hex row and -8% SPD for 1 turn.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.8 },
+          { type: 'debuff', stat: 'speed', mult: 0.92, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wallow',
+      icon: 'assets/icons/fc856.png',
+      description: 'At turn start, the mud draws out one poison and mends 1% max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const idx = unit.statusEffects.findIndex((fx) => fx.kind === 'dot');
+          if (idx === -1) return null;
+          unit.statusEffects.splice(idx, 1);
+          unit.heal(Math.round(unit.maxHp * 0.01));
+          return {
+            label: 'Wallow',
+            message: `${unit.name}'s mud coat draws out the poison.`,
+            floats: [{ target: unit, text: 'CLEANSE', color: '#a89a6a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Mud Wall: +15% DEF while in a front hex.',
+    },
+  },
+
+  boar_thistlehide: {
+    id: 'boar_thistlehide',
+    element: 'wind',
+    name: 'Boar Thistlehide',
+    title: 'Hugs Are Inadvisable',
+    rarity: 1,
+    stats: { hp: 900, atk: 104, def: 82, speed: 88 },
+    tint: { body: '#6a7a4a', helm: '#8a9a5a', weapon: '#a8c86a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarthistlehideidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bristle_rake', name: 'Bristle Rake',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A raking pass of quills: 97% ATK plus a 7% ATK bleed for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'dot', pct: 0.07, turns: 1 },
+        ],
+      },
+      {
+        id: 'quill_shake', name: 'Quill Shake',
+        icon: 'assets/icons/fc807.png',
+        description: 'Shake loose a cloud of thistles: 58% ATK to ALL enemies.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.58 },
+        ],
+      },
+      {
+        id: 'thistle_wall', name: 'Thistle Wall',
+        icon: 'assets/icons/fc854.png',
+        description: 'Bristle up: +25% DEF and takes 15% less damage for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.25, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Thistle Coat',
+      icon: 'assets/icons/fc867.png',
+      description: '+8% chance to reflect all incoming damage.',
+      hooks: { reflectAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.12,
+      description: 'Thorn Fence: +12% DEF while in a front hex.',
+    },
+  },
+
+  boar_charger: {
+    id: 'boar_charger',
+    element: 'fire',
+    name: 'Boar Charger',
+    title: 'Brakes Not Included',
+    rarity: 1,
+    stats: { hp: 830, atk: 116, def: 68, speed: 96 },
+    tint: { body: '#a84a2a', helm: '#c86a3a', weapon: '#c8c0b0', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarchargeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'headlong_rush', name: 'Headlong Rush',
+        icon: 'assets/icons/fc744.png',
+        description: 'A committed rush: 118% ATK, but overshooting costs 5% of his own meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.18 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+      {
+        id: 'full_gallop', name: 'Full Gallop',
+        icon: 'assets/icons/fc763.png',
+        description: 'Terminal boar velocity: 152% ATK with a 15% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.52 },
+          { type: 'stun', chance: 0.15, turns: 1 },
+        ],
+      },
+      {
+        id: 'through_the_wall', name: 'Through the Wall',
+        icon: 'assets/icons/fc767.png',
+        description: 'Go through, not around: 175% ATK and -10% DEF for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.75 },
+          { type: 'debuff', stat: 'def', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Momentum Tusks',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 15% extra damage while above 80% HP.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.hp / unit.maxHp > 0.8 ? 1.15 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
+      description: 'Charge Lane: +15% ATK while in a front hex.',
+    },
+  },
+
+  boar_rootdigger: {
+    id: 'boar_rootdigger',
+    element: 'water',
+    name: 'Boar Rootdigger',
+    title: 'The Ground Gives Up First',
+    rarity: 1,
+    stats: { hp: 910, atk: 103, def: 80, speed: 87 },
+    tint: { body: '#6a5a4a', helm: '#8a7a5a', weapon: '#b8a878', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarrootdiggeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'root_rip', name: 'Root Rip',
+        icon: 'assets/icons/fc1472.png',
+        description: 'Tear through roots and shins alike: 122% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.22 },
+        ],
+      },
+      {
+        id: 'turned_earth', name: 'Turned Earth',
+        icon: 'assets/icons/fc862.png',
+        description: 'Churn their footing: -12% SPD and -8% DEF for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.88, turns: 1 },
+          { type: 'debuff', stat: 'def', mult: 0.92, turns: 1 },
+        ],
+      },
+      {
+        id: 'sinkhole', name: 'Sinkhole',
+        icon: 'assets/icons/fc767.png',
+        description: 'Open the ground: 130% ATK and -20% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'turnMeter', amount: -0.2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Deep Roots',
+      icon: 'assets/icons/fc856.png',
+      description: '+15% debuff resistance and takes 4% less damage.',
+      hooks: {
+        resistanceAdd: 0.15,
+        damageTakenMult() { return 0.96; },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Rooted: +15% DEF while in the center hex.',
+    },
+  },
+
+  boar_sunbasker: {
+    id: 'boar_sunbasker',
+    element: 'fire',
+    name: 'Boar Sunbasker',
+    title: 'Professional Warm Rock',
+    rarity: 1,
+    stats: { hp: 890, atk: 108, def: 74, speed: 89 },
+    tint: { body: '#c88a4a', helm: '#e8a85a', weapon: '#e8d8a8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarsunbaskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warm_shoulder', name: 'Warm Shoulder',
+        icon: 'assets/icons/fc663.png',
+        description: 'A sun-warmed shoulder check: 124% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.24 },
+        ],
+      },
+      {
+        id: 'stored_heat', name: 'Stored Heat',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Release the day\'s heat: 128% ATK plus a 16% ATK burn for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.28 },
+          { type: 'dot', pct: 0.16, turns: 1 },
+        ],
+      },
+      {
+        id: 'long_nap', name: 'Long Nap',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Doze off mid-battle: recovers 30% max HP and +15% DEF for 1 turn.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.30 },
+          { type: 'buff', stat: 'def', mult: 1.15, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Basking Heat',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, gains +6% ATK for 1 turn and mends 1.5% max HP.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.06, turns: 1 });
+          unit.heal(Math.round(unit.maxHp * 0.015));
+          return null; // silent — small rolling warmth
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
+      description: 'Sun Spot: +10% ATK while in the center hex.',
+    },
+  },
+
+  boar_dustroller: {
+    id: 'boar_dustroller',
+    element: 'wind',
+    name: 'Boar Dustroller',
+    title: 'Ambient Dirt Hazard',
+    rarity: 1,
+    stats: { hp: 850, atk: 107, def: 72, speed: 94 },
+    tint: { body: '#9a8a6a', helm: '#b8a87a', weapon: '#c8b898', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boardustrolleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'dusty_headbutt', name: 'Dusty Headbutt',
+        icon: 'assets/icons/fc762.png',
+        description: 'A gritty headbutt: 101% ATK and -3% crit chance for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.01 },
+          { type: 'debuff', stat: 'critChance', add: -0.03, turns: 1 },
+        ],
+      },
+      {
+        id: 'roll_out', name: 'Roll Out',
+        icon: 'assets/icons/fc744.png',
+        description: 'A rolling strike: 136% ATK, dusting himself off: +6% DEF for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.36 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
+        ],
+      },
+      {
+        id: 'dust_devil', name: 'Dust Devil',
+        icon: 'assets/icons/fc807.png',
+        description: 'Kick up a blinding column: ALL enemies lose 6% crit chance and 3% SPD for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'critChance', add: -0.06, turns: 1 },
+          { type: 'debuff', stat: 'speed', mult: 0.97, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dust Cloud',
+      icon: 'assets/icons/fc882.png',
+      description: '+12% chance to dodge while holding the center hex.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.12 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
+      description: 'Dust Bath: +10% SPD while in the center hex.',
+    },
+  },
+
+  boar_squealer: {
+    id: 'boar_squealer',
+    element: 'wind',
+    name: 'Boar Squealer',
+    title: 'Alarm with Legs',
+    rarity: 1,
+    stats: { hp: 820, atk: 105, def: 70, speed: 97 },
+    tint: { body: '#b87a8a', helm: '#d89aa8', weapon: '#c8c0b0', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarsquealeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ear_splitter', name: 'Ear-Splitter',
+        icon: 'assets/icons/fc1003.png',
+        description: 'A squeal at point blank: 91% ATK and -6% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.91 },
+          { type: 'debuff', stat: 'atk', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'panic_call', name: 'Panic Call',
+        icon: 'assets/icons/fc868.png',
+        description: 'A rallying shriek: an ally gains 15% turn meter and +10% SPD for 1 turn.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: 0.15 },
+          { type: 'buff', stat: 'speed', mult: 1.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'deafening_chorus', name: 'Deafening Chorus',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The whole sounder joins in: ALL enemies lose 8% ATK for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Piercing Squeal',
+      icon: 'assets/icons/fc867.png',
+      description: 'At turn start, a random enemy loses 4% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.96, turns: 1 });
+          return null; // silent — small rolling screech
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.1,
+      description: 'Lookout Rock: +10% SPD while in a back hex.',
+    },
+  },
+
+  boar_ironhide: {
+    id: 'boar_ironhide',
+    element: 'water',
+    name: 'Boar Ironhide',
+    title: 'Dents Incoming Weapons',
+    rarity: 2,
+    stats: { hp: 1060, atk: 116, def: 100, speed: 86 },
+    tint: { body: '#5a5a6a', helm: '#7a7a8a', weapon: '#a8a0a8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarironhideidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'iron_shoulder', name: 'Iron Shoulder',
+        icon: 'assets/icons/fc854.png',
+        description: 'A plated shoulder slam: 90% of DEF as damage.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.9 },
+        ],
+      },
+      {
+        id: 'anvil_stance', name: 'Anvil Stance',
+        icon: 'assets/icons/fc855.png',
+        description: 'Set like an anvil: +30% DEF for 2 turns and takes 10% less damage for 1 turn.',
+        cooldown: 3, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.3, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.9, turns: 1 },
+        ],
+      },
+      {
+        id: 'iron_avalanche', name: 'Iron Avalanche',
+        icon: 'assets/icons/fc1476.png',
+        description: 'Bring the whole harness down: 140% of DEF as damage.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.4 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ironhide Plates',
+      icon: 'assets/icons/fc856.png',
+      description: '+10% chance to reflect all incoming damage.',
+      hooks: { reflectAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.18,
+      description: 'Iron Line: +18% DEF while in a front hex.',
+    },
+  },
+
+  boar_bulwark: {
+    id: 'boar_bulwark',
+    element: 'water',
+    name: 'Boar Bulwark',
+    title: 'The Line Is Him',
+    rarity: 2,
+    stats: { hp: 1100, atk: 112, def: 104, speed: 84 },
+    tint: { body: '#4a5a6a', helm: '#6a7a8a', weapon: '#c8c0b0', shield: '#8a9ab8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarbulwarkidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shield_snout', name: 'Shield Snout',
+        icon: 'assets/icons/fc1471.png',
+        description: 'A snout-first block-and-strike: 75% of DEF as damage, guarding: takes 8% less damage until next turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.75 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'damageTaken', mult: 0.92, turns: 1 },
+        ],
+      },
+      {
+        id: 'hold_the_wall', name: 'Hold the Wall',
+        icon: 'assets/icons/fc855.png',
+        description: 'Anchor the wall: front-hex allies gain +18% DEF and take 5% less damage for 2 turns.',
+        cooldown: 5, targeting: 'front-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.18, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 2 },
+        ],
+      },
+      {
+        id: 'rampart_toss', name: 'Rampart Toss',
+        icon: 'assets/icons/fc767.png',
+        description: 'Heave them off the wall: 120% of DEF as damage and -12% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.2 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Rampart Stance',
+      icon: 'assets/icons/fc854.png',
+      description: 'Gains +12% DEF for 2 turns at each turn start (briefly stacks).',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.12, turns: 2 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Wall Anchor: +20% DEF while in a front hex.',
+    },
+  },
+
+  boar_brushfire: {
+    id: 'boar_brushfire',
+    element: 'fire',
+    name: 'Boar Brushfire',
+    title: 'Sparks Follow Him Around',
+    rarity: 2,
+    stats: { hp: 920, atk: 134, def: 76, speed: 99 },
+    tint: { body: '#a85a2a', helm: '#c87a3a', weapon: '#e8843a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarbrushfireidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spark_tusk', name: 'Spark Tusk',
+        icon: 'assets/icons/fc981.png',
+        description: 'A flint-striking tusk: 94% ATK plus a 13% ATK burn for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.94 },
+          { type: 'dot', pct: 0.13, turns: 1 },
+        ],
+      },
+      {
+        id: 'firebreak_charge', name: 'Firebreak Charge',
+        icon: 'assets/icons/fc744.png',
+        description: 'Charge through the burn line: 138% ATK plus a 20% ATK burn for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.38 },
+          { type: 'dot', pct: 0.2, turns: 2 },
+        ],
+      },
+      {
+        id: 'brushfire_ring', name: 'Brushfire Ring',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Light the grass in a ring: 55% ATK to ALL enemies plus a 15% ATK burn for 2 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.55 },
+          { type: 'dot', pct: 0.15, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Smoldering Bristles',
+      icon: 'assets/icons/fc1093.png',
+      description: '+10% DoT damage and deals 5% extra damage.',
+      hooks: {
+        dotBoostAdd: 0.10,
+        damageDealtMult() { return 1.05; },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
+      description: 'Fire Line: +12% ATK while in the center hex.',
+    },
+  },
+
+  boar_stampeder: {
+    id: 'boar_stampeder',
+    element: 'fire',
+    name: 'Boar Stampeder',
+    title: 'First of Many Hooves',
+    rarity: 2,
+    stats: { hp: 950, atk: 130, def: 80, speed: 101 },
+    tint: { body: '#8a4a3a', helm: '#a86a4a', weapon: '#c8c0b0', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarstampederidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'hoof_beat', name: 'Hoof Beat',
+        icon: 'assets/icons/fc762.png',
+        description: 'A drumming strike: 104% ATK, building speed: +5% SPD for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.04 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+        ],
+      },
+      {
+        id: 'herd_charge', name: 'Herd Charge',
+        icon: 'assets/icons/fc763.png',
+        description: 'Hit like the whole herd: 148% ATK and -8% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.48 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'endless_stampede', name: 'Endless Stampede',
+        icon: 'assets/icons/fc730.png',
+        description: 'The stampede arrives: 78% ATK to a hex row, twice.',
+        cooldown: 6, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.78 },
+          { type: 'damage', mult: 0.78 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Stampede Heart',
+      icon: 'assets/icons/fc882.png',
+      description: '+6% chance to take an extra turn after acting.',
+      hooks: { extraTurnAdd: 0.06 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Lead Position: +12% ATK while in a front hex.',
+    },
+  },
+
+  boar_thornmail: {
+    id: 'boar_thornmail',
+    element: 'wind',
+    name: 'Boar Thornmail',
+    title: 'Wearable Retaliation',
+    rarity: 2,
+    stats: { hp: 1000, atk: 118, def: 96, speed: 88 },
+    tint: { body: '#5a6a3a', helm: '#7a8a4a', weapon: '#a8c86a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarthornmailidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'thorn_press', name: 'Thorn Press',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Press the thorns in: 85% of DEF as damage plus a 6% ATK bleed for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.85 },
+          { type: 'dot', pct: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'barbed_lockup', name: 'Barbed Lockup',
+        icon: 'assets/icons/fc862.png',
+        description: 'Wrap them in barbs: 110% of DEF as damage and -10% SPD for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.1 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'hedge_of_spines', name: 'Hedge of Spines',
+        icon: 'assets/icons/fc855.png',
+        description: 'Become the hedge: ALL allies gain +12% DEF for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.12, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bristleback',
+      icon: 'assets/icons/fc867.png',
+      description: '+8% chance to reflect all incoming damage and +8% debuff resistance.',
+      hooks: { reflectAdd: 0.08, resistanceAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Hedgerow: +15% DEF while in a front hex.',
+    },
+  },
+
+  boar_mireguard: {
+    id: 'boar_mireguard',
+    element: 'water',
+    name: 'Boar Mireguard',
+    title: 'Swamp Property Enforcement',
+    rarity: 2,
+    stats: { hp: 1040, atk: 114, def: 98, speed: 87 },
+    tint: { body: '#4a5a4a', helm: '#6a7a5a', weapon: '#8a9a7a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarmireguardidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bog_shoulder', name: 'Bog Shoulder',
+        icon: 'assets/icons/fc854.png',
+        description: 'A sodden check: 80% of DEF as damage and -6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.8 },
+          { type: 'debuff', stat: 'speed', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'quagmire_hold', name: 'Quagmire Hold',
+        icon: 'assets/icons/fc862.png',
+        description: 'Drag them into the mire: -15% SPD and -10% ATK for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.85, turns: 2 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'swampwall_slam', name: 'Swampwall Slam',
+        icon: 'assets/icons/fc1476.png',
+        description: 'The swamp itself swings: 125% of DEF as damage.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.25 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mire Stance',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 20% less damage while below 40% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.4 ? 0.8 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Bog Gate: +15% DEF while in a front hex.',
+    },
+  },
+
+  boar_gorehorn: {
+    id: 'boar_gorehorn',
+    element: 'fire',
+    name: 'Boar Gorehorn',
+    title: 'Shields Are a Suggestion',
+    rarity: 2,
+    stats: { hp: 930, atk: 138, def: 78, speed: 98 },
+    tint: { body: '#7a3a2a', helm: '#9a5a3a', weapon: '#e8e0d8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boargorehornidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'horn_hook', name: 'Horn Hook',
+        icon: 'assets/icons/fc746.png',
+        description: 'A hooking gore: 106% ATK — 20% more against DEF-altered foes.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.06, bonusVs: { stat: 'def', mult: 1.2 } },
+        ],
+      },
+      {
+        id: 'shieldsplitter', name: 'Shieldsplitter',
+        icon: 'assets/icons/fc1472.png',
+        description: 'Split the guard: 135% ATK and -12% DEF for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.35 },
+          { type: 'debuff', stat: 'def', mult: 0.88, turns: 2 },
+        ],
+      },
+      {
+        id: 'gore_the_line', name: 'Gore the Line',
+        icon: 'assets/icons/fc730.png',
+        description: 'Rip along the shields: 95% ATK to the front line.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Gore Momentum',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 25% extra damage to enemies with raised DEF (any DEF buff).',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'def') ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Breaching Spot: +12% ATK while in a front hex.',
+    },
+  },
+
+  boar_grassrunner: {
+    id: 'boar_grassrunner',
+    element: 'wind',
+    name: 'Boar Grassrunner',
+    title: 'Rumor in the Reeds',
+    rarity: 2,
+    stats: { hp: 880, atk: 128, def: 74, speed: 107 },
+    tint: { body: '#7a9a5a', helm: '#9aba6a', weapon: '#c8c0b0', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boargrassrunneridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'reed_rush', name: 'Reed Rush',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A rustling strike: 108% ATK, slipping onward: +6% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.08 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'circling_run', name: 'Circling Run',
+        icon: 'assets/icons/fc825.png',
+        description: 'Strike from a new angle: 144% ATK — 20% more against slowed or hasted prey.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.44, bonusVs: { stat: 'speed', mult: 1.2 } },
+        ],
+      },
+      {
+        id: 'grass_maze', name: 'Grass Maze',
+        icon: 'assets/icons/fc807.png',
+        description: 'Lead them in circles: ALL enemies lose 8% SPD and 4% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.92, turns: 1 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tall Grass',
+      icon: 'assets/icons/fc882.png',
+      description: '+7% chance to dodge and +3% chance for an extra turn.',
+      hooks: { dodgeAdd: 0.07, extraTurnAdd: 0.03 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.12,
+      description: 'Reed Run: +12% SPD while in a back hex.',
+    },
+  },
+
+  boar_nightsow: {
+    id: 'boar_nightsow',
+    element: 'dark',
+    name: 'Boar Nightsow',
+    title: 'What Rustles After Midnight',
+    rarity: 2,
+    stats: { hp: 910, atk: 136, def: 72, speed: 104 },
+    tint: { body: '#2a2a3a', helm: '#4a3a4a', weapon: '#8a6ab8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarnightsowidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'midnight_gore', name: 'Midnight Gore',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A gore from the dark: 112% ATK — 15% more against poisoned or bleeding prey.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.12, bonusVs: { kind: 'dot', mult: 1.15 } },
+        ],
+      },
+      {
+        id: 'shadow_rut', name: 'Shadow Rut',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Carve a dark furrow: 140% ATK and the target takes +15% damage for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'nightfall_charge', name: 'Nightfall Charge',
+        icon: 'assets/icons/fc734.png',
+        description: 'Night falls at a gallop: 188% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.88 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Night Forage',
+      icon: 'assets/icons/fc863.png',
+      description: 'Preys on the overwhelmed: deals 25% extra damage to enemies with 2 or more afflictions.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.statusEffects.filter((fx) => fx.kind === 'debuff' || fx.kind === 'dot').length >= 2 ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Dark Thicket: +12% damage dealt from a back hex.',
+    },
+  },
+
+  boar_drummer: {
+    id: 'boar_drummer',
+    element: 'wind',
+    name: 'Boar Drummer',
+    title: 'Sets the Sounder\'s Pace',
+    rarity: 2,
+    stats: { hp: 900, atk: 120, def: 82, speed: 95 },
+    tint: { body: '#8a7a5a', helm: '#a89a6a', weapon: '#c8a878', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boardrummeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'drum_hoof', name: 'Drum Hoof',
+        icon: 'assets/icons/fc663.png',
+        description: 'A rhythmic stomp: 99% ATK that drains 4% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.99 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+      {
+        id: 'quickstep_beat', name: 'Quickstep Beat',
+        icon: 'assets/icons/fc868.png',
+        description: 'Beat the advance: an ally gains +12% SPD for 2 turns and 8% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.12, turns: 2 },
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'thunder_of_hooves', name: 'Thunder of Hooves',
+        icon: 'assets/icons/fc869.png',
+        description: 'The ground keeps the beat: ALL allies gain +6% ATK and +6% SPD for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.06, turns: 2 },
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'War Drums',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, ALL allies gain 3% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            if (ally === unit) continue;
+            ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+              ally.turnMeter + CONFIG.TURN_METER_MAX * 0.03);
+          }
+          return null; // silent — small rolling tempo
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
+      description: 'Drum Circle: +12% SPD while in the center hex.',
+    },
+  },
+
+  boar_warchief: {
+    id: 'boar_warchief',
+    element: 'fire',
+    name: 'Boar Warchief',
+    title: 'Crowned by Collision',
+    rarity: 3,
+    stats: { hp: 1240, atk: 168, def: 98, speed: 98 },
+    tint: { body: '#8a3a2a', helm: '#e8c83a', weapon: '#d8d8e0', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarwarchiefidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'chiefs_gore', name: 'Chief\'s Gore',
+        icon: 'assets/icons/fc746.png',
+        description: 'A commanding gore: 114% ATK and -6% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.14 },
+          { type: 'debuff', stat: 'def', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'war_banner_charge', name: 'War Banner Charge',
+        icon: 'assets/icons/fc869.png',
+        description: 'Raise the tusks: ALL allies gain +10% ATK and +8% DEF for 2 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 2 },
+          { type: 'buff', stat: 'def', mult: 1.08, turns: 2 },
+        ],
+      },
+      {
+        id: 'kingslayer_rush', name: 'Kingslayer Rush',
+        icon: 'assets/icons/fc730.png',
+        description: 'A charge fit to end dynasties: 210% ATK and -10% turn meter.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.1 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Chieftain\'s Bulk',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, ALL allies gain +6% DEF for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.06, turns: 1 });
+          }
+          return null; // silent — small rolling aura
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'War Throne: +15% ATK while in the center hex.',
+    },
+  },
+
+  boar_earthshaker: {
+    id: 'boar_earthshaker',
+    element: 'water',
+    name: 'Boar Earthshaker',
+    title: 'Registers on Instruments',
+    rarity: 3,
+    stats: { hp: 1320, atk: 150, def: 110, speed: 84 },
+    tint: { body: '#4a4a4a', helm: '#6a6a5a', weapon: '#a8a098', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarearthshakeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tremor_stomp', name: 'Tremor Stomp',
+        icon: 'assets/icons/fc767.png',
+        description: 'A ground-splitting stomp: 95% of DEF as damage and -5% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.95 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+      {
+        id: 'faultline', name: 'Faultline',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Crack a hex row open: 100% of DEF as damage and -10% SPD for 1 turn.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.0 },
+          { type: 'debuff', stat: 'speed', mult: 0.9, turns: 1 },
+        ],
+      },
+      {
+        id: 'continental_slam', name: 'Continental Slam',
+        icon: 'assets/icons/fc1476.png',
+        description: 'Move the earth: 90% of DEF as damage to ALL enemies.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.9 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Seismic Bulk',
+      icon: 'assets/icons/fc856.png',
+      description: '+10% chance to reflect all incoming damage and +10% debuff resistance.',
+      hooks: { reflectAdd: 0.10, resistanceAdd: 0.10 },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.2,
+      description: 'Bedrock: +20% DEF while in a front hex.',
+    },
+  },
+
+  boar_bramblelord: {
+    id: 'boar_bramblelord',
+    element: 'wind',
+    name: 'Boar Bramblelord',
+    title: 'The Hedge Has Opinions',
+    rarity: 3,
+    stats: { hp: 1150, atk: 170, def: 92, speed: 100 },
+    tint: { body: '#4a6a3a', helm: '#6a8a4a', weapon: '#a8c86a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarbramblelordidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'briar_gore', name: 'Briar Gore',
+        icon: 'assets/icons/fc981.png',
+        description: 'A thorn-wrapped gore: 100% ATK plus a 15% ATK bleed for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'dot', pct: 0.15, turns: 2 },
+        ],
+      },
+      {
+        id: 'strangling_growth', name: 'Strangling Growth',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Brambles climb them: 120% ATK, -12% SPD for 2 turns plus a 12% ATK bleed for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.2 },
+          { type: 'debuff', stat: 'speed', mult: 0.88, turns: 2 },
+          { type: 'dot', pct: 0.12, turns: 2 },
+        ],
+      },
+      {
+        id: 'wall_of_briars', name: 'Wall of Briars',
+        icon: 'assets/icons/fc855.png',
+        description: 'Raise the living hedge: ALL allies gain +10% DEF and take 6% less damage for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.1, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.94, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bramble Crown',
+      icon: 'assets/icons/fc1093.png',
+      description: 'His bleeds cling: +10% DoT damage and DoTs last 1 extra turn.',
+      hooks: { dotBoostAdd: 0.10, dotExtraTurns: 1 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Hedge Heart: +15% DEF while in the center hex.',
+    },
+  },
+
+  boar_cinderback: {
+    id: 'boar_cinderback',
+    element: 'fire',
+    name: 'Boar Cinderback',
+    title: 'Walking Campfire Violation',
+    rarity: 3,
+    stats: { hp: 1200, atk: 160, def: 100, speed: 92 },
+    tint: { body: '#5a3a2a', helm: '#e8632a', weapon: '#f8a83a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarcinderbackidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ember_shoulder', name: 'Ember Shoulder',
+        icon: 'assets/icons/fc854.png',
+        description: 'A glowing check: 88% of DEF as damage plus an 8% ATK burn for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 0.88 },
+          { type: 'dot', pct: 0.08, turns: 1 },
+        ],
+      },
+      {
+        id: 'coal_bed_roll', name: 'Coal Bed Roll',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Roll through them trailing coals: 105% of DEF as damage to a hex row plus a 10% ATK burn for 1 turn.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damageDef', mult: 1.05 },
+          { type: 'dot', pct: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'furnace_bloom', name: 'Furnace Bloom',
+        icon: 'assets/icons/fc1044.png',
+        description: 'The cinders flare white: +35% DEF and takes 20% less damage for 2 turns.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.35, turns: 2 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.8, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Cinder Bristles',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, shed embers sear ALL enemies for 1.5% of his DEF.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.015));
+          for (const e of enemies) e.takeDamage(amount);
+          return {
+            label: 'Cinder Bristles',
+            message: `${unit.name}'s embers sear the field.`,
+            floats: enemies.map((e) => ({ target: e, text: `-${amount}`, color: '#e8843a' })),
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.15,
+      description: 'Hearth Line: +15% DEF while in a front hex.',
+    },
+  },
+
+  boar_rainbringer: {
+    id: 'boar_rainbringer',
+    element: 'water',
+    name: 'Boar Rainbringer',
+    title: 'Smells Like Coming Storms',
+    rarity: 3,
+    stats: { hp: 1180, atk: 156, def: 94, speed: 97 },
+    tint: { body: '#4a6a8a', helm: '#6a8aa8', weapon: '#a8d8e8', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boarrainbringeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rain_slick_gore', name: 'Rain-Slick Gore',
+        icon: 'assets/icons/fc819.png',
+        description: 'A sliding gore: 103% ATK and -4% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.03 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'cloudburst', name: 'Cloudburst',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Call the rain down: ALL allies heal 50% of ATK and gain +5% SPD for 2 turns.',
+        cooldown: 4, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.5 },
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+        ],
+      },
+      {
+        id: 'monsoon_wall', name: 'Monsoon Wall',
+        icon: 'assets/icons/fc800.png',
+        description: 'A wall of grey water: 70% ATK to ALL enemies and -6% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.7 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Rain Blessing',
+      icon: 'assets/icons/fc1093.png',
+      description: 'Whenever an ally is healed, that ally also gains +4% SPD for 1 turn.',
+      hooks: {
+        onAllyHealed(unit, healedUnit) {
+          if (healedUnit === unit) return;
+          healedUnit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.04, turns: 1 });
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'def', mult: 1.15,
+      description: 'Stormwatch: +15% DEF while in a back hex.',
+    },
+  },
+
+  boar_dawnsow: {
+    id: 'boar_dawnsow',
+    element: 'light',
+    name: 'Boar Dawnsow',
+    title: 'Sunrise Made Stubborn',
+    rarity: 3,
+    stats: { hp: 1260, atk: 152, def: 96, speed: 94 },
+    tint: { body: '#e8d8a8', helm: '#f8e8c8', weapon: '#f8d86a', skin: '#c8a888' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/boardawnsowidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'gilded_tusk', name: 'Gilded Tusk',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A gleaming tusk: 98% ATK, and the light steadies her: +6% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'daybreak_ward', name: 'Daybreak Ward',
+        icon: 'assets/icons/fc855.png',
+        description: 'Wrap an ally in morning light: heals 14% of her max HP and they take 12% less damage for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.14 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.88, turns: 2 },
+        ],
+      },
+      {
+        id: 'first_light_of_the_sounder', name: 'First Light of the Sounder',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Dawn reaches everyone: ALL allies heal 60% of ATK and gain +8% DEF for 2 turns.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.6 },
+          { type: 'buff', stat: 'def', mult: 1.08, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dawn Warmth',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, shields the most wounded ally: takes 15% less damage for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (allies.length === 0) return null;
+          allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+          allies[0].addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.85, turns: 1 });
+          return null; // silent — small rolling warmth
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'def', mult: 1.15,
+      description: 'Sunrise Post: +15% DEF while in the center hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',
