@@ -41,6 +41,9 @@ class Unit {
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
 
+    // Party synergy (Light resonance 7pc): flat incoming-damage cut.
+    this.synergyTakenMult = 1;
+
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
 
@@ -221,7 +224,7 @@ class Unit {
   // Incoming damage multiplier from vulnerability marks ('damageTaken'
   // status effects) and defensive passives.
   damageTakenMult() {
-    let m = 1;
+    let m = this.synergyTakenMult || 1;
     for (const fx of this.statusEffects) {
       if (fx.stat === 'damageTaken' && fx.mult) m *= fx.mult;
     }

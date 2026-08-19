@@ -19,7 +19,9 @@ body {
 #game-root {
   position: relative;
   width: 960px;
-  transform-origin: center center;
+  /* Anchor scaling to the top so tall pages (big rosters) grow downward
+     and scroll, instead of shrinking into a centered sliver. */
+  transform-origin: top center;
 }
 
 .hidden {

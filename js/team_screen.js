@@ -142,15 +142,14 @@ class TeamScreen {
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
 
-    // Race synergy readout: which 3/5/7 pack bonuses the team has live
-    // (and the next tier within reach).
+    // Party synergy readout: race packs and element resonance the team
+    // has live (and any group one short of its first tier).
     const raceEl = document.getElementById('race-bonuses');
     if (raceEl) {
       const defs = Object.values(GameState.getTeam())
         .map((id) => HEROES[id]).filter(Boolean);
-      const tally = RACES.counts(defs);
       const parts = [];
-      for (const [race, count] of Object.entries(tally)) {
+      for (const [race, count] of Object.entries(RACES.counts(defs))) {
         if (count < 2) continue;
         const tiers = RACES.activeTiers(race, count);
         if (tiers.length > 0) {
@@ -160,8 +159,18 @@ class TeamScreen {
           parts.push(`${RACES.NAMES[race]} ×${count} <span class="race-next">(3 unlocks a pack bonus)</span>`);
         }
       }
+      for (const [el, count] of Object.entries(RACES.elementCounts(defs))) {
+        if (count < 2) continue;
+        const tiers = RACES.activeElementTiers(el, count);
+        if (tiers.length > 0) {
+          parts.push(`<b>${RACES.ELEMENT_NAMES[el]} ×${count}</b>: ` +
+            tiers.map((t) => t.label.replace(/^\d+: /, '')).join(' · '));
+        } else {
+          parts.push(`${RACES.ELEMENT_NAMES[el]} ×${count} <span class="race-next">(3 unlocks a resonance)</span>`);
+        }
+      }
       raceEl.innerHTML = parts.length
-        ? 'Pack bonuses — ' + parts.join(' &nbsp;|&nbsp; ')
+        ? 'Party synergy — ' + parts.join(' &nbsp;|&nbsp; ')
         : '';
       raceEl.classList.toggle('hidden', parts.length === 0);
     }
