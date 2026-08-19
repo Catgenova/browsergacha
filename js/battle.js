@@ -167,6 +167,7 @@ class Battle {
         unit.animator.play('idle');
       }
       this.activeUnit = null;
+      this.grantTurnApGain(); // a lost turn is still a turn
       this.state = BattleState.TICKING;
       return;
     }
@@ -460,6 +461,9 @@ class Battle {
       return;
     }
 
+    // Cat set 6pc: every completed turn feeds AP to the prowlers.
+    this.grantTurnApGain();
+
     // Extra turns (Rat set 6pc / boss passives): refill the meter so
     // this unit acts again as soon as the tick resumes.
     if (caster.alive && Math.random() < caster.extraTurnChance()) {
@@ -469,6 +473,17 @@ class Battle {
     }
 
     this.state = BattleState.TICKING;
+  }
+
+  // Cat set 6pc: wearers gain a slice of turn meter whenever ANY unit's
+  // turn completes (their own included — a head start on the refill).
+  grantTurnApGain() {
+    for (const u of this.livingUnits()) {
+      if (u.gearApGain > 0) {
+        u.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+          u.turnMeter + CONFIG.TURN_METER_MAX * u.gearApGain);
+      }
+    }
   }
 
   checkEnd() {

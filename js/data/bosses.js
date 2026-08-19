@@ -672,4 +672,93 @@ const BOSSES = {
     ],
     positional: null,
   },
+  lion_regent: {
+    id: 'boss_lion_regent',
+    element: 'wind',
+    gearSet: 'cat',
+    name: 'Lion Regent',
+    title: 'Crowned Idler of the Meadow',
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_meadow.png',
+    stats: { hp: 14500, atk: 475, def: 290, speed: 150 }, // lv5 reference
+    // Exact anchors: stage 1 (Lv 5) and stage 20 (Lv 100), interpolated.
+    stats5: { hp: 14500, atk: 475, def: 290, speed: 150 },
+    stats100: { hp: 100000, atk: 11500, def: 1950, speed: 150 },
+    sprite: {
+      displayH: 230,
+      strips: {
+        idle: { src: 'assets/bosses/lionregentidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'regal_pounce', name: 'Regal Pounce',
+        icon: 'assets/icons/fc763.png',
+        description: 'Single out a hero: 140% ATK that steals 15% of ' +
+          'their turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+      {
+        id: 'commanding_roar', name: 'Commanding Roar',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The meadow obeys: 75% ATK to ALL heroes and -12% ' +
+          'turn meter, while the Regent surges 15% up his own.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+        selfEffects: [{ type: 'turnMeter', amount: 0.15 }],
+      },
+      {
+        id: 'nine_lives_flurry', name: 'Nine Lives Flurry',
+        icon: 'assets/icons/fc744.png',
+        description: 'A blur of claws across the front line: three ' +
+          'swipes of 65% ATK each.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.65 },
+          { type: 'damage', mult: 0.65 },
+          { type: 'damage', mult: 0.65 },
+        ],
+      },
+    ],
+    // Bosses carry three unique passives (and no positional bonuses).
+    passives: [
+      {
+        name: 'Predator of Tempo',
+        icon: 'assets/icons/fc863.png',
+        description: 'Deals 30% extra damage to heroes below half turn meter.',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.5
+              ? 1.3 : 1;
+          },
+        },
+      },
+      {
+        name: 'Feline Grace',
+        icon: 'assets/icons/fc882.png',
+        description: '20% chance to dodge attacks.',
+        hooks: { dodgeAdd: 0.20 },
+      },
+      {
+        name: 'Endless Prowl',
+        icon: 'assets/icons/fc868.png',
+        description: 'Gains +10% SPD for 2 turns at the start of each turn (stacks).',
+        hooks: {
+          onTurnStart(unit) {
+            unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.1, turns: 2 });
+            return null; // silent — the prowl never stops
+          },
+        },
+      },
+    ],
+    positional: null,
+  },
 };

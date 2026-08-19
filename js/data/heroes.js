@@ -11014,6 +11014,1608 @@ const HEROES = {
     },
   },
 
+  // ---- Feline cohort (the Meadow) -----------------------------------------
+  // Procedural placeholder art renders until real idle sheets land at the
+  // conventional flat paths (assets/heroes/cat<role>idle.png).
+
+  cat_mouser: {
+    id: 'cat_mouser',
+    element: 'wind',
+    name: 'Cat Mouser',
+    title: 'Employed, Unlike Most Cats',
+    rarity: 1,
+    stats: { hp: 700, atk: 113, def: 56, speed: 106 },
+    tint: { body: '#8a8a7a', helm: '#a8a89a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catmouseridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'quick_bat', name: 'Quick Bat',
+        icon: 'assets/icons/fc663.png',
+        description: 'A batting paw: 93% ATK that flicks away 4% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.93 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+      {
+        id: 'corner_trap', name: 'Corner Trap',
+        icon: 'assets/icons/fc825.png',
+        description: 'Nowhere left to run: 134% ATK — 30% more against slowed or hasted prey.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.34, bonusVs: { stat: 'speed', mult: 1.3 } },
+        ],
+      },
+      {
+        id: 'pest_control', name: 'Pest Control',
+        icon: 'assets/icons/fc744.png',
+        description: 'Strictly business: 184% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.84 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Mouse Sense',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 18% extra damage to enemies below 30% turn meter.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.3 ? 1.18 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.12,
+      description: 'Skirting Board: +12% SPD while in a back hex.',
+    },
+  },
+
+  cat_angler: {
+    id: 'cat_angler',
+    element: 'water',
+    name: 'Cat Angler',
+    title: 'Paws Never Get Wet',
+    rarity: 1,
+    stats: { hp: 740, atk: 109, def: 60, speed: 100 },
+    tint: { body: '#6a7a8a', helm: '#8a9aa8', weapon: '#a8d8e8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catangleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'hooked_claw', name: 'Hooked Claw',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A fish-hook swipe: 98% ATK that reels in 5% turn meter for herself.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+      {
+        id: 'patient_cast', name: 'Patient Cast',
+        icon: 'assets/icons/fc862.png',
+        description: 'Read the water: the target takes +22% damage for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'damageTaken', mult: 1.22, turns: 2 },
+        ],
+      },
+      {
+        id: 'perfect_catch', name: 'Perfect Catch',
+        icon: 'assets/icons/fc734.png',
+        description: 'The one she waited for: 172% ATK — 40% more against exposed (marked) prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.72, bonusVs: { stat: 'damageTaken', mult: 1.4 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Anglers Focus',
+      icon: 'assets/icons/fc882.png',
+      description: 'While above 80% HP, gains +12% crit chance for 1 turn at turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (unit.hp / unit.maxHp <= 0.8) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.12, turns: 1 });
+          return null; // silent — small rolling focus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Riverbank Perch: +12% ATK while in a back hex.',
+    },
+  },
+
+  cat_hearthcat: {
+    id: 'cat_hearthcat',
+    element: 'fire',
+    name: 'Cat Hearthcat',
+    title: 'Owns the Fireplace, Rents It Out',
+    rarity: 1,
+    stats: { hp: 780, atk: 105, def: 66, speed: 95 },
+    tint: { body: '#c86a3a', helm: '#e88a4a', weapon: '#e8d8a8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cathearthcatidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warm_swat', name: 'Warm Swat',
+        icon: 'assets/icons/fc663.png',
+        description: 'A toasty swat: 100% ATK plus a 6% ATK singe for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'dot', pct: 0.06, turns: 1 },
+        ],
+      },
+      {
+        id: 'coal_flick', name: 'Coal Flick',
+        icon: 'assets/icons/fc981.png',
+        description: 'Flick a live coal: 121% ATK plus a 15% ATK burn for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.21 },
+          { type: 'dot', pct: 0.15, turns: 1 },
+        ],
+      },
+      {
+        id: 'hearth_glow', name: 'Hearth Glow',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Share the warm spot: ALL allies heal 40% of ATK and gain +4% ATK for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.4 },
+          { type: 'buff', stat: 'atk', mult: 1.04, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hearth Warmth',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, mends 1.5% max HP and gains +3% crit chance for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.heal(Math.round(unit.maxHp * 0.015));
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.03, turns: 1 });
+          return null; // silent — small rolling comfort
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.1,
+      description: 'Fireplace Rug: +10% max HP while in the center hex.',
+    },
+  },
+
+  cat_alleyscrapper: {
+    id: 'cat_alleyscrapper',
+    element: 'fire',
+    name: 'Cat Alleyscrapper',
+    title: 'Eight Lives of Experience',
+    rarity: 1,
+    stats: { hp: 760, atk: 112, def: 62, speed: 98 },
+    tint: { body: '#5a5a5a', helm: '#7a7a6a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catalleyscrapperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'scrap_swipe', name: 'Scrap Swipe',
+        icon: 'assets/icons/fc663.png',
+        description: 'A no-rules swipe: 105% ATK and -4% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'debuff', stat: 'atk', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'trash_lid_bash', name: 'Trash Lid Bash',
+        icon: 'assets/icons/fc854.png',
+        description: 'The alley provides: 129% ATK with an 8% chance to STUN for 1 turn.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.29 },
+          { type: 'stun', chance: 0.08, turns: 1 },
+        ],
+      },
+      {
+        id: 'yowling_fury', name: 'Yowling Fury',
+        icon: 'assets/icons/fc744.png',
+        description: 'All claws at once: three cuts of 54% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.54 },
+          { type: 'damage', mult: 0.54 },
+          { type: 'damage', mult: 0.54 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ninth Life',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 40% less damage while below 15% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.15 ? 0.6 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Alley Mouth: +12% ATK while in a front hex.',
+    },
+  },
+
+  cat_birdwatcher: {
+    id: 'cat_birdwatcher',
+    element: 'wind',
+    name: 'Cat Birdwatcher',
+    title: 'Chirps Back, Insultingly',
+    rarity: 1,
+    stats: { hp: 720, atk: 111, def: 58, speed: 103 },
+    tint: { body: '#7a8a6a', helm: '#9aaa7a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catbirdwatcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'window_pounce', name: 'Window Pounce',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Through the curtain: 102% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.02 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+      {
+        id: 'feather_snatch', name: 'Feather Snatch',
+        icon: 'assets/icons/fc825.png',
+        description: 'Almost had it: 140% ATK and steals 8% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.4 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.08 },
+        ],
+      },
+      {
+        id: 'chatter_burst', name: 'Chatter Burst',
+        icon: 'assets/icons/fc1084.png',
+        description: 'That maddening chirp: ALL enemies lose 5% ATK and 2% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'atk', mult: 0.95, turns: 1 },
+          { type: 'turnMeter', amount: -0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bird Watcher',
+      icon: 'assets/icons/fc862.png',
+      description: 'Watches from cover: +25% damage to back-row enemies while she holds a back hex.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return unit.slot && unit.slot.position === POSITION.BACK && target && target.slot && target.slot.position === POSITION.BACK ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Window Sill: +15% ATK while in a back hex.',
+    },
+  },
+
+  cat_pouncer: {
+    id: 'cat_pouncer',
+    element: 'water',
+    name: 'Cat Pouncer',
+    title: 'Physics-Defying Since Kittenhood',
+    rarity: 1,
+    stats: { hp: 730, atk: 114, def: 57, speed: 105 },
+    tint: { body: '#4a6a8a', helm: '#6a8aa8', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catpounceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'wiggle_pounce', name: 'Wiggle Pounce',
+        icon: 'assets/icons/fc763.png',
+        description: 'The tell-tale wiggle, then: 108% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.08 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+      {
+        id: 'ceiling_drop', name: 'Ceiling Drop',
+        icon: 'assets/icons/fc825.png',
+        description: 'From an impossible angle: 149% ATK with a 10% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.49 },
+          { type: 'stun', chance: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'endless_energy', name: 'Endless Energy',
+        icon: 'assets/icons/fc882.png',
+        description: 'The zoomies, weaponized: +25% SPD for 2 turns and 20% turn meter.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.25, turns: 2 },
+          { type: 'turnMeter', amount: 0.2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Pounce Timing',
+      icon: 'assets/icons/fc867.png',
+      description: 'Deals 25% extra damage to enemies above 90% turn meter.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter > CONFIG.TURN_METER_MAX * 0.9 ? 1.25 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.12,
+      description: 'Launch Pad: +12% SPD while in a back hex.',
+    },
+  },
+
+  cat_bellringer: {
+    id: 'cat_bellringer',
+    element: 'water',
+    name: 'Cat Bellringer',
+    title: 'The Bell Was Their Idea',
+    rarity: 1,
+    stats: { hp: 750, atk: 107, def: 63, speed: 99 },
+    tint: { body: '#8a7a9a', helm: '#a89ab8', weapon: '#e8c83a', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catbellringeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bell_chime', name: 'Bell Chime',
+        icon: 'assets/icons/fc1003.png',
+        description: 'A resonant strike: 90% ATK and -6% turn meter... they hate the bell.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'curfew_toll', name: 'Curfew Toll',
+        icon: 'assets/icons/fc1084.png',
+        description: 'The hour is late: ALL enemies lose 5% turn meter.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+      {
+        id: 'midnight_peal', name: 'Midnight Peal',
+        icon: 'assets/icons/fc767.png',
+        description: 'The big bell: 145% ATK and -18% turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.45 },
+          { type: 'turnMeter', amount: -0.18 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bell Toll',
+      icon: 'assets/icons/fc882.png',
+      description: 'At turn start, a random enemy loses 3% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * 0.03);
+          return null; // silent — small rolling toll
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
+      description: 'Bell Tower: +10% SPD while in the center hex.',
+    },
+  },
+
+  cat_emberchaser: {
+    id: 'cat_emberchaser',
+    element: 'fire',
+    name: 'Cat Emberchaser',
+    title: 'Chases Sparks, Catches Some',
+    rarity: 1,
+    stats: { hp: 710, atk: 115, def: 55, speed: 104 },
+    tint: { body: '#a8542a', helm: '#c8743a', weapon: '#f8a83a', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catemberchaseridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'spark_swat', name: 'Spark Swat',
+        icon: 'assets/icons/fc981.png',
+        description: 'Bat a live spark: 97% ATK plus a 9% ATK singe for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.97 },
+          { type: 'dot', pct: 0.09, turns: 1 },
+        ],
+      },
+      {
+        id: 'ember_dash', name: 'Ember Dash',
+        icon: 'assets/icons/fc744.png',
+        description: 'A streak of orange: 143% ATK, carried onward: +7% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.43 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.07 },
+        ],
+      },
+      {
+        id: 'spark_shower', name: 'Spark Shower',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Scatter the fire: 57% ATK to ALL enemies plus a 7% ATK singe for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.57 },
+          { type: 'dot', pct: 0.07, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Chase the Spark',
+      icon: 'assets/icons/fc868.png',
+      description: 'Gains +7% SPD and +8% crit damage for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.07, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.08, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Spark Trail: +12% damage dealt from a back hex.',
+    },
+  },
+
+  cat_longtail: {
+    id: 'cat_longtail',
+    element: 'wind',
+    name: 'Cat Longtail',
+    title: 'Balance Is a Birthright',
+    rarity: 1,
+    stats: { hp: 725, atk: 110, def: 59, speed: 102 },
+    tint: { body: '#9a8a7a', helm: '#b8a89a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catlongtailidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tail_lash', name: 'Tail Lash',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A whip of the tail: 96% ATK and -3% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'debuff', stat: 'speed', mult: 0.97, turns: 1 },
+        ],
+      },
+      {
+        id: 'high_wire_strike', name: 'High-Wire Strike',
+        icon: 'assets/icons/fc825.png',
+        description: 'From the fence top: 139% ATK, landing light: +6% SPD for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.39 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.06, turns: 2 },
+        ],
+      },
+      {
+        id: 'nimble_recovery', name: 'Nimble Recovery',
+        icon: 'assets/icons/fc854.png',
+        description: 'Always lands standing: cleanses own debuffs and gains 15% turn meter.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'cleanse' },
+          { type: 'turnMeter', amount: 0.15 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Tail Balance',
+      icon: 'assets/icons/fc882.png',
+      description: '+13% chance to dodge while above 60% HP.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.hp / unit.maxHp > 0.6 ? 0.13 : 0;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
+      description: 'Fence Line: +12% SPD while in the center hex.',
+    },
+  },
+
+  cat_swashbuckler: {
+    id: 'cat_swashbuckler',
+    element: 'water',
+    name: 'Cat Swashbuckler',
+    title: 'Boots Sold Separately',
+    rarity: 2,
+    stats: { hp: 840, atk: 132, def: 66, speed: 110 },
+    tint: { body: '#3a5a8a', helm: '#e8433a', weapon: '#d8d8e0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catswashbuckleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'flashing_point', name: 'Flashing Point',
+        icon: 'assets/icons/fc1587.png',
+        description: 'A gleaming thrust: 107% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.07 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+      },
+      {
+        id: 'riposte_flourish', name: 'Riposte Flourish',
+        icon: 'assets/icons/fc1454.png',
+        description: 'Parry, wink, reply: 146% ATK and +10% crit chance for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.46 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.1, turns: 1 },
+        ],
+      },
+      {
+        id: 'grand_duel', name: 'Grand Duel',
+        icon: 'assets/icons/fc728.png',
+        description: 'The finishing lesson: 196% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.96 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'En Garde',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +8% crit chance and +12% crit damage for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.08, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.12, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Duelling Ground: +12% ATK while in a front hex.',
+    },
+  },
+
+  cat_shadowpaw: {
+    id: 'cat_shadowpaw',
+    element: 'dark',
+    name: 'Cat Shadowpaw',
+    title: 'Was Never Actually There',
+    rarity: 2,
+    stats: { hp: 820, atk: 138, def: 60, speed: 114 },
+    tint: { body: '#1a1a2a', helm: '#3a3a4a', weapon: '#8a6ab8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catshadowpawidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'umbral_swipe', name: 'Umbral Swipe',
+        icon: 'assets/icons/fc1444.png',
+        description: 'A swipe from a shadow that was empty: 111% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.11 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+      {
+        id: 'shadow_pin', name: 'Shadow Pin',
+        icon: 'assets/icons/fc825.png',
+        description: 'Pin their shadow to the ground: 136% ATK and -14% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.36 },
+          { type: 'turnMeter', amount: -0.14 },
+        ],
+      },
+      {
+        id: 'total_eclipse', name: 'Total Eclipse',
+        icon: 'assets/icons/fc734.png',
+        description: 'The light gives up: 182% ATK — 35% more against enemies below half turn meter.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.82 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Shadow Meld',
+      icon: 'assets/icons/fc862.png',
+      description: '+8% chance to drain 20% AP on attack.',
+      hooks: { apDrainAdd: 0.08 },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.15,
+      description: 'Umbra: +15% damage dealt from a back hex.',
+    },
+  },
+
+  cat_lynxarcher: {
+    id: 'cat_lynxarcher',
+    element: 'wind',
+    name: 'Cat Lynxarcher',
+    title: 'Sees the Arrow Land First',
+    rarity: 2,
+    stats: { hp: 830, atk: 136, def: 62, speed: 108 },
+    tint: { body: '#8a7a5a', helm: '#a89a6a', weapon: '#b8a878', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catlynxarcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tufted_shot', name: 'Tufted Shot',
+        icon: 'assets/icons/fc1515.png',
+        description: 'A whisker-guided arrow: 109% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.09 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+      {
+        id: 'lead_the_target', name: 'Lead the Target',
+        icon: 'assets/icons/fc1516.png',
+        description: 'Aim where they will be: 151% ATK — 25% more against slowed or hasted prey.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.51, bonusVs: { stat: 'speed', mult: 1.25 } },
+        ],
+      },
+      {
+        id: 'skyline_volley', name: 'Skyline Volley',
+        icon: 'assets/icons/fc807.png',
+        description: 'Arrows over the rooftops: 63% ATK to ALL enemies.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.63 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lynx Eye',
+      icon: 'assets/icons/fc863.png',
+      description: 'Gains +20% crit damage and +4% crit chance for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'critDamage', add: 0.20, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.04, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Rooftop Blind: +15% ATK while in a back hex.',
+    },
+  },
+
+  cat_pantherblade: {
+    id: 'cat_pantherblade',
+    element: 'fire',
+    name: 'Cat Pantherblade',
+    title: 'Silence with an Edge',
+    rarity: 2,
+    stats: { hp: 860, atk: 140, def: 64, speed: 109 },
+    tint: { body: '#2a2a2a', helm: '#4a3a3a', weapon: '#d8d8e0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catpantherbladeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'velvet_cut', name: 'Velvet Cut',
+        icon: 'assets/icons/fc1447.png',
+        description: 'You hear it after it lands: 112% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.12 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+      {
+        id: 'silent_lunge', name: 'Silent Lunge',
+        icon: 'assets/icons/fc825.png',
+        description: 'Between heartbeats: 154% ATK.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.54 },
+          { type: 'turnMeter', amount: -0.1 },
+        ],
+      },
+      {
+        id: 'night_execution', name: 'Night Execution',
+        icon: 'assets/icons/fc734.png',
+        description: 'The quiet ending: 178% ATK plus an 18% ATK bleed for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.78 },
+          { type: 'dot', pct: 0.18, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Panther Stalk',
+      icon: 'assets/icons/fc862.png',
+      description: 'Stalks the unwary: deals 20% extra damage to enemies with no debuffs.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && !target.statusEffects.some((fx) => fx.kind === 'debuff' || fx.kind === 'dot') ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'damage', mult: 1.12,
+      description: 'Night Cover: +12% damage dealt from a back hex.',
+    },
+  },
+
+  cat_tomcat: {
+    id: 'cat_tomcat',
+    element: 'fire',
+    name: 'Cat Tomcat',
+    title: 'Loud About Everything',
+    rarity: 2,
+    stats: { hp: 880, atk: 130, def: 72, speed: 101 },
+    tint: { body: '#c88a4a', helm: '#e8a85a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cattomcatidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'brash_swipe', name: 'Brash Swipe',
+        icon: 'assets/icons/fc663.png',
+        description: 'Two big showy swipes: 61% ATK each.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.61 },
+          { type: 'damage', mult: 0.61 },
+        ],
+      },
+      {
+        id: 'caterwaul', name: 'Caterwaul',
+        icon: 'assets/icons/fc1084.png',
+        description: 'An unreasonable noise: ALL enemies lose 6% ATK and 4% crit chance for 1 turn.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'atk', mult: 0.94, turns: 1 },
+          { type: 'debuff', stat: 'critChance', add: -0.04, turns: 1 },
+        ],
+      },
+      {
+        id: 'king_of_the_fence', name: 'King of the Fence',
+        icon: 'assets/icons/fc730.png',
+        description: 'Prove it again: 167% ATK, then swaggers: +10% ATK for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.67 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'atk', mult: 1.1, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Swagger',
+      icon: 'assets/icons/fc867.png',
+      description: 'Gains +5% ATK and +5% SPD for 1 turn at each turn start.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 1 });
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.05, turns: 1 });
+          return null; // silent — small rolling bonus
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Fence Top: +12% ATK while in a front hex.',
+    },
+  },
+
+  cat_silkdancer: {
+    id: 'cat_silkdancer',
+    element: 'water',
+    name: 'Cat Silkdancer',
+    title: 'Gravity Signed a Waiver',
+    rarity: 2,
+    stats: { hp: 810, atk: 128, def: 65, speed: 112 },
+    tint: { body: '#b8a8c8', helm: '#d8c8e8', weapon: '#e8e8f8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catsilkdanceridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ribbon_step', name: 'Ribbon Step',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A dancing cut: 103% ATK, flowing on: +4% SPD and 4% meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.03 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.04, turns: 1 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+      {
+        id: 'veil_spin', name: 'Veil Spin',
+        icon: 'assets/icons/fc729.png',
+        description: 'A spinning veil across a hex row: 98% ATK and -4% turn meter.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.98 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+      {
+        id: 'finale_leap', name: 'Finale Leap',
+        icon: 'assets/icons/fc882.png',
+        description: 'The impossible final pose: +20% SPD for 2 turns, cleansed, and 10% turn meter.',
+        cooldown: 6, targeting: 'self', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.2, turns: 2 },
+          { type: 'cleanse' },
+          { type: 'turnMeter', amount: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Silk Steps',
+      icon: 'assets/icons/fc882.png',
+      description: '+9% chance to take an extra turn after acting.',
+      hooks: { extraTurnAdd: 0.09 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'speed', mult: 1.15,
+      description: 'Stage Light: +15% SPD while in the center hex.',
+    },
+  },
+
+  cat_clockwatcher: {
+    id: 'cat_clockwatcher',
+    element: 'wind',
+    name: 'Cat Clockwatcher',
+    title: 'Knows Exactly When Dinner Is',
+    rarity: 2,
+    stats: { hp: 850, atk: 126, def: 70, speed: 107 },
+    tint: { body: '#6a6a8a', helm: '#8a8aa8', weapon: '#e8c83a', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catclockwatcheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'minute_hand', name: 'Minute Hand',
+        icon: 'assets/icons/fc1461.png',
+        description: 'Right on schedule: 104% ATK and -7% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.04 },
+          { type: 'turnMeter', amount: -0.07 },
+        ],
+      },
+      {
+        id: 'pendulum_swing', name: 'Pendulum Swing',
+        icon: 'assets/icons/fc767.png',
+        description: 'Tick, tock: 133% ATK and -16% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.33 },
+          { type: 'turnMeter', amount: -0.16 },
+        ],
+      },
+      {
+        id: 'stopped_clock', name: 'Stopped Clock',
+        icon: 'assets/icons/fc1084.png',
+        description: 'Time out: ALL enemies lose 8% turn meter and 4% SPD for 1 turn.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'turnMeter', amount: -0.08 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Clockwork Timing',
+      icon: 'assets/icons/fc863.png',
+      description: '+5% chance to drain 20% AP on attack.',
+      hooks: { apDrainAdd: 0.05 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
+      description: 'Clock Tower: +10% ATK while in the center hex.',
+    },
+  },
+
+  cat_purrmother: {
+    id: 'cat_purrmother',
+    element: 'water',
+    name: 'Cat Purrmother',
+    title: 'The Purr Is Medicinal',
+    rarity: 2,
+    stats: { hp: 900, atk: 120, def: 76, speed: 100 },
+    tint: { body: '#d8c8b8', helm: '#e8d8c8', weapon: '#e8d8a8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catpurrmotheridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'gentle_correction', name: 'Gentle Correction',
+        icon: 'assets/icons/fc663.png',
+        description: 'Claws in, mostly: 95% ATK and -4% ATK for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'debuff', stat: 'atk', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'healing_purr', name: 'Healing Purr',
+        icon: 'assets/icons/fc1112.png',
+        description: 'The deep purr: heals an ally 14% of her max HP plus 2% regen for 2 turns.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.14 },
+          { type: 'hot', pct: 0.02, turns: 2 },
+        ],
+      },
+      {
+        id: 'nap_pile', name: 'Nap Pile',
+        icon: 'assets/icons/fc800.png',
+        description: 'Everyone in the sunbeam: ALL allies heal 42% of ATK and regenerate 1.5% of her max HP for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.42 },
+          { type: 'hot', pct: 0.015, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Healing Purr Aura',
+      icon: 'assets/icons/fc1003.png',
+      description: 'Her healing is 20% stronger.',
+      hooks: { healBoostAdd: 0.20 },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
+      description: 'Sunbeam: +12% max HP while in the center hex.',
+    },
+  },
+
+  cat_highwaycat: {
+    id: 'cat_highwaycat',
+    element: 'fire',
+    name: 'Cat Highwaycat',
+    title: 'Your Meter or Your Life',
+    rarity: 2,
+    stats: { hp: 845, atk: 134, def: 63, speed: 111 },
+    tint: { body: '#4a3a2a', helm: '#6a5a3a', weapon: '#d8d8e0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cathighwaycatidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'toll_swipe', name: 'Toll Swipe',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Payment collected: 101% ATK, pocketing 6% turn meter for himself.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.01 },
+          { type: 'turnMeter', amount: -0.06 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.06 },
+        ],
+      },
+      {
+        id: 'stand_and_deliver', name: 'Stand and Deliver',
+        icon: 'assets/icons/fc825.png',
+        description: 'The classic line: 144% ATK and -12% turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.44 },
+          { type: 'turnMeter', amount: -0.12 },
+        ],
+      },
+      {
+        id: 'clean_getaway', name: 'Clean Getaway',
+        icon: 'assets/icons/fc744.png',
+        description: 'Gone before the shout: 158% ATK, escaping with +15% SPD for 1 turn.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.58 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'speed', mult: 1.15, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Highway Toll',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 20% extra damage to enemies above 75% turn meter.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter > CONFIG.TURN_METER_MAX * 0.75 ? 1.2 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.12,
+      description: 'Ambush Bend: +12% ATK while in a back hex.',
+    },
+  },
+
+  cat_ratter: {
+    id: 'cat_ratter',
+    element: 'wind',
+    name: 'Cat Ratter',
+    title: 'Contract Work, Paid in Kind',
+    rarity: 2,
+    stats: { hp: 870, atk: 131, def: 68, speed: 105 },
+    tint: { body: '#7a6a5a', helm: '#9a8a6a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catratteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'terrier_shake', name: 'Terrier Shake',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Grab and shake: 106% ATK and -6% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.06 },
+          { type: 'debuff', stat: 'def', mult: 0.94, turns: 1 },
+        ],
+      },
+      {
+        id: 'burrow_flush', name: 'Burrow Flush',
+        icon: 'assets/icons/fc724.png',
+        description: 'Flush them into the open: 96% ATK to a hex row and -3% turn meter.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.96 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+      {
+        id: 'exterminator', name: 'Exterminator',
+        icon: 'assets/icons/fc734.png',
+        description: 'The contract concludes: 186% ATK.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.86 },
+          { type: 'turnMeter', amount: -0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Born Ratter',
+      icon: 'assets/icons/fc867.png',
+      description: 'Professional pride: deals 30% extra damage to rats (the Rat King included).',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.def && target.def.id && target.def.id.indexOf('rat') !== -1 ? 1.3 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
+      description: 'Granary Post: +12% ATK while in a front hex.',
+    },
+  },
+
+  cat_tigerlord: {
+    id: 'cat_tigerlord',
+    element: 'fire',
+    name: 'Cat Tigerlord',
+    title: 'The Jungle Pays Tribute',
+    rarity: 3,
+    stats: { hp: 1130, atk: 182, def: 84, speed: 106 },
+    tint: { body: '#c8742a', helm: '#2a2a2a', weapon: '#d8d8e0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/cattigerlordidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tigers_claim', name: 'Tiger\'s Claim',
+        icon: 'assets/icons/fc746.png',
+        description: 'A ruling stroke: 115% ATK and -5% DEF for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.15 },
+          { type: 'debuff', stat: 'def', mult: 0.95, turns: 1 },
+        ],
+      },
+      {
+        id: 'burning_stripes', name: 'Burning Stripes',
+        icon: 'assets/icons/fc744.png',
+        description: 'Stripes in the tall grass: 162% ATK plus a 14% ATK bleed for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.62 },
+          { type: 'dot', pct: 0.14, turns: 1 },
+        ],
+      },
+      {
+        id: 'kings_hunt', name: 'King\'s Hunt',
+        icon: 'assets/icons/fc730.png',
+        description: 'The hunt ends where he says: 145% ATK to the front line.',
+        cooldown: 7, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.45 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Apex Stripes',
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 10% extra damage, and +5% chance for an extra turn.',
+      hooks: {
+        damageDealtMult() { return 1.1; },
+        extraTurnAdd: 0.05,
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'Claimed Ground: +15% ATK while in the center hex.',
+    },
+  },
+
+  cat_snowlynx: {
+    id: 'cat_snowlynx',
+    element: 'water',
+    name: 'Cat Snowlynx',
+    title: 'Winter Fits Her Perfectly',
+    rarity: 3,
+    stats: { hp: 1090, atk: 176, def: 82, speed: 109 },
+    tint: { body: '#d8e0e8', helm: '#e8e8f8', weapon: '#a8d8e8', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catsnowlynxidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'powder_step', name: 'Powder Step',
+        icon: 'assets/icons/fc1444.png',
+        description: 'Silent over snow: 110% ATK and -4% SPD for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'debuff', stat: 'speed', mult: 0.96, turns: 1 },
+        ],
+      },
+      {
+        id: 'drift_ambush', name: 'Drift Ambush',
+        icon: 'assets/icons/fc825.png',
+        description: 'The snowbank was her: 159% ATK with a 15% chance to STUN for 1 turn.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.59 },
+          { type: 'stun', chance: 0.15, turns: 1 },
+        ],
+      },
+      {
+        id: 'white_silence', name: 'White Silence',
+        icon: 'assets/icons/fc1044.png',
+        description: 'Snowfall swallows sound: ALL enemies lose 7% SPD for 2 turns and 3% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'speed', mult: 0.93, turns: 2 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Snow Silence',
+      icon: 'assets/icons/fc856.png',
+      description: 'At turn start, a random enemy loses 4% SPD for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const enemies = battle.livingUnits(unit.enemyTeam());
+          if (enemies.length === 0) return null;
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          target.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.96, turns: 1 });
+          return null; // silent — small rolling hush
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'atk', mult: 1.15,
+      description: 'Snowline: +15% ATK while in a back hex.',
+    },
+  },
+
+  cat_cheetahstrike: {
+    id: 'cat_cheetahstrike',
+    element: 'wind',
+    name: 'Cat Cheetahstrike',
+    title: 'Arrives Before the Decision',
+    rarity: 3,
+    stats: { hp: 1050, atk: 186, def: 78, speed: 118 },
+    tint: { body: '#d8b04a', helm: '#2a2a2a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catcheetahstrikeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'blur_claw', name: 'Blur Claw',
+        icon: 'assets/icons/fc1447.png',
+        description: 'Too fast to parry: 113% ATK, streaking on: +5% turn meter.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.13 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+      {
+        id: 'full_sprint', name: 'Full Sprint',
+        icon: 'assets/icons/fc744.png',
+        description: 'The ground loses: 174% ATK, then must breathe: -8% own turn meter.',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.74 },
+        ],
+        selfEffects: [
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'sonic_pounce', name: 'Sonic Pounce',
+        icon: 'assets/icons/fc763.png',
+        description: 'Break the air: 205% ATK with a 12% chance to STUN for 1 turn.',
+        cooldown: 7, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.05 },
+          { type: 'stun', chance: 0.12, turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Explosive Start',
+      icon: 'assets/icons/fc882.png',
+      description: 'The first strike of the hunt: +35% damage on her first turn of battle.',
+      hooks: {
+        onTurnStart(unit) {
+          unit._turnCount = (unit._turnCount || 0) + 1;
+          return null; // counting silently
+        },
+        damageDealtMult(unit) {
+          return (unit._turnCount || 0) <= 1 ? 1.35 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'speed', mult: 1.15,
+      description: 'Open Runway: +15% SPD while in a back hex.',
+    },
+  },
+
+  cat_pumaprowler: {
+    id: 'cat_pumaprowler',
+    element: 'water',
+    name: 'Cat Pumaprowler',
+    title: 'The Long Quiet Before',
+    rarity: 3,
+    stats: { hp: 1160, atk: 170, def: 90, speed: 104 },
+    tint: { body: '#8a7a6a', helm: '#a89a8a', weapon: '#c8c0b0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catpumaprowleridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'prowling_swipe', name: 'Prowling Swipe',
+        icon: 'assets/icons/fc663.png',
+        description: 'Patience, then claws: 114% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
+        effects: [
+          { type: 'damage', mult: 1.14 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+      },
+      {
+        id: 'ridge_stalk', name: 'Ridge Stalk',
+        icon: 'assets/icons/fc862.png',
+        description: 'Marked from above: the target takes +28% damage for 1 turn and loses 8% turn meter.',
+        cooldown: 3, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'damageTaken', mult: 1.28, turns: 1 },
+          { type: 'turnMeter', amount: -0.08 },
+        ],
+      },
+      {
+        id: 'silent_takedown', name: 'Silent Takedown',
+        icon: 'assets/icons/fc734.png',
+        description: 'The quiet answer: 191% ATK — 35% more against exposed (marked) prey.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.91, bonusVs: { stat: 'damageTaken', mult: 1.35 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Prowler\'s Patience',
+      icon: 'assets/icons/fc856.png',
+      description: 'Takes 15% less damage while below 60% HP.',
+      hooks: {
+        damageTakenMult(unit) {
+          return unit.alive && unit.hp / unit.maxHp < 0.6 ? 0.85 : 1;
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
+      description: 'Ledge Overlook: +12% max HP while in a front hex.',
+    },
+  },
+
+  cat_lionheart: {
+    id: 'cat_lionheart',
+    element: 'fire',
+    name: 'Cat Lionheart',
+    title: 'Courage in a Small Package',
+    rarity: 3,
+    stats: { hp: 1210, atk: 168, def: 92, speed: 102 },
+    tint: { body: '#c89a4a', helm: '#e8b85a', weapon: '#d8d8e0', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catlionheartidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'braveheart_slash', name: 'Braveheart Slash',
+        icon: 'assets/icons/fc1587.png',
+        description: 'No hesitation: 116% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.16 },
+          { type: 'turnMeter', amount: -0.03 },
+        ],
+      },
+      {
+        id: 'rallying_roar', name: 'Rallying Roar',
+        icon: 'assets/icons/fc869.png',
+        description: 'Bigger than he looks: ALL allies gain +9% ATK for 2 turns and 5% turn meter.',
+        cooldown: 5, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.09, turns: 2 },
+          { type: 'turnMeter', amount: 0.05 },
+        ],
+      },
+      {
+        id: 'lions_share', name: 'Lion\'s Share',
+        icon: 'assets/icons/fc730.png',
+        description: 'Claim the biggest fight: 176% ATK and -10% ATK for 2 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.76 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Lion Heart',
+      icon: 'assets/icons/fc868.png',
+      description: 'At turn start, ALL allies gain +5% crit chance for 1 turn.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          for (const ally of battle.livingUnits(unit.team)) {
+            ally.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.05, turns: 1 });
+          }
+          return null; // silent — small rolling courage
+        },
+      },
+    },
+    positional: {
+      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
+      description: 'Pride Rock: +15% ATK while in the center hex.',
+    },
+  },
+
+  cat_moonwhisker: {
+    id: 'cat_moonwhisker',
+    element: 'light',
+    name: 'Cat Moonwhisker',
+    title: 'Sees by Light That Is Not There',
+    rarity: 3,
+    stats: { hp: 1140, atk: 164, def: 86, speed: 107 },
+    tint: { body: '#e8e0d8', helm: '#f8e8c8', weapon: '#f8d86a', skin: '#d8c8a8' },
+    sprite: {
+      displayH: 74,
+      strips: {
+        idle: { src: 'assets/heroes/catmoonwhiskeridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'moonbeam_swat', name: 'Moonbeam Swat',
+        icon: 'assets/icons/fc1447.png',
+        description: 'A silvered swat: 100% ATK, gathering light: +5% crit chance for 1 turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'turnMeter', amount: -0.04 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'critChance', add: 0.05, turns: 1 },
+        ],
+      },
+      {
+        id: 'lunar_blessing', name: 'Lunar Blessing',
+        icon: 'assets/icons/fc1112.png',
+        description: 'Moonlight mends: heals an ally 13% of her max HP and grants 12% turn meter.',
+        cooldown: 3, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.13 },
+          { type: 'turnMeter', amount: 0.12 },
+        ],
+      },
+      {
+        id: 'full_moon_rite', name: 'Full Moon Rite',
+        icon: 'assets/icons/fc855.png',
+        description: 'The whole pride glows: ALL allies heal 55% of ATK, gain +5% SPD for 2 turns, and 4% turn meter.',
+        cooldown: 7, targeting: 'all-allies', animation: 'attack',
+        effects: [
+          { type: 'heal', mult: 0.55 },
+          { type: 'buff', stat: 'speed', mult: 1.05, turns: 2 },
+          { type: 'turnMeter', amount: 0.04 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Moonlit Whiskers',
+      icon: 'assets/icons/fc1003.png',
+      description: 'At turn start, the most afflicted ally sheds one debuff and gains 5% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const allies = battle.livingUnits(unit.team);
+          let worst = null, count = 0;
+          for (const a of allies) {
+            const n = a.statusEffects.filter(
+              (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+            if (n > count) { worst = a; count = n; }
+          }
+          if (!worst) return null;
+          const idx = worst.statusEffects.findIndex(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+          worst.statusEffects.splice(idx, 1);
+          worst.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            worst.turnMeter + CONFIG.TURN_METER_MAX * 0.05);
+          return {
+            label: 'Moonlit Whiskers',
+            message: `${unit.name}'s moonlight frees ${worst.name}.`,
+            floats: [{ target: worst, text: 'CLEANSE', color: '#f8d86a' }],
+          };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.BACK, stat: 'hp', mult: 1.12,
+      description: 'Moonrise Perch: +12% max HP while in a back hex.',
+    },
+  },
+
   florence: {
     id: 'florence',
     element: 'water',
