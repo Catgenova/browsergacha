@@ -59,6 +59,13 @@ const GameState = (() => {
       for (const id of Object.keys(loaded.roster)) {
         if (!HEROES[id]) delete loaded.roster[id];
       }
+      // A hero's stars can never sit below their base rarity: when a
+      // character is promoted (Dark/Light are now always 3★+), copies
+      // already in the roster come up with them.
+      for (const [id, entry] of Object.entries(loaded.roster)) {
+        const base = HEROES[id].rarity || 1;
+        if (entry.stars < base) entry.stars = base;
+      }
       for (const [slot, id] of Object.entries(loaded.team)) {
         if (!HEROES[id]) delete loaded.team[slot];
       }

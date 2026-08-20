@@ -1963,8 +1963,8 @@ const HEROES = {
     element: 'light',
     name: 'Owl Sentinel',
     title: 'Watcher of Dawn',
-    rarity: 2,
-    stats: { hp: 1050, atk: 115, def: 90, speed: 90 },
+    rarity: 3,
+    stats: { hp: 1320, atk: 151, def: 108, speed: 90 },
     sprite: {
       displayH: 74,
       strips: {
@@ -5024,8 +5024,8 @@ const HEROES = {
     element: 'dark',
     name: 'Snake Assassin',
     title: 'Silent Fang',
-    rarity: 2,
-    stats: { hp: 810, atk: 138, def: 58, speed: 116, critChance: 0.25 },
+    rarity: 3,
+    stats: { hp: 1020, atk: 181, def: 70, speed: 116, critChance: 0.25 },
     sprite: {
       displayH: 74,
       strips: {
@@ -7208,8 +7208,8 @@ const HEROES = {
     element: 'dark',
     name: 'Wolf Moonblade',
     title: 'Sharpened on the New Moon',
-    rarity: 2,
-    stats: { hp: 830, atk: 140, def: 62, speed: 112 },
+    rarity: 3,
+    stats: { hp: 1050, atk: 184, def: 75, speed: 112 },
     tint: { body: '#2a2a3a', helm: '#4a4a6a', weapon: '#b8b0c8', skin: '#c8c8d8' },
     sprite: {
       displayH: 74,
@@ -9092,8 +9092,8 @@ const HEROES = {
     element: 'dark',
     name: 'Boar Nightsow',
     title: 'What Rustles After Midnight',
-    rarity: 2,
-    stats: { hp: 910, atk: 136, def: 72, speed: 104 },
+    rarity: 3,
+    stats: { hp: 1150, atk: 179, def: 87, speed: 104 },
     tint: { body: '#2a2a3a', helm: '#4a3a4a', weapon: '#8a6ab8', skin: '#c8a888' },
     sprite: {
       displayH: 74,
@@ -10375,8 +10375,8 @@ const HEROES = {
     element: 'dark',
     name: 'Bear Nightmaw',
     title: 'The Cave Dreams of Teeth',
-    rarity: 2,
-    stats: { hp: 1100, atk: 126, def: 82, speed: 98 },
+    rarity: 3,
+    stats: { hp: 1390, atk: 166, def: 99, speed: 98 },
     tint: { body: '#2a2a3a', helm: '#3a3a4a', weapon: '#8a6ab8', skin: '#d8b898' },
     sprite: {
       displayH: 74,
@@ -11849,8 +11849,8 @@ const HEROES = {
     element: 'dark',
     name: 'Cat Shadowpaw',
     title: 'Was Never Actually There',
-    rarity: 2,
-    stats: { hp: 820, atk: 138, def: 60, speed: 114 },
+    rarity: 3,
+    stats: { hp: 1030, atk: 181, def: 72, speed: 114 },
     tint: { body: '#1a1a2a', helm: '#3a3a4a', weapon: '#8a6ab8', skin: '#d8c8a8' },
     sprite: {
       displayH: 74,
@@ -13831,8 +13831,8 @@ const HEROES = {
     element: 'dark',
     name: 'Drake Obsidianfang',
     title: 'Edges the Mountain Made',
-    rarity: 2,
-    stats: { hp: 950, atk: 140, def: 68, speed: 106 },
+    rarity: 3,
+    stats: { hp: 1200, atk: 184, def: 82, speed: 106 },
     tint: { body: '#1a1a2a', helm: '#3a3a4a', weapon: '#8a6ab8', skin: '#c88a6a' },
     sprite: {
       displayH: 74,
