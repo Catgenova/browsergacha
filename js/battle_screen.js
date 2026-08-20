@@ -255,15 +255,16 @@ class BattleScreen {
         const poolIds = LOCATION_ENEMIES[loc];
         const enemyDefs = poolIds.map((id) => ENEMIES[id]).filter(Boolean);
         const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
-        const slotOrder = [1, 2, 6, 0, 3, 5, 4];
         this.rewardXp = 0;
         let totalLevels = 0;
-        for (let i = 0; i < count; i++) {
-          const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
+        // Composed wave: a line, threats behind it, support at the back.
+        const placements = Waves.deploy(
+          Waves.compose(enemyDefs, count), battle.enemySlots);
+        for (const { def, slotIndex } of placements) {
           const lv = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
           totalLevels += lv;
           this.rewardXp += Progression.enemyXp(lv);
-          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level: lv, stars: def.rarity }), slotOrder[i]);
+          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level: lv, stars: def.rarity }), slotIndex);
         }
         this.rewardWhetstones = 3 + Math.round(totalLevels * 0.8);
         this.rewardArcana = 1 + Math.floor(totalLevels / 15);
@@ -284,18 +285,20 @@ class BattleScreen {
       const poolIds = LOCATION_ENEMIES[ws.location] || LOCATION_ENEMIES[0];
       const enemyDefs = poolIds.map((id) => ENEMIES[id]).filter(Boolean);
       const count = Math.min(7, Math.max(2, GameState.teamSize() + 1));
-      const slotOrder = [1, 2, 6, 0, 3, 5, 4]; // fill front-to-back
       this.rewardXp = 0;
       let totalEnemyLevels = 0;
-      for (let i = 0; i < count; i++) {
-        const def = enemyDefs[Math.floor(Math.random() * enemyDefs.length)];
+      // Waves are composed by role and deployed by position, so fights
+      // have a shape: a line to break, casters behind it.
+      const placements = Waves.deploy(
+        Waves.compose(enemyDefs, count), battle.enemySlots);
+      for (const { def, slotIndex } of placements) {
         // The training ground stays exactly level 1; real stages jitter.
         const level = ws.stage === 0
           ? 1
           : Math.max(1, baseLevel + Math.floor(Math.random() * 3) - 1);
         totalEnemyLevels += level;
         this.rewardXp += Progression.enemyXp(level);
-        battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotOrder[i]);
+        battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotIndex);
       }
       this.rewardWhetstones = 3 + Math.round(totalEnemyLevels * 0.8);
       this.rewardArcana = 1 + Math.floor(totalEnemyLevels / 15);

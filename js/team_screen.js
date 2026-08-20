@@ -28,6 +28,16 @@ class TeamScreen {
       try { localStorage.setItem('bg_hideMaxed', this.hideMaxed.checked ? '1' : '0'); } catch (e) {}
       this.buildRoster();
     });
+    this.reportEl = document.getElementById('roster-report');
+    const reportBtn = document.getElementById('roster-report-btn');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', () => {
+        const show = this.reportEl.classList.contains('hidden');
+        this.reportEl.classList.toggle('hidden', !show);
+        if (show) this.renderReport();
+      });
+    }
+
     this.detailsEl = document.getElementById('hero-details');
     this.fightBtn = document.getElementById('fight-btn');
     this.clearBtn = document.getElementById('clear-team-btn');
@@ -231,7 +241,14 @@ class TeamScreen {
     const byLevel = (a, b) =>
       p(b).level - p(a).level || p(b).stars - p(a).stars ||
       HEROES[b].rarity - HEROES[a].rarity || a.localeCompare(b);
+    const powerOf = (id) => {
+      const pr = p(id);
+      return Progression.power(Gear.applyToStats(
+        Progression.scaledStats(HEROES[id], pr.level, pr.stars),
+        GameState.equippedPieces(id)));
+    };
     const SORTS = {
+      power: (a, b) => powerOf(b) - powerOf(a) || byLevel(a, b),
       level: byLevel,
       stars: (a, b) => p(b).stars - p(a).stars || byLevel(a, b),
       rarity: (a, b) => HEROES[b].rarity - HEROES[a].rarity || byLevel(a, b),
@@ -314,6 +331,102 @@ class TeamScreen {
     dupes.classList.toggle('hidden', copies <= 1);
     up.classList.toggle('hidden', !GameState.canStarUp(heroId));
     return card;
+  }
+
+  // Roster report: with hundreds of heroes owned, "who should I invest
+  // in?" has no answer on a wall of cards. This ranks what you own by
+  // current power, names the best hero per element and per race (which
+  // is what team-building actually asks), and flags the fielded team's
+  // weakest link.
+  renderReport() {
+    const ids = GameState.ownedHeroIds().filter((id) => HEROES[id]);
+    if (ids.length === 0) {
+      this.reportEl.innerHTML = '<div class="details-empty">No heroes yet.</div>';
+      return;
+    }
+    const rows = ids.map((id) => {
+      const pr = GameState.progressOf(id);
+      const stats = Gear.applyToStats(
+        Progression.scaledStats(HEROES[id], pr.level, pr.stars),
+        GameState.equippedPieces(id));
+      const gearCount = Object.keys(GameState.equipmentOf(id)).length;
+      return {
+        id, def: HEROES[id], pr, stats, gearCount,
+        power: Progression.power(stats),
+        // Ceiling if fully invested at this star tier: shows headroom.
+        potential: Progression.power(
+          Progression.scaledStats(HEROES[id], Progression.maxLevel(pr.stars), pr.stars)),
+      };
+    }).sort((a, b) => b.power - a.power);
+
+    const top = rows.slice(0, 10);
+    const bestBy = (keyFn, label) => {
+      const best = {};
+      for (const r of rows) {
+        const k = keyFn(r);
+        if (!k) continue;
+        if (!best[k] || r.power > best[k].power) best[k] = r;
+      }
+      return Object.entries(best)
+        .sort((a, b) => b[1].power - a[1].power)
+        .map(([k, r]) => `<div class="report-row">
+          <span class="report-key">${label(k)}</span>
+          <span class="report-name">${r.def.name}</span>
+          <span class="report-power">${r.power.toLocaleString()}</span>
+        </div>`).join('');
+    };
+
+    // Where the deployed team is thin.
+    const team = Object.values(GameState.getTeam()).filter((id) => HEROES[id]);
+    const teamRows = rows.filter((r) => team.includes(r.id))
+      .sort((a, b) => a.power - b.power);
+    const bench = rows.filter((r) => !team.includes(r.id));
+    let advice = '<div class="report-note">Deploy a team to see suggestions.</div>';
+    if (teamRows.length && bench.length) {
+      const weakest = teamRows[0];
+      const better = bench.find((r) => r.power > weakest.power * 1.15);
+      advice = better
+        ? `<div class="report-note">Weakest fielded hero: <b>${weakest.def.name}</b>
+             (${weakest.power.toLocaleString()}). <b>${better.def.name}</b>
+             (${better.power.toLocaleString()}) is stronger and on the bench.</div>`
+        : `<div class="report-note">Your fielded team is your strongest available —
+             the bench has nothing better than <b>${weakest.def.name}</b>.</div>`;
+    }
+    // Heroes carrying no gear at all are the cheapest power on offer.
+    const naked = rows.filter((r) => r.gearCount === 0).length;
+    const underGeared = rows.slice(0, 20).filter((r) => r.gearCount < 6);
+
+    this.reportEl.innerHTML = `
+      <div class="report-grid">
+        <div class="report-card">
+          <div class="report-title">Strongest heroes</div>
+          ${top.map((r, i) => `<div class="report-row">
+            <span class="report-key">${i + 1}.</span>
+            <span class="report-name">${Elements.badge(r.def.element)} ${r.def.name}</span>
+            <span class="report-power">${r.power.toLocaleString()}</span>
+            <span class="report-sub">Lv ${r.pr.level} · ${r.gearCount}/6 gear</span>
+          </div>`).join('')}
+        </div>
+        <div class="report-card">
+          <div class="report-title">Best per element</div>
+          ${bestBy((r) => r.def.element, (k) => `${Elements.badge(k)} ${RACES.ELEMENT_NAMES[k] || k}`)}
+          <div class="report-title" style="margin-top:10px">Best per race</div>
+          ${bestBy((r) => RACES.of(r.def), (k) => RACES.NAMES[k] || k)}
+        </div>
+        <div class="report-card">
+          <div class="report-title">Where to invest</div>
+          ${advice}
+          <div class="report-note">${rows.length} heroes owned ·
+            ${naked} wearing no gear at all.</div>
+          ${underGeared.length ? `<div class="report-note">Cheapest gains — top heroes with
+            empty slots: ${underGeared.slice(0, 5).map((r) =>
+              `<b>${r.def.name}</b> (${r.gearCount}/6)`).join(', ')}.</div>` : ''}
+          ${top[0] && top[0].potential > top[0].power * 1.2
+            ? `<div class="report-note"><b>${top[0].def.name}</b> is at
+               ${Math.round((top[0].power / top[0].potential) * 100)}% of this star
+               tier's ceiling — levelling pays before summoning does.</div>` : ''}
+        </div>
+      </div>`;
   }
 
   // ---- Selection & placement ---------------------------------------------

@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browser Gacha — Hero Battler</title>
-  <link rel="stylesheet" href="css/style.css?v=ae050f9d" />
+  <link rel="stylesheet" href="css/style.css?v=c268ca09" />
 </head>
 <body>
   <div id="game-root">
     <!-- Top bar: nav + currency -->
     <header id="topbar">
-      <div id="logo">BROWSER GACHA <span id="version-tag">v180 · ae050f9d</span></div>
+      <div id="logo">BROWSER GACHA <span id="version-tag">v181 · c268ca09</span></div>
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
@@ -88,6 +88,7 @@
         </div>
         <aside id="hero-details"></aside>
       </div>
+      <div id="roster-report" class="hidden"></div>
       <div id="roster-section">
         <div id="roster-header">
           <h3>Your Heroes</h3>
@@ -95,7 +96,9 @@
           <label id="hide-maxed-label" title="Hide heroes already at their level cap">
             <input id="hide-maxed" type="checkbox"> Hide maxed
           </label>
+          <button id="roster-report-btn" class="panel-btn" title="Who is worth investing in?">📊 Report</button>
           <select id="roster-sort" title="Sort the roster">
+            <option value="power">Sort: Power</option>
             <option value="level">Sort: Level</option>
             <option value="stars">Sort: Stars</option>
             <option value="rarity">Sort: Rarity</option>
@@ -177,6 +180,12 @@
           <div id="target-hint" class="hidden">Select a target…</div>
         </div>
 
+        <!-- Status legend: what the nameplate pips mean -->
+        <div id="status-legend" class="hidden">
+          <div class="legend-head">Status symbols<button id="legend-close">✕</button></div>
+          <div id="legend-rows"></div>
+        </div>
+
         <!-- End-of-battle banner -->
         <div id="battle-banner" class="hidden">
           <div id="banner-title"></div>
@@ -197,6 +206,7 @@
             <button class="log-filter" data-filter="log-player" title="Only your heroes">Team</button>
             <button class="log-filter" data-filter="log-enemy" title="Only the enemy">Enemy</button>
             <button class="log-filter" data-filter="log-system" title="Only battle events">Events</button>
+            <button id="legend-btn" class="log-filter" title="What the nameplate symbols mean">? key</button>
             <span class="log-hint" title="1/2/3 abilities · Q-U targets · Esc cancel · Space auto · Enter continue">⌨ hotkeys</span>
           </div>
           <div id="battle-log"></div>
@@ -218,45 +228,46 @@
     </section>
   </div>
 
-  <script src="js/meter.js?v=ae050f9d"></script>
-  <script src="js/config.js?v=ae050f9d"></script>
-  <script src="js/hex.js?v=ae050f9d"></script>
-  <script src="js/elements.js?v=ae050f9d"></script>
-  <script src="js/races.js?v=ae050f9d"></script>
-  <script src="js/sprites.js?v=ae050f9d"></script>
-  <script src="js/abilities.js?v=ae050f9d"></script>
-  <script src="js/progression.js?v=ae050f9d"></script>
-  <script src="js/gear.js?v=ae050f9d"></script>
-  <script src="js/hero.js?v=ae050f9d"></script>
-  <script src="js/data/positionals.js?v=ae050f9d"></script>
-  <script src="js/data/heroes.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/humans.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/rats.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/avians.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/minotaurs.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/snakes.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/wolfs.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/boars.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/bears.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/cats.js?v=ae050f9d"></script>
-  <script src="js/data/heroes/drakes.js?v=ae050f9d"></script>
-  <script src="js/data/enemies.js?v=ae050f9d"></script>
-  <script src="js/data/bosses.js?v=ae050f9d"></script>
-  <script src="js/data/effects.js?v=ae050f9d"></script>
-  <script src="js/quests.js?v=ae050f9d"></script>
-  <script src="js/achievements.js?v=ae050f9d"></script>
-  <script src="js/state.js?v=ae050f9d"></script>
-  <script src="js/gacha.js?v=ae050f9d"></script>
-  <script src="js/ai.js?v=ae050f9d"></script>
-  <script src="js/battle.js?v=ae050f9d"></script>
-  <script src="js/render.js?v=ae050f9d"></script>
-  <script src="js/ui.js?v=ae050f9d"></script>
-  <script src="js/compendium_screen.js?v=ae050f9d"></script>
-  <script src="js/battle_screen.js?v=ae050f9d"></script>
-  <script src="js/team_screen.js?v=ae050f9d"></script>
-  <script src="js/blacksmith_screen.js?v=ae050f9d"></script>
-  <script src="js/quests_screen.js?v=ae050f9d"></script>
-  <script src="js/summon_screen.js?v=ae050f9d"></script>
-  <script src="js/main.js?v=ae050f9d"></script>
+  <script src="js/meter.js?v=c268ca09"></script>
+  <script src="js/config.js?v=c268ca09"></script>
+  <script src="js/hex.js?v=c268ca09"></script>
+  <script src="js/elements.js?v=c268ca09"></script>
+  <script src="js/races.js?v=c268ca09"></script>
+  <script src="js/sprites.js?v=c268ca09"></script>
+  <script src="js/abilities.js?v=c268ca09"></script>
+  <script src="js/progression.js?v=c268ca09"></script>
+  <script src="js/gear.js?v=c268ca09"></script>
+  <script src="js/hero.js?v=c268ca09"></script>
+  <script src="js/data/positionals.js?v=c268ca09"></script>
+  <script src="js/data/heroes.js?v=c268ca09"></script>
+  <script src="js/data/heroes/humans.js?v=c268ca09"></script>
+  <script src="js/data/heroes/rats.js?v=c268ca09"></script>
+  <script src="js/data/heroes/avians.js?v=c268ca09"></script>
+  <script src="js/data/heroes/minotaurs.js?v=c268ca09"></script>
+  <script src="js/data/heroes/snakes.js?v=c268ca09"></script>
+  <script src="js/data/heroes/wolfs.js?v=c268ca09"></script>
+  <script src="js/data/heroes/boars.js?v=c268ca09"></script>
+  <script src="js/data/heroes/bears.js?v=c268ca09"></script>
+  <script src="js/data/heroes/cats.js?v=c268ca09"></script>
+  <script src="js/data/heroes/drakes.js?v=c268ca09"></script>
+  <script src="js/data/enemies.js?v=c268ca09"></script>
+  <script src="js/data/bosses.js?v=c268ca09"></script>
+  <script src="js/data/effects.js?v=c268ca09"></script>
+  <script src="js/quests.js?v=c268ca09"></script>
+  <script src="js/achievements.js?v=c268ca09"></script>
+  <script src="js/state.js?v=c268ca09"></script>
+  <script src="js/gacha.js?v=c268ca09"></script>
+  <script src="js/ai.js?v=c268ca09"></script>
+  <script src="js/waves.js?v=c268ca09"></script>
+  <script src="js/battle.js?v=c268ca09"></script>
+  <script src="js/render.js?v=c268ca09"></script>
+  <script src="js/ui.js?v=c268ca09"></script>
+  <script src="js/compendium_screen.js?v=c268ca09"></script>
+  <script src="js/battle_screen.js?v=c268ca09"></script>
+  <script src="js/team_screen.js?v=c268ca09"></script>
+  <script src="js/blacksmith_screen.js?v=c268ca09"></script>
+  <script src="js/quests_screen.js?v=c268ca09"></script>
+  <script src="js/summon_screen.js?v=c268ca09"></script>
+  <script src="js/main.js?v=c268ca09"></script>
 </body>
 </html>
