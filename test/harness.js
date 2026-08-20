@@ -18,10 +18,15 @@ const FILES = [
   'js/data/positionals.js', 'js/data/heroes.js',
   'js/data/heroes/humans.js', 'js/data/heroes/rats.js', 'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js', 'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js', 'js/data/heroes/cats.js', 'js/data/heroes/drakes.js',
   'js/data/enemies.js',
-  'js/data/bosses.js', 'js/ai.js', 'js/meter.js', 'js/quests.js', 'js/battle.js', 'js/state.js',
+  'js/data/bosses.js', 'js/data/campaign.js',
+  'js/ai.js', 'js/meter.js', 'js/quests.js', 'js/battle.js', 'js/state.js',
+  'js/waves.js', 'js/campaign.js',
 ];
 
-function loadGame() {
+// `opts.save` pre-seeds localStorage before any game file runs, which is
+// the only way to exercise the save loader and its migrations: state.js
+// reads storage once, at load.
+function loadGame(opts = {}) {
   const sandbox = {
     console,
     Math,
@@ -37,6 +42,9 @@ function loadGame() {
     // something is persisted need to read back what was written.
     localStorage: (() => {
       const store = new Map();
+      if (opts.save !== undefined) {
+        store.set('browsergacha_save_v1', JSON.stringify(opts.save));
+      }
       return {
         getItem: (k) => (store.has(k) ? store.get(k) : null),
         setItem: (k, v) => { store.set(k, String(v)); },
@@ -59,7 +67,8 @@ function loadGame() {
   // scope, not on the sandbox object, so surface what the tests need.
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES',
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
-    'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState'];
+    'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState',
+    'Waves', 'CAMPAIGN', 'Campaign'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,

@@ -136,6 +136,7 @@ const App = {
   App.screens.team = new TeamScreen(App);
   App.screens.blacksmith = new BlacksmithScreen(App);
   App.screens.quests = new QuestsScreen(App);
+  App.screens.campaign = new CampaignScreen(App);
   App.screens.compendium = new CompendiumScreen(App);
   App.screens.battle = new BattleScreen(App);
 
@@ -150,6 +151,17 @@ const App = {
     });
   });
 
+  // Campaign badge: a dot while any reachable node is still unbeaten,
+  // so the spine of the game keeps asking to be walked.
+  const campaignBadge = document.getElementById('campaign-badge');
+  const updateCampaignBadge = () => {
+    if (!campaignBadge) return;
+    const open = CAMPAIGN.CHAPTERS.some((ch) =>
+      Campaign.chapterUnlocked(ch) &&
+      ch.nodes.some((n) => Campaign.nodeUnlocked(n) && !Campaign.nodeCleared(n)));
+    campaignBadge.classList.toggle('hidden', !open);
+  };
+
   // Quest badge: a dot on the tab whenever rewards are claimable.
   const questBadge = document.getElementById('quest-badge');
   const updateQuestBadge = () => {
@@ -157,9 +169,12 @@ const App = {
       (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.claimableCount() : 0);
     questBadge.classList.toggle('hidden', claimable === 0);
   };
-  GameState.onChange(() => { App.updateCurrencies(); updateQuestBadge(); });
+  GameState.onChange(() => {
+    App.updateCurrencies(); updateQuestBadge(); updateCampaignBadge();
+  });
   App.updateCurrencies();
   updateQuestBadge();
+  updateCampaignBadge();
   App.showScreen('team');
 
   // Keep the layout fitted: on window resize and whenever screen content

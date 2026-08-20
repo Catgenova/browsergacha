@@ -379,4 +379,109 @@ test('star up all promotes exactly the eligible heroes', () => {
   assert(GameState.starUpAll().length === 0, 'a hero starred up twice in a row');
 });
 
+test('a campaign node is the same fight every time it is opened', () => {
+  const { CAMPAIGN, Campaign } = g;
+  const fingerprint = (n) =>
+    Campaign.encounter(n).map((e) => `${e.def.id}@${e.slotIndex}`).join(',');
+  const problems = [];
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    for (const n of ch.nodes) {
+      if (n.type === 'boss') {
+        if (Campaign.encounter(n).length !== 0) problems.push(`${n.id}: holder fields a wave`);
+        continue;
+      }
+      const first = fingerprint(n);
+      if (!first) { problems.push(`${n.id}: empty encounter`); continue; }
+      // Ten reads have to agree, and nothing may share a slot.
+      for (let i = 0; i < 10; i++) {
+        if (fingerprint(n) !== first) { problems.push(`${n.id}: roster drifted`); break; }
+      }
+      const slots = Campaign.encounter(n).map((e) => e.slotIndex);
+      if (new Set(slots).size !== slots.length) problems.push(`${n.id}: two enemies in one slot`);
+      if (slots.some((i) => i < 0 || i > 6)) problems.push(`${n.id}: enemy off the formation`);
+      // Enemies must come from this chapter's own cohort.
+      const pool = new Set(g.LOCATION_ENEMIES[ch.location]);
+      for (const e of Campaign.encounter(n)) {
+        if (!pool.has(e.def.id)) problems.push(`${n.id}: ${e.def.id} is not from this chapter`);
+      }
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 5).join(' | '));
+});
+
+test('clearing a chapter opens the next one, its hunt and its boss', () => {
+  // Its own game instance: this test walks a save forward, and the
+  // shared one is used by everything else in this file.
+  const w = loadGame({ save: { schemaVersion: 5 } });
+  const { CAMPAIGN, Campaign, GameState } = w;
+  const [ch1, ch2] = CAMPAIGN.CHAPTERS;
+
+  // A fresh save: only the first chapter, its hunt, and no bosses.
+  assert(Campaign.chapterUnlocked(ch1), 'the first chapter must be open from the start');
+  assert(!Campaign.chapterUnlocked(ch2), 'the second chapter should be shut');
+  assert(Campaign.locationUnlocked(ch1.location), 'the first hunt should be open');
+  assert(!Campaign.locationUnlocked(ch2.location), 'the second hunt should be shut');
+  assert(!Campaign.bossUnlocked(ch1.boss), 'no boss is open before its chapter falls');
+
+  // Only the entrance is reachable, and a fork opens on ANY prerequisite.
+  const entry = ch1.nodes.find((n) => n.from.length === 0);
+  assert(Campaign.nodeUnlocked(entry), 'the entrance must be open');
+  assert(ch1.nodes.filter((n) => Campaign.nodeUnlocked(n)).length === 1,
+    'exactly one node should be open on a fresh save');
+  GameState.recordCampaignClear(entry.id);
+  const next = ch1.nodes.filter((n) => n.from.includes(entry.id));
+  assert(next.length > 0 && next.every((n) => Campaign.nodeUnlocked(n)),
+    'clearing a node must open everything that leads off it');
+
+  // Taking the holder is what actually opens the world up.
+  GameState.recordCampaignClear(Campaign.bossNode(ch1).id);
+  assert(Campaign.chapterUnlocked(ch2), 'the next chapter did not open');
+  assert(Campaign.locationUnlocked(ch2.location), 'the next hunt did not open');
+  assert(Campaign.bossUnlocked(ch1.boss), 'the beaten boss did not open for challenges');
+  assert(!Campaign.bossUnlocked(ch2.boss), 'an unbeaten chapter handed over its boss');
+
+  // The first clear is the only one that pays a bonus.
+  const elite = ch1.nodes.find((n) => n.type === 'elite');
+  assert(GameState.recordCampaignClear(elite.id) === true, 'a first clear should report as one');
+  assert(GameState.recordCampaignClear(elite.id) === false, 'a repeat clear paid out twice');
+});
+
+test('an old save keeps the hunts and bosses it already earned', () => {
+  // The campaign now gates content that used to be open, so loading a
+  // save from before that change must not take anything away.
+  const cases = [
+    { what: 'a v4 save that beat the Dragon while hunting the Valley',
+      save: { schemaVersion: 4, roster: { florence: { copies: 1, level: 9, xp: 0, stars: 2 } },
+        team: { 1: 'florence' }, bossStages: { boss_dragon: 4 },
+        waveSettings: { location: 4, stage: 8, repeat: 1 } },
+      hunts: 6, boss: 'dragon' },
+    // No schemaVersion at all: the loader must read the version off the
+    // RAW save, not off the defaults it merges over.
+    { what: 'a save so old it predates schema versions',
+      save: { roster: { florence: { copies: 3 } }, team: { 1: 'florence' },
+        waveSettings: { location: 7, stage: 9, repeat: 1 } },
+      hunts: 9, boss: 'winter_alpha' },
+  ];
+  for (const c of cases) {
+    const w = loadGame({ save: c.save });
+    const open = w.Campaign.unlockedLocations();
+    assert(open.length === c.hunts,
+      `${c.what}: ${open.length} hunts open, expected ${c.hunts}`);
+    assert(w.Campaign.bossUnlocked(c.boss),
+      `${c.what}: lost access to the ${c.boss}`);
+    // Loading alone does not write; the migrated shape is persisted on
+    // the next change, which is when the version stamp lands.
+    w.GameState.setCampaignChapter('ch1');
+    assert(w.savedState().schemaVersion === 5,
+      `${c.what}: save was not walked up to the current schema`);
+    assert(Object.keys(w.savedState().campaign.cleared).length > 0,
+      `${c.what}: the migration granted no campaign progress`);
+  }
+
+  // A brand-new save runs no migrations and starts at chapter one only.
+  const fresh = loadGame({ save: undefined });
+  assert(fresh.Campaign.unlockedLocations().length === 1,
+    'a new save should open exactly one hunt');
+});
+
 report();

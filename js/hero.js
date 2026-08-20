@@ -20,6 +20,16 @@ class Unit {
     const scaled = (def.isBoss && def.stats5 && def.stats100)
       ? Progression.bossScaledStats(def, this.level)
       : Progression.scaledStats(def, this.level, this.stars);
+    // `statScale` retunes one deployment of a unit without touching its
+    // definition. The campaign uses it to hold its chapter holders to a
+    // curve of their own: the boss roster is unevenly tuned relative to
+    // level, and the boss-stage ladder depends on those exact numbers.
+    const k = progress?.statScale;
+    if (k && k !== 1) {
+      scaled.hp = Math.max(1, Math.round(scaled.hp * k));
+      scaled.atk = Math.max(1, Math.round(scaled.atk * k));
+      scaled.def = Math.max(0, Math.round(scaled.def * k));
+    }
     const stats = Gear.applyToStats(scaled, progress?.gear || []);
     this.maxHp = stats.hp;
     this.hp = stats.hp;
