@@ -1661,6 +1661,31 @@ body {
   letter-spacing: 1px;
   color: #9a92b8;
 }
+/* Difficulty picker. Sits ahead of the chapter list because it changes
+   what every chapter in that list means. */
+#camp-tiers { display: flex; gap: 4px; }
+.camp-tier {
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: #9a92b8;
+  background: #2b2740;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.camp-tier:hover:not([disabled]) { background: #3d3260; color: #e8e4d8; }
+.camp-tier[disabled] { opacity: 0.4; cursor: not-allowed; }
+/* Each tier keeps its own colour so the whole screen reads at a glance
+   as "this is the hard one" without needing to check a label. */
+.camp-tier.t-normal.active { color: #ffd76a; border-color: #ffd76a; background: #2c2545; }
+.camp-tier.t-hard.active   { color: #ff9a6a; border-color: #ff9a6a; background: #3a2620; }
+.camp-tier.t-expert.active { color: #ff7a9a; border-color: #ff7a9a; background: #3a1f2c; }
+.camp-tier-mult { font-size: 9px; opacity: 0.75; margin-left: 4px; }
+#camp-top.tier-hard   #camp-chapters .camp-chapter.active { color: #ff9a6a; border-color: #ff9a6a; background: #3a2620; }
+#camp-top.tier-expert #camp-chapters .camp-chapter.active { color: #ff7a9a; border-color: #ff7a9a; background: #3a1f2c; }
+
 #camp-chapters { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
 .camp-chapter {
   display: flex;

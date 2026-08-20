@@ -257,6 +257,7 @@ const GameState = (() => {
     if (!loaded.achievements) loaded.achievements = {};
     if (!loaded.tower) loaded.tower = { best: 0 };
     if (!loaded.campaign) loaded.campaign = { cleared: {}, chapter: 'ch1' };
+    if (!loaded.campaign.tier) loaded.campaign.tier = 'normal';
     if (!loaded.campaign.cleared) loaded.campaign.cleared = {};
     if (!loaded.campaign.granted) loaded.campaign.granted = {};
     if (!loaded.campaign.granted.hunt) loaded.campaign.granted.hunt = {};
@@ -832,6 +833,13 @@ const GameState = (() => {
     get campaignChapter() { return state.campaign.chapter; },
     setCampaignChapter(chapterId) {
       state.campaign.chapter = chapterId;
+      save();
+    },
+    // Which difficulty the campaign screen last had open. A save from
+    // before difficulty existed simply has none, and reads as Normal.
+    get campaignTier() { return state.campaign.tier || 'normal'; },
+    setCampaignTier(tierId) {
+      state.campaign.tier = tierId;
       save();
     },
 

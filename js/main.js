@@ -153,12 +153,17 @@ const App = {
 
   // Campaign badge: a dot while any reachable node is still unbeaten,
   // so the spine of the game keeps asking to be walked.
+  //
+  // Normal only, deliberately. Hard and Expert are replay content the
+  // player opts into; a badge that lit up forever the moment Hard
+  // unlocked would stop meaning anything.
   const campaignBadge = document.getElementById('campaign-badge');
   const updateCampaignBadge = () => {
     if (!campaignBadge) return;
     const open = CAMPAIGN.CHAPTERS.some((ch) =>
-      Campaign.chapterUnlocked(ch) &&
-      ch.nodes.some((n) => Campaign.nodeUnlocked(n) && !Campaign.nodeCleared(n)));
+      Campaign.chapterUnlocked(ch, 'normal') &&
+      ch.nodes.some((n) => Campaign.nodeUnlocked(n, 'normal') &&
+        !Campaign.nodeCleared(n, 'normal')));
     campaignBadge.classList.toggle('hidden', !open);
   };
 
