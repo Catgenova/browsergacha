@@ -15,13 +15,17 @@
 //   back_dps    back_support
 //
 // PROTOCOL. For each archetype a fixed sparring cast is drawn from that
-// same archetype — two allies and three opponents, the median-power
+// same archetype — six allies and seven opponents, the median-power
 // members of the bucket. Every hero in the bucket is then dropped into
 // the same fight in place of one ally, so the ONLY thing that changes
 // between runs is the hero under test. The tested hero always takes a
 // hex matching its own position, so its positional passive fires; the
 // cast fills in around it and is identical for everyone, which is what
 // makes the comparison fair rather than realistic.
+//
+// Both formations are filled: an AoE ability that hits a row or the
+// whole field is worth nothing against a half-empty board, so a 3v3
+// silently undervalued every hero whose kit scales with target count.
 //
 // Runs are seeded, so the same hero replays the same fight every time
 // and a difference between two heroes is a difference in the heroes.
@@ -43,7 +47,7 @@ const arg = (name, fallback) => {
 const has = (name) => process.argv.includes(`--${name}`);
 
 const SIMS = Number(arg('sims', 5));
-const SQUAD = Number(arg('squad', 3));      // per side
+const SQUAD = Number(arg('squad', 7));      // per side; 7 fills the formation
 const ONLY = arg('archetype', null);
 const TOP = Number(arg('top', 0));          // 0 = show every hero
 const CSV = has('csv');
@@ -171,21 +175,35 @@ function runOne(def, cast, seedValue) {
   };
   // Poison is the only damage in the game that skips the DEF curve, so a
   // single dps number hides which heroes are winning on their kit and
-  // which are winning on that exemption. Split it: an ability hit passes
-  // a caster into takeDamage, a status tick does not.
+  // which are winning on that exemption.
+  //
+  // Attribution has to be exact. Reading it off the target ("this unit is
+  // taking sourceless damage and carries one of my poisons") silently
+  // credits the tested hero for a stack-mate's tick whenever both have
+  // poison on the same enemy, which at 7v7 in a snake bucket is most of
+  // the time — it produced NEGATIVE direct damage once the poison total
+  // overtook the hero's real one.
+  //
+  // Instead: js/hero.js:406 is the only place damage is metered from
+  // inside Unit.startTurn. So damage credited to the tested hero while
+  // some OTHER unit is taking its turn is exactly a tick of the hero's
+  // own poison — nothing else can produce it.
   let dotDealt = 0;
-  for (const u of battle.units) {
-    if (u.team !== TEAM.ENEMY) continue;
-    const orig = u.takeDamage.bind(u);
-    u.takeDamage = (amount, source) => {
-      const dealt = orig(amount, source);
-      if (!source && !bleeding &&
-          u.statusEffects.some((fx) => fx.kind === 'dot' && fx.source === hero)) {
-        dotDealt += dealt;
-      }
-      return dealt;
-    };
-  }
+  let acting = null;
+  const realStartTurn = Unit.prototype.startTurn;
+  const realMeterDamage = Meter.damage;
+  Unit.prototype.startTurn = function (...rest) {
+    acting = this;
+    try { return realStartTurn.apply(this, rest); } finally { acting = null; }
+  };
+  Meter.damage = (unit, amount) => {
+    if (acting && acting !== hero && unit === hero) dotDealt += Math.round(amount);
+    return realMeterDamage(unit, amount);
+  };
+  const unpatch = () => {
+    Unit.prototype.startTurn = realStartTurn;
+    Meter.damage = realMeterDamage;
+  };
 
   const bleed = () => {
     bleeding = true;
@@ -199,10 +217,14 @@ function runOne(def, cast, seedValue) {
   battle.onBattleEnd = (w) => { winner = w; };
   let ticks = 0;
   const bleedEvery = Math.round(1 / DT); // once a simulated second
-  while (!winner && ticks < MAX_TICKS) {
-    battle.update(DT);
-    ticks++;
-    if (ATTRITION > 0 && ticks % bleedEvery === 0) bleed();
+  try {
+    while (!winner && ticks < MAX_TICKS) {
+      battle.update(DT);
+      ticks++;
+      if (ATTRITION > 0 && ticks % bleedEvery === 0) bleed();
+    }
+  } finally {
+    unpatch(); // these are global; never leave them installed
   }
   const seconds = Math.max(0.1, ticks * DT);
   const mine = (kind) => {
@@ -264,6 +286,14 @@ function measure(def, cast) {
   const runs = [];
   for (let i = 0; i < SIMS; i++) runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
   const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
+  // direct + poison must reconstruct dps. If it does not, poison is being
+  // attributed to the wrong hero and every split on the page is fiction.
+  for (const r of runs) {
+    if (r.poison > r.damage + 1) {
+      throw new Error(`${def.id}: poison ${Math.round(r.poison)} exceeds total ` +
+        `damage ${Math.round(r.damage)} — poison attribution is broken`);
+    }
+  }
   const mitRatio = avg((r) => r.mitRatio);
   const maxHp = avg((r) => r.maxHp);
   return {

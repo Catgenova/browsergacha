@@ -254,10 +254,12 @@ footer code { background:var(--panel-2); border:1px solid var(--line); border-ra
 
   <footer>
     <p><b>Protocol.</b> For each archetype a fixed sparring cast is drawn from that same
-      archetype — two allies, three opponents, the median-power members of the bucket. Every
-      hero is dropped into the same fight in place of one ally, so the only thing that changes
-      between runs is the hero under test. Runs are seeded: a difference between two heroes is
-      a difference in the heroes.</p>
+      archetype &mdash; six allies and seven opponents, the median-power members of the bucket.
+      Every hero is dropped into the same fight in place of one ally, so the only thing that
+      changes between runs is the hero under test. Both formations are filled: an ability that
+      hits a row or the whole field is worth nothing against a half-empty board, so a smaller
+      squad quietly undervalues every hero whose kit scales with target count. Runs are seeded,
+      so a difference between two heroes is a difference in the heroes.</p>
     <p><b>Reading poison.</b> Poison is the only damage that skips the DEF curve — no damage
       formula, no mitigation, no dodge, no crit. At this max-level premise a front-liner sits
       near DEF 2483, so 100 raw direct damage lands as 10.8 while 100 poison lands as 100.
