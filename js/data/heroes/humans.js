@@ -161,15 +161,19 @@ Object.assign(HEROES, {
           const foes = battle.livingUnits(
             unit.team === TEAM.PLAYER ? TEAM.ENEMY : TEAM.PLAYER);
           if (!foes.length) return null;
-          const hit = Math.max(1, Math.round(unit.effectiveStat('def') * 0.10));
+          // The raw figure; each foe's DEF, guards and dodge decide what
+          // it actually costs them, and strike() books the meter.
+          const raw = Math.max(1, Math.round(unit.effectiveStat('def') * 0.10));
           let felled = 0;
+          let total = 0;
           for (const foe of foes) {
-            const dealt = foe.takeDamage(hit, unit);
-            if (typeof Meter !== 'undefined') Meter.damage(unit, dealt);
-            battle.addFloatingText(foe, `-${dealt}`, '#ffe9a8');
+            const res = Abilities.strike(unit, foe, raw);
+            total += res.amount;
+            if (res.amount > 0) battle.addFloatingText(foe, `-${res.amount}`, '#ffe9a8');
             if (!foe.alive) felled++;
           }
-          battle.log(`${unit.name} is struck \u2014 the bell answers for ${hit} across the field.` +
+          if (total <= 0) return null;
+          battle.log(`${unit.name} is struck \u2014 the bell answers for ${total} across the field.` +
             (felled ? ` ${felled} fall!` : ''), 'log-system');
           return null; // resolved inline; the turn belongs to the attacker
         },

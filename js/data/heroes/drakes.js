@@ -847,7 +847,7 @@ Object.assign(HEROES, {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.01));
-          for (const e of enemies) e.takeDamage(amount, unit);
+          for (const e of enemies) Abilities.strike(unit, e, amount);
           return {
             label: 'Pyroclastic Flow',
             message: `${unit.name}'s heat washes the field.`,
@@ -1701,7 +1701,7 @@ Object.assign(HEROES, {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.015));
-          target.takeDamage(amount, unit);
+          Abilities.strike(unit, target, amount);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -2255,7 +2255,7 @@ Object.assign(HEROES, {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.025));
-          for (const e of enemies) e.takeDamage(amount, unit);
+          for (const e of enemies) Abilities.strike(unit, e, amount);
           return null; // silent — small rolling resonance
         },
       },
@@ -2497,7 +2497,7 @@ Object.assign(HEROES, {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.011));
-          enemies[0].takeDamage(amount, unit);
+          Abilities.strike(unit, enemies[0], amount);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },

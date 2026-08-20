@@ -33,17 +33,64 @@ const Abilities = (() => {
   }
 
   // Resolve one effect against one unit. Returns a log-friendly result.
+  // ---- The damage pipeline ----------------------------------------------
+  // ONE path from a raw figure to HP actually lost, so nothing can score
+  // damage by going around the defences. `raw` is the attacker's side of
+  // the sum, already multiplied out; everything the defender gets to do
+  // about it happens here:
+  //
+  //   DEF curve -> crit -> dodge -> guard/ward multipliers -> reflect
+  //
+  // Whatever the number was scaled off — ATK, DEF, max HP, or a passive
+  // that just wants to deal 2% of something — it arrives here and is
+  // mitigated the same way.
+  //
+  // The RNG is drawn in a fixed order (dodge, crit, reflect) so a seeded
+  // replay stays a replay.
+  function strike(caster, target, raw, opts = {}) {
+    const dodged = opts.dodge === false
+      ? false
+      : Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
+    let dmg = damageFormula(raw, target.effectiveStat('def'));
+    let crit = false;
+    if (opts.crit) {
+      crit = Math.random() < caster.effectiveStat('critChance');
+      if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
+    }
+    if (dodged) {
+      // Credit the dodger with the hit that never landed.
+      Meter.mitigated(target, dmg);
+      return { kind: 'damage', target, amount: 0, dodged: true };
+    }
+    // Defensive multipliers (guard passives, wards, resonance) blunt the
+    // hit; the difference is mitigation.
+    const unblunted = dmg;
+    dmg = Math.round(dmg * target.damageTakenMult());
+    Meter.mitigated(target, unblunted - dmg);
+    // Reflect (Boar set 6pc / bristle passives): the whole hit bounces
+    // back to the attacker instead of landing.
+    if (target.reflectChance && Math.random() < target.reflectChance()) {
+      const bounced = caster.takeDamage(dmg, target);
+      Meter.mitigated(target, dmg);   // bounced away entirely
+      Meter.damage(target, bounced);  // and dealt back
+      return { kind: 'damage', target, amount: 0, reflected: true,
+        reflectAmount: bounced };
+    }
+    const dealt = target.takeDamage(dmg, caster);
+    Meter.damage(caster, dealt);
+    return { kind: 'damage', target, amount: dealt, crit };
+  }
+
   // `power` is the caster's skill-level multiplier for the ability this
   // effect belongs to; it scales damage/heal/poison numbers only.
   function applyEffect(effect, caster, target, power = 1) {
     switch (effect.type) {
       case 'damage':
       case 'damageDef': {
-        // Dodge: a fully evaded hit deals nothing. Credit the dodger
-        // with what the hit would have been (measured below).
-        const dodged = Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
         // 'damageDef' scales off the caster's DEF instead of ATK (Boar
-        // tank-bruiser kits); everything downstream is identical.
+        // tank-bruiser kits, Toll's bell); everything downstream is
+        // identical, which is the point — a big DEF stat must not be a
+        // way around the mitigation curve.
         const scaleStat = effect.type === 'damageDef' ? 'def' : 'atk';
         // perMirror: extra multiplier per active crystal mirror (Echo).
         const mult = effect.mult +
@@ -58,31 +105,7 @@ const Abilities = (() => {
             (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
           raw *= effect.bonusVs.mult;
         }
-        let dmg = damageFormula(raw, target.effectiveStat('def'));
-        const crit = Math.random() < caster.effectiveStat('critChance');
-        if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
-        if (dodged) {
-          Meter.mitigated(target, dmg);
-          return { kind: 'damage', target, amount: 0, dodged: true };
-        }
-        // Defensive multipliers (guard passives, wards, resonance) blunt
-        // the hit; the difference is mitigation.
-        const unblunted = dmg;
-        dmg = Math.round(dmg * target.damageTakenMult());
-        Meter.mitigated(target, unblunted - dmg);
-        // Reflect (Boar set 6pc / bristle passives): the whole hit
-        // bounces back to the attacker instead of landing.
-        if (target.reflectChance && Math.random() < target.reflectChance()) {
-          const bounced = caster.takeDamage(dmg, target);
-          Meter.mitigated(target, dmg);   // bounced away entirely
-          Meter.damage(target, bounced);  // and dealt back
-          return { kind: 'damage', target, amount: 0, reflected: true,
-            reflectAmount: bounced };
-        }
-        const dealt = target.takeDamage(dmg, caster);
-        Meter.damage(caster, dealt);
-        // elem: >1 the attacker has the advantage, <1 the target resists.
-        return { kind: 'damage', target, amount: dealt, crit, elem: elemMult };
+        return { ...strike(caster, target, raw, { crit: true }), elem: elemMult };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
@@ -112,12 +135,13 @@ const Abilities = (() => {
         return { kind: 'hot', target, turns: effect.turns };
       }
       case 'damageHpPct': {
-        // Flat damage scaled off the caster's max HP (ignores DEF).
-        const dmg = Math.round(caster.maxHp * effect.pct * power
-          * caster.damageDealtMult(target) * target.damageTakenMult());
-        const dealt = target.takeDamage(dmg, caster);
-        Meter.damage(caster, dealt);
-        return { kind: 'damage', target, amount: dealt, crit: false };
+        // Scaled off the caster's max HP rather than a combat stat, and
+        // mitigated like everything else — a large HP pool is not a way
+        // around the DEF curve any more than a large DEF stat is.
+        const raw = caster.maxHp * effect.pct * power *
+          caster.damageDealtMult(target) *
+          Elements.mult(caster.element, target.element);
+        return strike(caster, target, raw);
       }
       case 'taunt': {
         // Force attackers onto this unit for a few turns.
@@ -309,5 +333,9 @@ const Abilities = (() => {
     return results;
   }
 
-  return { execute, resolveTargets, damageFormula };
+  // `strike` is exported so passive and positional hooks can deal damage
+  // through the same pipeline instead of calling takeDamage directly,
+  // which used to skip the DEF curve, dodge, guards, reflect AND the
+  // damage meter all at once.
+  return { execute, resolveTargets, damageFormula, strike };
 })();
