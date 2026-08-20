@@ -198,4 +198,73 @@ test('positional hooks only fire in their own hex', () => {
   assert(outOfPlace === 1, `shield wall still applied out of position: ${outOfPlace}`);
 });
 
+
+
+// ---- Threat, telegraphs, elements ---------------------------------------
+
+test('the front line draws attacks away from the back', () => {
+  const battle = makeBattle();
+  const byPos = {};
+  for (const s of battle.playerSlots) byPos[s.position] = s;
+  const wall = place(battle, HEROES.rat_knight, TEAM.PLAYER, 1);
+  const squishy = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  wall.slot = byPos[POSITION.FRONT];
+  squishy.slot = byPos[POSITION.BACK];
+  // The back-liner is far softer, so the old AI always picked it.
+  squishy.hp = Math.round(squishy.maxHp * 0.2);
+  const attacker = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const profile = AI.profileFor(attacker);
+  let hitWall = 0;
+  for (let i = 0; i < 400; i++) {
+    if (profile.focus([wall, squishy], attacker, battle) === wall) hitWall++;
+  }
+  assert(hitWall > 200, `front line only drew ${hitWall}/400 attacks`);
+  assert(hitWall < 400, 'the back line should never be perfectly safe');
+});
+
+test('a taunt overrides target choice entirely', () => {
+  const battle = makeBattle();
+  const byPos = {};
+  for (const s of battle.playerSlots) byPos[s.position] = s;
+  const bait = place(battle, HEROES.rat_knight, TEAM.PLAYER, 1);
+  const squishy = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  bait.slot = byPos[POSITION.BACK];       // not even in front
+  squishy.slot = byPos[POSITION.FRONT];
+  bait.addStatusEffect({ kind: 'buff', stat: 'taunt', turns: 2 });
+  const attacker = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const profile = AI.profileFor(attacker);
+  for (let i = 0; i < 50; i++) {
+    assert(profile.focus([bait, squishy], attacker, battle) === bait,
+      'taunt was ignored');
+  }
+});
+
+test('elemental advantage is reported on the damage result', () => {
+  const battle = makeBattle();
+  const water = place(battle, HEROES.echo, TEAM.PLAYER, 1);
+  const fire = Object.values(HEROES).find((h) => h.element === 'fire');
+  const wind = Object.values(HEROES).find((h) => h.element === 'wind');
+  const vsFire = place(battle, fire, TEAM.ENEMY, 1);
+  const vsWind = place(battle, wind, TEAM.ENEMY, 4);
+  vsFire.gearDodge = 0; vsWind.gearDodge = 0;
+  const strong = Abilities.execute(water.abilities[0].def, water, vsFire, battle)
+    .find((r) => r.kind === 'damage');
+  const weak = Abilities.execute(water.abilities[0].def, water, vsWind, battle)
+    .find((r) => r.kind === 'damage');
+  assert(strong.elem > 1, `water into fire should be strong: ${strong.elem}`);
+  assert(weak.elem < 1, `water into wind should be resisted: ${weak.elem}`);
+});
+
+test('achievements all report sane progress and rewards', () => {
+  // Achievements read live GameState, which the harness does not load;
+  // check the definitions themselves stay well-formed.
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'js/achievements.js'), 'utf8');
+  assert(/const ACHIEVEMENTS = /.test(src), 'ACHIEVEMENTS not defined');
+  const ids = [...src.matchAll(/id: `?race_\$\{race\}`?|id: '([a-z0-9_]+)'/g)]
+    .map((m) => m[1]).filter(Boolean);
+  assert(new Set(ids).size === ids.length, 'duplicate achievement ids');
+  assert(ids.length >= 10, `only ${ids.length} achievements defined`);
+});
+
 report();

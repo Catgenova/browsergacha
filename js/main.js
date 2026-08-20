@@ -140,7 +140,9 @@ const App = {
   // Quest badge: a dot on the tab whenever rewards are claimable.
   const questBadge = document.getElementById('quest-badge');
   const updateQuestBadge = () => {
-    questBadge.classList.toggle('hidden', GameState.claimableQuestCount() === 0);
+    const claimable = GameState.claimableQuestCount() +
+      (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.claimableCount() : 0);
+    questBadge.classList.toggle('hidden', claimable === 0);
   };
   GameState.onChange(() => { App.updateCurrencies(); updateQuestBadge(); });
   App.updateCurrencies();

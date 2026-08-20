@@ -48,9 +48,9 @@ const Abilities = (() => {
         // perMirror: extra multiplier per active crystal mirror (Echo).
         const mult = effect.mult +
           (effect.perMirror || 0) * (caster.mirrors || 0);
+        const elemMult = Elements.mult(caster.element, target.element);
         let raw = caster.effectiveStat(scaleStat) * mult * power *
-          caster.damageDealtMult(target) *
-          Elements.mult(caster.element, target.element);
+          caster.damageDealtMult(target) * elemMult;
         // Combo hits: multiplied damage against a marked status — by
         // stat (methane fog) or by kind (detonating poisons).
         if (effect.bonusVs && target.statusEffects.some((fx) =>
@@ -81,7 +81,8 @@ const Abilities = (() => {
         }
         const dealt = target.takeDamage(dmg, caster);
         Meter.damage(caster, dealt);
-        return { kind: 'damage', target, amount: dealt, crit };
+        // elem: >1 the attacker has the advantage, <1 the target resists.
+        return { kind: 'damage', target, amount: dealt, crit, elem: elemMult };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
@@ -119,6 +120,11 @@ const Abilities = (() => {
         const dealt = target.takeDamage(dmg, caster);
         Meter.damage(caster, dealt);
         return { kind: 'damage', target, amount: dealt, crit: false };
+      }
+      case 'taunt': {
+        // Force attackers onto this unit for a few turns.
+        target.addStatusEffect({ kind: 'buff', stat: 'taunt', turns: effect.turns || 2 });
+        return { kind: 'taunt', target, turns: effect.turns || 2 };
       }
       case 'mirrors': {
         // Replenish crystal mirrors (clamped to the unit's own maximum).

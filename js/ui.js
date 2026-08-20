@@ -12,6 +12,15 @@ class UI {
     this.buttonsEl = document.getElementById('ability-buttons');
     this.targetHint = document.getElementById('target-hint');
     this.logEl = document.getElementById('battle-log');
+    this.logFilter = 'all';
+    document.querySelectorAll('.log-filter').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.log-filter').forEach((b) =>
+          b.classList.toggle('active', b === btn));
+        this.setLogFilter(btn.dataset.filter);
+      });
+    });
+    this.bindKeys();
     this.bannerEl = document.getElementById('battle-banner');
     this.bannerTitle = document.getElementById('banner-title');
     this.bannerSub = document.getElementById('banner-sub');
@@ -69,6 +78,7 @@ class UI {
     this.buttonsEl.innerHTML = '';
     this.targetHint.classList.add('hidden');
     this.renderer.targetingMode = null;
+    this.renderer.targetingSource = null;
 
     unit.abilities.forEach((abilityState) => {
       const a = abilityState.def;
@@ -100,6 +110,7 @@ class UI {
   hideAbilityBar() {
     this.abilityBar.classList.add('hidden');
     this.renderer.targetingMode = null;
+    this.renderer.targetingSource = null;
     this.renderer.rowMode = false;
     this.renderer.hoveredUnit = null;
     this.activeHero = null;
@@ -122,6 +133,7 @@ class UI {
       this.renderer.targetingMode =
         targeting === 'ally' ? 'ally' :
         targeting === 'dead-ally' ? 'dead-ally' : 'enemy';
+      this.renderer.targetingSource = this.battle.activeUnit;
       this.renderer.rowMode = targeting === 'enemy-row';
       this.targetHint.classList.remove('hidden');
     }
@@ -163,12 +175,92 @@ class UI {
 
   // ---- Log & banner ------------------------------------------------------
 
+  // Log filters: in a 7v7 the log is a firehose, and the line you
+  // wanted has usually scrolled past by the time you look. Filters keep
+  // one side's actions (or just the system lines), and identical
+  // consecutive lines collapse into a ×N counter instead of repeating.
+  setLogFilter(filter) {
+    this.logFilter = filter;
+    this.logEl.classList.toggle('filter-player', filter === 'log-player');
+    this.logEl.classList.toggle('filter-enemy', filter === 'log-enemy');
+    this.logEl.classList.toggle('filter-system', filter === 'log-system');
+    this.logEl.scrollTop = this.logEl.scrollHeight;
+  }
+
   appendLog(message, cls) {
+    // Collapse an immediate repeat rather than printing it again.
+    const last = this.logEl.lastElementChild;
+    if (last && last.dataset.msg === message && last.className.startsWith(cls)) {
+      const n = Number(last.dataset.count || 1) + 1;
+      last.dataset.count = n;
+      last.textContent = `${message}  ×${n}`;
+      this.logEl.scrollTop = this.logEl.scrollHeight;
+      return;
+    }
     const line = document.createElement('div');
     line.className = cls;
+    line.dataset.msg = message;
     line.textContent = message;
     this.logEl.appendChild(line);
+    // Keep the log bounded; ancient lines are never read.
+    while (this.logEl.childElementCount > 300) {
+      this.logEl.removeChild(this.logEl.firstElementChild);
+    }
     this.logEl.scrollTop = this.logEl.scrollHeight;
+  }
+
+  // Keyboard: 1/2/3 fire abilities, Q/W/E pick the first three targets,
+  // Escape backs out of targeting, Space toggles auto, Enter dismisses
+  // the end-of-battle banner. Ignored while typing in a field.
+  bindKeys() {
+    window.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      // Only act while the battle screen is the one on screen.
+      const screen = document.getElementById('screen-battle');
+      if (!screen || screen.classList.contains('hidden')) return;
+
+      if (e.key === 'Escape') {
+        if (this.renderer.targetingMode) {
+          this.renderer.targetingMode = null;
+          this.renderer.targetingSource = null;
+          this.selectedAbility = null;
+          this.buttonsEl.querySelectorAll('.ability-btn')
+            .forEach((b) => b.classList.remove('selected'));
+          this.targetHint.classList.add('hidden');
+          e.preventDefault();
+        }
+        return;
+      }
+      if (e.key === ' ') {
+        const auto = document.getElementById('auto-btn');
+        if (auto) { auto.click(); e.preventDefault(); }
+        return;
+      }
+      if (e.key === 'Enter') {
+        const banner = document.getElementById('battle-banner');
+        if (banner && !banner.classList.contains('hidden')) {
+          document.getElementById('banner-return').click();
+          e.preventDefault();
+        }
+        return;
+      }
+      // Ability hotkeys, only while this hero is actually deciding.
+      if ('123'.includes(e.key) && !this.abilityBar.classList.contains('hidden')) {
+        const btn = this.buttonsEl.querySelectorAll('.ability-btn')[Number(e.key) - 1];
+        if (btn && !btn.disabled) { btn.click(); e.preventDefault(); }
+        return;
+      }
+      // Target hotkeys while choosing.
+      const targetKeys = 'qwertyu';
+      if (this.renderer.targetingMode && targetKeys.includes(e.key.toLowerCase())) {
+        const side = this.renderer.targetingMode === 'enemy'
+          ? this.battle.livingUnits(TEAM.ENEMY)
+          : this.battle.livingUnits(TEAM.PLAYER);
+        const pick = side[targetKeys.indexOf(e.key.toLowerCase())];
+        if (pick) { this.commit(pick); e.preventDefault(); }
+      }
+    });
   }
 
   // opts: { retry, next } toggle the boss-flow buttons.
