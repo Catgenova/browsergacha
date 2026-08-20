@@ -16,6 +16,7 @@
         <button class="nav-tab" data-screen="team">Team</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
+        <button class="nav-tab" data-screen="compendium">Compendium</button>
         <button class="nav-tab" data-screen="battle">Battle</button>
       </nav>
       <div id="scroll-display" title="Common · Rare · Temporal summon scrolls">📜 <span id="scroll-common-count">0</span> · ✨ <span id="scroll-rare-count">0</span> · 🌀 <span id="scroll-temporal-count">0</span></div>
@@ -132,6 +133,31 @@
       <div id="quest-boards"></div>
     </section>
 
+    <!-- ================= Compendium screen ================= -->
+    <section id="screen-compendium" class="screen hidden">
+      <div id="comp-top">
+        <h3>Hero Compendium</h3>
+        <input id="comp-search" type="search" placeholder="Search name, title or element…">
+        <select id="comp-filter-rarity" title="Filter by rarity">
+          <option value="">All rarities</option>
+          <option value="5">5★</option>
+          <option value="4">4★</option>
+          <option value="3">3★</option>
+          <option value="2">2★</option>
+          <option value="1">1★</option>
+        </select>
+        <select id="comp-filter-element" title="Filter by element"></select>
+        <select id="comp-filter-race" title="Filter by race"></select>
+        <label id="comp-owned-label" title="Show only heroes you own">
+          <input id="comp-owned" type="checkbox"> Owned only
+        </label>
+      </div>
+      <div id="comp-body">
+        <div id="comp-list"></div>
+        <article id="comp-detail"></article>
+      </div>
+    </section>
+
     <!-- ================= Battle screen ================= -->
     <section id="screen-battle" class="screen hidden">
       <div id="battle-wrap">
@@ -183,6 +209,7 @@
   <script src="js/battle.js?v=__BUILD__"></script>
   <script src="js/render.js?v=__BUILD__"></script>
   <script src="js/ui.js?v=__BUILD__"></script>
+  <script src="js/compendium_screen.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>

@@ -99,6 +99,7 @@ const App = {
   App.screens.team = new TeamScreen(App);
   App.screens.blacksmith = new BlacksmithScreen(App);
   App.screens.quests = new QuestsScreen(App);
+  App.screens.compendium = new CompendiumScreen(App);
   App.screens.battle = new BattleScreen(App);
 
   document.querySelectorAll('.nav-tab').forEach((tab) => {
