@@ -251,4 +251,33 @@ test('campaign difficulty rises across and within chapters', () => {
   assert(problems.length === 0, problems.slice(0, 5).join(' | '));
 });
 
+test('every campaign node pays a first-clear scroll, graded by node type', () => {
+  const { CAMPAIGN, Campaign } = g;
+  const WANT = { normal: 'common', elite: 'rare', boss: 'temporal' };
+  const problems = [];
+  const seen = new Set();
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    for (const n of ch.nodes) {
+      const bonus = Campaign.firstClearBonus(n);
+      const scrolls = bonus.scrolls || {};
+      const kinds = Object.keys(scrolls);
+      const want = WANT[n.type];
+      if (!want) { problems.push(`${n.id}: unknown node type ${n.type}`); continue; }
+      seen.add(n.type);
+      // Exactly one kind, the right one, and at least one of it — a node
+      // that pays nothing is a fight with no first-clear reason to exist.
+      if (kinds.length !== 1 || kinds[0] !== want) {
+        problems.push(`${n.id} (${n.type}): pays ${JSON.stringify(scrolls)}, expected ${want}`);
+      } else if (!(scrolls[want] >= 1)) {
+        problems.push(`${n.id}: ${want} scroll count is ${scrolls[want]}`);
+      }
+      if (!bonus.label) problems.push(`${n.id}: first-clear bonus has no label`);
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 6).join(' | '));
+  for (const type of Object.keys(WANT)) {
+    assert(seen.has(type), `no ${type} node exists, so its grade is untested`);
+  }
+});
+
 report();
