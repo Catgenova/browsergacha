@@ -183,30 +183,40 @@ class TeamScreen {
     // frozen at construction.
     this.buildLocationOptions();
     this.buildBossOptions();
-    await this.ensureAnimators();
+    // Paint immediately. Sprite sheets are fetched in the background by
+    // refresh() and appear as they arrive — the screen must never wait
+    // on the network to show a roster it already has in the save.
     this.refresh();
   }
 
   exit() {}
 
-  // Build idle-animation players for every owned hero (placed previews).
+  // Idle-animation players for the heroes on the field. Only placed
+  // heroes are ever drawn, so this loads seven sheets, not the roster's:
+  // building one per owned hero meant hundreds of image loads, in
+  // series, before the screen would paint at all.
+  //
+  // Not awaited by callers — each sprite pops in on the frame after its
+  // sheet lands.
   async ensureAnimators() {
-    for (const heroId of GameState.ownedHeroIds()) {
-      if (this.animators.has(heroId)) continue;
-      const def = HEROES[heroId];
-      if (!def) continue;
-      const sheet = await Sprites.getSheet(def);
+    const wanted = Object.values(GameState.getTeam())
+      .filter((id) => HEROES[id] && !this.animators.has(id));
+    await Promise.all(wanted.map(async (heroId) => {
+      const sheet = await Sprites.getSheet(HEROES[heroId]);
       const player = new AnimationPlayer(sheet);
       player.play('idle');
       player.elapsed = Math.random() * 0.5;
       this.animators.set(heroId, player);
-    }
+    }));
   }
 
   refresh() {
     this.buildRoster();
     this.updateDetails();
     this.updateButtons();
+    // The team may have changed since the last paint; anything newly
+    // placed needs a player. Cheap when nothing has.
+    this.ensureAnimators();
   }
 
   updateButtons() {
@@ -363,6 +373,32 @@ class TeamScreen {
     this.rosterEl.replaceChildren(frag);
   }
 
+  // Portrait painting is deferred until a card comes near the viewport.
+  // Each portrait decodes a sprite sheet and rasterizes a 192px bitmap on
+  // the main thread; doing that for a 300-hero roster up front stalled
+  // startup for seconds, nearly all of it for cards scrolled far out of
+  // sight. Once painted a card is left alone — the bitmap is cached and
+  // the card node is reused across rebuilds.
+  watchPortrait(card) {
+    if (typeof IntersectionObserver === 'undefined') {
+      card._painted = true;
+      Sprites.paintPortrait(card._portrait, HEROES[card.dataset.heroId]);
+      return;
+    }
+    if (!this._portraitObs) {
+      this._portraitObs = new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          if (e.target._painted) continue;
+          e.target._painted = true;
+          Sprites.paintPortrait(e.target._portrait, HEROES[e.target.dataset.heroId]);
+        }
+      }, { rootMargin: '600px' }); // a couple of screens of headroom while scrolling
+    }
+    this._portraitObs.observe(card);
+  }
+
   // One roster card, built once and refreshed in place afterwards.
   rosterCard(heroId, inTeam) {
     const def = HEROES[heroId];
@@ -376,8 +412,11 @@ class TeamScreen {
       portrait.width = 64;
       portrait.height = 64;
       portrait.className = 'portrait';
-      // Painted from a cached bitmap — drawn once per hero, not per refresh.
-      Sprites.paintPortrait(portrait, def);
+      // Painted from a cached bitmap — drawn once per hero, not per
+      // refresh — and only once the card is near the viewport. See
+      // portraitObserver().
+      card._portrait = portrait;
+      this.watchPortrait(card);
       const name = document.createElement('div');
       name.className = 'card-name';
       name.textContent = `${Elements.badge(def.element)} ${def.name}`.trim();
