@@ -8,7 +8,7 @@ const GameState = (() => {
   // Save schema version. Every structural change to the save gets a
   // numbered migration below rather than another ad-hoc patch in
   // load(), so an old save always walks a known path to the present.
-  const SCHEMA = 5;
+  const SCHEMA = 6;
 
   // Ordered migrations: each takes a save at version < its `to` and
   // brings it up to that version. They run in order, once, on load.
@@ -85,6 +85,50 @@ const GameState = (() => {
         }
       },
     },
+    {
+      to: 6,
+      what: 'grandfathered access no longer counts as campaign progress',
+      run(s) {
+        // v5 preserved a save's hunt and boss access by marking those
+        // chapters' HOLDER nodes cleared. That worked for access and was
+        // wrong for everything else: a chapter reads as beaten the moment
+        // its holder is down, so seven chapters showed as finished on a
+        // save that had never opened the campaign — story, first-clear
+        // scrolls and all, silently spent.
+        //
+        // Access and progress are now separate. `granted` records what
+        // the old save had earned; `cleared` means you actually fought it.
+        if (!s.campaign) s.campaign = { cleared: {}, chapter: 'ch1' };
+        if (!s.campaign.cleared) s.campaign.cleared = {};
+        if (!s.campaign.granted) s.campaign.granted = { hunt: {}, boss: {} };
+        if (typeof CAMPAIGN === 'undefined') return;
+        const bossOf = (ch) => ch.nodes.find((n) => n.type === 'boss');
+        // A holder cannot legitimately fall before the node feeding it,
+        // so a chapter whose ONLY clear is its holder was written by v5.
+        const isV5Grant = (ch) => {
+          const boss = bossOf(ch);
+          return boss && s.campaign.cleared[boss.id] &&
+            !ch.nodes.some((n) => n.id !== boss.id && s.campaign.cleared[n.id]);
+        };
+        if (!CAMPAIGN.CHAPTERS.some(isV5Grant)) return;
+        // Grandfather exactly what this save could reach a moment ago, so
+        // nothing closes. v5 gated the two on different marks — a hunt
+        // opened when the PREVIOUS chapter's holder fell, a boss when its
+        // OWN did — so they are recorded separately here too.
+        const hunts = CAMPAIGN.CHAPTERS.filter((ch, i) => {
+          if (i === 0) return true;
+          const prev = bossOf(CAMPAIGN.CHAPTERS[i - 1]);
+          return prev && s.campaign.cleared[prev.id];
+        });
+        const bosses = CAMPAIGN.CHAPTERS.filter(
+          (ch) => bossOf(ch) && s.campaign.cleared[bossOf(ch).id]);
+        for (const ch of CAMPAIGN.CHAPTERS) {
+          if (isV5Grant(ch)) delete s.campaign.cleared[bossOf(ch).id];
+        }
+        for (const ch of hunts) s.campaign.granted.hunt[ch.id] = true;
+        for (const ch of bosses) s.campaign.granted.boss[ch.id] = true;
+      },
+    },
   ];
 
   // Bring a loaded save up to the current schema.
@@ -122,7 +166,11 @@ const GameState = (() => {
     quests: {},                          // { daily, monthly } progress
     achievements: {},                    // achievementId -> true once claimed
     tower: { best: 0 },                  // Endless Tower highest floor
-    campaign: { cleared: {}, chapter: 'ch1' }, // nodeId -> true, plus last chapter viewed
+    // cleared: nodeId -> true (fights actually won).
+    // granted: access carried over from a pre-campaign save, as
+    // { hunt: chapterId -> true, boss: chapterId -> true }. It opens
+    // those two gates and never counts as campaign progress.
+    campaign: { cleared: {}, granted: { hunt: {}, boss: {} }, chapter: 'ch1' },
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -210,6 +258,9 @@ const GameState = (() => {
     if (!loaded.tower) loaded.tower = { best: 0 };
     if (!loaded.campaign) loaded.campaign = { cleared: {}, chapter: 'ch1' };
     if (!loaded.campaign.cleared) loaded.campaign.cleared = {};
+    if (!loaded.campaign.granted) loaded.campaign.granted = {};
+    if (!loaded.campaign.granted.hunt) loaded.campaign.granted.hunt = {};
+    if (!loaded.campaign.granted.boss) loaded.campaign.granted.boss = {};
     if (!loaded.campaign.chapter) loaded.campaign.chapter = 'ch1';
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
@@ -767,6 +818,10 @@ const GameState = (() => {
     // Progress is a flat set of cleared node ids; the graph itself lives
     // in the data, so a chapter can be re-shaped without touching saves.
     campaignCleared(nodeId) { return !!state.campaign.cleared[nodeId]; },
+    // Access this save already had before the campaign existed. Opens
+    // the gate named; never counts as campaign progress.
+    campaignHuntGranted(chapterId) { return !!state.campaign.granted.hunt[chapterId]; },
+    campaignBossGranted(chapterId) { return !!state.campaign.granted.boss[chapterId]; },
     recordCampaignClear(nodeId) {
       const isFirst = !state.campaign.cleared[nodeId];
       state.campaign.cleared[nodeId] = true;

@@ -222,18 +222,25 @@ const Campaign = (() => {
   // The campaign is the spine: a hunt location and a boss open when that
   // chapter's holder goes down. The first chapter is open from the start
   // so a new save has somewhere to go.
+  //
+  // A save that predates the campaign keeps the hunts and bosses it had
+  // already earned (see the v6 migration). That is access, not progress:
+  // it opens these two gates and nothing else, so the chapter still has
+  // its story, its map and its first-clear scrolls waiting.
   function locationUnlocked(loc) {
     const ch = CAMPAIGN.CHAPTERS.find((c) => c.location === Number(loc));
     if (!ch) return true;
-    return chapterUnlocked(ch);
+    return chapterUnlocked(ch) || GameState.campaignHuntGranted(ch.id);
   }
   function bossUnlocked(bossKey) {
     const ch = CAMPAIGN.CHAPTERS.find((c) => c.boss === bossKey);
     if (!ch) return true;
-    return chapterProgress(ch).beaten;
+    return chapterProgress(ch).beaten || GameState.campaignBossGranted(ch.id);
   }
   function unlockedLocations() {
-    return CAMPAIGN.CHAPTERS.filter(chapterUnlocked).map((c) => c.location);
+    return CAMPAIGN.CHAPTERS
+      .filter((c) => chapterUnlocked(c) || GameState.campaignHuntGranted(c.id))
+      .map((c) => c.location);
   }
 
   return {

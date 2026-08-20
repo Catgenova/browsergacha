@@ -447,6 +447,12 @@ test('clearing a chapter opens the next one, its hunt and its boss', () => {
 });
 
 test('an old save keeps the hunts and bosses it already earned', () => {
+  // Read the current schema off a fresh save rather than restating it,
+  // so the next migration does not have to remember to edit this test.
+  const probe = loadGame({ save: undefined });
+  probe.GameState.setCampaignChapter('ch1');
+  const CURRENT_SCHEMA = probe.savedState().schemaVersion;
+
   // The campaign now gates content that used to be open, so loading a
   // save from before that change must not take anything away.
   const cases = [
@@ -472,10 +478,27 @@ test('an old save keeps the hunts and bosses it already earned', () => {
     // Loading alone does not write; the migrated shape is persisted on
     // the next change, which is when the version stamp lands.
     w.GameState.setCampaignChapter('ch1');
-    assert(w.savedState().schemaVersion === 5,
-      `${c.what}: save was not walked up to the current schema`);
-    assert(Object.keys(w.savedState().campaign.cleared).length > 0,
-      `${c.what}: the migration granted no campaign progress`);
+    const saved = w.savedState();
+    assert(saved.schemaVersion === CURRENT_SCHEMA,
+      `${c.what}: save is at v${saved.schemaVersion}, not the current v${CURRENT_SCHEMA}`);
+    assert(Object.keys(saved.campaign.granted.hunt).length === c.hunts,
+      `${c.what}: granted ${Object.keys(saved.campaign.granted.hunt).length} hunts, ` +
+      `expected ${c.hunts}`);
+    assert(Object.keys(saved.campaign.granted.boss).length > 0,
+      `${c.what}: the migration granted no boss access`);
+
+    // Carried-over access is NOT campaign progress: the chapters are
+    // open, and every one of them is still there to play.
+    assert(Object.keys(saved.campaign.cleared).length === 0,
+      `${c.what}: grandfathered access was written in as clears: ` +
+      JSON.stringify(saved.campaign.cleared));
+    const beaten = w.CAMPAIGN.CHAPTERS
+      .filter((ch) => w.Campaign.chapterProgress(ch).beaten).map((ch) => ch.id);
+    assert(beaten.length === 0, `${c.what}: chapters read as beaten: ${beaten}`);
+    // Only the first chapter is enterable — the campaign has not started.
+    const enterable = w.CAMPAIGN.CHAPTERS.filter((ch) => w.Campaign.chapterUnlocked(ch));
+    assert(enterable.length === 1 && enterable[0] === w.CAMPAIGN.CHAPTERS[0],
+      `${c.what}: ${enterable.length} chapters open before clearing the first`);
   }
 
   // A brand-new save runs no migrations and starts at chapter one only.
