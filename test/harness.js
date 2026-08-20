@@ -33,9 +33,17 @@ function loadGame() {
     document: { getElementById: () => null, createElement: () => ({ getContext: () => null }) },
     window: {},
     Image: function Image() {},
-    localStorage: {
-      getItem: () => null, setItem: () => {}, removeItem: () => {},
-    },
+    // A real in-memory store, not a no-op: tests that care whether
+    // something is persisted need to read back what was written.
+    localStorage: (() => {
+      const store = new Map();
+      return {
+        getItem: (k) => (store.has(k) ? store.get(k) : null),
+        setItem: (k, v) => { store.set(k, String(v)); },
+        removeItem: (k) => { store.delete(k); },
+        clear: () => store.clear(),
+      };
+    })(),
   };
   sandbox.globalThis = sandbox;
   const ctx = vm.createContext(sandbox);
@@ -56,6 +64,10 @@ function loadGame() {
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
     ctx);
+  ctx.savedState = () => {
+    const raw = ctx.localStorage.getItem('browsergacha_save_v1');
+    return raw ? JSON.parse(raw) : null;
+  };
   return ctx;
 }
 

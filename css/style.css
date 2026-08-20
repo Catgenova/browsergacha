@@ -891,6 +891,30 @@ body {
   color: #9a92b8;
 }
 
+/* Favourite toggle: the one free corner of the card. Dim outline until
+   set, so a wall of un-favourited cards stays quiet. */
+.card-fav {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  line-height: 1;
+  font-family: inherit;
+  font-size: 12px;
+  color: #7d76a0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.card-fav:hover { color: #ffd76a; background: #2c2545; }
+.card-fav.on { color: #ffd76a; text-shadow: 0 0 4px rgba(255, 215, 106, 0.5); }
+/* A pinned hero reads as pinned at a glance, not only by its star. */
+.roster-card:has(.card-fav.on) { border-color: #6b5a2e; }
+.roster-card.selected:has(.card-fav.on) { border-color: #ffd76a; }
+
 /* ==== Summon screen ==== */
 #summon-header {
   padding: 14px 16px;
