@@ -50,6 +50,30 @@ class Renderer {
     }
   }
 
+  // How much to enlarge nameplates, bars and pips. They are interface,
+  // not art, so they should stay readable at whatever size the board is
+  // shown rather than shrinking with it — on a phone the canvas is drawn
+  // at 960 logical and displayed near 374 CSS px, which renders 10px text
+  // at under 4px. 1 on desktop, capped at 1.8 on a phone: past that the
+  // nameplates are wider than the hex they belong to and collide.
+  //
+  // The rect read forces layout, so it is only redone when the backing
+  // store changes size — which is exactly when the displayed size did,
+  // since sizeCanvases() derives one from the other.
+  uiScale() {
+    if (this._uiFor !== this.canvas.width) {
+      this._uiFor = this.canvas.width;
+      const shown = this.canvas.getBoundingClientRect().width || CONFIG.CANVAS_W;
+      this._ui = Math.min(1.8, Math.max(1, CONFIG.CANVAS_W / shown));
+    }
+    return this._ui;
+  }
+
+  // A monospace font string, enlarged for a small display.
+  uiFont(px, weight = '') {
+    return `${weight}${Math.round(px * this.uiScale())}px monospace`;
+  }
+
   draw() {
     const { ctx } = this;
     if (!this.battle) return;
@@ -297,7 +321,7 @@ class Renderer {
     // Charging warning: what this unit is about to unleash.
     if (unit.telegraph) {
       ctx.save();
-      ctx.font = 'bold 10px monospace';
+      ctx.font = this.uiFont(10, 'bold ');
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
       ctx.shadowBlur = 4;
@@ -315,7 +339,7 @@ class Renderer {
       const m = Elements.mult(this.targetingSource.element, unit.element);
       if (m !== 1) {
         ctx.save();
-        ctx.font = 'bold 10px monospace';
+        ctx.font = this.uiFont(10, 'bold ');
         ctx.textAlign = 'center';
         ctx.shadowColor = 'rgba(0,0,0,0.9)';
         ctx.shadowBlur = 4;
@@ -328,7 +352,7 @@ class Renderer {
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
       ctx.fillStyle = '#ffd76a';
-      ctx.font = '10px monospace';
+      ctx.font = this.uiFont(10);
       ctx.textAlign = 'center';
       ctx.fillText('★', x + CONFIG.BAR_W / 2 + 8, visualTop - 10);
     }
@@ -401,7 +425,7 @@ class Renderer {
     if (pips.length === 0) return;
     const { ctx } = this;
     ctx.save();
-    ctx.font = '8px monospace';
+    ctx.font = this.uiFont(8);
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
     // Lay the row out centered on the bar.
@@ -424,7 +448,7 @@ class Renderer {
     const { ctx } = this;
     // Boss bars span the whole formation the boss occupies.
     const w = unit.isBoss ? CONFIG.BAR_W * 3 : CONFIG.BAR_W;
-    const h = CONFIG.BAR_H;
+    const h = Math.round(CONFIG.BAR_H * this.uiScale());
     const top = spriteTop - 16;
 
     // Health bar
@@ -456,12 +480,18 @@ class Renderer {
     ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
     ctx.shadowBlur = 3;
     ctx.fillStyle = unit.team === TEAM.PLAYER ? '#bcd6ff' : '#ffc4b8';
-    ctx.font = '10px monospace';
+    ctx.font = this.uiFont(10);
     ctx.textAlign = 'center';
-    ctx.fillText(
-      `${Elements.badge(unit.element)} Lv${unit.level} ${unit.name}`.trim(),
-      x, top - 5
-    );
+    // Enlarged plates do not fit side by side, and the sprite already
+    // says which hero it is. Below full size the plate carries element
+    // and level; the name is spent on whoever is acting or hovered.
+    const roomy = this.uiScale() < 1.25;
+    const named = roomy || unit === this.hoveredUnit ||
+      (this.battle && unit === this.battle.activeUnit);
+    const label = named
+      ? `${Elements.badge(unit.element)} Lv${unit.level} ${unit.name}`
+      : `${Elements.badge(unit.element)} Lv${unit.level}`;
+    ctx.fillText(label.trim(), x, top - 5);
     ctx.restore();
   }
 
@@ -475,7 +505,7 @@ class Renderer {
       ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
       ctx.shadowBlur = 3;
       ctx.fillStyle = ft.color;
-      ctx.font = ft.big ? 'bold 20px monospace' : 'bold 15px monospace';
+      ctx.font = this.uiFont(ft.big ? 20 : 15, 'bold ');
       ctx.textAlign = 'center';
       ctx.fillText(ft.text, ft.x, ft.y - rise);
       ctx.restore();

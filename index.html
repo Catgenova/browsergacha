@@ -199,9 +199,11 @@
       <div id="battle-wrap">
         <canvas id="battle-canvas" width="960" height="540"></canvas>
 
-        <button id="auto-btn" class="panel-btn" title="Let your heroes fight automatically">Auto: OFF</button>
-        <button id="speed-btn" class="panel-btn hidden" title="Battle speed (auto-battle only)">Speed: 1×</button>
-        <button id="retreat-btn" class="panel-btn danger" title="Abandon this fight — no rewards, and any repeat chain stops">Retreat</button>
+        <div id="battle-controls-row">
+          <button id="auto-btn" class="panel-btn" title="Let your heroes fight automatically">Auto: OFF</button>
+          <button id="speed-btn" class="panel-btn hidden" title="Battle speed (auto-battle only)">Speed: 1×</button>
+          <button id="retreat-btn" class="panel-btn danger" title="Abandon this fight — no rewards, and any repeat chain stops">Retreat</button>
+        </div>
 
         <!-- Ability bar: shown when it's a player hero's turn -->
         <div id="ability-bar" class="hidden">

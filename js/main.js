@@ -56,7 +56,48 @@ const App = {
   // logical (CSS) dimensions. Registered by screens at construction.
   hiDpiCanvases: [],
 
+  // Back each registered canvas at the resolution it is actually drawn
+  // at, so sprites are resampled once (source -> device pixels).
+  // `cssScale` is how large the canvas is on screen relative to its
+  // logical size: the layout scale on desktop, measured on mobile where
+  // the canvas is fluid.
+  sizeCanvases(mobile, layoutScale) {
+    const dpr = window.devicePixelRatio || 1;
+    for (const c of this.hiDpiCanvases) {
+      let cssW;
+      if (mobile) {
+        // Fluid width, aspect held by the backing store's own ratio.
+        c.el.style.width = '100%';
+        c.el.style.height = 'auto';
+        cssW = c.el.getBoundingClientRect().width || c.w;
+      } else {
+        c.el.style.width = `${c.w}px`;
+        c.el.style.height = `${c.h}px`;
+        cssW = c.w * layoutScale;
+      }
+      const q = Math.min((cssW / c.w) * dpr, 3);
+      const w = Math.max(1, Math.round(c.w * q));
+      if (c.el.width !== w) {
+        c.el.width = w;
+        c.el.height = Math.max(1, Math.round(c.h * q));
+      }
+    }
+  },
+
   // Scale the fixed 960px layout to fill the viewport (no scrolling).
+  //
+  // Phones are the exception. Shrinking a 960px layout into 390px means a
+  // 0.4x scale, which renders body text at 6px and leaves every button a
+  // 30x14px tap target — the whole UI legible only to someone holding the
+  // phone an inch from their face. Below the breakpoint the layout
+  // reflows at real size instead (see the mobile block in style.css) and
+  // only the canvases scale.
+  // 899 rather than a phone-only 768: a tablet in portrait (820px) was
+  // still getting the desktop layout at 0.83x, which is 9px hero names on
+  // a touch screen. The existing stacking rules already break at 900, so
+  // the two agree.
+  MOBILE_MAX: 899,
+
   fitToScreen() {
     const root = document.getElementById('game-root');
     root.style.transform = 'none';
@@ -76,8 +117,19 @@ const App = {
       document.documentElement.clientWidth || Infinity);
     const vh = Math.min(window.innerHeight || Infinity,
       document.documentElement.clientHeight || Infinity);
-    const floor = vw < 760 ? 0.25 : 0.5;
-    const pad = vw < 760 ? 8 : 24;
+    // Reflow rather than shrink on a phone.
+    const mobile = vw <= this.MOBILE_MAX;
+    document.documentElement.classList.toggle('is-mobile', mobile);
+    if (mobile) {
+      root.style.marginBottom = '0';
+      root.style.marginLeft = '0';
+      root.style.marginRight = '0';
+      this.sizeCanvases(true, 1);
+      return;
+    }
+
+    const floor = 0.5;
+    const pad = 24;
     const k = Math.max(floor, Math.min(
       (vw - pad) / root.offsetWidth,
       (vh - pad) / h,
@@ -92,18 +144,7 @@ const App = {
     root.style.marginLeft = `${mx}px`;
     root.style.marginRight = `${mx}px`;
 
-    // Match canvas backing resolution to what's actually on screen, so
-    // sprites are resampled once (source -> device pixels), not twice.
-    const q = Math.min(k * (window.devicePixelRatio || 1), 3);
-    for (const c of this.hiDpiCanvases) {
-      const w = Math.round(c.w * q);
-      if (c.el.width !== w) {
-        c.el.width = w;
-        c.el.height = Math.round(c.h * q);
-        c.el.style.width = `${c.w}px`;
-        c.el.style.height = `${c.h}px`;
-      }
-    }
+    this.sizeCanvases(false, k);
   },
 };
 

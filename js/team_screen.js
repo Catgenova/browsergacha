@@ -861,6 +861,18 @@ class TeamScreen {
     for (const player of this.animators.values()) player.update(dt);
   }
 
+  // Hex labels and hero names hold their size at whatever width the
+  // board is displayed, instead of shrinking with it. See the matching
+  // note in js/render.js.
+  uiFont(px) {
+    if (this._uiFor !== this.canvas.width) {
+      this._uiFor = this.canvas.width;
+      const shown = this.canvas.getBoundingClientRect().width || this.logicalW;
+      this._ui = Math.min(1.8, Math.max(1, this.logicalW / shown));
+    }
+    return `${Math.round(px * this._ui)}px monospace`;
+  }
+
   draw() {
     const { ctx } = this;
     const q = this.canvas.width / this.logicalW;
@@ -894,7 +906,7 @@ class TeamScreen {
 
       // Position category label at the hex bottom.
       ctx.fillStyle = 'rgba(232, 228, 216, 0.35)';
-      ctx.font = '9px monospace';
+      ctx.font = this.uiFont(9);
       ctx.textAlign = 'center';
       ctx.fillText(slot.position.toUpperCase(), slot.x, slot.y + 24);
     }
@@ -920,7 +932,7 @@ class TeamScreen {
 
       const visualTop = yc - dh / 2 + ((sheet && sheet.headPad) || 0);
       ctx.fillStyle = '#bcd6ff';
-      ctx.font = '10px monospace';
+      ctx.font = this.uiFont(10);
       ctx.textAlign = 'center';
       ctx.fillText(def.name, slot.x, visualTop - 6);
 
@@ -943,7 +955,7 @@ class TeamScreen {
     // Hint when carrying a roster hero.
     if (this.selection) {
       ctx.fillStyle = '#8ecbff';
-      ctx.font = '12px monospace';
+      ctx.font = this.uiFont(12);
       ctx.textAlign = 'center';
       ctx.fillText(
         this.selection.from === 'roster'

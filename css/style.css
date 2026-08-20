@@ -1888,3 +1888,238 @@ body {
   #camp-map { overflow-x: auto; }
   #camp-nodes { min-width: 640px; }
 }
+
+
+/* ==========================================================================
+   Touch layouts (<=899px): reflow, do not shrink.
+   fitToScreen() stops transforming the root below this width and stamps
+   .is-mobile on <html>, so the layout runs at real size and only the
+   canvases scale. Everything here exists to make that legible and
+   thumb-sized: 44px is the smallest comfortable tap target, and body copy
+   sits at 14-15px rather than the 6px the old scaling produced.
+   ========================================================================== */
+@media (max-width: 899px) {
+  html.is-mobile body {
+    display: block;
+    padding: 8px;
+    font-size: 15px;
+  }
+  html.is-mobile #game-root {
+    width: 100%;
+    min-width: 0;
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  /* ---- Top bar: name, then a scrollable tab strip, then currencies ---- */
+  html.is-mobile #topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  html.is-mobile #logo { font-size: 15px; }
+  html.is-mobile #nav-tabs {
+    order: 3;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  html.is-mobile #nav-tabs::-webkit-scrollbar { display: none; }
+  html.is-mobile .nav-tab {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  html.is-mobile #scroll-display,
+  html.is-mobile #mat-display { font-size: 13px; }
+
+  /* ---- Canvases go fluid; the team board keeps its aspect ---- */
+  html.is-mobile #team-canvas-wrap,
+  html.is-mobile #hero-details {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  html.is-mobile #team-canvas,
+  html.is-mobile #battle-canvas { width: 100%; height: auto; }
+  html.is-mobile #hero-details { max-height: none; }
+
+  /* ---- Battle: lift the controls off the canvas ----
+     At 390px the canvas is ~220px tall. Buttons floating over it and an
+     ability bar pinned inside it would cover the fight, so both become
+     ordinary blocks underneath. The banner and legend stay overlaid —
+     they are modal by nature. */
+  html.is-mobile #battle-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  html.is-mobile #battle-canvas { order: 1; }
+  html.is-mobile #battle-controls-row {
+    order: 2;
+    position: static;
+    display: flex;
+    gap: 8px;
+  }
+  html.is-mobile #ability-bar {
+    order: 3;
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+  }
+  html.is-mobile #auto-btn,
+  html.is-mobile #speed-btn,
+  html.is-mobile #retreat-btn {
+    position: static;
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+  html.is-mobile #ability-buttons { width: 100%; gap: 8px; }
+  html.is-mobile .ability-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 64px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  html.is-mobile .ability-btn .side-label,
+  html.is-mobile .ability-btn .cd-label { font-size: 11px; }
+  html.is-mobile #target-hint { font-size: 13px; }
+  html.is-mobile #active-hero-name { font-size: 14px; }
+
+  /* ---- Log and meter: readable, and each scrolls on its own ---- */
+  html.is-mobile #battle-bottom { height: auto; }
+  html.is-mobile #battle-log-wrap { flex: 0 0 190px; height: 190px; }
+  html.is-mobile #battle-log { font-size: 12.5px; }
+  html.is-mobile #meter-panel { flex: 0 0 250px; height: 250px; max-height: 250px; }
+
+  /* ---- Roster: fewer, larger cards, with a legible name ---- */
+  html.is-mobile #roster-grid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    display: grid;
+    gap: 8px;
+  }
+  html.is-mobile .roster-card { width: auto; min-width: 0; padding: 10px 6px 8px; }
+  html.is-mobile .card-name { font-size: 12.5px; }
+  html.is-mobile .card-level { font-size: 11px; }
+  html.is-mobile .card-fav { width: 30px; height: 30px; font-size: 15px; }
+  html.is-mobile #roster-header { flex-wrap: wrap; gap: 8px; }
+  html.is-mobile #roster-search,
+  html.is-mobile #comp-search { flex: 1 1 100%; min-height: 44px; font-size: 15px; }
+
+  /* ---- Controls: every select and button is thumb-sized ---- */
+  html.is-mobile select,
+  html.is-mobile input[type="search"],
+  html.is-mobile .panel-btn {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  html.is-mobile #wave-controls,
+  html.is-mobile #boss-controls,
+  html.is-mobile #tower-controls,
+  html.is-mobile #team-controls,
+  html.is-mobile #bs-toolbar,
+  html.is-mobile #bs-bulk,
+  html.is-mobile #comp-top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  html.is-mobile #bs-filters { flex-wrap: wrap; }
+  html.is-mobile .bs-filter { min-height: 40px; }
+
+  /* ---- Side-by-side panels stack ---- */
+  html.is-mobile #bs-main,
+  html.is-mobile #comp-body,
+  html.is-mobile #team-top { flex-direction: column; }
+  html.is-mobile #bs-detail,
+  html.is-mobile #comp-detail,
+  html.is-mobile #bs-list,
+  html.is-mobile #comp-list { width: 100%; max-width: 100%; }
+  html.is-mobile #comp-list { max-height: 320px; }
+
+  /* ---- Summon ---- */
+  html.is-mobile #summon-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 8px;
+  }
+  html.is-mobile .summon-card { width: auto; min-width: 0; }
+  html.is-mobile #summon-actions { flex-wrap: wrap; gap: 8px; }
+  html.is-mobile #summon-actions .panel-btn { flex: 1 1 46%; }
+
+  /* ---- Quests: the row is name + 260px bar + reward + claim, which is
+     wider than a phone. Let it wrap and give the bar room to shrink. ---- */
+  html.is-mobile .quest-row {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 10px 6px;
+  }
+  html.is-mobile .quest-main { flex: 1 1 100%; min-width: 0; }
+  html.is-mobile .quest-bar { width: 100%; max-width: 100%; }
+  html.is-mobile .quest-reward { flex: 1 1 auto; width: auto; }
+  html.is-mobile .quest-claim { flex: 0 0 auto; min-height: 44px; }
+  html.is-mobile .quest-name { font-size: 14px; }
+  html.is-mobile .quest-progress { font-size: 12px; }
+
+  /* ---- Compendium and campaign: their chips and captions were sized
+     for a scaled-down layout, so they read at 9px and tap at 20px. ---- */
+  html.is-mobile .comp-cat,
+  html.is-mobile .comp-anim-btn,
+  html.is-mobile .camp-tier,
+  html.is-mobile .camp-chapter {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  html.is-mobile .comp-owned { min-height: 40px; }
+  html.is-mobile .comp-tag,
+  html.is-mobile .camp-ch-mark,
+  html.is-mobile .camp-node-name,
+  html.is-mobile .stat-row .k,
+  html.is-mobile .cap { font-size: 11px; }
+  html.is-mobile #comp-cats,
+  html.is-mobile #camp-chapters { flex-wrap: wrap; gap: 6px; }
+
+  /* Roster favourite star: 30px is under the comfortable minimum. */
+  html.is-mobile .card-fav { width: 36px; height: 36px; font-size: 16px; }
+
+  /* Checkboxes render at 13px, which is not a tappable target. */
+  html.is-mobile input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    min-height: 22px;
+    accent-color: #ffd76a;
+  }
+  html.is-mobile #hide-maxed-label,
+  html.is-mobile #comp-owned-label,
+  html.is-mobile label:has(> input[type="checkbox"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  /* Labels that were legible only at the old scaled-down sizes. */
+  html.is-mobile #screen-compendium .k,
+  html.is-mobile .camp-section-title { font-size: 11px; }
+  html.is-mobile .card-badge { font-size: 10px; padding: 2px 5px; }
+
+  /* Body copy that was sized for a scaled-down layout. */
+  html.is-mobile .details-empty,
+  html.is-mobile .report-note,
+  html.is-mobile #roster-msg,
+  html.is-mobile #team-count { font-size: 13px; }
+}
+
+/* Very small phones: one more step down so nothing clips. */
+@media (max-width: 380px) {
+  html.is-mobile #roster-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+  html.is-mobile .nav-tab { padding: 10px 12px; font-size: 13px; }
+  html.is-mobile #logo { font-size: 14px; }
+}
