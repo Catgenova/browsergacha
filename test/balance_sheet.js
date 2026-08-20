@@ -260,11 +260,13 @@ footer code { background:var(--panel-2); border:1px solid var(--line); border-ra
       hits a row or the whole field is worth nothing against a half-empty board, so a smaller
       squad quietly undervalues every hero whose kit scales with target count. Runs are seeded,
       so a difference between two heroes is a difference in the heroes.</p>
-    <p><b>Reading poison.</b> Poison is the only damage that skips the DEF curve — no damage
-      formula, no mitigation, no dodge, no crit. At this max-level premise a front-liner sits
-      near DEF 2483, so 100 raw direct damage lands as 10.8 while 100 poison lands as 100.
-      A hero leaning on the poison column is banking on an exemption worth 9.3× here and about
-      2× for a normal Lv 30 team.</p>
+    <p><b>Reading poison.</b> Poison used to skip the DEF curve entirely, which made
+      it worth about 9&#xd7; ordinary damage at this max-level premise and put a DoT carry
+      at the top of every bucket. It now goes through the same pipeline as everything
+      else &mdash; there are no damage paths left that bypass mitigation. The column stays
+      because the split is still worth seeing: a tick is locked in at cast off the
+      caster's ATK and cannot crit or be dodged, so a hero leaning on it trades burst
+      for damage that lands whatever the target does.</p>
     <p><b>Regenerate after a balance pass.</b> <code>node test/balance_sheet.js</code>, then
       re-publish this file to the same URL.</p>
   </footer>
