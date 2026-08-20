@@ -339,9 +339,24 @@ const GameState = (() => {
 
     // Destroy a piece for materials: whetstones scale with rarity and
     // level, plus half the Arcana spent on its enchant comes back.
+    // Locked pieces are protected from bulk salvage and from being
+    // pulled off a hero by auto-equip.
+    isGearLocked(uid) {
+      const piece = state.gear[uid];
+      return !!(piece && piece.locked);
+    },
+    toggleGearLock(uid) {
+      const piece = state.gear[uid];
+      if (!piece) return false;
+      piece.locked = !piece.locked;
+      save();
+      return piece.locked;
+    },
+
     salvageGear(uid) {
       const piece = state.gear[uid];
       if (!piece) return null;
+      if (piece.locked) return null;
       // Salvaging strips the piece off its wearer — not while they fight.
       for (const [heroId, entry] of Object.entries(state.roster)) {
         if (Object.values(entry.equipment || {}).includes(uid) &&
@@ -370,6 +385,7 @@ const GameState = (() => {
       const rank = Gear.RARITY_ORDER.indexOf(rarity);
       if (rank <= 0) return { count: 0, whetstones: 0, arcana: 0 };
       const targets = this.unequippedGear()
+        .filter((p) => !p.locked)
         .filter((p) => Gear.RARITY_ORDER.indexOf(p.rarity) < rank);
       const total = { count: 0, whetstones: 0, arcana: 0 };
       for (const p of targets) {
@@ -448,6 +464,38 @@ const GameState = (() => {
       save();
       return true;
     },
+    // Fit the best available pieces to a hero, slot by slot. Only
+    // considers gear nobody is wearing (plus what this hero already
+    // has), never disturbs another hero's loadout, and leaves locked
+    // pieces where they are. Returns how many slots changed.
+    autoEquip(heroId) {
+      const entry = state.roster[heroId];
+      const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
+      if (!entry || !def || this.heroGearLocked(heroId)) return 0;
+      const base = Progression.scaledStats(def, entry.level, entry.stars);
+      const free = this.unequippedGear();
+      let changed = 0;
+      for (const slot of Gear.SLOTS) {
+        const wornUid = entry.equipment[slot];
+        const worn = wornUid ? state.gear[wornUid] : null;
+        if (worn && worn.locked) continue; // locked in place on purpose
+        const wornScore = Gear.scoreFor(worn, base);
+        let best = null, bestScore = wornScore;
+        for (const p of free) {
+          if (p.slot !== slot || p.locked) continue;
+          const sc = Gear.scoreFor(p, base);
+          if (sc > bestScore) { best = p; bestScore = sc; }
+        }
+        if (!best) continue;
+        entry.equipment[slot] = best.uid;
+        free.splice(free.indexOf(best), 1);
+        if (worn) free.push(worn); // the piece it replaced is free again
+        changed++;
+      }
+      if (changed) save();
+      return changed;
+    },
+
     unequipGear(heroId, slot) {
       const entry = state.roster[heroId];
       if (!entry || !entry.equipment) return false;

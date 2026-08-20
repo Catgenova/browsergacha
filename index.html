@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browser Gacha — Hero Battler</title>
-  <link rel="stylesheet" href="css/style.css?v=66295ea2" />
+  <link rel="stylesheet" href="css/style.css?v=3897a260" />
 </head>
 <body>
   <div id="game-root">
     <!-- Top bar: nav + currency -->
     <header id="topbar">
-      <div id="logo">BROWSER GACHA <span id="version-tag">v178 · 66295ea2</span></div>
+      <div id="logo">BROWSER GACHA <span id="version-tag">v179 · 3897a260</span></div>
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
@@ -136,7 +136,11 @@
     <!-- ================= Compendium screen ================= -->
     <section id="screen-compendium" class="screen hidden">
       <div id="comp-top">
-        <h3>Hero Compendium</h3>
+        <h3>Compendium</h3>
+        <div id="comp-category">
+          <button class="comp-cat active" data-cat="heroes">Heroes</button>
+          <button class="comp-cat" data-cat="bosses">Bosses</button>
+        </div>
         <input id="comp-search" type="search" placeholder="Search name, title or element…">
         <select id="comp-filter-rarity" title="Filter by rarity">
           <option value="">All rarities</option>
@@ -205,33 +209,34 @@
     </section>
   </div>
 
-  <script src="js/meter.js?v=66295ea2"></script>
-  <script src="js/config.js?v=66295ea2"></script>
-  <script src="js/hex.js?v=66295ea2"></script>
-  <script src="js/elements.js?v=66295ea2"></script>
-  <script src="js/races.js?v=66295ea2"></script>
-  <script src="js/sprites.js?v=66295ea2"></script>
-  <script src="js/abilities.js?v=66295ea2"></script>
-  <script src="js/progression.js?v=66295ea2"></script>
-  <script src="js/gear.js?v=66295ea2"></script>
-  <script src="js/hero.js?v=66295ea2"></script>
-  <script src="js/data/positionals.js?v=66295ea2"></script>
-  <script src="js/data/heroes.js?v=66295ea2"></script>
-  <script src="js/data/enemies.js?v=66295ea2"></script>
-  <script src="js/data/bosses.js?v=66295ea2"></script>
-  <script src="js/data/effects.js?v=66295ea2"></script>
-  <script src="js/quests.js?v=66295ea2"></script>
-  <script src="js/state.js?v=66295ea2"></script>
-  <script src="js/gacha.js?v=66295ea2"></script>
-  <script src="js/battle.js?v=66295ea2"></script>
-  <script src="js/render.js?v=66295ea2"></script>
-  <script src="js/ui.js?v=66295ea2"></script>
-  <script src="js/compendium_screen.js?v=66295ea2"></script>
-  <script src="js/battle_screen.js?v=66295ea2"></script>
-  <script src="js/team_screen.js?v=66295ea2"></script>
-  <script src="js/blacksmith_screen.js?v=66295ea2"></script>
-  <script src="js/quests_screen.js?v=66295ea2"></script>
-  <script src="js/summon_screen.js?v=66295ea2"></script>
-  <script src="js/main.js?v=66295ea2"></script>
+  <script src="js/meter.js?v=3897a260"></script>
+  <script src="js/config.js?v=3897a260"></script>
+  <script src="js/hex.js?v=3897a260"></script>
+  <script src="js/elements.js?v=3897a260"></script>
+  <script src="js/races.js?v=3897a260"></script>
+  <script src="js/sprites.js?v=3897a260"></script>
+  <script src="js/abilities.js?v=3897a260"></script>
+  <script src="js/progression.js?v=3897a260"></script>
+  <script src="js/gear.js?v=3897a260"></script>
+  <script src="js/hero.js?v=3897a260"></script>
+  <script src="js/data/positionals.js?v=3897a260"></script>
+  <script src="js/data/heroes.js?v=3897a260"></script>
+  <script src="js/data/enemies.js?v=3897a260"></script>
+  <script src="js/data/bosses.js?v=3897a260"></script>
+  <script src="js/data/effects.js?v=3897a260"></script>
+  <script src="js/quests.js?v=3897a260"></script>
+  <script src="js/state.js?v=3897a260"></script>
+  <script src="js/gacha.js?v=3897a260"></script>
+  <script src="js/ai.js?v=3897a260"></script>
+  <script src="js/battle.js?v=3897a260"></script>
+  <script src="js/render.js?v=3897a260"></script>
+  <script src="js/ui.js?v=3897a260"></script>
+  <script src="js/compendium_screen.js?v=3897a260"></script>
+  <script src="js/battle_screen.js?v=3897a260"></script>
+  <script src="js/team_screen.js?v=3897a260"></script>
+  <script src="js/blacksmith_screen.js?v=3897a260"></script>
+  <script src="js/quests_screen.js?v=3897a260"></script>
+  <script src="js/summon_screen.js?v=3897a260"></script>
+  <script src="js/main.js?v=3897a260"></script>
 </body>
 </html>

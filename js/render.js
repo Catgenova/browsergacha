@@ -302,6 +302,82 @@ class Renderer {
     }
   }
 
+  // What each status looks like on the nameplate. Ordered by how much
+  // the player needs to know about it: control first, then damage over
+  // time, then the buffs and debuffs, then unit-specific resources.
+  static get STATUS_ICONS() {
+    return {
+      stun:        { glyph: '✶', color: '#8ee8ff', title: 'Stunned' },
+      dot:         { glyph: '☠', color: '#a8e85a', title: 'Poisoned' },
+      hot:         { glyph: '✚', color: '#7ae87a', title: 'Regenerating' },
+      damageTaken: { glyph: '▼', color: '#d78aff', title: 'Vulnerable' },
+      methane:     { glyph: '☁', color: '#b8e85a', title: 'Methane fog' },
+      veil:        { glyph: '≈', color: '#8ee8ff', title: 'Veiled' },
+      slag:        { glyph: '▨', color: '#ff9a5a', title: 'Slag plating' },
+      atk:         { glyph: 'A', color: null, title: 'ATK' },
+      def:         { glyph: 'D', color: null, title: 'DEF' },
+      speed:       { glyph: 'S', color: null, title: 'SPD' },
+      critChance:  { glyph: 'C', color: null, title: 'CRIT' },
+      critDamage:  { glyph: 'X', color: null, title: 'CRIT DMG' },
+    };
+  }
+
+  // The distinct pips a unit is currently showing.
+  statusPips(unit) {
+    const ICONS = Renderer.STATUS_ICONS;
+    const seen = new Map();
+    for (const fx of unit.statusEffects || []) {
+      // Poisons and regens are keyed by kind; everything else by stat.
+      const key = fx.kind === 'dot' || fx.kind === 'hot' ? fx.kind : fx.stat;
+      const icon = ICONS[key];
+      if (!icon) continue;
+      // Buffs read green-ish, debuffs purple, unless the status has a
+      // color of its own (poison, stun...).
+      const buff = fx.kind === 'buff' || fx.kind === 'hot';
+      const color = icon.color || (buff ? '#8ecbff' : '#d78aff');
+      const id = `${key}:${buff}`;
+      const prev = seen.get(id);
+      if (prev) { prev.count++; prev.turns = Math.max(prev.turns, fx.turns || 0); continue; }
+      seen.set(id, {
+        glyph: icon.glyph + (icon.color ? '' : (buff ? '▲' : '▼')),
+        color, count: 1, turns: fx.turns || 0,
+      });
+    }
+    // Crystal mirrors are a resource, not a status, but they belong on
+    // the plate for the same reason: they change what the hit does.
+    if (unit.mirrorMax > 0 && unit.mirrors > 0) {
+      seen.set('mirrors', { glyph: `◆${unit.mirrors}`, color: '#8ee8ff', count: 1, turns: 0 });
+    }
+    return [...seen.values()];
+  }
+
+  statusRowH(unit) {
+    return this.statusPips(unit).length > 0 ? 9 : 0;
+  }
+
+  drawStatusPips(unit, x, top, w) {
+    const pips = this.statusPips(unit);
+    if (pips.length === 0) return;
+    const { ctx } = this;
+    ctx.save();
+    ctx.font = '8px monospace';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    // Lay the row out centered on the bar.
+    const labels = pips.map((p) => p.glyph + (p.count > 1 ? `x${p.count}` : ''));
+    const widths = labels.map((l) => ctx.measureText(l).width + 4);
+    const totalW = widths.reduce((a, b) => a + b, 0);
+    let cx = x - Math.min(totalW, w * 1.6) / 2;
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 3;
+    pips.forEach((p, i) => {
+      ctx.fillStyle = p.color;
+      ctx.fillText(labels[i], cx, top);
+      cx += widths[i];
+    });
+    ctx.restore();
+  }
+
   // spriteTop: the y of the unit sprite's top edge; bars stack above it.
   drawBars(unit, x, spriteTop) {
     const { ctx } = this;
@@ -319,8 +395,13 @@ class Renderer {
     ctx.fillStyle = hpFrac > 0.5 ? '#4ad46a' : hpFrac > 0.25 ? '#e8c84a' : '#e85a4a';
     ctx.fillRect(x - w / 2, top, w * hpFrac, h);
 
+    // Status pips: what's actually on this unit right now (stuns,
+    // poisons, buffs, wards, Aniani's mirrors). Sits between the health
+    // and turn-meter bars so it reads as part of the nameplate.
+    this.drawStatusPips(unit, x, top + h + 2, w);
+
     // Turn meter bar
-    const tmTop = top + h + 2;
+    const tmTop = top + h + 2 + (this.statusRowH(unit) || 0);
     const tmFrac = Math.min(1, unit.turnMeter / CONFIG.TURN_METER_MAX);
     ctx.fillStyle = '#0e0c14';
     ctx.fillRect(x - w / 2 - 1, tmTop - 1, w + 2, h - 1 + 2);

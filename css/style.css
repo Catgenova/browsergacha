@@ -1330,3 +1330,56 @@ body {
   font-variant-numeric: tabular-nums;
 }
 #meter-total b { color: #ffd76a; }
+
+/* Gear management: auto-equip control + result note */
+.gear-auto-btn {
+  margin: 6px 0 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+.gear-auto-msg {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #7ae87a;
+}
+
+/* Compendium: hero/boss switch, boss stage table, drop notes */
+#comp-category { display: flex; gap: 4px; }
+.comp-cat {
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #9a92b8;
+  background: #2b2740;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.comp-cat:hover { background: #3d3260; color: #e8e4d8; }
+.comp-cat.active { color: #ffd76a; border-color: #ffd76a; background: #2c2545; }
+#comp-top.bosses-mode #comp-filter-rarity,
+#comp-top.bosses-mode #comp-filter-element,
+#comp-top.bosses-mode #comp-filter-race,
+#comp-top.bosses-mode #comp-owned-label { display: none; }
+
+.comp-stage-box { margin-top: 8px; overflow-x: auto; }
+.comp-stage-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 420px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.comp-stage-table th {
+  text-align: left;
+  color: #e8e4d8;
+  font-weight: normal;
+  padding: 3px 8px 3px 0;
+  white-space: nowrap;
+}
+.comp-stage-table td { padding: 3px 8px 3px 0; color: #b8b2cc; }
+.comp-stage-table tr.stage-cleared td:last-child { color: #7ae87a; }
+.comp-stage-table tr.stage-next td:last-child { color: #ffd76a; }
+.comp-stage-table tr.stage-locked { opacity: 0.55; }
+.comp-drop { margin-top: 6px; font-size: 11px; color: #c8c2da; }
+.comp-drop b { color: #ffd76a; }
