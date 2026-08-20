@@ -217,9 +217,12 @@ class TeamScreen {
   // ---- Roster panel ------------------------------------------------------
 
   buildRoster() {
-    this.rosterEl.innerHTML = '';
     const team = GameState.getTeam();
     const inTeam = new Set(Object.values(team));
+    // Card reuse: rebuilding 385 cards (and 385 portrait canvases) on
+    // every click is the single most expensive thing this screen does.
+    // Keep the DOM nodes keyed by hero and only re-order/refresh them.
+    if (!this.cardCache) this.cardCache = new Map();
 
     // Search filters by name or element; sort defaults to level, then
     // stars, then rarity.
@@ -253,62 +256,64 @@ class TeamScreen {
       })
       .sort(SORTS[this.rosterSort.value] || SORTS.level);
 
+    const frag = document.createDocumentFragment();
     for (const heroId of ids) {
-      const def = HEROES[heroId];
-      const card = document.createElement('div');
-      card.className = 'roster-card' + (this.selection && this.selection.heroId === heroId ? ' selected' : '');
-      card.dataset.heroId = heroId;
+      frag.appendChild(this.rosterCard(heroId, inTeam));
+    }
+    this.rosterEl.replaceChildren(frag);
+  }
 
+  // One roster card, built once and refreshed in place afterwards.
+  rosterCard(heroId, inTeam) {
+    const def = HEROES[heroId];
+    const progress = GameState.progressOf(heroId);
+    let card = this.cardCache.get(heroId);
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'roster-card';
+      card.dataset.heroId = heroId;
       const portrait = document.createElement('canvas');
       portrait.width = 64;
       portrait.height = 64;
       portrait.className = 'portrait';
-      Sprites.drawPortrait(portrait, def);
-
+      // Painted from a cached bitmap — drawn once per hero, not per refresh.
+      Sprites.paintPortrait(portrait, def);
       const name = document.createElement('div');
       name.className = 'card-name';
       name.textContent = `${Elements.badge(def.element)} ${def.name}`.trim();
-
-      const progress = GameState.progressOf(heroId);
       const stars = document.createElement('div');
       stars.className = `card-stars rarity-${def.rarity}`;
-      stars.textContent = progress.stars <= 5
-        ? '★'.repeat(progress.stars)
-        : `${progress.stars}★`;
-
       const level = document.createElement('div');
       level.className = 'card-level';
-      const capped = progress.level >= Progression.maxLevel(progress.stars);
-      level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
-      if (capped) level.classList.add('card-level-max');
-
-      card.append(portrait, name, stars, level);
-
-      if (inTeam.has(heroId)) {
-        const badge = document.createElement('div');
-        badge.className = 'card-badge';
-        badge.textContent = 'IN TEAM';
-        card.appendChild(badge);
-      }
-      const copies = GameState.copiesOf(heroId);
-      if (copies > 1) {
-        const dupes = document.createElement('div');
-        dupes.className = 'card-copies';
-        dupes.textContent = `×${copies}`;
-        card.appendChild(dupes);
-      }
-      // Star-up ready: max level with enough spare duplicates.
-      if (GameState.canStarUp(heroId)) {
-        const up = document.createElement('div');
-        up.className = 'card-starup';
-        up.title = 'Ready to star up!';
-        up.textContent = '★⬆';
-        card.appendChild(up);
-      }
-
+      const badge = document.createElement('div');
+      badge.className = 'card-badge';
+      badge.textContent = 'IN TEAM';
+      const dupes = document.createElement('div');
+      dupes.className = 'card-copies';
+      const up = document.createElement('div');
+      up.className = 'card-starup';
+      up.title = 'Ready to star up!';
+      up.textContent = '★⬆';
+      card.append(portrait, name, stars, level, badge, dupes, up);
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
-      this.rosterEl.appendChild(card);
+      card._parts = { stars, level, badge, dupes, up };
+      this.cardCache.set(heroId, card);
     }
+    // Refresh the parts that actually change.
+    const { stars, level, badge, dupes, up } = card._parts;
+    card.classList.toggle('selected',
+      !!this.selection && this.selection.heroId === heroId);
+    stars.textContent = progress.stars <= 5
+      ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+    const capped = progress.level >= Progression.maxLevel(progress.stars);
+    level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
+    level.classList.toggle('card-level-max', capped);
+    badge.classList.toggle('hidden', !inTeam.has(heroId));
+    const copies = GameState.copiesOf(heroId);
+    dupes.textContent = `×${copies}`;
+    dupes.classList.toggle('hidden', copies <= 1);
+    up.classList.toggle('hidden', !GameState.canStarUp(heroId));
+    return card;
   }
 
   // ---- Selection & placement ---------------------------------------------

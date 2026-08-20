@@ -25,6 +25,37 @@ const AI = (() => {
     (a.hp * (1 + a.effectiveStat('def') / 300)) -
     (b.hp * (1 + b.effectiveStat('def') / 300)))[0];
 
+  // ---- Threat -------------------------------------------------------------
+  // Standing in the front rank means being in the way. Without this the
+  // front line protected nobody: AI picked the softest target on the
+  // board and walked straight past the wall to the healer.
+  //
+  // A unit that taunts is chosen outright. Otherwise the front rank is
+  // strongly preferred, and back-rank units are only reached once the
+  // line thins out — so formation is a defensive decision, not decor.
+  const FRONT_WEIGHT = 4;
+  const BACK_WEIGHT = 1;
+
+  function taunting(list) {
+    return list.filter((u) => u.statusEffects &&
+      u.statusEffects.some((fx) => fx.stat === 'taunt'));
+  }
+
+  // Narrow a candidate list to who is actually reachable, then let the
+  // profile choose among them.
+  function reachable(list) {
+    const taunts = taunting(list);
+    if (taunts.length) return taunts;
+    const front = list.filter((u) => u.isBoss ||
+      (u.slot && u.slot.position === POSITION.FRONT));
+    if (front.length === 0) return list;
+    // With a line still standing, the back rank is mostly shielded —
+    // but never completely: a determined attacker can still get through.
+    const back = list.filter((u) => !front.includes(u));
+    const roll = Math.random() * (front.length * FRONT_WEIGHT + back.length * BACK_WEIGHT);
+    return roll < front.length * FRONT_WEIGHT ? front : (back.length ? back : front);
+  }
+
   const PROFILES = {
     // The old behavior, kept as the baseline.
     balanced: {
@@ -143,14 +174,33 @@ const AI = (() => {
     human: 'balanced',
   };
 
-  function profileFor(unit) {
-    // The player's heroes always use the predictable baseline on auto.
-    if (unit.team === TEAM.PLAYER) return PROFILES.balanced;
-    if (unit.def && unit.def.ai && PROFILES[unit.def.ai]) return PROFILES[unit.def.ai];
-    if (unit.isBoss) return PROFILES.tyrant;
-    const race = typeof RACES !== 'undefined' ? RACES.of(unit.def) : null;
-    return PROFILES[BY_RACE[race]] || PROFILES.balanced;
+  // Wrap a profile so its target choice respects threat. Profiles that
+  // deliberately hunt a role (pack hunters after healers) still get to
+  // choose — but only from who they can actually reach.
+  function withThreat(profile) {
+    if (profile._threatWrapped) return profile;
+    const focus = profile.focus;
+    const wrapped = {
+      ...profile,
+      focus: (enemies, unit, battle) => {
+        const pool = reachable(enemies);
+        return focus(pool, unit, battle) || pool[0];
+      },
+      _threatWrapped: true,
+    };
+    return wrapped;
   }
 
-  return { PROFILES, BY_RACE, profileFor };
+  function profileFor(unit) {
+    // The player's heroes always use the predictable baseline on auto.
+    if (unit.team === TEAM.PLAYER) return withThreat(PROFILES.balanced);
+    if (unit.def && unit.def.ai && PROFILES[unit.def.ai]) {
+      return withThreat(PROFILES[unit.def.ai]);
+    }
+    if (unit.isBoss) return withThreat(PROFILES.tyrant);
+    const race = typeof RACES !== 'undefined' ? RACES.of(unit.def) : null;
+    return withThreat(PROFILES[BY_RACE[race]] || PROFILES.balanced);
+  }
+
+  return { PROFILES, BY_RACE, profileFor, reachable, taunting };
 })();

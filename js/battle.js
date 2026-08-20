@@ -172,6 +172,11 @@ class Battle {
       return;
     }
 
+    // Boss telegraph: a heavy skill winding up is announced a turn
+    // early, so the party can guard, cleanse or burst instead of being
+    // surprised. The wind-up is spent on the boss's normal action.
+    this.updateTelegraph(unit);
+
     if (unit.team === TEAM.PLAYER && !this.autoMode) {
       this.state = BattleState.PLAYER_INPUT;
       if (this.onPlayerTurn) this.onPlayerTurn(unit);
@@ -181,6 +186,30 @@ class Battle {
       // catch-up ticks (throttled tabs) keep battles moving.
       this.pendingAuto = { unit, wait: CONFIG.AI_DELAY / 1000 };
     }
+  }
+
+  // Bosses (and any unit flagged `telegraphs`) broadcast their heaviest
+  // ready skill one turn before it lands. `unit.telegraph` holds the
+  // ability being charged; the renderer paints it on the nameplate and
+  // autoAct honours it so the promise is kept.
+  updateTelegraph(unit) {
+    if (!unit.isBoss && !(unit.def && unit.def.telegraphs)) return;
+    // A charge that was announced last turn is spent this turn.
+    if (unit.telegraph) {
+      const still = unit.abilities.find((a) => a.def === unit.telegraph.def);
+      if (!still || still.cooldownRemaining > 0) unit.telegraph = null;
+      return; // it fires this turn — say nothing new
+    }
+    const heavy = unit.readyAbilities()
+      .filter((a) => a.def.cooldown >= 4 &&
+        a.def.effects.some((e) => e.type === 'damage' ||
+          e.type === 'damageDef' || e.type === 'damageHpPct'))
+      .sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
+    if (!heavy) return;
+    unit.telegraph = { def: heavy.def };
+    this.addFloatingText(unit, `⚠ ${heavy.def.name}`, '#ff9a5a', true);
+    this.log(`${unit.name} begins charging ${heavy.def.name} — brace for it!`,
+      'log-system');
   }
 
   // Toggle autobattle. If a player hero is already waiting for input,
@@ -410,6 +439,15 @@ class Battle {
           this.addFloatingText(res.target, `-${res.amount}`, '#ff6a6a');
           this.log(`${caster.name} uses ${ability.name}: ${res.amount} damage to ${res.target.name}.`, cls);
         }
+        // Elemental verdict: say it out loud, since it swings the hit
+        // by 15-25% and nothing on screen used to mention it.
+        if (res.elem > 1) {
+          this.addFloatingText(res.target, 'WEAK!', '#ffd76a');
+          this.log(`  ${Elements.info(caster.element).name} beats ${Elements.info(res.target.element).name} — +${Math.round((res.elem - 1) * 100)}% damage.`, cls);
+        } else if (res.elem < 1) {
+          this.addFloatingText(res.target, 'RESIST', '#8ecbff');
+          this.log(`  ${Elements.info(res.target.element).name} resists ${Elements.info(caster.element).name} — ${Math.round((1 - res.elem) * 100)}% less damage.`, cls);
+        }
         if (!res.target.alive) this.log(`${res.target.name} is defeated!`, 'log-system');
       } else if (res.kind === 'heal') {
         this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
@@ -428,6 +466,9 @@ class Battle {
       } else if (res.kind === 'meter') {
         this.addFloatingText(res.target, 'METER ▼', '#d78aff');
         this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+      } else if (res.kind === 'taunt') {
+        this.addFloatingText(res.target, '⚑ TAUNT', '#ffd76a', true);
+        this.log(`${res.target.name} draws the enemy's attention for ${res.turns} turns!`, cls);
       } else if (res.kind === 'mirrors') {
         if (res.amount > 0) {
           this.addFloatingText(res.target, `◆ +${res.amount}`, '#8ee8ff');
@@ -551,8 +592,12 @@ class Battle {
     // profile (see js/ai.js): a wolf pack hunts healers, drakes spread
     // venom, bruisers go through the front line.
     const profile = AI.profileFor(unit);
-    const choice = profile.pick(pool, unit, this) ||
+    // A charged skill fires — a telegraph the boss ignores is a lie.
+    const charged = unit.telegraph &&
+      pool.find((a) => a.def === unit.telegraph.def);
+    const choice = charged || profile.pick(pool, unit, this) ||
       pool.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
+    if (charged) unit.telegraph = null;
 
     let target = null;
     if (choice.def.targeting === 'enemy') {

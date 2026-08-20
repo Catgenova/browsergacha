@@ -7,6 +7,7 @@ class Renderer {
     this.battle = null;        // bound via setBattle for each new battle
     this.hoveredUnit = null;   // set by UI for target highlighting
     this.targetingMode = null; // 'enemy' | 'ally' | null
+    this.targetingSource = null; // whoever is choosing, for matchup hints
     this.rowMode = false;      // highlight the hovered enemy's whole row
     // Battle backdrops: all loaded up front; each new battle rotates to
     // the next (gradient fallback until loaded / when missing).
@@ -293,6 +294,37 @@ class Renderer {
     const visualTop = yc - dh / 2 + headPad;
     this.drawBars(unit, x, visualTop);
 
+    // Charging warning: what this unit is about to unleash.
+    if (unit.telegraph) {
+      ctx.save();
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur = 4;
+      const pulse = 0.55 + 0.45 * Math.abs(Math.sin(Date.now() / 260));
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#ff9a5a';
+      ctx.fillText(`⚠ ${unit.telegraph.def.name}`, x, visualTop - 34);
+      ctx.restore();
+    }
+
+    // Elemental matchup while the player is picking a target: the
+    // ±15/25% swing was invisible until the damage had already landed.
+    if (this.targetingMode && this.targetingSource &&
+        unit.team !== this.targetingSource.team && unit.alive) {
+      const m = Elements.mult(this.targetingSource.element, unit.element);
+      if (m !== 1) {
+        ctx.save();
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = m > 1 ? '#ffd76a' : '#8ecbff';
+        ctx.fillText(m > 1 ? '▲ WEAK' : '▼ RESIST', x, visualTop - 22);
+        ctx.restore();
+      }
+    }
+
     // Positional bonus pip when active.
     if (unit.positionalActive()) {
       ctx.fillStyle = '#ffd76a';
@@ -307,6 +339,7 @@ class Renderer {
   // time, then the buffs and debuffs, then unit-specific resources.
   static get STATUS_ICONS() {
     return {
+      taunt:       { glyph: '⚑', color: '#ffd76a', title: 'Taunting' },
       stun:        { glyph: '✶', color: '#8ee8ff', title: 'Stunned' },
       dot:         { glyph: '☠', color: '#a8e85a', title: 'Poisoned' },
       hot:         { glyph: '✚', color: '#7ae87a', title: 'Regenerating' },

@@ -549,6 +549,49 @@ const Sprites = (() => {
     return sheetCache.get(key);
   }
 
+  // Portrait bitmaps, rendered once per hero and reused. The roster
+  // grid draws hundreds of these; without a cache every refresh
+  // re-decodes and re-rasterizes the same idle frames.
+  const portraitCache = new Map();
+
+  function portraitBitmap(def, size = 64) {
+    const key = `${def.id}:${size}`;
+    if (portraitCache.has(key)) return portraitCache.get(key);
+    const promise = getSheet(def).then((sheet) => {
+      const anim = sheet.animations.idle;
+      const c = document.createElement('canvas');
+      c.width = size * 3;      // 3x backing, matching drawPortrait
+      c.height = size * 3;
+      const ctx = c.getContext('2d');
+      let scale = Math.min(c.width / anim.frameW, c.height / anim.frameH);
+      if (scale > 1) scale = Math.floor(scale);
+      ctx.imageSmoothingEnabled = scale < 1;
+      ctx.imageSmoothingQuality = 'high';
+      const w = anim.frameW * scale;
+      const h = anim.frameH * scale;
+      ctx.drawImage(anim.image, 0, anim.row * anim.frameH, anim.frameW, anim.frameH,
+        (c.width - w) / 2, (c.height - h) / 2, w, h);
+      return c;
+    });
+    portraitCache.set(key, promise);
+    return promise;
+  }
+
+  // Paint a cached portrait into an <img>-like element cheaply.
+  async function paintPortrait(canvasEl, def) {
+    const size = canvasEl.width || 64;
+    const bmp = await portraitBitmap(def, size);
+    canvasEl.style.width = `${size}px`;
+    canvasEl.style.height = `${size}px`;
+    if (canvasEl.width !== bmp.width) {
+      canvasEl.width = bmp.width;
+      canvasEl.height = bmp.height;
+    }
+    const ctx = canvasEl.getContext('2d');
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    ctx.drawImage(bmp, 0, 0);
+  }
+
   // Draw a hero's idle frame 0 into a portrait canvas element.
   // Renders at 3x backing resolution so portraits stay sharp when the UI
   // scales up; the element keeps its logical CSS size.
@@ -579,5 +622,6 @@ const Sprites = (() => {
     );
   }
 
-  return { load, getSheet, getMirrorSheets, getEffectSheet, drawPortrait, loadImage, assetUrl };
+  return { load, getSheet, getMirrorSheets, getEffectSheet, drawPortrait,
+    paintPortrait, portraitBitmap, loadImage, assetUrl };
 })();

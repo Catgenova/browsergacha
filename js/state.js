@@ -5,7 +5,76 @@
 const GameState = (() => {
   const KEY = 'browsergacha_save_v1';
 
+  // Save schema version. Every structural change to the save gets a
+  // numbered migration below rather than another ad-hoc patch in
+  // load(), so an old save always walks a known path to the present.
+  const SCHEMA = 4;
+
+  // Ordered migrations: each takes a save at version < its `to` and
+  // brings it up to that version. They run in order, once, on load.
+  const MIGRATIONS = [
+    {
+      to: 1,
+      what: 'gems retired in favour of summon scrolls',
+      run(s) {
+        delete s.gems;
+        if (s.scrollsCommon === undefined) s.scrollsCommon = 5;
+        if (s.scrollsRare === undefined) s.scrollsRare = 1;
+        if (s.scrollsTemporal === undefined) s.scrollsTemporal = 0;
+      },
+    },
+    {
+      to: 2,
+      what: 'roster entries gained level, stars, gear and skill levels',
+      run(s) {
+        for (const [id, entry] of Object.entries(s.roster || {})) {
+          if (entry.level === undefined) {
+            Object.assign(entry, { level: 1, xp: 0, stars: freshEntry(id).stars });
+          }
+          if (!entry.equipment) entry.equipment = {};
+          if (!entry.skills) entry.skills = {};
+        }
+      },
+    },
+    {
+      to: 3,
+      what: 'stars can never sit below a hero base rarity (Dark/Light promotion)',
+      run(s) {
+        if (typeof HEROES === 'undefined') return;
+        for (const [id, entry] of Object.entries(s.roster || {})) {
+          const def = HEROES[id];
+          if (def && entry.stars < (def.rarity || 1)) entry.stars = def.rarity;
+        }
+      },
+    },
+    {
+      to: 4,
+      what: 'gear pieces gained a lock flag',
+      run(s) {
+        for (const piece of Object.values(s.gear || {})) {
+          if (piece.locked === undefined) piece.locked = false;
+        }
+      },
+    },
+  ];
+
+  // Bring a loaded save up to the current schema.
+  function migrate(s) {
+    const from = typeof s.schemaVersion === 'number' ? s.schemaVersion : 0;
+    for (const m of MIGRATIONS) {
+      if (from >= m.to) continue;
+      try {
+        m.run(s);
+      } catch (e) {
+        console.warn(`save migration to v${m.to} (${m.what}) failed:`, e.message);
+      }
+    }
+    s.schemaVersion = SCHEMA;
+    return s;
+  }
+
   const DEFAULTS = {
+    schemaVersion: SCHEMA,               // see MIGRATIONS above
     scrollsCommon: 5,                    // Common Summon Scrolls
     scrollsRare: 1,                      // Rare Summon Scrolls
     scrollsTemporal: 0,                  // Temporal Scrolls (dark/light)
@@ -18,6 +87,7 @@ const GameState = (() => {
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
     gear: {},                            // uid -> gear piece
     quests: {},                          // { daily, monthly } progress
+    achievements: {},                    // achievementId -> true once claimed
     tower: { best: 0 },                  // Endless Tower highest floor
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
@@ -59,25 +129,20 @@ const GameState = (() => {
       for (const id of Object.keys(loaded.roster)) {
         if (!HEROES[id]) delete loaded.roster[id];
       }
-      // A hero's stars can never sit below their base rarity: when a
-      // character is promoted (Dark/Light are now always 3★+), copies
-      // already in the roster come up with them.
+      // Invariant, not a migration: promoting a character later must
+      // still lift copies already in the roster.
       for (const [id, entry] of Object.entries(loaded.roster)) {
         const base = HEROES[id].rarity || 1;
-        if (entry.stars < base) entry.stars = base;
+        if (entry.stars !== undefined && entry.stars < base) entry.stars = base;
       }
       for (const [slot, id] of Object.entries(loaded.team)) {
         if (!HEROES[id]) delete loaded.team[slot];
       }
     }
-    // Migrate older saves: entries gain level/xp/stars/equipment.
-    for (const [id, entry] of Object.entries(loaded.roster)) {
-      if (entry.level === undefined) {
-        Object.assign(entry, { level: 1, xp: 0 }, { stars: freshEntry(id).stars });
-      }
-      if (!entry.equipment) entry.equipment = {};
-      if (!entry.skills) entry.skills = {};
-    }
+    // Walk the save up to the current schema.
+    migrate(loaded);
+
+    // Shape guards: fields a save must have regardless of its age.
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
@@ -85,14 +150,11 @@ const GameState = (() => {
     if (!loaded.tomes) loaded.tomes = 0;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     if (!loaded.quests) loaded.quests = {};
+    if (!loaded.achievements) loaded.achievements = {};
     if (!loaded.tower) loaded.tower = { best: 0 };
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
-    // Gems are retired; grant scroll defaults to migrated saves.
-    if (loaded.scrollsCommon === undefined) loaded.scrollsCommon = 5;
-    if (loaded.scrollsRare === undefined) loaded.scrollsRare = 1;
-    if (loaded.scrollsTemporal === undefined) loaded.scrollsTemporal = 0;
-    delete loaded.gems;
+
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
     for (const piece of Object.values(loaded.gear)) {
@@ -501,6 +563,23 @@ const GameState = (() => {
       if (!entry || !entry.equipment) return false;
       if (this.heroGearLocked(heroId)) return false;
       delete entry.equipment[slot];
+      save();
+      return true;
+    },
+
+    // ---- Achievements ----
+    achievementClaimed(id) { return !!state.achievements[id]; },
+    claimAchievement(id, reward) {
+      if (state.achievements[id]) return false;
+      state.achievements[id] = true;
+      for (const [kind, amount] of Object.entries(reward || {})) {
+        if (kind === 'common') state.scrollsCommon += amount;
+        else if (kind === 'rare') state.scrollsRare += amount;
+        else if (kind === 'temporal') state.scrollsTemporal += amount;
+        else if (kind === 'whetstones') state.whetstones += amount;
+        else if (kind === 'arcana') state.arcana += amount;
+        else if (kind === 'tomes') state.tomes += amount;
+      }
       save();
       return true;
     },

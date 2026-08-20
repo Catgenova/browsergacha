@@ -191,7 +191,16 @@
 
       <!-- Battle log + damage meter -->
       <div id="battle-bottom">
-        <div id="battle-log"></div>
+        <div id="battle-log-wrap">
+          <div id="log-filters">
+            <button class="log-filter active" data-filter="all" title="Everything">All</button>
+            <button class="log-filter" data-filter="log-player" title="Only your heroes">Team</button>
+            <button class="log-filter" data-filter="log-enemy" title="Only the enemy">Enemy</button>
+            <button class="log-filter" data-filter="log-system" title="Only battle events">Events</button>
+            <span class="log-hint" title="1/2/3 abilities · Q-U targets · Esc cancel · Space auto · Enter continue">⌨ hotkeys</span>
+          </div>
+          <div id="battle-log"></div>
+        </div>
         <aside id="meter-panel">
           <div id="meter-tabs">
             <button class="meter-tab active" data-kind="damage">Damage</button>
@@ -221,10 +230,21 @@
   <script src="js/hero.js?v=__BUILD__"></script>
   <script src="js/data/positionals.js?v=__BUILD__"></script>
   <script src="js/data/heroes.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/humans.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/rats.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/avians.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/minotaurs.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/snakes.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/wolfs.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/boars.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/bears.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/cats.js?v=__BUILD__"></script>
+  <script src="js/data/heroes/drakes.js?v=__BUILD__"></script>
   <script src="js/data/enemies.js?v=__BUILD__"></script>
   <script src="js/data/bosses.js?v=__BUILD__"></script>
   <script src="js/data/effects.js?v=__BUILD__"></script>
   <script src="js/quests.js?v=__BUILD__"></script>
+  <script src="js/achievements.js?v=__BUILD__"></script>
   <script src="js/state.js?v=__BUILD__"></script>
   <script src="js/gacha.js?v=__BUILD__"></script>
   <script src="js/ai.js?v=__BUILD__"></script>
