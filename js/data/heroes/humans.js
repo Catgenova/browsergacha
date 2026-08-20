@@ -106,18 +106,23 @@ Object.assign(HEROES, {
     // statline pays for staying upright rather than for acting often.
     stats: { hp: 2650, atk: 96, def: 300, speed: 84 },
     tint: { body: '#c8c0a8', helm: '#f0e8c8', weapon: '#ffe9a8', shield: '#d8c070' },
+    // Every sheet is 256px square frames: 9 across, except the death at
+    // 11. Skills 1 and 2 share one strip — both are the same swing of the
+    // bell, near or wide — so skill 2 plays 'attack' too.
     sprite: {
       displayH: 92,
       strips: {
         idle:   { src: 'assets/heroes/Toll/tollidle.png', frames: 9, fps: 5, loop: true },
+        idle2:  { src: 'assets/heroes/Toll/tollidle1.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [8, 15] },
+        idle3:  { src: 'assets/heroes/Toll/tollidle2.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [8, 15] },
         ready:  { src: 'assets/heroes/Toll/tollready.png', frames: 9, fps: 6, loop: true },
-        attack: { src: 'assets/heroes/Toll/tollskill1.png', frames: 9, fps: 10, loop: false,
-                  hitFrame: 8 },
-        skill2: { src: 'assets/heroes/Toll/tollskill2.png', frames: 9, fps: 10, loop: false,
+        attack: { src: 'assets/heroes/Toll/tollskill1n2.png', frames: 9, fps: 10, loop: false,
                   hitFrame: 8 },
         skill3: { src: 'assets/heroes/Toll/tollskill3.png', frames: 9, fps: 10, loop: false,
                   hitFrame: 8 },
-        death:  { src: 'assets/heroes/Toll/tolldeath.png', frames: 9, fps: 8, loop: false,
+        death:  { src: 'assets/heroes/Toll/tolldeath.png', frames: 11, fps: 9, loop: false,
                   freeze: true },
       },
     },
@@ -133,7 +138,7 @@ Object.assign(HEROES, {
         id: 'full_peal', name: 'Full Peal',
         icon: 'assets/icons/fc306.png',
         description: 'The peal carries across the field: 50% DEF to ALL enemies.',
-        cooldown: 3, targeting: 'all-enemies', animation: 'skill2',
+        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
         effects: [{ type: 'damageDef', mult: 0.5 }],
       },
       {
