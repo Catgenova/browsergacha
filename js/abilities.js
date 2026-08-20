@@ -39,10 +39,9 @@ const Abilities = (() => {
     switch (effect.type) {
       case 'damage':
       case 'damageDef': {
-        // Dodge: a fully evaded hit deals nothing.
-        if (Math.random() < (target.dodgeChance ? target.dodgeChance() : 0)) {
-          return { kind: 'damage', target, amount: 0, dodged: true };
-        }
+        // Dodge: a fully evaded hit deals nothing. Credit the dodger
+        // with what the hit would have been (measured below).
+        const dodged = Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
         // 'damageDef' scales off the caster's DEF instead of ATK (Boar
         // tank-bruiser kits); everything downstream is identical.
         const scaleStat = effect.type === 'damageDef' ? 'def' : 'atk';
@@ -62,21 +61,33 @@ const Abilities = (() => {
         let dmg = damageFormula(raw, target.effectiveStat('def'));
         const crit = Math.random() < caster.effectiveStat('critChance');
         if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
+        if (dodged) {
+          Meter.mitigated(target, dmg);
+          return { kind: 'damage', target, amount: 0, dodged: true };
+        }
+        // Defensive multipliers (guard passives, wards, resonance) blunt
+        // the hit; the difference is mitigation.
+        const unblunted = dmg;
         dmg = Math.round(dmg * target.damageTakenMult());
+        Meter.mitigated(target, unblunted - dmg);
         // Reflect (Boar set 6pc / bristle passives): the whole hit
         // bounces back to the attacker instead of landing.
         if (target.reflectChance && Math.random() < target.reflectChance()) {
           const bounced = caster.takeDamage(dmg, target);
+          Meter.mitigated(target, dmg);   // bounced away entirely
+          Meter.damage(target, bounced);  // and dealt back
           return { kind: 'damage', target, amount: 0, reflected: true,
             reflectAmount: bounced };
         }
         const dealt = target.takeDamage(dmg, caster);
+        Meter.damage(caster, dealt);
         return { kind: 'damage', target, amount: dealt, crit };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
         const healed = target.heal(amount);
+        Meter.healing(caster, healed);
         return { kind: 'heal', target, amount: healed };
       }
       case 'healHpPct': {
@@ -86,6 +97,7 @@ const Abilities = (() => {
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost));
+        Meter.healing(caster, healed);
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {
@@ -96,6 +108,7 @@ const Abilities = (() => {
           amount: Math.round(caster.maxHp * effect.pct * power *
             (1 + (caster.healingBoost ? caster.healingBoost() : 0))),
           turns: effect.turns,
+          source: caster, // so each tick is credited to whoever cast it
         });
         return { kind: 'hot', target, turns: effect.turns };
       }
@@ -104,6 +117,7 @@ const Abilities = (() => {
         const dmg = Math.round(caster.maxHp * effect.pct * power
           * caster.damageDealtMult(target) * target.damageTakenMult());
         const dealt = target.takeDamage(dmg, caster);
+        Meter.damage(caster, dealt);
         return { kind: 'damage', target, amount: dealt, crit: false };
       }
       case 'mirrors': {
@@ -142,7 +156,7 @@ const Abilities = (() => {
         for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
         }
-        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns });
+        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns, source: caster });
         return { kind: 'dot', target, amount, turns: dotTurns };
       }
       case 'stun': {

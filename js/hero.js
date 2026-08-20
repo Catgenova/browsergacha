@@ -266,7 +266,8 @@ class Unit {
       }
       if (attacker && attacker !== this && attacker.alive) {
         const back = Math.max(1, Math.round(amount * 0.25));
-        attacker.takeDamage(back);
+        const bounced = attacker.takeDamage(back);
+        if (typeof Meter !== 'undefined') Meter.damage(this, bounced);
         if (typeof Battle !== 'undefined' && Battle.active) {
           Battle.active.addFloatingText(attacker, `-${back}`, '#8ee8ff');
           Battle.active.log(
@@ -320,10 +321,13 @@ class Unit {
     }
   }
 
-  heal(amount) {
+  // `source` is whoever caused the healing, for the damage meter; it
+  // defaults to the unit healing itself (regeneration, self-mending).
+  heal(amount, source = null) {
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
     const healed = this.hp - before;
+    if (healed > 0 && typeof Meter !== 'undefined') Meter.healing(source || this, healed);
     // Heal event bus: lets passives react to any ally being healed.
     if (healed > 0 && typeof Battle !== 'undefined' && Battle.active) {
       Battle.active.onUnitHealed(this, healed);
@@ -361,7 +365,7 @@ class Unit {
     // Heal-over-time ticks (before durations decrement).
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'hot') continue;
-      const healed = this.heal(fx.amount);
+      const healed = this.heal(fx.amount, fx.source || this);
       if (healed > 0) {
         results.push({
           label: 'Regrowth',
@@ -387,6 +391,7 @@ class Unit {
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'dot' || !this.alive) continue;
       const dealt = this.takeDamage(fx.amount);
+      if (typeof Meter !== 'undefined' && fx.source) Meter.damage(fx.source, dealt);
       results.push({
         label: 'Poison',
         message: `${this.name} suffers ${dealt} poison damage.` +

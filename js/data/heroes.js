@@ -3040,7 +3040,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.02));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return {
             label: 'Storm Static',
             message: `${unit.name}'s static arcs across the field.`,
@@ -3576,7 +3576,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.02));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           const healed = unit.heal(amount);
           return {
             label: 'Harvester',
@@ -9034,7 +9034,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.015));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return {
             label: 'Cinder Bristles',
             message: `${unit.name}'s embers sear the field.`,
@@ -10498,7 +10498,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.maxHp * 0.01));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return {
             label: 'Thunder Hide',
             message: `${unit.name}'s static grounds through the field.`,
@@ -13081,7 +13081,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.01));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return {
             label: 'Pyroclastic Flow',
             message: `${unit.name}'s heat washes the field.`,
@@ -13935,7 +13935,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.012));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -14544,7 +14544,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.014));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -15153,7 +15153,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.016));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -15762,7 +15762,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.018));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -16371,7 +16371,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.022));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -16980,7 +16980,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.024));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -17589,7 +17589,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.026));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -18198,7 +18198,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.028));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -18807,7 +18807,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
           const amount = Math.max(1, Math.round(unit.maxHp * 0.015));
-          target.takeDamage(amount);
+          target.takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling hunger
         },
@@ -19361,7 +19361,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.015));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -19603,7 +19603,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.01));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -19790,7 +19790,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.maxHp * 0.008));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -20035,7 +20035,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.013));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -20222,7 +20222,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.02));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -20464,7 +20464,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.017));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -20651,7 +20651,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.025));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -20895,7 +20895,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.019));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -21082,7 +21082,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.maxHp * 0.012));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -21323,7 +21323,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.021));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -21510,7 +21510,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.01));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -21751,7 +21751,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.023));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -21938,7 +21938,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('atk') * 0.005));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -22179,7 +22179,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.025));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -22366,7 +22366,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.maxHp * 0.015));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -22608,7 +22608,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.027));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
@@ -22795,7 +22795,7 @@ const HEROES = {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const amount = Math.max(1, Math.round(unit.effectiveStat('def') * 0.025));
-          for (const e of enemies) e.takeDamage(amount);
+          for (const e of enemies) e.takeDamage(amount, unit);
           return null; // silent — small rolling resonance
         },
       },
@@ -23037,7 +23037,7 @@ const HEROES = {
           if (enemies.length === 0) return null;
           enemies.sort((a, b) => a.hp - b.hp);
           const amount = Math.max(1, Math.round(unit.maxHp * 0.011));
-          enemies[0].takeDamage(amount);
+          enemies[0].takeDamage(amount, unit);
           unit.heal(amount);
           return null; // silent — small rolling thirst
         },
