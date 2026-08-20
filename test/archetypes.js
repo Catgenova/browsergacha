@@ -348,7 +348,32 @@ function report(key, rows) {
 // Importable so the test suite can guard the classification — the part
 // most likely to rot silently as heroes are added — without paying for a
 // few thousand simulated battles on every CI run.
-module.exports = { roleOf, archetypeOf, ARCHETYPES: ORDER, HEADLINE, kitCan };
+// Run the whole sweep and hand back the numbers. Exported so the balance
+// sheet generator can build its table from the same measurements the CLI
+// prints, rather than scraping them back out of the text.
+function bench(only = ONLY) {
+  const wanted = ORDER.filter((k) => buckets[k] && (!only || k === only));
+  const out = {};
+  for (const key of wanted) {
+    const cast = castFor(buckets[key]);
+    out[key] = buckets[key].map((def) => measure(def, cast))
+      .map(({ def, ...rest }) => rest); // drop the def; it is not serialisable
+  }
+  return {
+    meta: {
+      heroes: Object.keys(HEROES).length,
+      stars: STARS, level: LEVEL, squad: SQUAD, sims: SIMS,
+      window: WINDOW, attrition: ATTRITION, folded: { ...folded },
+    },
+    order: wanted, titles: TITLE, headline: HEADLINE, columns: COLUMNS,
+    buckets: out,
+  };
+}
+
+module.exports = {
+  roleOf, archetypeOf, kitCan, bench,
+  ARCHETYPES: ORDER, HEADLINE, TITLE, COLUMNS,
+};
 if (require.main !== module) return;
 
 const keys = ORDER.filter((k) => buckets[k] && (!ONLY || k === ONLY));
