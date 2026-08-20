@@ -110,7 +110,21 @@ class UI {
         ? `<img class="ability-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
       const lvText = abilityState.level > 1 ? ` Lv${abilityState.level}` : '';
-      btn.innerHTML = `${iconHtml}${a.name}${lvText}${cdText}`;
+      // Which side this points at, marked before it is clicked — an
+      // ability that fires the moment you select it never gets a target
+      // prompt, so the button is the only chance to say so.
+      const side = Abilities.sideOf(a.targeting);
+      const SIDE = {
+        enemy: { label: 'Enemy', glyph: '\u2694' },
+        ally: { label: a.targeting === 'dead-ally' ? 'Fallen ally' : 'Ally', glyph: '\u271a' },
+        self: { label: 'Self', glyph: '\u25c9' },
+      }[side];
+      btn.classList.add(`side-${side}`);
+      const sideHtml =
+        `<span class="side-label">${SIDE.glyph} ${SIDE.label}</span>`;
+      btn.innerHTML = `${iconHtml}${a.name}${lvText}${sideHtml}${cdText}`;
+      btn.title = `${a.description}\n\nTargets: ${SIDE.label.toLowerCase()}` +
+        (Abilities.needsTarget(a.targeting) ? ' \u2014 pick one' : ' \u2014 fires at once');
 
       // Revives need a fallen ally to exist.
       const needsDead = a.targeting === 'dead-ally' &&
@@ -139,25 +153,39 @@ class UI {
     this.selectedAbility = abilityState;
 
     const targeting = abilityState.def.targeting;
-    if (targeting === 'self' || targeting === 'all-enemies' ||
-        targeting === 'all-allies' || targeting === 'front-allies' ||
-        targeting === 'back-enemies' || targeting === 'self-and-wounded-allies') {
-      this.commit(null); // no target needed — fire immediately
-    } else {
-      // 'enemy', 'enemy-row' (pick any enemy in the row), 'ally', or
-      // 'dead-ally' (pick a fallen teammate).
-      this.renderer.targetingMode =
-        targeting === 'ally' ? 'ally' :
-        targeting === 'dead-ally' ? 'dead-ally' : 'enemy';
-      this.renderer.targetingSource = this.battle.activeUnit;
-      this.renderer.rowMode = targeting === 'enemy-row';
-      this.targetHint.classList.remove('hidden');
+    if (!Abilities.needsTarget(targeting)) {
+      this.commit(null); // hits a whole side or the caster — fire at once
+      return;
     }
+    // 'enemy', 'enemy-row' (pick any enemy in the row), 'ally', or
+    // 'dead-ally' (pick a fallen teammate).
+    this.renderer.targetingMode =
+      targeting === 'ally' ? 'ally' :
+      targeting === 'dead-ally' ? 'dead-ally' : 'enemy';
+    this.renderer.targetingSource = this.battle.activeUnit;
+    this.renderer.rowMode = targeting === 'enemy-row';
+    // Name the side rather than saying "a target" — which side to click
+    // is the whole question at this moment.
+    const HINT = {
+      enemy: targeting === 'enemy-row'
+        ? '\u2694 Click an ENEMY \u2014 the whole row is hit'
+        : '\u2694 Click an ENEMY to attack',
+      ally: '\u271a Click an ALLY to help',
+      'dead-ally': '\u271a Click a FALLEN ally to revive',
+    }[targeting === 'enemy-row' ? 'enemy' : targeting] || 'Select a target\u2026';
+    this.targetHint.textContent = HINT;
+    this.targetHint.classList.remove('hint-enemy', 'hint-ally', 'hint-self');
+    this.targetHint.classList.add(`hint-${Abilities.sideOf(targeting)}`);
+    this.targetHint.classList.remove('hidden');
   }
 
   commit(target) {
     const hero = this.activeHero;
     const ability = this.selectedAbility;
+    // No hero deciding means no ability to commit. Unreachable while the
+    // bar is display:none, but performAbility(null) throws on the
+    // caster's animator, so it is not worth leaving to the layout.
+    if (!hero || !ability) return;
     this.hideAbilityBar();
     this.battle.performAbility(hero, ability, target);
   }
