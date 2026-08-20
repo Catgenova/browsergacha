@@ -229,6 +229,55 @@ test('crystal mirrors halve nothing, reflect a quarter, and break one per hit', 
   assert(foe.hp === foeBefore - 50, `reflect was ${foeBefore - foe.hp}, expected 50`);
 });
 
+test('every damage path is mitigated, whatever it scaled off', () => {
+  const battle = makeBattle();
+  const prevActive = Battle.active;
+  Battle.active = battle;
+  try {
+    // A wall of a target: high DEF is the whole point of the check.
+    const wall = place(battle, HEROES.toll, TEAM.ENEMY, 1);
+    wall.dodgeChance = () => 0;
+    wall.reflectChance = () => 0;
+    // Toll is here for his DEF, not his kit: his own ward would mend him
+    // mid-measurement and the HP accounting would stop meaning anything.
+    wall.hookSources = () => [];
+    const def = wall.effectiveStat('def');
+    assert(def > 300, `the target's DEF (${def}) is too low to prove anything`);
+
+    // ATK-scaled, DEF-scaled and max-HP-scaled all land at the same
+    // fraction of their raw figure — none of them is a way around DEF.
+    const RAW = 10000;
+    const expected = Math.round(
+      Abilities.damageFormula(RAW, def) * wall.damageTakenMult());
+    assert(expected < RAW * 0.5,
+      `DEF ${def} should blunt a raw ${RAW} well past half, got ${expected}`);
+
+    const caster = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+    const before = wall.hp;
+    const res = Abilities.strike(caster, wall, RAW);
+    assert(res.amount === expected,
+      `strike dealt ${res.amount}, expected ${expected}`);
+    assert(before - wall.hp === expected, 'HP lost did not match the result');
+
+    // And the effects that used to bypass it now route through it. A
+    // max-HP hit from a big pool must not out-damage the curve.
+    wall.hp = wall.maxHp;
+    const fat = place(battle, HEROES.toll, TEAM.PLAYER, 2);
+    const hpRaw = fat.maxHp * 0.5;
+    const hpBefore = wall.hp;
+    Abilities.execute(
+      { id: 't', name: 't', targeting: 'enemy', cooldown: 0,
+        effects: [{ type: 'damageHpPct', pct: 0.5 }] },
+      fat, wall, battle);
+    const landed = hpBefore - wall.hp;
+    assert(landed > 0, 'the max-HP hit did nothing');
+    assert(landed < hpRaw * 0.5,
+      `max-HP damage skipped the curve: ${landed} landed from a raw ${Math.round(hpRaw)}`);
+  } finally {
+    Battle.active = prevActive;
+  }
+});
+
 test('onStruck retaliation fires on a survived hit, and only then', () => {
   const battle = makeBattle();
   const prevActive = Battle.active;
@@ -241,9 +290,17 @@ test('onStruck retaliation fires on a survived hit, and only then', () => {
     for (const sl of battle.playerSlots) byPosition[sl.position] = sl;
     toll.slot = byPosition[POSITION.FRONT];
 
-    const ring = Math.round(toll.effectiveStat('def') * 0.10);
+    // The bell is priced in DEF, but what it COSTS is decided by the
+    // target — it goes through the same pipeline an ability does.
+    const raw = Math.round(toll.effectiveStat('def') * 0.10);
     const mend = Math.round(toll.effectiveStat('def') * 0.05);
-    assert(ring > 0 && mend > 0, 'Toll has no DEF to price his kit off');
+    assert(raw > 0 && mend > 0, 'Toll has no DEF to price his kit off');
+    for (const f of foes) { f.dodgeChance = () => 0; f.reflectChance = () => 0; }
+    const ring = Math.round(
+      Abilities.damageFormula(raw, foes[0].effectiveStat('def')) *
+      foes[0].damageTakenMult());
+    assert(ring < raw,
+      `the bell was not mitigated: ${ring} landed from a raw ${raw}`);
 
     // Struck and survived: the bell hits every enemy, the ward mends.
     mate.hp = Math.round(mate.maxHp * 0.5);
@@ -290,7 +347,12 @@ test('retaliation cannot recurse when both sides answer blows', () => {
     // The same kit on the other side: without the guard each ring counts
     // as a strike and the two bounce off each other until someone dies.
     const theirs = place(battle, HEROES.toll, TEAM.ENEMY, 1);
-    const ring = Math.round(mine.effectiveStat('def') * 0.10);
+    theirs.dodgeChance = () => 0;
+    theirs.reflectChance = () => 0;
+    const raw = Math.round(mine.effectiveStat('def') * 0.10);
+    const ring = Math.round(
+      Abilities.damageFormula(raw, theirs.effectiveStat('def')) *
+      theirs.damageTakenMult());
     const mineBefore = mine.hp;
     const theirsBefore = theirs.hp;
 
