@@ -272,6 +272,8 @@ test('every campaign node pays a first-clear scroll, graded by node type', () =>
         problems.push(`${n.id}: ${want} scroll count is ${scrolls[want]}`);
       }
       if (!bonus.label) problems.push(`${n.id}: first-clear bonus has no label`);
+      // Gear is the boss ladder's business — the campaign pays scrolls.
+      if (bonus.gear) problems.push(`${n.id}: still offers gear`);
     }
   }
   assert(problems.length === 0, problems.slice(0, 6).join(' | '));
