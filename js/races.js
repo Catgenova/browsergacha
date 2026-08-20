@@ -10,20 +10,31 @@ const RACES = (() => {
     'gull', 'crane', 'falcon', 'parrot', 'goose', 'hawk', 'swan', 'phoenix',
     'albatross', 'peacock', 'stork', 'crow', 'cuckoo', 'shrike', 'nightjar',
     'whippoorwill', 'dove', 'egret', 'goldfinch', 'lark', 'ibis',
+    // 4★ champion cohort — these were missing, so they silently counted
+    // toward no race at all and skipped the Avian pack.
+    'osprey', 'kestrel', 'condor', 'harrier', 'flamingo', 'skua', 'tern',
   ]);
   const PREFIXES = new Set([
     'rat', 'minotaur', 'snake', 'wolf', 'boar', 'bear', 'cat', 'drake',
+  ]);
+  // The humans are named individuals rather than "<race> <role>", so
+  // they're an explicit roster. Listed by id, not inferred, so bosses
+  // and future one-off ids never fall into the race by accident.
+  const HUMANS = new Set([
+    'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
   ]);
 
   const NAMES = {
     rat: 'Rat', avian: 'Avian', minotaur: 'Minotaur', snake: 'Snake',
     wolf: 'Wolf', boar: 'Boar', bear: 'Bear', cat: 'Cat', drake: 'Drake',
+    human: 'Human',
   };
 
   // Which race a hero definition belongs to (null for the founders and
   // bosses — they stand outside the packs).
   function of(def) {
     if (!def || !def.id) return null;
+    if (HUMANS.has(def.id)) return 'human';
     const head = def.id.split('_')[0];
     if (PREFIXES.has(head)) return head;
     if (BIRD_SPECIES.has(head)) return 'avian';
@@ -72,6 +83,11 @@ const RACES = (() => {
       { count: 3, mods: { apDrain: 0.05 }, label: '3: +5% AP Drain on attack' },
       { count: 5, mods: { apDrain: 0.05 }, label: '5: +5% more AP Drain' },
       { count: 7, mods: { apGain: 0.03 }, label: '7: +3% AP on every character turn' },
+    ],
+    human: [
+      { count: 3, mods: { atkPct: 0.06, defPct: 0.06 }, label: '3: +6% ATK and +6% DEF' },
+      { count: 5, mods: { hpPct: 0.08 }, label: '5: +8% HP' },
+      { count: 7, mods: { critDamage: 0.20 }, label: '7: +20% Crit Damage' },
     ],
     drake: [
       { count: 3, mods: { dotBoost: 0.08 }, label: '3: +8% DoT Damage' },
