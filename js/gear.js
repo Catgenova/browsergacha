@@ -354,6 +354,41 @@ const Gear = (() => {
     return `${RARITIES[piece.rarity].name} ${SETS[piece.set].name} ${SLOT_LABELS[piece.slot]}${plus}`;
   }
 
+  // How much a piece is worth TO A PARTICULAR HERO. Weighted by what
+  // that hero's own statline says they're for: a 300-ATK striker cares
+  // about ATK%, a wall cares about DEF and HP. Everything is normalized
+  // against the hero's base stats so the comparison is apples-to-apples
+  // rather than "bigger number wins".
+  function scoreFor(piece, base) {
+    if (!piece) return 0;
+    const hp = base.hp || 1, atk = base.atk || 1, def = base.def || 1;
+    const spd = base.speed || 1;
+    // Role weights: share of the hero's budget in each stat.
+    const offense = atk / (atk + def);         // 0..1, higher = striker
+    const defense = 1 - offense;
+    const W = {
+      atkFlat: (100 / atk) * offense,
+      atkPct: 100 * offense,
+      defFlat: (100 / def) * defense,
+      defPct: 100 * defense,
+      hpFlat: (100 / hp) * defense * 0.9,
+      hpPct: 90 * defense,
+      spdFlat: (100 / spd) * 1.2,
+      spdPct: 120,
+      critChance: 140 * offense,
+      critDamage: 70 * offense,
+      accuracy: 40,
+      resistance: 40,
+    };
+    let score = 0;
+    const b = baseStat(piece);
+    score += (W[b.stat] || 0) * b.value;
+    for (const sub of piece.subs || []) score += (W[sub.stat] || 0) * sub.value;
+    // Enchant levels are pure upside.
+    score *= 1 + (piece.plus || 0) * 0.02;
+    return score;
+  }
+
   function describe(piece) {
     const b = baseStat(piece);
     return `${pieceName(piece)} · Lv ${piece.level} · ${statText(b.stat, b.value)}`;
@@ -417,6 +452,6 @@ const Gear = (() => {
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
     baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
-    icon, pieceName, describe, statText, subLabel, aggregate, applyToStats,
+    icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,
   };
 })();

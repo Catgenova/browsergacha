@@ -136,7 +136,11 @@
     <!-- ================= Compendium screen ================= -->
     <section id="screen-compendium" class="screen hidden">
       <div id="comp-top">
-        <h3>Hero Compendium</h3>
+        <h3>Compendium</h3>
+        <div id="comp-category">
+          <button class="comp-cat active" data-cat="heroes">Heroes</button>
+          <button class="comp-cat" data-cat="bosses">Bosses</button>
+        </div>
         <input id="comp-search" type="search" placeholder="Search name, title or element…">
         <select id="comp-filter-rarity" title="Filter by rarity">
           <option value="">All rarities</option>
@@ -223,6 +227,7 @@
   <script src="js/quests.js?v=__BUILD__"></script>
   <script src="js/state.js?v=__BUILD__"></script>
   <script src="js/gacha.js?v=__BUILD__"></script>
+  <script src="js/ai.js?v=__BUILD__"></script>
   <script src="js/battle.js?v=__BUILD__"></script>
   <script src="js/render.js?v=__BUILD__"></script>
   <script src="js/ui.js?v=__BUILD__"></script>

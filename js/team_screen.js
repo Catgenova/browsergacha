@@ -314,6 +314,7 @@ class TeamScreen {
   // ---- Selection & placement ---------------------------------------------
 
   selectHero(heroId, from) {
+    this.gearMsg = null;
     if (this.selection && this.selection.heroId === heroId) {
       this.selection = null; // toggle off
     } else {
@@ -425,15 +426,26 @@ class TeamScreen {
     if (!this.gearFocus || !equipment[this.gearFocus]) {
       this.gearFocus = Gear.SLOTS.find((s) => equipment[s]) || null;
     }
+    // Rate every option against THIS hero, so the picker says which
+    // piece is actually an upgrade instead of just listing numbers.
+    const baseStats = Progression.scaledStats(def, progress.level, progress.stars);
     const gearRows = Gear.SLOTS.map((slot) => {
       const uid = equipment[slot];
       const piece = uid ? GameState.gearById(uid) : null;
+      const wornScore = Gear.scoreFor(piece, baseStats);
+      const delta = (p) => {
+        if (!piece) return ' (+new)';
+        const d = Gear.scoreFor(p, baseStats) - wornScore;
+        if (Math.abs(d) < wornScore * 0.005) return ' (=)';
+        const pct = wornScore > 0 ? Math.round((d / wornScore) * 100) : 100;
+        return d > 0 ? ` (▲${pct}%)` : ` (▼${-pct}%)`;
+      };
       const options = [`<option value="">— empty —</option>`];
       if (piece) {
-        options.push(`<option value="${piece.uid}" selected>${Gear.describe(piece)}</option>`);
+        options.push(`<option value="${piece.uid}" selected>${Gear.describe(piece)}${piece.locked ? ' 🔒' : ''}</option>`);
       }
       for (const p of GameState.unequippedGear(slot)) {
-        options.push(`<option value="${p.uid}">${Gear.describe(p)}</option>`);
+        options.push(`<option value="${p.uid}">${Gear.describe(p)}${delta(p)}${p.locked ? ' 🔒' : ''}</option>`);
       }
       const iconSrc = piece ? Gear.icon(piece) : null;
       const iconHtml = iconSrc
@@ -517,7 +529,10 @@ class TeamScreen {
         HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
       </div>
       <div class="detail-section">Gear</div>
+      ${gearLocked ? '' : `<button id="auto-equip-btn" class="panel-btn gear-auto-btn"
+        title="Fit the best unworn pieces to this hero. Locked gear stays put; nobody else is undressed.">⚙ Auto-equip</button>`}
       ${gearRows}
+      ${this.gearMsg ? `<div class="gear-auto-msg">${this.gearMsg}</div>` : ''}
       ${gearDetailHtml}
       ${setBonusHtml}
       <div class="detail-section">Abilities <span class="cd">(📖 ${GameState.tomes} tomes)</span></div>
@@ -532,6 +547,17 @@ class TeamScreen {
       ${starUpHtml}
       ${slotIndex !== null ? '<button id="remove-hero-btn" class="panel-btn danger">Remove from team</button>' : ''}
     `;
+
+    const autoBtn = document.getElementById('auto-equip-btn');
+    if (autoBtn) {
+      autoBtn.addEventListener('click', () => {
+        const n = GameState.autoEquip(def.id);
+        this.gearMsg = n > 0
+          ? `Auto-equip: ${n} slot${n > 1 ? 's' : ''} upgraded.`
+          : 'Auto-equip: already wearing the best available.';
+        this.refresh();
+      });
+    }
 
     const removeBtn = document.getElementById('remove-hero-btn');
     if (removeBtn) {

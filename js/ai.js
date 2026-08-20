@@ -1,0 +1,156 @@
+// Combat AI profiles: how a unit picks what to do and who to do it to.
+//
+// Every enemy used to think the same way — fire the longest cooldown,
+// hit whoever has the least HP left — which made a rat and a dragon
+// play identically. A profile changes two decisions:
+//
+//   pick(candidates, unit, battle)  -> which ability to use
+//   focus(enemies, unit, battle)    -> who to point it at
+//
+// Profiles are assigned by race, with bosses naming their own. The
+// player's own heroes on autobattle use the balanced default, so
+// autobattle stays predictable.
+
+const AI = (() => {
+  const byHp = (a, b) => a.hp - b.hp;
+  const byHpFrac = (a, b) => a.hp / a.maxHp - b.hp / b.maxHp;
+  const longestCd = (a, b) => b.def.cooldown - a.def.cooldown;
+  const isDamaging = (a) => a.def.effects.some(
+    (e) => e.type === 'damage' || e.type === 'damageDef' ||
+      e.type === 'damageHpPct' || e.type === 'dot');
+
+  // Squishiest target: lowest effective HP pool once DEF is accounted
+  // for — the one who actually dies soonest, not just the lowest bar.
+  const softest = (list) => list.slice().sort((a, b) =>
+    (a.hp * (1 + a.effectiveStat('def') / 300)) -
+    (b.hp * (1 + b.effectiveStat('def') / 300)))[0];
+
+  const PROFILES = {
+    // The old behavior, kept as the baseline.
+    balanced: {
+      name: 'Balanced',
+      pick: (c) => c.slice().sort(longestCd)[0],
+      focus: (e) => e.slice().sort(byHp)[0],
+    },
+
+    // Rats swarm whoever is already bleeding — they finish things.
+    scavenger: {
+      name: 'Scavenger',
+      pick: (c) => c.slice().sort(longestCd)[0],
+      focus: (e) => {
+        const wounded = e.filter((u) => u.hp / u.maxHp < 0.6);
+        return (wounded.length ? wounded : e).slice().sort(byHp)[0];
+      },
+    },
+
+    // Birds and cats go over the line for the back rank.
+    stooper: {
+      name: 'Stooper',
+      pick: (c) => c.slice().sort(longestCd)[0],
+      focus: (e) => {
+        const back = e.filter((u) => !u.isBoss && u.slot &&
+          u.slot.position === POSITION.BACK);
+        return softest(back.length ? back : e);
+      },
+    },
+
+    // Minotaurs and boars hit whatever is biggest and in the way.
+    bruiser: {
+      name: 'Bruiser',
+      pick: (c) => {
+        // Save the long cooldown for a target worth spending it on.
+        const heavy = c.filter((a) => a.def.cooldown >= 4);
+        return (heavy.length ? heavy : c).slice().sort(longestCd)[0];
+      },
+      focus: (e) => {
+        const front = e.filter((u) => u.isBoss || (u.slot &&
+          u.slot.position === POSITION.FRONT));
+        const pool = front.length ? front : e;
+        return pool.slice().sort((a, b) => b.maxHp - a.maxHp)[0];
+      },
+    },
+
+    // Snakes and drakes stack venom, then leave it to work.
+    venomous: {
+      name: 'Venomous',
+      pick: (c, unit, battle) => {
+        const enemies = battle.livingUnits(unit.enemyTeam());
+        const unpoisoned = enemies.some(
+          (u) => !u.statusEffects.some((fx) => fx.kind === 'dot'));
+        const poisons = c.filter((a) => a.def.effects.some((e) => e.type === 'dot'));
+        if (unpoisoned && poisons.length) return poisons.sort(longestCd)[0];
+        return c.slice().sort(longestCd)[0];
+      },
+      // Spread the venom: prefer someone not already rotting.
+      focus: (e) => {
+        const clean = e.filter((u) => !u.statusEffects.some((fx) => fx.kind === 'dot'));
+        return softest(clean.length ? clean : e);
+      },
+    },
+
+    // Wolves cut the healers out of the pack first.
+    pack: {
+      name: 'Pack Hunter',
+      pick: (c) => c.slice().sort(longestCd)[0],
+      focus: (e) => {
+        const healers = e.filter((u) => (u.abilities || []).some((a) =>
+          a.def.effects.some((x) => x.type === 'heal' ||
+            x.type === 'healHpPct' || x.type === 'hot')));
+        return softest(healers.length ? healers : e);
+      },
+    },
+
+    // Bears wade in and keep themselves standing.
+    warden: {
+      name: 'Warden',
+      pick: (c, unit) => {
+        // Mend first when badly hurt, otherwise swing.
+        if (unit.hp / unit.maxHp < 0.5) {
+          const mends = c.filter((a) => a.def.effects.some((e) =>
+            e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot'));
+          if (mends.length) return mends.sort(longestCd)[0];
+        }
+        return c.slice().sort(longestCd)[0];
+      },
+      focus: (e) => e.slice().sort(byHp)[0],
+    },
+
+    // Bosses spend their big skills the moment they are up, and hunt
+    // whoever is holding the party together.
+    tyrant: {
+      name: 'Tyrant',
+      pick: (c) => {
+        const damaging = c.filter(isDamaging);
+        return (damaging.length ? damaging : c).slice().sort(longestCd)[0];
+      },
+      focus: (e, unit, battle) => {
+        const support = e.filter((u) => (u.abilities || []).some((a) =>
+          a.def.effects.some((x) => x.type === 'heal' || x.type === 'healHpPct' ||
+            x.type === 'hot' || x.type === 'cleanse' || x.type === 'revive')));
+        if (support.length) return softest(support);
+        // Otherwise break the biggest damage threat.
+        return e.slice().sort((a, b) =>
+          b.effectiveStat('atk') - a.effectiveStat('atk'))[0];
+      },
+    },
+  };
+
+  // Which profile a unit fights with.
+  const BY_RACE = {
+    rat: 'scavenger', avian: 'stooper', cat: 'stooper',
+    minotaur: 'bruiser', boar: 'bruiser', bear: 'warden',
+    snake: 'venomous', drake: 'venomous', wolf: 'pack',
+    human: 'balanced',
+  };
+
+  function profileFor(unit) {
+    // The player's heroes always use the predictable baseline on auto.
+    if (unit.team === TEAM.PLAYER) return PROFILES.balanced;
+    if (unit.def && unit.def.ai && PROFILES[unit.def.ai]) return PROFILES[unit.def.ai];
+    if (unit.isBoss) return PROFILES.tyrant;
+    const race = typeof RACES !== 'undefined' ? RACES.of(unit.def) : null;
+    return PROFILES[BY_RACE[race]] || PROFILES.balanced;
+  }
+
+  return { PROFILES, BY_RACE, profileFor };
+})();

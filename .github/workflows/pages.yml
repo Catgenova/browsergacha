@@ -24,6 +24,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # full history so the version number (commit count) is right
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run tests before publishing
+        run: node test/run.js
       - name: Stamp version and asset hashes
         run: |
           VERSION=$(git rev-list --count HEAD)

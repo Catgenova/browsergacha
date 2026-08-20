@@ -32,6 +32,26 @@ class CompendiumScreen {
       el.addEventListener(el === this.searchEl ? 'input' : 'change', () => this.buildList());
     }
 
+    // Heroes or bosses — the index switches between the two rosters.
+    this.category = 'heroes';
+    this.catEl = document.getElementById('comp-category');
+    if (this.catEl) {
+      this.catEl.querySelectorAll('.comp-cat').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          this.category = btn.dataset.cat;
+          this.catEl.querySelectorAll('.comp-cat').forEach((b) =>
+            b.classList.toggle('active', b === btn));
+          // Boss filters don't apply; hide them to avoid dead controls.
+          document.getElementById('comp-top')
+            .classList.toggle('bosses-mode', this.category === 'bosses');
+          this.selectedId = null;
+          this.buildList();
+          const first = this.listEl.querySelector('.comp-row');
+          if (first) this.select(first.dataset.heroId);
+        });
+      });
+    }
+
     this.selectedId = null;
     this.animator = null;    // AnimationPlayer for the detail preview
     this.animName = 'idle';
@@ -58,8 +78,21 @@ class CompendiumScreen {
 
   // ---- Index -------------------------------------------------------------
 
+  // The roster currently being browsed.
+  roster() {
+    return this.category === 'bosses' ? BOSSES : HEROES;
+  }
+
   filteredIds() {
     const q = (this.searchEl.value || '').trim().toLowerCase();
+    if (this.category === 'bosses') {
+      // Bosses are keyed by short name ('dragon') but carry a prefixed
+      // id ('boss_dragon'), so address them by key.
+      return Object.entries(BOSSES)
+        .filter(([, b]) => !q || b.name.toLowerCase().includes(q) ||
+          (b.title || '').toLowerCase().includes(q))
+        .map(([key]) => key);
+    }
     const rarity = this.rarityEl.value;
     const element = this.elementEl.value;
     const race = this.raceEl.value;
@@ -87,13 +120,15 @@ class CompendiumScreen {
   buildList() {
     const ids = this.filteredIds();
     const owned = new Set(GameState.ownedHeroIds());
+    const roster = this.roster();
+    const noun = this.category === 'bosses' ? 'bosses' : 'heroes';
     this.listEl.innerHTML =
-      `<div class="comp-count">${ids.length} of ${Object.keys(HEROES).length} heroes</div>`;
+      `<div class="comp-count">${ids.length} of ${Object.keys(roster).length} ${noun}</div>`;
     for (const id of ids) {
-      const def = HEROES[id];
+      const def = roster[id];
       const row = document.createElement('div');
       row.className = 'comp-row' + (id === this.selectedId ? ' selected' : '') +
-        (owned.has(id) ? '' : ' locked');
+        (this.category === 'bosses' || owned.has(id) ? '' : ' locked');
       row.dataset.heroId = id;
       const stars = def.rarity <= 5 ? '★'.repeat(def.rarity) : `${def.rarity}★`;
       row.innerHTML = `
@@ -115,7 +150,7 @@ class CompendiumScreen {
     this.selectedId = heroId;
     this.listEl.querySelectorAll('.comp-row').forEach((r) =>
       r.classList.toggle('selected', r.dataset.heroId === heroId));
-    const def = HEROES[heroId];
+    const def = this.roster()[heroId];
     if (!def) return;
 
     this.mirrorSheets = null;
@@ -209,7 +244,20 @@ class CompendiumScreen {
     return rows;
   }
 
+  // Which hunting grounds field this character as an enemy.
+  encounterLocations(def) {
+    const out = [];
+    if (typeof LOCATION_ENEMIES === 'undefined') return out;
+    for (const [loc, ids] of Object.entries(LOCATION_ENEMIES)) {
+      if (ids.includes(def.id)) {
+        out.push(CONFIG.LOCATION_NAMES[Number(loc)] || `Location ${loc}`);
+      }
+    }
+    return out;
+  }
+
   renderDetail(def, sheet) {
+    if (def.isBoss) return this.renderBossDetail(def, sheet);
     const owned = GameState.ownedHeroIds().includes(def.id);
     const progress = owned ? GameState.progressOf(def.id) : null;
     const stars = def.rarity <= 5 ? '★'.repeat(def.rarity) : `${def.rarity}★`;
@@ -331,6 +379,12 @@ class CompendiumScreen {
 
       <div class="comp-section">Where to find</div>
       ${sourceHtml}
+      ${(() => {
+        const locs = this.encounterLocations(def);
+        return locs.length
+          ? `<div class="comp-source">⚔ Fought as an enemy in: ${locs.join(', ')}</div>`
+          : '';
+      })()}
     `;
 
     this.previewCanvas = document.getElementById('comp-canvas');
@@ -345,6 +399,102 @@ class CompendiumScreen {
         this.syncMirrorPreview();
       });
     }
+  }
+
+  // Bosses: no rarity or summon pool, but stage scaling, several
+  // passives, and a gear set that only they drop.
+  renderBossDetail(def, sheet) {
+    const elInfo = def.element ? Elements.info(def.element) : null;
+    const cleared = GameState.bossStageCleared(def.id);
+    const maxStage = Progression.BOSS_MAX_STAGE;
+    // bossScaledStats takes the def and a level, not a stage.
+    const animBtns = this.animationNames(sheet).map((n) =>
+      `<button class="comp-anim-btn" data-anim="${n}">${this.animLabel(def, n)}</button>`
+    ).join('');
+
+    // Stage preview: what you're walking into at a few checkpoints.
+    const stages = [1, 5, 10, 15, 20].filter((st) => st <= maxStage);
+    const stageRows = stages.map((st) => {
+      const lv = Progression.bossLevel(st);
+      const st2 = Progression.bossScaledStats(def, lv);
+      const state = st <= cleared ? 'cleared' : st === cleared + 1 ? 'next' : 'locked';
+      return `<tr class="stage-${state}">
+        <th>Stage ${st}</th><td>Lv ${lv}</td>
+        <td>${st2.hp.toLocaleString()} HP</td><td>${st2.atk} ATK</td>
+        <td>${st2.def} DEF</td><td>${st2.speed} SPD</td>
+        <td>${state === 'cleared' ? '✓ cleared' : state === 'next' ? 'open' : 'locked'}</td>
+      </tr>`;
+    }).join('');
+
+    const abilitiesHtml = (def.abilities || []).map((a, i) => {
+      const cd = a.cooldown > 0 ? `${a.cooldown}-turn cooldown` : 'No cooldown';
+      const target = CompendiumScreen.TARGET_LABELS[a.targeting] || a.targeting;
+      const icon = a.icon
+        ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">` : '';
+      return `<div class="comp-ability">
+        <div class="comp-ability-head">${icon}<b>${a.name}</b>
+          <span class="comp-tag">Skill ${i + 1}</span></div>
+        <div class="comp-ability-meta">${target} · ${cd}</div>
+        <div class="comp-ability-desc">${a.description}</div>
+      </div>`;
+    }).join('');
+
+    const passives = def.passives || (def.passive ? [def.passive] : []);
+    const passiveHtml = passives.map((p) => `
+      <div class="comp-ability passive">
+        <div class="comp-ability-head">
+          ${p.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(p.icon)}" alt="">` : ''}
+          <b>${p.name}</b><span class="comp-tag">Passive</span></div>
+        <div class="comp-ability-desc">${p.description}</div>
+      </div>`).join('');
+
+    const set = typeof Gear !== 'undefined' && Gear.SETS[def.gearSet];
+    const dropHtml = set ? `
+      <div class="comp-drop"><b>${set.name} set</b> — every stage drops a piece;
+        higher stages roll rarer.</div>
+      ${set.bonuses.map((b) => `<div class="comp-syn"><span>${b.label}</span></div>`).join('')}
+    ` : '<div class="comp-source">No set drop recorded.</div>';
+
+    this.detailEl.innerHTML = `
+      <div class="comp-hero-head">
+        <div class="comp-preview">
+          <canvas id="comp-canvas" width="${this.previewW}" height="${this.previewH}"></canvas>
+        </div>
+        <div class="comp-id">
+          <div class="comp-stars rarity-5">BOSS</div>
+          <h2 class="comp-name">${def.name}</h2>
+          <div class="comp-title">${def.title || ''}</div>
+          <div class="comp-badges">
+            ${elInfo ? `<span class="comp-badge" style="border-color:${elInfo.color};color:${elInfo.color}">${Elements.badge(def.element)} ${elInfo.name}</span>` : ''}
+            <span class="comp-badge">Spans every hex</span>
+            <span class="comp-badge">${passives.length} passives</span>
+            ${cleared > 0 ? `<span class="comp-badge owned">Stage ${cleared} cleared</span>` : ''}
+          </div>
+          <div class="comp-note">Fights alone from the center tile and occupies the
+            whole formation — every row-targeted attack reaches it.</div>
+        </div>
+      </div>
+
+      <div class="comp-section">Animations</div>
+      <div class="comp-anim-bar">${animBtns}</div>
+
+      <div class="comp-section">Stage scaling</div>
+      <div class="comp-stage-box">
+        <table class="comp-stage-table"><tbody>${stageRows}</tbody></table>
+        <div class="comp-note">Stages run to ${maxStage}; clearing one opens the next.</div>
+      </div>
+
+      <div class="comp-section">Skills</div>
+      ${abilitiesHtml}
+      ${passiveHtml}
+
+      <div class="comp-section">Drops</div>
+      ${dropHtml}
+    `;
+    this.previewCanvas = document.getElementById('comp-canvas');
+    this.detailEl.querySelectorAll('.comp-anim-btn').forEach((b) => {
+      b.addEventListener('click', () => this.playAnim(b.dataset.anim));
+    });
   }
 
   // ---- Loop --------------------------------------------------------------

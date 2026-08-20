@@ -547,14 +547,18 @@ class Battle {
     });
     const pool = withTargets.length > 0 ? withTargets : ready;
 
-    // Prefer the longest-cooldown ready ability; fall back to basics.
-    const choice = pool.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
+    // Ability choice and target selection come from the unit's AI
+    // profile (see js/ai.js): a wolf pack hunts healers, drakes spread
+    // venom, bruisers go through the front line.
+    const profile = AI.profileFor(unit);
+    const choice = profile.pick(pool, unit, this) ||
+      pool.slice().sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
 
     let target = null;
     if (choice.def.targeting === 'enemy') {
-      // Focus fire the lowest-HP enemy.
       const enemies = this.livingUnits(unit.enemyTeam());
-      target = enemies.slice().sort((a, b) => a.hp - b.hp)[0];
+      target = profile.focus(enemies, unit, this) ||
+        enemies.slice().sort((a, b) => a.hp - b.hp)[0];
     } else if (choice.def.targeting === 'enemy-row') {
       // Aim at the row with the most enemies, weakest member as anchor.
       const rows = new Map();

@@ -96,7 +96,7 @@ class BlacksmithScreen {
           return `
             <div class="bs-row ${p.uid === this.selectedUid ? 'bs-row-selected' : ''}" data-uid="${p.uid}">
               ${iconSrc ? `<img class="detail-icon" src="${Sprites.assetUrl(iconSrc)}" alt="">` : ''}
-              <span class="bs-row-name" style="color:${color}">${Gear.pieceName(p)}</span>
+              <span class="bs-row-name" style="color:${color}">${p.locked ? '🔒 ' : ''}${Gear.pieceName(p)}</span>
               <span class="bs-row-info">Lv ${p.level} · ${Gear.statText(Gear.baseStat(p).stat, Gear.baseStat(p).value)}</span>
               ${wearer && HEROES[wearer] ? `<span class="bs-row-wearer">${HEROES[wearer].name}</span>` : ''}
             </div>`;
@@ -160,7 +160,8 @@ class BlacksmithScreen {
       </div>
       <div class="detail-section">Maintenance</div>
       <div class="gear-actions">
-        <button id="bs-salvage" class="panel-btn danger">Salvage</button>
+        <button id="bs-lock" class="panel-btn" title="Locked gear is safe from Salvage all and stays where you put it">${piece.locked ? '🔒 Locked' : '🔓 Lock'}</button>
+        <button id="bs-salvage" class="panel-btn danger" ${piece.locked ? 'disabled title="Unlock it first"' : ''}>Salvage</button>
       </div>
       <div id="bs-message" class="set-bonus"></div>
     `;
@@ -208,6 +209,14 @@ class BlacksmithScreen {
         msg(`${r.attempts} attempt${r.attempts === 1 ? '' : 's'}, ${r.successes} succeeded — now +${p.plus} (${r.spent} ✦ spent).${extra}`);
       });
     }
+    const lockBtn = document.getElementById('bs-lock');
+    if (lockBtn) {
+      lockBtn.addEventListener('click', () => {
+        GameState.toggleGearLock(piece.uid);
+        this.refresh();
+      });
+    }
+
     const salvageBtn = document.getElementById('bs-salvage');
     if (salvageBtn) {
       salvageBtn.addEventListener('click', () => {
