@@ -88,6 +88,7 @@
         </div>
         <aside id="hero-details"></aside>
       </div>
+      <div id="roster-report" class="hidden"></div>
       <div id="roster-section">
         <div id="roster-header">
           <h3>Your Heroes</h3>
@@ -95,7 +96,9 @@
           <label id="hide-maxed-label" title="Hide heroes already at their level cap">
             <input id="hide-maxed" type="checkbox"> Hide maxed
           </label>
+          <button id="roster-report-btn" class="panel-btn" title="Who is worth investing in?">📊 Report</button>
           <select id="roster-sort" title="Sort the roster">
+            <option value="power">Sort: Power</option>
             <option value="level">Sort: Level</option>
             <option value="stars">Sort: Stars</option>
             <option value="rarity">Sort: Rarity</option>
@@ -177,6 +180,12 @@
           <div id="target-hint" class="hidden">Select a target…</div>
         </div>
 
+        <!-- Status legend: what the nameplate pips mean -->
+        <div id="status-legend" class="hidden">
+          <div class="legend-head">Status symbols<button id="legend-close">✕</button></div>
+          <div id="legend-rows"></div>
+        </div>
+
         <!-- End-of-battle banner -->
         <div id="battle-banner" class="hidden">
           <div id="banner-title"></div>
@@ -197,6 +206,7 @@
             <button class="log-filter" data-filter="log-player" title="Only your heroes">Team</button>
             <button class="log-filter" data-filter="log-enemy" title="Only the enemy">Enemy</button>
             <button class="log-filter" data-filter="log-system" title="Only battle events">Events</button>
+            <button id="legend-btn" class="log-filter" title="What the nameplate symbols mean">? key</button>
             <span class="log-hint" title="1/2/3 abilities · Q-U targets · Esc cancel · Space auto · Enter continue">⌨ hotkeys</span>
           </div>
           <div id="battle-log"></div>
@@ -248,6 +258,7 @@
   <script src="js/state.js?v=__BUILD__"></script>
   <script src="js/gacha.js?v=__BUILD__"></script>
   <script src="js/ai.js?v=__BUILD__"></script>
+  <script src="js/waves.js?v=__BUILD__"></script>
   <script src="js/battle.js?v=__BUILD__"></script>
   <script src="js/render.js?v=__BUILD__"></script>
   <script src="js/ui.js?v=__BUILD__"></script>

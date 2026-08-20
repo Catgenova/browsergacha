@@ -143,6 +143,17 @@ const GameState = (() => {
     migrate(loaded);
 
     // Shape guards: fields a save must have regardless of its age.
+    // These are invariants, not migrations — a BRAND NEW save stamps the
+    // current schema and therefore runs no migrations at all, so the
+    // defaults have to be completed here or heroes load without a level.
+    for (const [id, entry] of Object.entries(loaded.roster || {})) {
+      if (entry.copies === undefined) entry.copies = 1;
+      if (entry.level === undefined) entry.level = 1;
+      if (entry.xp === undefined) entry.xp = 0;
+      if (entry.stars === undefined) entry.stars = freshEntry(id).stars;
+      if (!entry.equipment) entry.equipment = {};
+      if (!entry.skills) entry.skills = {};
+    }
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;

@@ -162,4 +162,17 @@ test('bosses declare scaling anchors, a gear set and passives', () => {
   }
 });
 
+test('a brand-new save yields complete roster entries', () => {
+  // Fresh saves stamp the current schema and run no migrations, so the
+  // defaults themselves have to be complete — a hero that loads without
+  // a level renders as "Lv undefined".
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'js/state.js'), 'utf8');
+  const guard = src.slice(src.indexOf('Shape guards'));
+  for (const field of ['copies', 'level', 'xp', 'stars', 'equipment', 'skills']) {
+    assert(guard.includes(`entry.${field}`),
+      `load() never guarantees roster entry.${field}`);
+  }
+});
+
 report();

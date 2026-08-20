@@ -60,6 +60,19 @@ const Progression = (() => {
   // (def.stats5 / def.stats100); every level in between interpolates
   // linearly, letting each stat grow on its own curve. Levels beyond
   // 100 (Endless Tower) extrapolate along the same line.
+  // A single number for "how strong is this hero right now", so a
+  // 385-hero roster can be sorted by something more useful than level.
+  // Offence and durability are combined multiplicatively — a glass
+  // cannon and a wall that cannot kill both score poorly — and speed
+  // matters because acting first is acting more often.
+  function power(stats) {
+    const offence = (stats.atk || 1) *
+      (1 + (stats.critChance ?? 0.15) * ((stats.critDamage ?? 1.5) - 1));
+    const durability = (stats.hp || 1) * (1 + (stats.def || 0) / 300);
+    const tempo = (stats.speed || 100) / 100;
+    return Math.round(Math.sqrt(offence * durability) * tempo);
+  }
+
   function bossScaledStats(def, level) {
     const t = Math.max(0, (level - 5) / 95);
     const lerp = (a, b) => Math.round(a + (b - a) * t);
@@ -87,7 +100,7 @@ const Progression = (() => {
 
   return {
     MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
-    BOSS_MAX_STAGE, bossLevel, bossScaledStats,
+    BOSS_MAX_STAGE, bossLevel, bossScaledStats, power,
     MAX_SKILL_LEVEL, skillUpCost, skillPower,
   };
 })();

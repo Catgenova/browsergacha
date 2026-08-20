@@ -65,9 +65,22 @@ const App = {
     // whole game — a 400-hero roster must never zoom the UI out.
     const CORE_H = 980; // topbar + canvas + controls; lists overflow below
     const h = Math.min(root.offsetHeight, CORE_H);
-    const k = Math.max(0.5, Math.min(
-      (window.innerWidth - 24) / root.offsetWidth,
-      (window.innerHeight - 24) / h,
+    // Phones are narrower than the 960px design width, so the usual 0.5
+    // floor would force sideways scrolling. Let small screens shrink
+    // further rather than overflow — legibility beats a fixed minimum
+    // when the alternative is half the board off-screen.
+    // Measure the LAYOUT viewport, not window.innerWidth: on mobile the
+    // visual viewport grows to cover overflow, so innerWidth reports the
+    // overflowing width and scaling against it never converges.
+    const vw = Math.min(window.innerWidth || Infinity,
+      document.documentElement.clientWidth || Infinity);
+    const vh = Math.min(window.innerHeight || Infinity,
+      document.documentElement.clientHeight || Infinity);
+    const floor = vw < 760 ? 0.25 : 0.5;
+    const pad = vw < 760 ? 8 : 24;
+    const k = Math.max(floor, Math.min(
+      (vw - pad) / root.offsetWidth,
+      (vh - pad) / h,
       2.5 // sanity cap for huge monitors
     ));
     root.style.transform = `scale(${k})`;

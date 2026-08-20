@@ -21,6 +21,16 @@ class UI {
       });
     });
     this.bindKeys();
+
+    // Status legend: the pips are meaningless until you're told what
+    // they are, so the key is one click away from the battle.
+    this.legendEl = document.getElementById('status-legend');
+    const legendBtn = document.getElementById('legend-btn');
+    if (legendBtn && this.legendEl) {
+      legendBtn.addEventListener('click', () => this.toggleLegend());
+      document.getElementById('legend-close')
+        .addEventListener('click', () => this.toggleLegend(false));
+    }
     this.bannerEl = document.getElementById('battle-banner');
     this.bannerTitle = document.getElementById('banner-title');
     this.bannerSub = document.getElementById('banner-sub');
@@ -209,6 +219,49 @@ class UI {
     this.logEl.scrollTop = this.logEl.scrollHeight;
   }
 
+  toggleLegend(force) {
+    if (!this.legendEl) return;
+    const show = force === undefined
+      ? this.legendEl.classList.contains('hidden') : force;
+    if (show) {
+      const rows = document.getElementById('legend-rows');
+      const icons = Renderer.STATUS_ICONS;
+      const buffable = new Set(['atk', 'def', 'speed', 'critChance', 'critDamage']);
+      rows.innerHTML = Object.entries(icons).map(([key, ic]) => {
+        const glyph = ic.color ? ic.glyph : `${ic.glyph}▲/${ic.glyph}▼`;
+        const color = ic.color || '#8ecbff';
+        const note = buffable.has(key)
+          ? '▲ raised, ▼ lowered' : (ic.note || ic.title);
+        return `<div class="legend-row">
+          <span class="legend-glyph" style="color:${color}">${glyph}</span>
+          <span class="legend-name">${ic.title}</span>
+          <span class="legend-note">${note}</span>
+        </div>`;
+      }).join('') + `
+        <div class="legend-row">
+          <span class="legend-glyph" style="color:#8ee8ff">◆n</span>
+          <span class="legend-name">Crystal mirrors</span>
+          <span class="legend-note">charges remaining</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-glyph" style="color:#ff9a5a">⚠</span>
+          <span class="legend-name">Charging</span>
+          <span class="legend-note">this skill lands next turn</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-glyph" style="color:#ffd76a">★</span>
+          <span class="legend-name">Position bonus</span>
+          <span class="legend-note">standing in the right hex</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-glyph" style="color:#ffd76a">▲ WEAK</span>
+          <span class="legend-name">Elemental</span>
+          <span class="legend-note">▲ you hit harder · ▼ they resist</span>
+        </div>`;
+    }
+    this.legendEl.classList.toggle('hidden', !show);
+  }
+
   // Keyboard: 1/2/3 fire abilities, Q/W/E pick the first three targets,
   // Escape backs out of targeting, Space toggles auto, Enter dismisses
   // the end-of-battle banner. Ignored while typing in a field.
@@ -221,6 +274,11 @@ class UI {
       if (!screen || screen.classList.contains('hidden')) return;
 
       if (e.key === 'Escape') {
+        if (this.legendEl && !this.legendEl.classList.contains('hidden')) {
+          this.toggleLegend(false);
+          e.preventDefault();
+          return;
+        }
         if (this.renderer.targetingMode) {
           this.renderer.targetingMode = null;
           this.renderer.targetingSource = null;
@@ -230,6 +288,11 @@ class UI {
           this.targetHint.classList.add('hidden');
           e.preventDefault();
         }
+        return;
+      }
+      if (e.key === 'k' || e.key === 'K') {
+        this.toggleLegend();
+        e.preventDefault();
         return;
       }
       if (e.key === ' ') {
