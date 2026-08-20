@@ -446,6 +446,29 @@ test('clearing a chapter opens the next one, its hunt and its boss', () => {
   assert(GameState.recordCampaignClear(elite.id) === false, 'a repeat clear paid out twice');
 });
 
+test('a unit told to act with every enemy already dead simply stands down', () => {
+  // The last enemy can fall between a turn being granted and it being
+  // taken — a poison tick, a reflect, a death rattle. Row-targeting used
+  // to dereference the empty row list and take the whole battle with it.
+  const { Battle, GameState } = g;
+  const battle = new Battle();
+  const rower = Object.values(HEROES).find((h) =>
+    h.abilities.some((a) => a.targeting === 'enemy-row'));
+  assert(rower, 'no hero has a row-targeting ability to test with');
+  const hero = new Unit(rower, TEAM.PLAYER, { level: 30, stars: rower.rarity });
+  const foe = new Unit(HEROES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 1 });
+  battle.placeUnit(hero, 1);
+  battle.placeUnit(foe, 1);
+  // Kill the enemy outright, then make the hero take its turn anyway.
+  foe.hp = 0;
+  assert(battle.livingUnits(TEAM.ENEMY).length === 0, 'the enemy is still standing');
+  // Force the row ability to be the only thing it can pick.
+  for (const st of hero.abilities) {
+    st.cooldownRemaining = st.def.targeting === 'enemy-row' ? 0 : 99;
+  }
+  battle.autoAct(hero);   // must not throw
+});
+
 test('an old save keeps the hunts and bosses it already earned', () => {
   // Read the current schema off a fresh save rather than restating it,
   // so the next migration does not have to remember to edit this test.

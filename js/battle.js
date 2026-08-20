@@ -600,23 +600,29 @@ class Battle {
     if (charged) unit.telegraph = null;
 
     let target = null;
-    if (choice.def.targeting === 'enemy') {
+    if (choice.def.targeting === 'enemy' || choice.def.targeting === 'enemy-row') {
+      // The last enemy can fall between this unit's turn being granted
+      // and it acting — a poison tick, a reflect, a death rattle — so
+      // there may be nothing left to swing at.
       const enemies = this.livingUnits(unit.enemyTeam());
-      target = profile.focus(enemies, unit, this) ||
-        enemies.slice().sort((a, b) => a.hp - b.hp)[0];
-    } else if (choice.def.targeting === 'enemy-row') {
-      // Aim at the row with the most enemies, weakest member as anchor.
-      const rows = new Map();
-      for (const e of this.livingUnits(unit.enemyTeam())) {
-        const key = Math.round(e.slot.y);
-        if (!rows.has(key)) rows.set(key, []);
-        rows.get(key).push(e);
+      if (enemies.length === 0) return;
+      if (choice.def.targeting === 'enemy') {
+        target = profile.focus(enemies, unit, this) ||
+          enemies.slice().sort((a, b) => a.hp - b.hp)[0];
+      } else {
+        // Aim at the row with the most enemies, weakest member as anchor.
+        const rows = new Map();
+        for (const e of enemies) {
+          const key = Math.round(e.slot.y);
+          if (!rows.has(key)) rows.set(key, []);
+          rows.get(key).push(e);
+        }
+        let best = null;
+        for (const arr of rows.values()) {
+          if (!best || arr.length > best.length) best = arr;
+        }
+        target = best.slice().sort((a, b) => a.hp - b.hp)[0];
       }
-      let best = null;
-      for (const arr of rows.values()) {
-        if (!best || arr.length > best.length) best = arr;
-      }
-      target = best.slice().sort((a, b) => a.hp - b.hp)[0];
     } else if (choice.def.targeting === 'ally') {
       // Support the most wounded ally.
       target = allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];

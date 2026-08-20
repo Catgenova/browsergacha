@@ -27,9 +27,14 @@ const FILES = [
 // the only way to exercise the save loader and its migrations: state.js
 // reads storage once, at load.
 function loadGame(opts = {}) {
+  // The sandbox gets its own Math so a caller can make the whole engine
+  // deterministic — crits, dodges, wave picks and all — without touching
+  // the host's. Inherited methods (floor, min, ...) resolve through the
+  // prototype; only `random` is ever shadowed.
+  const sandboxMath = Object.create(Math);
   const sandbox = {
     console,
-    Math,
+    Math: sandboxMath,
     JSON,
     Date,
     structuredClone,
@@ -73,6 +78,20 @@ function loadGame(opts = {}) {
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
     ctx);
+  // Deterministic runs: seed() installs a small xorshift PRNG in place of
+  // Math.random, so the same seed replays the same battle exactly.
+  // unseed() hands control back to the real one.
+  ctx.seed = (n) => {
+    let x = (n >>> 0) || 0x9e3779b9;
+    sandboxMath.random = () => {
+      x ^= x << 13; x >>>= 0;
+      x ^= x >> 17;
+      x ^= x << 5; x >>>= 0;
+      return x / 0x100000000;
+    };
+  };
+  ctx.unseed = () => { delete sandboxMath.random; };
+
   ctx.savedState = () => {
     const raw = ctx.localStorage.getItem('browsergacha_save_v1');
     return raw ? JSON.parse(raw) : null;
