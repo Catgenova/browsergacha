@@ -47,6 +47,7 @@ class BattleScreen {
       this.setSpeed(this.speed === 1 ? 3 : 1);
     });
 
+
     // Damage meter: which contribution to show, over what stretch.
     this.meterKind = 'damage';
     this.meterScope = 'battle';
@@ -69,6 +70,54 @@ class BattleScreen {
       });
     });
     this.meterTimer = 0;
+
+    // Retreat: abandon the fight. Forfeiting a long battle by mis-click
+    // would be miserable, so the first press arms it and the second
+    // confirms; it disarms itself after a few seconds.
+    this.retreatBtn = document.getElementById('retreat-btn');
+    this.retreatArmed = false;
+    if (this.retreatBtn) {
+      this.retreatBtn.addEventListener('click', () => {
+        if (!this.battle || this.battle.state === BattleState.ENDED) {
+          // Nothing to retreat from — just leave.
+          this.retreat();
+          return;
+        }
+        if (this.retreatArmed) {
+          this.retreat();
+          return;
+        }
+        this.armRetreat(true);
+        this.retreatTimer = 4;
+      });
+    }
+  }
+
+  armRetreat(on) {
+    this.retreatArmed = on;
+    if (!this.retreatBtn) return;
+    this.retreatBtn.textContent = on ? 'Retreat? Confirm' : 'Retreat';
+    this.retreatBtn.classList.toggle('armed', on);
+    if (!on) this.retreatTimer = null;
+  }
+
+  // Abandon the current fight: no rewards, no chain, no lingering
+  // "battle in progress" state. The team is released (gear unlocks) and
+  // the player lands back on the team screen.
+  retreat() {
+    this.armRetreat(false);
+    this.cancelChain();
+    if (this.battle && this.battle.state !== BattleState.ENDED) {
+      this.battle.log('You sound the retreat — the fight is abandoned.', 'log-system');
+      // End it without firing onBattleEnd: retreating earns nothing.
+      this.battle.onBattleEnd = null;
+      this.battle.pendingAuto = null;
+      this.battle.state = BattleState.ENDED;
+      this.battle.activeUnit = null;
+    }
+    this.finishedUnseen = false; // there is no result to come back to
+    this.ui.hideAbilityBar();
+    this.app.showScreen('team');
   }
 
   // Repaint the meter panel from the ledger.
@@ -196,6 +245,7 @@ class BattleScreen {
 
   async startNewBattle(mode = 'wave') {
     const team = GameState.getTeam();
+    this.armRetreat(false);
     Meter.resetBattle(); // the session tally keeps running
     const battle = new Battle();
 
@@ -445,6 +495,12 @@ class BattleScreen {
 
   update(dt) {
     if (this.battle) this.battle.update(dt);
+    // The armed retreat lapses if it isn't confirmed.
+    if (this.retreatTimer != null) {
+      this.retreatTimer -= dt;
+      if (this.retreatTimer <= 0) this.armRetreat(false);
+    }
+
     // Meter refresh: often enough to feel live, rarely enough to be free.
     if (this.app.active === this) {
       this.meterTimer -= dt;

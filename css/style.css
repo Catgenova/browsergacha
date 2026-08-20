@@ -1564,3 +1564,16 @@ body {
   font-size: 11px;
   color: #7ae87a;
 }
+
+/* Retreat sits beside Auto; the armed state is unmistakable. */
+#retreat-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+#retreat-btn.armed {
+  background: #6a2020;
+  border-color: #ff8a6a;
+  color: #ffd0c0;
+  animation: pulse 0.9s ease-in-out infinite;
+}
