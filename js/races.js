@@ -22,6 +22,7 @@ const RACES = (() => {
   // and future one-off ids never fall into the race by accident.
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
+    'toll',
   ]);
 
   const NAMES = {

@@ -2,6 +2,9 @@
 // Built from a definition object (js/data/heroes.js, js/data/enemies.js).
 
 class Unit {
+  // Set while a retaliation hook is resolving; see struck().
+  static retaliating = false;
+
   // `progress` ({ level, stars }) scales base stats; omitted -> level 1
   // at the def's own rarity (unscaled).
   constructor(def, team, progress) {
@@ -295,8 +298,31 @@ class Unit {
       if (this.animator && this.animator.sheet.animations.death) {
         this.animator.play('death');
       }
+    } else if (amount > 0) {
+      this.struck(amount, attacker);
     }
     return amount;
+  }
+
+  // Retaliation: hooks that answer being hit. Fires only on a hit that
+  // was survived, so a killing blow never triggers a response.
+  //
+  // Re-entrancy is guarded globally rather than per unit: damage dealt BY
+  // a retaliation must not count as a strike, or two retaliating units
+  // bounce hits off each other until the stack gives out.
+  struck(amount, attacker) {
+    if (Unit.retaliating) return;
+    const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (!battle) return;
+    Unit.retaliating = true;
+    try {
+      for (const p of this.hookSources()) {
+        const hook = p.hooks && p.hooks.onStruck;
+        if (hook) hook(this, { amount, attacker, battle });
+      }
+    } finally {
+      Unit.retaliating = false;
+    }
   }
 
   // Gain (or lose) crystal mirrors, clamped to 0..max. Returns the actual

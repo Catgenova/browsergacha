@@ -5,7 +5,8 @@
 
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
-const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG } = g;
+const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
+  Battle } = g;
 
 // A battle stand-in: enough surface for hooks that reach for the field.
 function makeBattle() {
@@ -226,6 +227,93 @@ test('crystal mirrors halve nothing, reflect a quarter, and break one per hit', 
   assert(dealt === 200, `mirrors should not blunt the hit: ${dealt}`);
   assert(echo.mirrors === 5, `mirror did not break: ${echo.mirrors}`);
   assert(foe.hp === foeBefore - 50, `reflect was ${foeBefore - foe.hp}, expected 50`);
+});
+
+test('onStruck retaliation fires on a survived hit, and only then', () => {
+  const battle = makeBattle();
+  const prevActive = Battle.active;
+  Battle.active = battle; // struck() needs a live battle to hand the hooks
+  try {
+    const toll = place(battle, HEROES.toll, TEAM.PLAYER, 1);
+    const mate = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+    const foes = [1, 2, 4].map((i) => place(battle, HEROES.rat_brawler, TEAM.ENEMY, i));
+    const byPosition = {};
+    for (const sl of battle.playerSlots) byPosition[sl.position] = sl;
+    toll.slot = byPosition[POSITION.FRONT];
+
+    const ring = Math.round(toll.effectiveStat('def') * 0.10);
+    const mend = Math.round(toll.effectiveStat('def') * 0.05);
+    assert(ring > 0 && mend > 0, 'Toll has no DEF to price his kit off');
+
+    // Struck and survived: the bell hits every enemy, the ward mends.
+    mate.hp = Math.round(mate.maxHp * 0.5);
+    const mateBefore = mate.hp;
+    const foeBefore = foes.map((f) => f.hp);
+    toll.takeDamage(1, foes[0]);
+    for (let i = 0; i < foes.length; i++) {
+      assert(foeBefore[i] - foes[i].hp === ring,
+        `enemy ${i} took ${foeBefore[i] - foes[i].hp}, expected ${ring}`);
+    }
+    assert(mate.hp - mateBefore === mend,
+      `ally mended ${mate.hp - mateBefore}, expected ${mend}`);
+
+    // Out of position: the ward is silent, the passive still rings.
+    toll.slot = byPosition[POSITION.BACK];
+    mate.hp = Math.round(mate.maxHp * 0.5);
+    const outBefore = mate.hp;
+    const foeOut = foes[0].hp;
+    toll.takeDamage(1, foes[0]);
+    assert(mate.hp === outBefore, 'the positional ward healed out of position');
+    assert(foes[0].hp < foeOut, 'the passive should ring from any hex');
+
+    // A killing blow retaliates for nothing — the dead do not answer.
+    toll.slot = byPosition[POSITION.FRONT];
+    const killBefore = foes.map((f) => f.hp);
+    toll.takeDamage(toll.hp, foes[0]);
+    assert(!toll.alive, 'the killing blow did not kill');
+    assert(foes.every((f, i) => f.hp === killBefore[i]),
+      'a dead unit retaliated');
+  } finally {
+    Battle.active = prevActive;
+  }
+});
+
+test('retaliation cannot recurse when both sides answer blows', () => {
+  const battle = makeBattle();
+  const prevActive = Battle.active;
+  Battle.active = battle;
+  try {
+    const byPosition = {};
+    for (const sl of battle.playerSlots) byPosition[sl.position] = sl;
+    const mine = place(battle, HEROES.toll, TEAM.PLAYER, 1);
+    mine.slot = byPosition[POSITION.FRONT];
+    // The same kit on the other side: without the guard each ring counts
+    // as a strike and the two bounce off each other until someone dies.
+    const theirs = place(battle, HEROES.toll, TEAM.ENEMY, 1);
+    const ring = Math.round(mine.effectiveStat('def') * 0.10);
+    const mineBefore = mine.hp;
+    const theirsBefore = theirs.hp;
+
+    let threw = null;
+    try { mine.takeDamage(50, theirs); } catch (e) { threw = e; }
+    assert(!threw, `retaliation recursed: ${threw && threw.message}`);
+
+    // Exactly one bell: retaliation damage is not itself a strike, so
+    // the answer is never answered. Counting the damage is what proves
+    // it — a cascade that happens to terminate still throws nothing.
+    assert(theirsBefore - theirs.hp === ring,
+      `their Toll took ${theirsBefore - theirs.hp}, expected exactly one ring of ${ring}`);
+    // His own ward mends the whole party, himself included, so the net
+    // loss is the strike less one mend — and nothing else. Anything more
+    // would be their bell answering his.
+    const mend = Math.round(mine.effectiveStat('def') * 0.05);
+    assert(mineBefore - mine.hp === 50 - mend,
+      `my Toll netted ${mineBefore - mine.hp}, expected ${50 - mend} ` +
+      `(a 50 strike less his own ${mend} ward)`);
+    assert(Unit.retaliating === false, 'the re-entrancy flag was left set');
+  } finally {
+    Battle.active = prevActive;
+  }
 });
 
 test('positional hooks only fire in their own hex', () => {

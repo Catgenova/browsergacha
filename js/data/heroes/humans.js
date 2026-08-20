@@ -93,6 +93,110 @@ Object.assign(HEROES, {
     };
   })(),
 
+  // Toll: a Light bulwark whose whole kit is priced in DEF. He does not
+  // trade blows so much as charge for them — every hit he survives rings
+  // the bell, spraying the enemy formation and mending his own line.
+  toll: {
+    id: 'toll',
+    element: 'light',
+    name: 'Toll',
+    title: 'The Debt Bell',
+    rarity: 5,
+    // Slow and enormously thick: the retaliation is the damage, so the
+    // statline pays for staying upright rather than for acting often.
+    stats: { hp: 2650, atk: 96, def: 300, speed: 84 },
+    tint: { body: '#c8c0a8', helm: '#f0e8c8', weapon: '#ffe9a8', shield: '#d8c070' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle:   { src: 'assets/heroes/Toll/tollidle.png', frames: 9, fps: 5, loop: true },
+        ready:  { src: 'assets/heroes/Toll/tollready.png', frames: 9, fps: 6, loop: true },
+        attack: { src: 'assets/heroes/Toll/tollskill1.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        skill2: { src: 'assets/heroes/Toll/tollskill2.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        skill3: { src: 'assets/heroes/Toll/tollskill3.png', frames: 9, fps: 10, loop: false,
+                  hitFrame: 8 },
+        death:  { src: 'assets/heroes/Toll/tolldeath.png', frames: 9, fps: 8, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'first_toll', name: 'First Toll',
+        icon: 'assets/icons/fc305.png',
+        description: 'Ring the bell over the front line: 50% DEF to every front-hex enemy.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack',
+        effects: [{ type: 'damageDef', mult: 0.5 }],
+      },
+      {
+        id: 'full_peal', name: 'Full Peal',
+        icon: 'assets/icons/fc306.png',
+        description: 'The peal carries across the field: 50% DEF to ALL enemies.',
+        cooldown: 3, targeting: 'all-enemies', animation: 'skill2',
+        effects: [{ type: 'damageDef', mult: 0.5 }],
+      },
+      {
+        id: 'the_reckoning', name: 'The Reckoning',
+        icon: 'assets/icons/fc307.png',
+        description: 'Call in the debt: ALL enemies lose 30% DEF and 30% ATK for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        effects: [
+          { type: 'debuff', stat: 'def', mult: 0.7, turns: 2 },
+          { type: 'debuff', stat: 'atk', mult: 0.7, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Every Blow Answered',
+      icon: 'assets/icons/fc308.png',
+      description: 'Each time Toll is struck and survives, the bell rings: 10% of his DEF to ALL enemies.',
+      hooks: {
+        onStruck(unit, { battle }) {
+          const foes = battle.livingUnits(
+            unit.team === TEAM.PLAYER ? TEAM.ENEMY : TEAM.PLAYER);
+          if (!foes.length) return null;
+          const hit = Math.max(1, Math.round(unit.effectiveStat('def') * 0.10));
+          let felled = 0;
+          for (const foe of foes) {
+            const dealt = foe.takeDamage(hit, unit);
+            if (typeof Meter !== 'undefined') Meter.damage(unit, dealt);
+            battle.addFloatingText(foe, `-${dealt}`, '#ffe9a8');
+            if (!foe.alive) felled++;
+          }
+          battle.log(`${unit.name} is struck \u2014 the bell answers for ${hit} across the field.` +
+            (felled ? ` ${felled} fall!` : ''), 'log-system');
+          return null; // resolved inline; the turn belongs to the attacker
+        },
+      },
+    },
+    // Where he stands decides who the ringing mends, so the ward is the
+    // positional's business rather than the passive's.
+    positional: {
+      id: 'tolling_ward',
+      position: POSITION.FRONT,
+      name: 'Tolling Ward',
+      description: 'Front hex: each time Toll is struck and survives, the whole party mends 5% of his DEF.',
+      hooks: {
+        onStruck(unit, { battle }) {
+          const mend = Math.max(1, Math.round(unit.effectiveStat('def') * 0.05));
+          let total = 0;
+          for (const ally of battle.livingUnits(unit.team)) {
+            const healed = ally.heal(mend, unit);
+            if (healed > 0) {
+              total += healed;
+              battle.addFloatingText(ally, `+${healed}`, '#7ae87a');
+            }
+          }
+          if (total <= 0) return null;
+          battle.log(`${unit.name}'s ward answers the blow \u2014 ${total} HP across the party.`,
+            'log-system');
+          return null;
+        },
+      },
+    },
+  },
+
   // ---- 4★ ------------------------------------------------------------------
 
   // Catherine: a Light paladin-support. Flail attacker up front, triage
