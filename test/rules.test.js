@@ -267,4 +267,38 @@ test('achievements all report sane progress and rewards', () => {
   assert(ids.length >= 10, `only ${ids.length} achievements defined`);
 });
 
+test('star up all promotes exactly the eligible heroes', () => {
+  const { GameState } = g;
+  // Ready: at the level cap with spare duplicates.
+  const ready = 'rat_archer';
+  for (let i = 0; i < 8; i++) GameState.addHero(ready);
+  GameState.addXp(ready, 1e9);
+  // Not ready: enough copies, but sitting at level 1.
+  const lowLevel = 'rat_brawler';
+  for (let i = 0; i < 8; i++) GameState.addHero(lowLevel);
+  // Not ready: at the cap, but only one copy.
+  const noCopies = 'rat_spearman';
+  GameState.addHero(noCopies);
+  GameState.addXp(noCopies, 1e9);
+
+  const expected = GameState.starUpReadyCount();
+  assert(expected >= 1, 'nothing was set up as ready');
+  assert(GameState.canStarUp(ready), 'the ready hero is not eligible');
+  assert(!GameState.canStarUp(lowLevel), 'a level-1 hero should not be eligible');
+  assert(!GameState.canStarUp(noCopies), 'a hero without duplicates should not be eligible');
+
+  const before = GameState.progressOf(ready).stars;
+  const done = GameState.starUpAll();
+  assert(done.length === expected,
+    `starred ${done.length} but ${expected} were ready`);
+  assert(GameState.progressOf(ready).stars === before + 1,
+    'the ready hero did not gain a star');
+  assert(GameState.progressOf(ready).level === 1,
+    'a star-up must reset the level');
+  assert(GameState.progressOf(lowLevel).stars ===
+    HEROES[lowLevel].rarity, 'an ineligible hero was starred up');
+  // A second sweep does nothing: a star-up resets to level 1.
+  assert(GameState.starUpAll().length === 0, 'a hero starred up twice in a row');
+});
+
 report();

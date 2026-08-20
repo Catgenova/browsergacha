@@ -275,6 +275,30 @@ const GameState = (() => {
       return true;
     },
 
+    // Every hero that can star up right now, starred up in one pass.
+    // A star-up resets the hero to level 1, so nobody qualifies twice in
+    // the same sweep. Heroes currently fighting are skipped for the same
+    // reason their gear is locked: their stats are already committed.
+    starUpAll() {
+      const done = [];
+      for (const heroId of Object.keys(state.roster)) {
+        if (!this.canStarUp(heroId)) continue;
+        if (this.heroGearLocked(heroId)) continue;
+        const from = state.roster[heroId].stars;
+        if (this.starUp(heroId)) {
+          const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
+          done.push({ id: heroId, name: def ? def.name : heroId, from, to: from + 1 });
+        }
+      }
+      return done;
+    },
+
+    // How many heroes are waiting on a star-up right now.
+    starUpReadyCount() {
+      return Object.keys(state.roster).filter((id) =>
+        this.canStarUp(id) && !this.heroGearLocked(id)).length;
+    },
+
     // ---- Team ----
     // team is { slotIndex: heroId }; a hero occupies at most one slot.
     getTeam() { return { ...state.team }; },

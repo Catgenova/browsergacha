@@ -18,7 +18,7 @@ const FILES = [
   'js/data/positionals.js', 'js/data/heroes.js',
   'js/data/heroes/humans.js', 'js/data/heroes/rats.js', 'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js', 'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js', 'js/data/heroes/cats.js', 'js/data/heroes/drakes.js',
   'js/data/enemies.js',
-  'js/data/bosses.js', 'js/ai.js', 'js/meter.js', 'js/quests.js', 'js/battle.js',
+  'js/data/bosses.js', 'js/ai.js', 'js/meter.js', 'js/quests.js', 'js/battle.js', 'js/state.js',
 ];
 
 function loadGame() {
@@ -27,6 +27,7 @@ function loadGame() {
     Math,
     JSON,
     Date,
+    structuredClone,
     // Sprite loading and rendering never run in these tests; the data
     // files only reference these lazily, so stubs are enough.
     document: { getElementById: () => null, createElement: () => ({ getContext: () => null }) },
@@ -50,7 +51,7 @@ function loadGame() {
   // scope, not on the sandbox object, so surface what the tests need.
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES',
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
-    'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState'];
+    'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
