@@ -799,6 +799,19 @@ body {
 #bs-filters {
   display: flex;
   gap: 6px;
+  flex: 1;
+}
+
+/* Sits with the slot chips, not the salvage controls: both decide what
+   the list shows, and salvage acts on it. */
+#bs-sort {
+  padding: 5px 6px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
 }
 
 #bs-bulk {

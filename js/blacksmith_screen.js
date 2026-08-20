@@ -13,6 +13,28 @@ class BlacksmithScreen {
     this.filter = 'all';
     this.selectedUid = null;
 
+    // Inventory order. Rarity is the default because "what is my best
+    // piece" is the usual question, but assembling a six-piece set means
+    // reading by set instead, so that ordering is a click away and is
+    // remembered between visits.
+    this.sortEl = document.getElementById('bs-sort');
+    this.sort = 'rarity';
+    try {
+      const saved = localStorage.getItem('bg_gearSort');
+      if (saved) this.sort = saved;
+    } catch (e) { /* storage unavailable: the default is fine */ }
+    if (this.sortEl) {
+      this.sortEl.value = this.sort;
+      // A saved value naming a sort that no longer exists leaves the
+      // select blank; fall back rather than render an empty control.
+      if (!this.sortEl.value) { this.sort = 'rarity'; this.sortEl.value = this.sort; }
+      this.sortEl.addEventListener('change', () => {
+        this.sort = this.sortEl.value;
+        try { localStorage.setItem('bg_gearSort', this.sort); } catch (e) {}
+        this.refresh();
+      });
+    }
+
     // Bulk salvage: every unequipped piece below the chosen rarity.
     this.bulkRarity = document.getElementById('bs-bulk-rarity');
     document.getElementById('bs-bulk-salvage').addEventListener('click', () => {
@@ -78,10 +100,36 @@ class BlacksmithScreen {
     });
 
     const rarityRank = Object.fromEntries(Gear.RARITY_ORDER.map((r, i) => [r, i]));
+    const setOrder = Object.keys(Gear.SETS);
+    const slotOrder = Gear.SLOTS;
+    // Every ordering falls through to the same tie-break, so a list only
+    // ever reorders by the thing that was asked for.
+    const byQuality = (a, b) =>
+      rarityRank[b.rarity] - rarityRank[a.rarity] ||
+      b.level - a.level || b.plus - a.plus ||
+      String(a.uid).localeCompare(String(b.uid));
+    const wearerName = (p) => {
+      const id = GameState.wearerOf(p.uid);
+      return id && HEROES[id] ? HEROES[id].name : '';
+    };
+    const SORTS = {
+      rarity: byQuality,
+      // Sets group together, and within a set the best piece leads — so
+      // the gap in a six-piece set is visible at a glance.
+      set: (a, b) => setOrder.indexOf(a.set) - setOrder.indexOf(b.set) || byQuality(a, b),
+      level: (a, b) => b.level - a.level || b.plus - a.plus || byQuality(a, b),
+      slot: (a, b) => slotOrder.indexOf(a.slot) - slotOrder.indexOf(b.slot) || byQuality(a, b),
+      // Worn pieces first, grouped by their wearer; the bench follows.
+      wearer: (a, b) => {
+        const wa = wearerName(a);
+        const wb = wearerName(b);
+        if (!wa !== !wb) return wa ? -1 : 1;
+        return wa.localeCompare(wb) || byQuality(a, b);
+      },
+    };
     const pieces = this.allPieces()
       .filter((p) => this.filter === 'all' || p.slot === this.filter)
-      .sort((a, b) =>
-        rarityRank[b.rarity] - rarityRank[a.rarity] || b.level - a.level || b.plus - a.plus);
+      .sort(SORTS[this.sort] || SORTS.rarity);
 
     if (!pieces.some((p) => p.uid === this.selectedUid)) {
       this.selectedUid = pieces.length ? pieces[0].uid : null;
