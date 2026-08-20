@@ -2,7 +2,9 @@
 // that drop from battle victories:
 //   - Common Summon Scroll:   1★ 60% / 2★ 30% / 3★ 10%
 //   - Rare Summon Scroll:     3★ 80% / 4★ 18% / 5★ 2%
-//   - Temporal Summon Scroll: 1★ 30% / 2★ 30% / 3★ 25% / 4★ 12% / 5★ 3%
+//   - Temporal Summon Scroll: 3★ 85% / 4★ 12% / 5★ 3%
+// Dark and Light heroes are always at least 3★, so Temporal Scrolls
+// never roll below that — the old 1★/2★ weight folds into 3★.
 // Common/Rare scrolls summon Wind/Water/Fire heroes; Dark and Light
 // heroes come ONLY from Temporal Scrolls (1% drop from normal hunts and
 // from boss stage 15+, plus every 50th tower floor).
@@ -26,9 +28,7 @@ const Gacha = (() => {
     temporal: [
       { rarity: 5, p: 0.03 },
       { rarity: 4, p: 0.12 },
-      { rarity: 3, p: 0.25 },
-      { rarity: 2, p: 0.30 },
-      { rarity: 1, p: 0.30 },
+      { rarity: 3, p: 0.85 },
     ],
   };
 
