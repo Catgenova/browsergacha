@@ -14,7 +14,7 @@ class BattleScreen {
     // campaign node has no ladder to climb, so its "next" is the map.
     this.ui.onRetry = () => {
       if (this.campaignFight) {
-        this.requestCampaign(this.campaignFight.nodeId);
+        this.requestCampaign(this.campaignFight.nodeId, this.campaignFight.tier);
         this.enter();
       } else if (this.towerFight) {
         this.requestBattle('tower');
@@ -27,10 +27,11 @@ class BattleScreen {
     // map. bannerOpts only offers this when there IS one.
     this.ui.onAdvance = () => {
       if (!this.campaignFight) return;
-      const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId));
+      const t = this.campaignFight.tier;
+      const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId), t);
       if (!next) { app.showScreen('campaign'); return; }
       GameState.setCampaignChapter(Campaign.chapterFor(next.id).id);
-      this.requestCampaign(next.id);
+      this.requestCampaign(next.id, t);
       this.enter();
     };
     this.ui.onNextStage = () => {
@@ -195,9 +196,10 @@ class BattleScreen {
   // Campaign nodes are fought one at a time — no repeat chain. A node
   // is a fixed encounter you either beat or come back to, and looping
   // it would turn the spine of the game into a farm.
-  requestCampaign(nodeId) {
+  requestCampaign(nodeId, tierId = 'normal') {
     this.pendingMode = 'campaign';
     this.campaignNodeId = nodeId;
+    this.campaignTier = tierId;
     this.cancelChain();
     this.chainMode = 'campaign';
   }
@@ -217,13 +219,16 @@ class BattleScreen {
       // Only after a win: losing leaves the same fight as "next", which
       // is what Retry is for.
       if (winner === TEAM.PLAYER) {
-        const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId));
+        const t = this.campaignFight.tier;
+        const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId), t);
         if (next) {
           const ch = Campaign.chapterFor(next.id);
+          const tier = Campaign.tier(t);
           opts.advance = true;
           opts.advanceLabel = `Next: ${next.name}`;
-          opts.advanceTitle =
-            `${ch.title} — ${next.name} · Lv ${Campaign.levelFor(next)}`;
+          opts.advanceTitle = `${ch.title} — ${next.name} · Lv ` +
+            `${Campaign.levelFor(next, t)}` +
+            (t === 'normal' ? '' : ` · ${tier.label}`);
         }
       }
       return opts;
@@ -316,28 +321,38 @@ class BattleScreen {
       // A campaign node: a fixed line-up at a fixed level, or the
       // chapter's holder alone on the field.
       const ch = Campaign.chapterFor(campNode.id);
+      // A tier the player has not opened cannot be fought, whatever the
+      // request said.
+      const tierId = Campaign.tierUnlocked(ch, this.campaignTier)
+        ? this.campaignTier : 'normal';
+      const tier = Campaign.tier(tierId);
       this.bossFight = null;
       this.towerFight = null;
-      this.campaignFight = { nodeId: campNode.id };
-      const level = Campaign.levelFor(campNode);
-      const pay = Campaign.payout(campNode);
+      this.campaignFight = { nodeId: campNode.id, tier: tierId };
+      const level = Campaign.levelFor(campNode, tierId);
+      const pay = Campaign.payout(campNode, tierId);
       this.rewardXp = pay.xp;
       this.rewardWhetstones = pay.whetstones;
       this.rewardArcana = pay.arcana;
       bgPin = ch.location;
+      // Same map, same line-up, harder enemies: the tier is a stat scale
+      // on top of whatever the node already fields.
+      const banner = tierId === 'normal' ? '' : ` [${tier.label}]`;
       if (campNode.type === 'boss') {
         const def = BOSSES[ch.boss];
         bgPin = def.background || bgPin;
         battle.placeUnit(new Unit(def, TEAM.ENEMY, {
-          level, stars: def.rarity, statScale: Campaign.holderScale(ch),
+          level, stars: def.rarity, statScale: Campaign.holderScaleFor(ch, tierId),
         }), 0);
-        this.introLog =
-          `${ch.title} — ${campNode.name}: the ${def.name} holds the way! (Lv ${level})`;
+        this.introLog = `${ch.title}${banner} — ${campNode.name}: ` +
+          `the ${def.name} holds the way! (Lv ${level})`;
       } else {
+        const scale = Campaign.enemyScale(tierId);
         for (const { def, slotIndex } of Campaign.encounter(campNode, battle.enemySlots)) {
-          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotIndex);
+          battle.placeUnit(new Unit(def, TEAM.ENEMY,
+            { level, stars: def.rarity, statScale: scale }), slotIndex);
         }
-        this.introLog = `${ch.title} — ${campNode.name} (Lv ${level}).`;
+        this.introLog = `${ch.title}${banner} — ${campNode.name} (Lv ${level}).`;
       }
     } else if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
@@ -531,12 +546,18 @@ class BattleScreen {
         if (this.campaignFight) {
           const node = Campaign.node(this.campaignFight.nodeId);
           const ch = Campaign.chapterFor(node.id);
-          const isFirst = GameState.recordCampaignClear(node.id);
-          sub.unshift(`${ch.title} — ${node.name} cleared!`);
+          const tierId = this.campaignFight.tier;
+          const tier = Campaign.tier(tierId);
+          // Each tier records its own clear, so every difficulty has a
+          // first clear of its own to pay out.
+          const isFirst = GameState.recordCampaignClear(
+            Campaign.clearKey(node.id, tierId));
+          sub.unshift(`${ch.title} — ${node.name} cleared!` +
+            (tierId === 'normal' ? '' : ` (${tier.label})`));
           // The one-off bonus is what the campaign is actually for;
           // re-running a node pays only the XP and materials above.
           if (isFirst) {
-            const bonus = Campaign.firstClearBonus(node);
+            const bonus = Campaign.firstClearBonus(node, tierId);
             if (bonus.scrolls) {
               for (const [kind, n] of Object.entries(bonus.scrolls)) {
                 GameState.addScrolls(kind, n);
@@ -547,6 +568,15 @@ class BattleScreen {
             if (bonus.unlocks) {
               sub.push(`The ${CONFIG.LOCATION_NAMES[ch.location]} opens for hunting, ` +
                 `and the ${BOSSES[ch.boss].name} will now take challengers.`);
+            }
+            // Clearing a holder opens the next difficulty for THIS
+            // chapter, so say so where the player is looking.
+            if (node.type === 'boss') {
+              const nextTier = Campaign.TIER_IDS[Campaign.tierIndex(tierId) + 1];
+              if (nextTier) {
+                sub.push(`${ch.title} on ${Campaign.tier(nextTier).label} is now open — ` +
+                  `${Campaign.tier(nextTier).reward}x rewards.`);
+              }
             }
           }
           GameState.questBump(node.type === 'boss' ? 'bossWins' : 'huntWins');

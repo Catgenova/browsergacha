@@ -31,6 +31,40 @@ const Campaign = (() => {
     };
   }
 
+  // ---- Difficulty tiers --------------------------------------------------
+  // The same map, run again for more. A tier is deliberately NOT a
+  // separate set of chapters: the routes, the line-ups and the story are
+  // the content, and a second pass at them is worth more than a second
+  // set of them.
+  //
+  // Enemies are hardened with a stat scale rather than only levels. Level
+  // is a blunt lever here — heroes cap at 100, and a wave stops caring
+  // about levels long before that — so the levels move a little and the
+  // statline does the work.
+  const TIERS = [
+    { id: 'normal', label: 'Normal', scale: 1, reward: 1, levels: 0,
+      blurb: 'The campaign as written.' },
+    { id: 'hard', label: 'Hard', scale: 1.6, reward: 2, levels: 5,
+      blurb: 'Every fight again, with enemies at 1.6x and double rewards.' },
+    { id: 'expert', label: 'Expert', scale: 2.4, reward: 3, levels: 10,
+      blurb: 'Every fight again, with enemies at 2.4x and triple rewards.' },
+  ];
+  const TIER_IDS = TIERS.map((t) => t.id);
+  function tier(tierId) {
+    return TIERS.find((t) => t.id === tierId) || TIERS[0];
+  }
+  function tierIndex(tierId) {
+    const i = TIER_IDS.indexOf(tierId);
+    return i < 0 ? 0 : i;
+  }
+
+  // Clears are stored per tier. Normal keeps the bare node id, so every
+  // save that predates difficulty reads back exactly as it did — the new
+  // tiers simply have no keys yet.
+  function clearKey(nodeId, tierId = 'normal') {
+    return tierId === 'normal' ? nodeId : `${nodeId}@${tierId}`;
+  }
+
   // ---- Lookups ----------------------------------------------------------
   const byId = new Map();
   const chapterOf = new Map();
@@ -64,13 +98,21 @@ const Campaign = (() => {
     // Dragon (a starred team around Lv 80).
     return 14 + Math.round(index * 8.875);
   }
-  function levelFor(nodeObj) {
+  function levelFor(nodeObj, tierId = 'normal') {
     const ch = chapterFor(nodeObj.id);
     const top = holderLevel(CHAPTER_INDEX.get(ch.id));
-    if (nodeObj.type === 'boss') return top;
+    const bump = tier(tierId).levels;
+    if (nodeObj.type === 'boss') return top + bump;
     const span = ch.maxDepth || 1;
     const level = (top - 10) + Math.round((nodeObj.depth / span) * 8);
-    return nodeObj.type === 'elite' ? level + 1 : level;
+    return (nodeObj.type === 'elite' ? level + 1 : level) + bump;
+  }
+
+  // What a tier multiplies enemy stats by. Holders compound it with the
+  // chapter's own tuning so a tier never undoes that work.
+  function enemyScale(tierId = 'normal') { return tier(tierId).scale; }
+  function holderScaleFor(ch, tierId = 'normal') {
+    return holderScale(ch) * enemyScale(tierId);
   }
 
   // How many enemies a node fields. Wave levels flatten out as a
@@ -144,23 +186,48 @@ const Campaign = (() => {
   // A chapter opens when the previous chapter's holder is down. A node
   // opens when ANY of its prerequisites is cleared — a fork is a choice
   // of route, not two errands.
-  function chapterUnlocked(ch) {
+  // A tier opens for a chapter when that chapter's holder is down on the
+  // tier below — per chapter, not per campaign. Finishing Chapter 1 opens
+  // Chapter 1 on Hard immediately, which is the point: the reward for
+  // clearing something is a harder version of it, not a promise redeemed
+  // eight chapters later.
+  function tierUnlocked(ch, tierId = 'normal') {
+    const i = tierIndex(tierId);
+    if (i === 0) return true;
+    const below = TIER_IDS[i - 1];
+    return GameState.campaignCleared(clearKey(bossNode(ch).id, below));
+  }
+  function chapterUnlocked(ch, tierId = 'normal') {
+    if (!tierUnlocked(ch, tierId)) return false;
     const i = CAMPAIGN.CHAPTERS.indexOf(ch);
     if (i <= 0) return true;
-    return GameState.campaignCleared(bossNode(CAMPAIGN.CHAPTERS[i - 1]).id);
+    // The chapter chain runs inside a tier: Chapter 2 on Hard wants
+    // Chapter 1 on Hard, not Chapter 1 on Normal.
+    return GameState.campaignCleared(
+      clearKey(bossNode(CAMPAIGN.CHAPTERS[i - 1]).id, tierId));
   }
-  function nodeUnlocked(nodeObj) {
+  function nodeUnlocked(nodeObj, tierId = 'normal') {
     const ch = chapterFor(nodeObj.id);
-    if (!chapterUnlocked(ch)) return false;
+    if (!chapterUnlocked(ch, tierId)) return false;
     if (nodeObj.from.length === 0) return true;
-    return nodeObj.from.some((id) => GameState.campaignCleared(id));
+    return nodeObj.from.some((id) =>
+      GameState.campaignCleared(clearKey(id, tierId)));
   }
-  function nodeCleared(nodeObj) { return GameState.campaignCleared(nodeObj.id); }
+  function nodeCleared(nodeObj, tierId = 'normal') {
+    return GameState.campaignCleared(clearKey(nodeObj.id, tierId));
+  }
+
+  // The highest tier currently open for a chapter, for the picker.
+  function highestTier(ch) {
+    let best = TIER_IDS[0];
+    for (const t of TIER_IDS) if (tierUnlocked(ch, t)) best = t;
+    return best;
+  }
 
   // Chapter progress for the header: cleared / total, holder down or not.
-  function chapterProgress(ch) {
-    const done = ch.nodes.filter((n) => GameState.campaignCleared(n.id)).length;
-    return { done, total: ch.nodes.length, beaten: nodeCleared(bossNode(ch)) };
+  function chapterProgress(ch, tierId = 'normal') {
+    const done = ch.nodes.filter((n) => nodeCleared(n, tierId)).length;
+    return { done, total: ch.nodes.length, beaten: nodeCleared(bossNode(ch), tierId) };
   }
 
   // Where to go after clearing `nodeObj`: follow the road first — a
@@ -168,7 +235,7 @@ const Campaign = (() => {
   // fight still open in the chapter, and finally to the next chapter's
   // gate once this one is finished. Null when there is nowhere to go,
   // which is how the banner knows to hide the button.
-  function nextMission(nodeObj) {
+  function nextMission(nodeObj, tierId = 'normal') {
     const ch = chapterFor(nodeObj.id);
     const shallowest = (list) => list
       .slice()
@@ -177,24 +244,24 @@ const Campaign = (() => {
     // is not asked to prove it — that would make the answer depend on
     // whether the clear had already been written down.
     const onward = shallowest(ch.nodes.filter((n) =>
-      n.id !== nodeObj.id && !nodeCleared(n) && n.from.includes(nodeObj.id)));
+      n.id !== nodeObj.id && !nodeCleared(n, tierId) && n.from.includes(nodeObj.id)));
     if (onward) return onward;
     const elsewhere = shallowest(ch.nodes.filter((n) =>
-      n.id !== nodeObj.id && nodeUnlocked(n) && !nodeCleared(n)));
+      n.id !== nodeObj.id && nodeUnlocked(n, tierId) && !nodeCleared(n, tierId)));
     if (elsewhere) return elsewhere;
     const next = CAMPAIGN.CHAPTERS[CAMPAIGN.CHAPTERS.indexOf(ch) + 1];
-    if (!next || !chapterUnlocked(next)) return null;
+    if (!next || !chapterUnlocked(next, tierId)) return null;
     return next.nodes.find((n) => n.from.length === 0) || null;
   }
 
   // The furthest chapter the player can currently enter — where the
   // screen opens by default.
-  function currentChapter() {
+  function currentChapter(tierId = 'normal') {
     let last = CAMPAIGN.CHAPTERS[0];
     for (const ch of CAMPAIGN.CHAPTERS) {
-      if (!chapterUnlocked(ch)) break;
+      if (!chapterUnlocked(ch, tierId)) break;
       last = ch;
-      if (!chapterProgress(ch).beaten) break;
+      if (!chapterProgress(ch, tierId).beaten) break;
     }
     return last;
   }
@@ -203,14 +270,19 @@ const Campaign = (() => {
   // Every clear pays XP and materials scaled to what you fought. The
   // FIRST clear of a node pays a one-off bonus on top — that is the
   // campaign's actual draw, and why farming it is worse than hunting.
-  function payout(nodeObj) {
-    const level = levelFor(nodeObj);
+  // The base is always read at Normal levels and then multiplied, so a
+  // tier pays EXACTLY what it advertises. Scaling off the tier's own
+  // higher levels would compound with the multiplier and quietly make
+  // Hard 2.6x and Expert 4.8x.
+  function payout(nodeObj, tierId = 'normal') {
+    const level = levelFor(nodeObj, 'normal');
     const size = sizeFor(nodeObj);
     const weight = nodeObj.type === 'boss' ? 6 : size;
+    const mult = tier(tierId).reward;
     return {
-      xp: Progression.enemyXp(level) * weight,
-      whetstones: 3 + Math.round(level * size * 0.5),
-      arcana: 1 + Math.floor((level * size) / 40),
+      xp: Progression.enemyXp(level) * weight * mult,
+      whetstones: (3 + Math.round(level * size * 0.5)) * mult,
+      arcana: (1 + Math.floor((level * size) / 40)) * mult,
     };
   }
 
@@ -224,18 +296,25 @@ const Campaign = (() => {
   // the set you actually want; a one-off piece from a node you can never
   // re-clear is a worse version of that and muddies what the campaign is
   // for.
-  function firstClearBonus(nodeObj) {
+  // Each tier keeps its own first clear, and pays the tier multiplier:
+  // an Expert holder is three Temporal Scrolls, not one.
+  function firstClearBonus(nodeObj, tierId = 'normal') {
+    const t = tier(tierId);
+    const paid = (kind, n) => ({ [kind]: n * t.reward });
+    const label = t.id === 'normal' ? '' : ` (${t.label})`;
     if (nodeObj.type === 'boss') {
       return {
-        scrolls: { temporal: 1 },
-        unlocks: true,
-        label: 'Chapter cleared',
+        scrolls: paid('temporal', 1),
+        // The hunt and boss gates are opened once, by the Normal clear.
+        // Re-announcing them on every tier would be noise about nothing.
+        unlocks: t.id === 'normal',
+        label: `Chapter cleared${label}`,
       };
     }
     if (nodeObj.type === 'elite') {
-      return { scrolls: { rare: 1 }, label: 'Elite bounty' };
+      return { scrolls: paid('rare', 1), label: `Elite bounty${label}` };
     }
-    return { scrolls: { common: 1 }, label: 'First clear' };
+    return { scrolls: paid('common', 1), label: `First clear${label}` };
   }
 
   // ---- Gating other modes ----------------------------------------------
@@ -264,6 +343,8 @@ const Campaign = (() => {
   }
 
   return {
+    TIERS, TIER_IDS, tier, tierIndex, tierUnlocked, highestTier, clearKey,
+    enemyScale, holderScaleFor,
     chapter, node, chapterFor, bossNode, levelFor, sizeFor, encounter, holderScale,
     chapterUnlocked, nodeUnlocked, nodeCleared, chapterProgress,
     currentChapter, payout, firstClearBonus, nextMission,

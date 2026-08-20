@@ -409,6 +409,108 @@ test('a campaign node is the same fight every time it is opened', () => {
   assert(problems.length === 0, problems.slice(0, 5).join(' | '));
 });
 
+test('difficulty tiers gate per chapter and pay exactly what they promise', () => {
+  // Its own save: this test walks progress forward.
+  const w = loadGame({ save: { schemaVersion: 5 } });
+  const { CAMPAIGN, Campaign, GameState } = w;
+  const [ch1, ch2] = CAMPAIGN.CHAPTERS;
+  const boss1 = Campaign.bossNode(ch1);
+  const clear = (n, t) => GameState.recordCampaignClear(Campaign.clearKey(n.id, t));
+
+  assert(Campaign.TIER_IDS.join() === 'normal,hard,expert',
+    `unexpected tiers: ${Campaign.TIER_IDS.join()}`);
+
+  // Nothing above Normal is open on a fresh save.
+  assert(Campaign.tierUnlocked(ch1, 'normal'), 'Normal must always be open');
+  assert(!Campaign.tierUnlocked(ch1, 'hard'), 'Hard opened before Normal was cleared');
+  assert(!Campaign.tierUnlocked(ch1, 'expert'), 'Expert opened before Hard was cleared');
+
+  // Clearing a chapter's holder opens the NEXT tier of THAT chapter, and
+  // only that chapter — the reward is a harder version of what you just
+  // finished, not a key to the whole game.
+  clear(boss1, 'normal');
+  assert(Campaign.tierUnlocked(ch1, 'hard'), 'Hard did not open after the Normal clear');
+  assert(!Campaign.tierUnlocked(ch1, 'expert'), 'Expert opened a tier early');
+  assert(!Campaign.tierUnlocked(ch2, 'hard'),
+    'clearing chapter 1 must not open chapter 2 on Hard');
+  clear(boss1, 'hard');
+  assert(Campaign.tierUnlocked(ch1, 'expert'), 'Expert did not open after the Hard clear');
+  assert(Campaign.highestTier(ch1) === 'expert',
+    `highest tier is ${Campaign.highestTier(ch1)}`);
+
+  // Tiers keep separate progress: the Hard run starts from the entrance
+  // again rather than inheriting the Normal clears.
+  const entry = ch1.nodes.find((n) => n.from.length === 0);
+  clear(entry, 'normal');
+  assert(Campaign.nodeCleared(entry, 'normal'), 'the Normal clear was not recorded');
+  assert(!Campaign.nodeCleared(entry, 'hard'), 'a Normal clear leaked into Hard');
+  assert(Campaign.chapterProgress(ch1, 'hard').done === 1,
+    'Hard progress should count only its own clears (the holder)');
+
+  // And the chapter chain still runs inside a tier.
+  clear(Campaign.bossNode(ch2), 'normal');
+  assert(Campaign.tierUnlocked(ch2, 'hard'), 'chapter 2 Hard should open once it falls');
+  assert(Campaign.chapterUnlocked(ch2, 'hard'),
+    'chapter 2 on Hard needs chapter 1 on Hard, which is cleared');
+
+  // Rewards are EXACTLY the advertised multiple of Normal, on every
+  // currency — not the tier's own harder levels compounded with it.
+  for (const n of [boss1, entry, ch1.nodes.find((x) => x.type === 'elite')]) {
+    const base = Campaign.payout(n, 'normal');
+    for (const t of ['hard', 'expert']) {
+      const mult = Campaign.tier(t).reward;
+      const pay = Campaign.payout(n, t);
+      for (const k of ['xp', 'whetstones', 'arcana']) {
+        assert(pay[k] === base[k] * mult,
+          `${n.id} ${t} ${k}: ${pay[k]}, expected ${base[k] * mult}`);
+      }
+      const scrolls = Campaign.firstClearBonus(n, t).scrolls;
+      const baseScrolls = Campaign.firstClearBonus(n, 'normal').scrolls;
+      for (const kind of Object.keys(baseScrolls)) {
+        assert(scrolls[kind] === baseScrolls[kind] * mult,
+          `${n.id} ${t} ${kind} scrolls: ${scrolls[kind]}`);
+      }
+    }
+  }
+
+  // Harder tiers really are harder, and stay inside the level ceiling.
+  for (const t of ['hard', 'expert']) {
+    assert(Campaign.levelFor(boss1, t) > Campaign.levelFor(boss1, 'normal'),
+      `${t} holders are no higher level than Normal`);
+    assert(Campaign.enemyScale(t) > 1, `${t} does not scale enemy stats`);
+    const top = Campaign.bossNode(CAMPAIGN.CHAPTERS[CAMPAIGN.CHAPTERS.length - 1]);
+    assert(Campaign.levelFor(top, t) <= 100,
+      `the final holder on ${t} is Lv ${Campaign.levelFor(top, t)}, past the cap`);
+  }
+  // A holder's own chapter tuning survives the tier multiplier.
+  assert(Campaign.holderScaleFor(ch1, 'hard') ===
+    Campaign.holderScale(ch1) * Campaign.enemyScale('hard'),
+    'the tier scale replaced the chapter tuning instead of compounding with it');
+
+  // Only the Normal clear opens the hunt and boss gates; re-announcing
+  // them on every tier would be noise about nothing.
+  assert(Campaign.firstClearBonus(boss1, 'normal').unlocks === true,
+    'the Normal holder clear should open the gates');
+  assert(Campaign.firstClearBonus(boss1, 'hard').unlocks === false,
+    'a Hard clear re-opened gates that are already open');
+});
+
+test('a save written before difficulty reads back as Normal progress', () => {
+  // Clears used to be stored under the bare node id. That is still
+  // exactly what Normal writes, so an old save needs no migration.
+  const w = loadGame({ save: { schemaVersion: 5 } });
+  const { CAMPAIGN, Campaign, GameState } = w;
+  const ch1 = CAMPAIGN.CHAPTERS[0];
+  const entry = ch1.nodes.find((n) => n.from.length === 0);
+  GameState.recordCampaignClear(entry.id);   // the pre-difficulty shape
+  assert(Campaign.clearKey(entry.id, 'normal') === entry.id,
+    'Normal must keep using the bare node id');
+  assert(Campaign.nodeCleared(entry, 'normal'), 'an old clear stopped counting');
+  assert(!Campaign.nodeCleared(entry, 'hard'), 'an old clear counted as a Hard clear');
+  assert(GameState.campaignTier === 'normal',
+    `a save with no tier read as ${GameState.campaignTier}`);
+});
+
 test('clearing a chapter opens the next one, its hunt and its boss', () => {
   // Its own game instance: this test walks a save forward, and the
   // shared one is used by everything else in this file.
