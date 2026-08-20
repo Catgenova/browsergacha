@@ -5,7 +5,7 @@
 // for layout and a `from` list naming their prerequisites; a node opens
 // as soon as ANY prerequisite is cleared, so a fork is a genuine choice
 // of route rather than two chores. Dead-end spurs hold the elites: they
-// are never on the critical path, and they hold the chapter's gear.
+// are never on the critical path, and they pay the better scroll.
 //
 // `holderScale` retunes a chapter's boss for the campaign without
 // touching the boss definition the boss-stage ladder depends on. The

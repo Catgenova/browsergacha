@@ -195,25 +195,21 @@ const Campaign = (() => {
   // asked of you: a skirmish on the road pays a Common, an elite out on
   // a branch pays a Rare, and the chapter holder pays a Temporal — the
   // Dark/Light currency, and the campaign's whole reason to exist.
+  //
+  // Scrolls only. Gear belongs to the boss ladder, which is farmable for
+  // the set you actually want; a one-off piece from a node you can never
+  // re-clear is a worse version of that and muddies what the campaign is
+  // for.
   function firstClearBonus(nodeObj) {
-    const ch = chapterFor(nodeObj.id);
-    const index = CAMPAIGN.CHAPTERS.indexOf(ch);
     if (nodeObj.type === 'boss') {
       return {
         scrolls: { temporal: 1 },
-        gear: { set: BOSSES[ch.boss] ? BOSSES[ch.boss].gearSet : null,
-          stage: Math.max(1, index + 1) },
         unlocks: true,
         label: 'Chapter cleared',
       };
     }
     if (nodeObj.type === 'elite') {
-      return {
-        scrolls: { rare: 1 },
-        gear: { set: BOSSES[ch.boss] ? BOSSES[ch.boss].gearSet : null,
-          stage: Math.max(1, index) },
-        label: 'Elite bounty',
-      };
+      return { scrolls: { rare: 1 }, label: 'Elite bounty' };
     }
     return { scrolls: { common: 1 }, label: 'First clear' };
   }

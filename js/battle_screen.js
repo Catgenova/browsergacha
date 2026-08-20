@@ -521,11 +521,6 @@ class BattleScreen {
                 sub.push(`${bonus.label}: ${n}× ${icon}`);
               }
             }
-            if (bonus.gear && bonus.gear.set) {
-              const piece = Gear.drop(bonus.gear.set, bonus.gear.stage);
-              GameState.addGear(piece);
-              sub.push(`${bonus.label}: ${Gear.describe(piece)}`);
-            }
             if (bonus.unlocks) {
               sub.push(`The ${CONFIG.LOCATION_NAMES[ch.location]} opens for hunting, ` +
                 `and the ${BOSSES[ch.boss].name} will now take challengers.`);
