@@ -150,14 +150,14 @@ const HEROES = {
     abilities: [
       {
         id: 'reverent_strike', name: 'Reverent Strike',
-        icon: 'assets/icons/fc310.png',
+        icon: 'assets/icons/fc1236.png',
         description: 'Swing the flail at a single enemy for 120% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.2 }],
       },
       {
         id: 'consecrated_mercy', name: 'Consecrated Mercy',
-        icon: 'assets/icons/fc311.png',
+        icon: 'assets/icons/fc681.png',
         description: 'Heal herself and the 2 most-wounded allies for 30% ATK each.',
         cooldown: 3, targeting: 'self-and-wounded-allies', allyCount: 2,
         animation: 'heal',
@@ -165,7 +165,7 @@ const HEROES = {
       },
       {
         id: 'ascendant_creed', name: 'Ascendant Creed',
-        icon: 'assets/icons/fc312.png',
+        icon: 'assets/icons/fc940.png',
         description: 'Rise into the light: the front line gains +30% ATK and +30% DEF for 3 turns.',
         cooldown: 5, targeting: 'front-allies', animation: 'skill3',
         effects: [
@@ -176,7 +176,7 @@ const HEROES = {
     ],
     passive: {
       name: 'Vow of Reverence',
-      icon: 'assets/icons/fc313.png',
+      icon: 'assets/icons/fc718.png',
       description: 'Any ally restored to health is shielded: +12% DEF for 2 turns.',
       hooks: {
         onAllyHealed(unit, healedUnit) {
