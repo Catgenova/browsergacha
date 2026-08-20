@@ -418,7 +418,9 @@ class TeamScreen {
     const starsText = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
 
     // Gear: one row per slot with an equip picker, plus a focused-piece
-    // panel (level/polish + enchant) and set bonuses.
+    // panel (level/polish + enchant) and set bonuses. A hero currently
+    // fighting has their loadout frozen.
+    const gearLocked = this.app.heroInBattle(def.id);
     const equipment = GameState.equipmentOf(def.id);
     if (!this.gearFocus || !equipment[this.gearFocus]) {
       this.gearFocus = Gear.SLOTS.find((s) => equipment[s]) || null;
@@ -438,12 +440,15 @@ class TeamScreen {
         ? `<img class="detail-icon" src="${Sprites.assetUrl(iconSrc)}" alt="">`
         : '<span class="gear-slot-empty"></span>';
       const focused = slot === this.gearFocus ? ' gear-row-focused' : '';
+      const lock = gearLocked ? ' gear-locked' : '';
       return `
-        <div class="gear-row${focused}" data-slot="${slot}">
+        <div class="gear-row${focused}${lock}" data-slot="${slot}">
           ${iconHtml}<span class="gear-slot-name">${Gear.SLOT_LABELS[slot]}</span>
-          <select class="gear-select" data-slot="${slot}">${options.join('')}</select>
+          <select class="gear-select" data-slot="${slot}" ${gearLocked ? 'disabled' : ''}>${options.join('')}</select>
         </div>`;
-    }).join('');
+    }).join('') + (gearLocked
+      ? '<div class="gear-locked-note">⚔ In battle — gear is locked until the fight ends.</div>'
+      : '');
 
     // Focused piece: full readout with upgrade buttons.
     let gearDetailHtml = '';

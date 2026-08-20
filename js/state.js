@@ -335,6 +335,11 @@ const GameState = (() => {
     salvageGear(uid) {
       const piece = state.gear[uid];
       if (!piece) return null;
+      // Salvaging strips the piece off its wearer — not while they fight.
+      for (const [heroId, entry] of Object.entries(state.roster)) {
+        if (Object.values(entry.equipment || {}).includes(uid) &&
+            this.heroGearLocked(heroId)) return null;
+      }
       for (const entry of Object.values(state.roster)) {
         for (const [slot, worn] of Object.entries(entry.equipment || {})) {
           if (worn === uid) delete entry.equipment[slot];
@@ -405,12 +410,27 @@ const GameState = (() => {
       return entry && entry.equipment ? { ...entry.equipment } : {};
     },
 
+    // Heroes fighting right now can't have their gear changed — their
+    // stats were locked in when the battle was built. Checked here so
+    // every path (team screen, blacksmith salvage) honors it.
+    heroGearLocked(heroId) {
+      return typeof App !== 'undefined' && App.heroInBattle
+        ? App.heroInBattle(heroId) : false;
+    },
+
     // Equip a piece: pulls it off any other wearer, replaces whatever
     // is in the hero's matching slot.
     equipGear(heroId, uid) {
       const piece = state.gear[uid];
       const entry = state.roster[heroId];
       if (!piece || !entry) return false;
+      if (this.heroGearLocked(heroId)) return false;
+      // Nor can it be stolen off someone who is fighting.
+      for (const [otherId, other] of Object.entries(state.roster)) {
+        if (!other.equipment) continue;
+        if (Object.values(other.equipment).includes(uid) &&
+            this.heroGearLocked(otherId)) return false;
+      }
       for (const other of Object.values(state.roster)) {
         if (!other.equipment) continue;
         for (const [slot, worn] of Object.entries(other.equipment)) {
@@ -423,9 +443,11 @@ const GameState = (() => {
     },
     unequipGear(heroId, slot) {
       const entry = state.roster[heroId];
-      if (!entry || !entry.equipment) return;
+      if (!entry || !entry.equipment) return false;
+      if (this.heroGearLocked(heroId)) return false;
       delete entry.equipment[slot];
       save();
+      return true;
     },
 
     // ---- Quests ----
