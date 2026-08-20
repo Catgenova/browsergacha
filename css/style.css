@@ -1557,3 +1557,10 @@ body {
 @media (max-width: 900px) {
   body { align-items: flex-start; padding-top: 6px; }
 }
+
+/* Result note for bulk roster actions */
+#roster-msg {
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #7ae87a;
+}

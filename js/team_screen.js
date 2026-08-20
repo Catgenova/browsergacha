@@ -18,7 +18,10 @@ class TeamScreen {
     this.rosterEl = document.getElementById('roster-grid');
     this.rosterSearch = document.getElementById('roster-search');
     this.rosterSort = document.getElementById('roster-sort');
-    this.rosterSearch.addEventListener('input', () => this.buildRoster());
+    this.rosterSearch.addEventListener('input', () => {
+      this.rosterMsg = null;
+      this.buildRoster();
+    });
     this.rosterSort.addEventListener('change', () => this.buildRoster());
     // "Hide maxed" declutters heroes already at their level cap. The
     // preference sticks across sessions (display-only, not part of the save).
@@ -28,6 +31,21 @@ class TeamScreen {
       try { localStorage.setItem('bg_hideMaxed', this.hideMaxed.checked ? '1' : '0'); } catch (e) {}
       this.buildRoster();
     });
+    // Star up everything that's ready, in one click. With hundreds of
+    // heroes, hunting for the ★⬆ badges one card at a time is the most
+    // tedious thing left on this screen.
+    this.starUpAllBtn = document.getElementById('star-up-all-btn');
+    if (this.starUpAllBtn) {
+      this.starUpAllBtn.addEventListener('click', () => {
+        const done = GameState.starUpAll();
+        if (done.length === 0) return;
+        const names = done.slice(0, 4).map((d) => `${d.name} ${d.to}★`).join(', ');
+        this.rosterMsg = `Starred up ${done.length} hero${done.length > 1 ? 'es' : ''}: ` +
+          `${names}${done.length > 4 ? `, +${done.length - 4} more` : ''}.`;
+        this.refresh();
+      });
+    }
+
     this.reportEl = document.getElementById('roster-report');
     const reportBtn = document.getElementById('roster-report-btn');
     if (reportBtn) {
@@ -160,6 +178,15 @@ class TeamScreen {
   }
 
   updateButtons() {
+    // Star-up-all: say how many are waiting, and grey out when none are.
+    if (this.starUpAllBtn) {
+      const ready = GameState.starUpReadyCount();
+      this.starUpAllBtn.textContent = ready > 0
+        ? `★⬆ Star up all (${ready})` : '★⬆ Star up all';
+      this.starUpAllBtn.disabled = ready === 0;
+      this.starUpAllBtn.classList.toggle('gold', ready > 0);
+    }
+
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
 
@@ -227,6 +254,12 @@ class TeamScreen {
   // ---- Roster panel ------------------------------------------------------
 
   buildRoster() {
+    // One-line result note for bulk actions (star-up-all).
+    const msgEl = document.getElementById('roster-msg');
+    if (msgEl) {
+      msgEl.textContent = this.rosterMsg || '';
+      msgEl.classList.toggle('hidden', !this.rosterMsg);
+    }
     const team = GameState.getTeam();
     const inTeam = new Set(Object.values(team));
     // Card reuse: rebuilding 385 cards (and 385 portrait canvases) on
