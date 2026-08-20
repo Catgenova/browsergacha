@@ -98,6 +98,16 @@ class Unit {
     );
   }
 
+  // Everything that can carry behavior hooks right now: the hero's
+  // passives, plus their positional bonus while they stand in the hex
+  // it calls for. Positionals are hook-driven like passives, so a
+  // position can change how a hero fights, not just their stat line.
+  hookSources() {
+    if (!this.positional || !this.positional.hooks) return this.passives;
+    return this.positionalActive()
+      ? this.passives.concat(this.positional) : this.passives;
+  }
+
   effectiveStat(stat) {
     let value;
     switch (stat) {
@@ -132,7 +142,7 @@ class Unit {
     if (this.positionalActive() && this.positional.stat === 'damage') {
       m *= this.positional.mult;
     }
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.damageDealtMult;
       if (hook) m *= hook(this, target) || 1;
     }
@@ -143,7 +153,7 @@ class Unit {
   // dodgeAdd passive hooks), capped so nothing becomes unhittable.
   dodgeChance() {
     let d = this.gearDodge;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.dodgeAdd;
       // Numbers add flat; functions gate the bonus on state (hex, HP...).
       if (hook) d += typeof hook === 'function' ? (hook(this) || 0) : hook;
@@ -155,7 +165,7 @@ class Unit {
   // with chance 1 - max(0, resistance - accuracy), floored at 15%.
   debuffAccuracy() {
     let a = this.gearAccuracy;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.accuracyAdd) a += p.hooks.accuracyAdd;
     }
     return a;
@@ -163,7 +173,7 @@ class Unit {
 
   debuffResistance() {
     let r = this.gearResistance;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.resistanceAdd) r += p.hooks.resistanceAdd;
     }
     return r;
@@ -172,7 +182,7 @@ class Unit {
   // Damage-over-time amplification (Snake set, venom passives).
   dotBoost() {
     let d = this.gearDotBoost;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.dotBoostAdd) d += p.hooks.dotBoostAdd;
     }
     return d;
@@ -182,7 +192,7 @@ class Unit {
   // stunAdd passive hooks). Stuns are resisted like any debuff.
   stunChance() {
     let s = this.gearStun;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.stunAdd) s += p.hooks.stunAdd;
     }
     return Math.min(0.6, s);
@@ -192,7 +202,7 @@ class Unit {
   // apDrainAdd passive hooks).
   apDrainChance() {
     let a = this.gearApDrain;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.apDrainAdd) a += p.hooks.apDrainAdd;
     }
     return Math.min(0.6, a);
@@ -202,7 +212,7 @@ class Unit {
   // heals, HP%-heals, and HoTs this unit casts are this much stronger.
   healingBoost() {
     let h = this.gearHealBoost;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.healBoostAdd) h += p.hooks.healBoostAdd;
     }
     return h;
@@ -212,7 +222,7 @@ class Unit {
   // (Boar set 6pc + reflectAdd passive hooks).
   reflectChance() {
     let r = this.gearReflect;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.reflectAdd) r += p.hooks.reflectAdd;
     }
     return Math.min(0.5, r);
@@ -221,7 +231,7 @@ class Unit {
   // Chance to immediately take another turn after acting.
   extraTurnChance() {
     let c = this.gearExtraTurn;
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.extraTurnAdd) c += p.hooks.extraTurnAdd;
     }
     return Math.min(0.6, c);
@@ -234,7 +244,7 @@ class Unit {
     for (const fx of this.statusEffects) {
       if (fx.stat === 'damageTaken' && fx.mult) m *= fx.mult;
     }
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.damageTakenMult;
       if (hook) m *= hook(this) || 1;
     }
@@ -387,7 +397,7 @@ class Unit {
 
     this.tickStatusEffects();
 
-    for (const p of this.passives) {
+    for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.onTurnStart) {
         const r = p.hooks.onTurnStart(this, battle);
         if (r) results.push(r);

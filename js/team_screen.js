@@ -526,7 +526,7 @@ class TeamScreen {
       <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
       <div class="detail-section">Positional bonus</div>
       <div class="detail-ability ${bonusLive ? 'bonus-live' : ''}">
-        ${def.positional.description}
+        ${def.positional.name ? `<b>${def.positional.name}</b><br>` : ''}${def.positional.description}
         ${bonusLive ? '<br><b>★ Active in current slot</b>' : ''}
       </div>
       ${starUpHtml}

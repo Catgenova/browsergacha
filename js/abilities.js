@@ -139,7 +139,7 @@ const Abilities = (() => {
           power * (1 + caster.dotBoost()));
         // Clinging-flame passives can extend inflicted DoT durations.
         let dotTurns = effect.turns;
-        for (const p of caster.passives || []) {
+        for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
         }
         target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns });
@@ -167,7 +167,7 @@ const Abilities = (() => {
           if (!debuffLands(caster, target)) {
             return { kind: 'debuff', target, stat: effect.stat, resisted: true };
           }
-          for (const p of caster.passives || []) {
+          for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
             if (p.hooks && p.hooks.debuffExtraTurns) turns += p.hooks.debuffExtraTurns;
           }
         }

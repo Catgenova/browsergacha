@@ -276,7 +276,7 @@ class CompendiumScreen {
 
     const posHtml = def.positional ? `
       <div class="comp-ability passive">
-        <div class="comp-ability-head"><b>Position bonus</b>
+        <div class="comp-ability-head"><b>${def.positional.name || 'Position bonus'}</b>
           <span class="comp-tag">${def.positional.position === POSITION.FRONT ? 'Front hex' :
             def.positional.position === POSITION.BACK ? 'Back hex' : 'Center hex'}</span></div>
         <div class="comp-ability-desc">${def.positional.description}</div>
