@@ -100,7 +100,7 @@ Object.assign(HEROES, {
     id: 'toll',
     element: 'light',
     name: 'Toll',
-    title: 'The Debt Bell',
+    title: 'Bellringer of Reverence',
     rarity: 5,
     // Slow and enormously thick: the retaliation is the damage, so the
     // statline pays for staying upright rather than for acting often.

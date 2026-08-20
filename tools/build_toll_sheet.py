@@ -8,7 +8,7 @@ def uri(name):
 IMG = {k: uri(f'{k}.gif') for k in
        ['idle', 'ready', 'attack', 'skill3', 'death', 'fidget1', 'fidget2']}
 
-html = r'''<title>Toll, The Debt Bell</title>
+html = r'''<title>Toll, Bellringer of Reverence</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
   :root {
@@ -170,7 +170,7 @@ html = r'''<title>Toll, The Debt Bell</title>
     <div class="hero-id">
       <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;<span class="rank">RARITY 5</span></div>
       <h1>TOLL</h1>
-      <div class="title-line">The Debt Bell</div>
+      <div class="title-line">Bellringer of Reverence</div>
       <div class="badges">
         <span class="badge light">&#9728; Light</span>
         <span class="badge">Front-row tank</span>
