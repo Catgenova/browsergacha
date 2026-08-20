@@ -290,6 +290,11 @@ class UI {
         }
         return;
       }
+      if (e.key === 'r' || e.key === 'R') {
+        const retreat = document.getElementById('retreat-btn');
+        if (retreat) { retreat.click(); e.preventDefault(); }
+        return;
+      }
       if (e.key === 'k' || e.key === 'K') {
         this.toggleLegend();
         e.preventDefault();
