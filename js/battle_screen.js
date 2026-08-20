@@ -110,15 +110,39 @@ class BattleScreen {
   // Entering the screen starts a fresh battle unless one is still running
   // (an explicit fight request always starts fresh).
   async enter() {
-    if (this.pendingMode || !this.battle || this.battle.state === BattleState.ENDED) {
+    // Coming back to a finished fight clears the "battle over" marker.
+    this.finishedUnseen = false;
+    if (this.pendingMode || !this.battle ||
+        (this.battle.state === BattleState.ENDED && this.chainCountdown == null)) {
       const mode = this.pendingMode || 'wave';
       this.pendingMode = null;
       await this.startNewBattle(mode);
     }
   }
 
-  exit() {
-    this.cancelChain();
+  // Leaving the tab no longer stops the fight — battles (and their
+  // chains) run in the background while the player summons or reads the
+  // compendium. Only an explicit new fight request cancels a chain.
+  exit() {}
+
+  // A fight is live while a battle is running or a chain is between
+  // rounds; the Battle tab badges off this.
+  isFighting() {
+    return !!this.battle &&
+      (this.battle.state !== BattleState.ENDED || this.chainCountdown != null);
+  }
+
+  // Heroes committed to the current fight — they can't change gear
+  // mid-battle. Covers the between-rounds pause of a chain too, since
+  // the same team is about to be redeployed.
+  lockedHeroIds() {
+    const ids = new Set();
+    if (!this.isFighting()) return ids;
+    for (const u of this.battle.units) {
+      if (u.team === TEAM.PLAYER) ids.add(u.def.id);
+    }
+    for (const heroId of Object.values(GameState.getTeam())) ids.add(heroId);
+    return ids;
   }
 
   async startNewBattle(mode = 'wave') {
@@ -350,6 +374,12 @@ class BattleScreen {
         this.cancelChain(); // a wipe ends the hunt
         this.ui.showBanner(winner, 'Your team was wiped out.', this.bossBannerOpts());
       }
+      // Finished while the player was elsewhere: flag the Battle tab so
+      // they know the result is waiting (a continuing chain isn't a
+      // finish — the next round starts on its own).
+      if (this.app.active !== this && this.chainCountdown == null) {
+        this.finishedUnseen = true;
+      }
       // battle.state is now ENDED, so the next enter() starts a new battle.
     };
 
@@ -367,7 +397,8 @@ class BattleScreen {
       this.chainCountdown -= dt;
       if (this.chainCountdown <= 0) {
         this.chainCountdown = null;
-        if (this.app.active === this && this.battle.state === BattleState.ENDED) {
+        // Chains continue whether or not the Battle tab is on screen.
+        if (this.battle.state === BattleState.ENDED) {
           this.startNewBattle(this.chainMode || 'wave');
         }
       }

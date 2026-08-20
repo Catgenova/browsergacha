@@ -28,6 +28,30 @@ const App = {
     document.getElementById('tome-count').textContent = GameState.tomes.toLocaleString();
   },
 
+  // Is this hero committed to a fight that's currently running? Gear
+  // changes are refused for them until the battle ends.
+  heroInBattle(heroId) {
+    const bs = this.screens.battle;
+    return !!bs && bs.lockedHeroIds && bs.lockedHeroIds().has(heroId);
+  },
+
+  // Battle tab marker: a live fight pulses, a finished one the player
+  // hasn't looked at yet sits solid until they open the tab.
+  updateBattleBadge() {
+    const badge = document.getElementById('battle-badge');
+    if (!badge) return;
+    const bs = this.screens.battle;
+    const fighting = !!bs && bs.isFighting && bs.isFighting() && this.active !== bs;
+    const done = !!bs && bs.finishedUnseen;
+    const state = fighting ? 'fighting' : done ? 'done' : '';
+    if (badge.dataset.state === state) return; // no DOM churn per frame
+    badge.dataset.state = state;
+    badge.textContent = fighting ? '⚔' : done ? '✓' : '';
+    badge.classList.toggle('hidden', !state);
+    badge.classList.toggle('battle-live', fighting);
+    badge.classList.toggle('battle-done', done && !fighting);
+  },
+
   // Canvases that should render at device resolution: {el, w, h} with
   // logical (CSS) dimensions. Registered by screens at construction.
   hiDpiCanvases: [],
@@ -140,12 +164,20 @@ const App = {
     let remaining = Math.min(120, (now - lastTime) / 1000);
     lastTime = now;
     if (!App.active) return;
+    // The battle screen keeps simulating even when another tab is up, so
+    // hunts and chains run while the player summons or reads the
+    // compendium. It just doesn't draw.
+    const bg = App.screens.battle !== App.active &&
+      App.screens.battle && App.screens.battle.isFighting()
+      ? App.screens.battle : null;
     while (remaining > 0) {
       const dt = Math.min(0.05, remaining);
       App.active.update(dt);
+      if (bg) bg.update(dt);
       remaining -= dt;
     }
     if (draw) App.active.draw();
+    App.updateBattleBadge();
   }
   function frame(now) {
     advance(now, true);
