@@ -426,10 +426,20 @@ class Unit {
     }
 
     // Damage-over-time ticks (poison etc.) — these can kill.
+    //
+    // The tick is locked in at cast off the caster's ATK, and what it
+    // COSTS is the target's business, same as any other hit: it goes
+    // through the shared pipeline. Two of that pipeline's steps make no
+    // sense here and are switched off — you cannot dodge a poison that
+    // is already in you, and there is no incoming blow to reflect.
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'dot' || !this.alive) continue;
-      const dealt = this.takeDamage(fx.amount);
-      if (typeof Meter !== 'undefined' && fx.source) Meter.damage(fx.source, dealt);
+      const dealt = (typeof Abilities !== 'undefined' && fx.source)
+        ? Abilities.strike(fx.source, this, fx.amount,
+            { dodge: false, reflect: false }).amount
+        : this.takeDamage(fx.amount); // sourceless tick: nobody to credit
+      // strike() books the meter itself; crediting it again here would
+      // count every tick twice.
       results.push({
         label: 'Poison',
         message: `${this.name} suffers ${dealt} poison damage.` +

@@ -68,8 +68,10 @@ const Abilities = (() => {
     dmg = Math.round(dmg * target.damageTakenMult());
     Meter.mitigated(target, unblunted - dmg);
     // Reflect (Boar set 6pc / bristle passives): the whole hit bounces
-    // back to the attacker instead of landing.
-    if (target.reflectChance && Math.random() < target.reflectChance()) {
+    // back to the attacker instead of landing. Skipped when there is no
+    // blow to bounce — a poison already inside you is not incoming.
+    if (opts.reflect !== false &&
+        target.reflectChance && Math.random() < target.reflectChance()) {
       const bounced = caster.takeDamage(dmg, target);
       Meter.mitigated(target, dmg);   // bounced away entirely
       Meter.damage(target, bounced);  // and dealt back
