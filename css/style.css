@@ -416,7 +416,16 @@ body {
 
 #banner-actions {
   display: flex;
+  flex-wrap: wrap;      /* four buttons on a campaign win */
+  justify-content: center;
   gap: 8px;
+}
+/* The advance button names its destination, so it can run long. */
+#banner-advance {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ==== Team builder screen ==== */
