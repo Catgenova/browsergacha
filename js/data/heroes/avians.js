@@ -516,7 +516,7 @@ Object.assign(HEROES, {
           if (allies.length === 0) return null;
           allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
           allies[0].addStatusEffect({ kind: 'hot',
-            amount: Math.round(unit.maxHp * 0.02), turns: 1 });
+            amount: Math.round(unit.maxHp * 0.02), turns: 1, source: unit });
           return null; // silent — small rolling gift
         },
       },
@@ -1518,7 +1518,7 @@ Object.assign(HEROES, {
             .filter((u) => u.hp / u.maxHp < 0.3);
           if (dying.length === 0) return null;
           let total = 0;
-          for (const ally of dying) total += ally.heal(Math.round(unit.maxHp * 0.04));
+          for (const ally of dying) total += ally.heal(Math.round(unit.maxHp * 0.04), unit);
           if (total <= 0) return null;
           return {
             label: 'Deliverance',
@@ -2077,7 +2077,7 @@ Object.assign(HEROES, {
       description: 'At turn start: ALL allies gain +5% DEF for 1 turn and a sliver of healing.',
       hooks: {
         onTurnStart(unit, battle) {
-          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.05, turns: 1 }); a.heal(Math.round(unit.maxHp * 0.003)); }
+          for (const a of battle.livingUnits(unit.team)) { a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.05, turns: 1 }); a.heal(Math.round(unit.maxHp * 0.003), unit); }
           return null; // silent — small rolling anthem
         },
       },
@@ -2565,7 +2565,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.006));
+            a.heal(Math.round(unit.maxHp * 0.006), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.03, turns: 1 });
           }
           return null; // silent — small rolling benevolence

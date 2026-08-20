@@ -1492,7 +1492,7 @@ Object.assign(HEROES, {
           const idx = worst.statusEffects.findIndex(
             (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
           worst.statusEffects.splice(idx, 1);
-          const healed = worst.heal(Math.round(unit.maxHp * 0.02));
+          const healed = worst.heal(Math.round(unit.maxHp * 0.02), unit);
           return {
             label: 'Light of Dawn',
             message: `${unit.name}'s dawnlight eases ${worst.name}.`,
@@ -2535,7 +2535,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.005));
+            a.heal(Math.round(unit.maxHp * 0.005), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.03, turns: 1 });
           }
           return null; // silent — small rolling benevolence

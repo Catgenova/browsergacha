@@ -736,7 +736,7 @@ Object.assign(HEROES, {
           if (allies.length === 0) return null;
           allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
           const target = allies[0];
-          const healed = target.heal(Math.round(unit.maxHp * 0.03));
+          const healed = target.heal(Math.round(unit.maxHp * 0.03), unit);
           if (healed <= 0) return null;
           return {
             label: "Soup's On",
@@ -2485,7 +2485,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.004));
+            a.heal(Math.round(unit.maxHp * 0.004), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.02, turns: 1 });
           }
           return null; // silent — small rolling benevolence

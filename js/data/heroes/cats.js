@@ -2559,7 +2559,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.003));
+            a.heal(Math.round(unit.maxHp * 0.003), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.04, turns: 1 });
           }
           return null; // silent — small rolling benevolence

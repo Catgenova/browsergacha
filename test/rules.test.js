@@ -170,6 +170,51 @@ test('the damage meter credits the right side and separates its scopes', () => {
   assert(Meter.rows('damage', 'session').total === sessionTotal, 'session scope was cleared');
 });
 
+test('healing is credited to the healer, once, however it lands', () => {
+  const battle = makeBattle();
+  // A cleric with a direct heal and a regen (hot) on its kit.
+  const clericDef = Object.values(HEROES).find((h) =>
+    h.abilities.some((a) => (a.effects || []).some((e) => e.type === 'hot')) &&
+    h.abilities.some((a) => (a.effects || []).some((e) => e.type === 'heal' || e.type === 'healHpPct')));
+  const cleric = place(battle, clericDef, TEAM.PLAYER, 4);
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const healAb = clericDef.abilities.find((a) =>
+    (a.effects || []).some((e) => e.type === 'heal' || e.type === 'healHpPct'));
+  const hotAb = clericDef.abilities.find((a) =>
+    (a.effects || []).some((e) => e.type === 'hot'));
+
+  // A direct heal is booked to the caster exactly once — not to the
+  // patient, and not to both.
+  Meter.resetSession();
+  mate.hp = 1;
+  const before = mate.hp;
+  Abilities.execute(healAb, cleric, mate, battle);
+  const gained = mate.hp - before;
+  const direct = Meter.rows('healing', 'battle');
+  assert(gained > 0, 'the heal restored nothing, so this proves nothing');
+  assert(direct.total === gained,
+    `heal double-counted: ${direct.total} booked for ${gained} HP restored`);
+  assert(direct.list.length === 1 && direct.list[0].name === cleric.name,
+    `expected only ${cleric.name}: ${JSON.stringify(direct.list)}`);
+
+  // Regen ticks belong to whoever applied the buff, not the ally
+  // ticking it down.
+  Meter.resetSession();
+  mate.hp = 1;
+  // Silence the patient's own turn-start healing (passive, positional,
+  // gear regen) so the only thing on the ledger is the regen tick.
+  mate.hookSources = () => [];
+  mate.gearRegen = 0;
+  Abilities.execute(hotAb, cleric, mate, battle);
+  mate.startTurn(battle);
+  const regen = Meter.rows('healing', 'battle');
+  assert(regen.total > 0, 'the regen never ticked');
+  assert(!regen.list.some((r) => r.name === mate.name),
+    `regen was credited to the patient: ${JSON.stringify(regen.list)}`);
+  assert(regen.list[0].name === cleric.name,
+    `expected ${cleric.name}: ${JSON.stringify(regen.list)}`);
+});
+
 test('crystal mirrors halve nothing, reflect a quarter, and break one per hit', () => {
   Meter.resetSession();
   const battle = makeBattle();
