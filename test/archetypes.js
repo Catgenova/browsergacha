@@ -197,7 +197,12 @@ function runOne(def, cast, seedValue) {
     try { return realStartTurn.apply(this, rest); } finally { acting = null; }
   };
   Meter.damage = (unit, amount) => {
-    if (acting && acting !== hero && unit === hero) dotDealt += Math.round(amount);
+    // ...unless it is a retaliation. An onStruck hook can fire while
+    // another unit is acting (it hit us on its turn), which looks exactly
+    // like a poison tick from out here. Unit.retaliating tells them apart.
+    if (acting && acting !== hero && unit === hero && !Unit.retaliating) {
+      dotDealt += Math.round(amount);
+    }
     return realMeterDamage(unit, amount);
   };
   const unpatch = () => {
