@@ -282,4 +282,47 @@ test('every campaign node pays a first-clear scroll, graded by node type', () =>
   }
 });
 
+test('next mission follows the road, then the map, then the next chapter', () => {
+  const { CAMPAIGN, Campaign, GameState } = g;
+  const ch = CAMPAIGN.CHAPTERS[0];
+  const entry = ch.nodes.find((n) => n.from.length === 0);
+
+  // Nothing cleared yet: after the entrance, the next fight is one it
+  // actually feeds.
+  const first = Campaign.nextMission(entry);
+  assert(first, 'no next mission after the entrance');
+  assert(first.from.includes(entry.id),
+    `next mission ${first.id} does not follow on from ${entry.id}`);
+
+  // Walk the whole chapter; every step must offer somewhere to go, and
+  // never a node that is cleared or still locked.
+  let at = entry;
+  const visited = new Set();
+  for (let i = 0; i < ch.nodes.length; i++) {
+    GameState.recordCampaignClear(at.id);
+    visited.add(at.id);
+    const next = Campaign.nextMission(at);
+    if (!next) break;
+    assert(!Campaign.nodeCleared(next), `${next.id} is already cleared`);
+    assert(Campaign.nodeUnlocked(next), `${next.id} is still locked`);
+    at = next;
+  }
+  assert(visited.size === ch.nodes.length,
+    `walked ${visited.size} of ${ch.nodes.length} nodes before running dry`);
+
+  // Chapter finished: the next mission is the following chapter's gate.
+  const boss = Campaign.bossNode(ch);
+  const across = Campaign.nextMission(boss);
+  assert(across, 'no next mission after clearing the chapter');
+  assert(Campaign.chapterFor(across.id) === CAMPAIGN.CHAPTERS[1],
+    `expected chapter two, got ${across.id}`);
+  assert(across.from.length === 0, `${across.id} is not a chapter entrance`);
+
+  // And the last chapter ends the road rather than wrapping around.
+  const last = CAMPAIGN.CHAPTERS[CAMPAIGN.CHAPTERS.length - 1];
+  for (const n of last.nodes) GameState.recordCampaignClear(n.id);
+  assert(Campaign.nextMission(Campaign.bossNode(last)) === null,
+    'the final chapter offered a next mission');
+});
+
 report();

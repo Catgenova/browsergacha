@@ -23,6 +23,16 @@ class BattleScreen {
         this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
       }
     };
+    // Straight into the next campaign fight without a detour through the
+    // map. bannerOpts only offers this when there IS one.
+    this.ui.onAdvance = () => {
+      if (!this.campaignFight) return;
+      const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId));
+      if (!next) { app.showScreen('campaign'); return; }
+      GameState.setCampaignChapter(Campaign.chapterFor(next.id).id);
+      this.requestCampaign(next.id);
+      this.enter();
+    };
     this.ui.onNextStage = () => {
       if (this.campaignFight) {
         app.showScreen('campaign');
@@ -199,11 +209,24 @@ class BattleScreen {
 
   // What the end-of-battle banner offers, by mode: boss banners offer
   // Retry always and Next Stage when it's unlocked, tower banners offer
-  // Retry and Next Floor, and a campaign node offers a refight and a way
-  // back to the map.
-  bannerOpts() {
+  // Retry and Next Floor, and a campaign node offers a refight, the next
+  // mission, and a way back to the map.
+  bannerOpts(winner) {
     if (this.campaignFight) {
-      return { retry: true, next: true, nextLabel: 'To Campaign' };
+      const opts = { retry: true, next: true, nextLabel: 'To Campaign' };
+      // Only after a win: losing leaves the same fight as "next", which
+      // is what Retry is for.
+      if (winner === TEAM.PLAYER) {
+        const next = Campaign.nextMission(Campaign.node(this.campaignFight.nodeId));
+        if (next) {
+          const ch = Campaign.chapterFor(next.id);
+          opts.advance = true;
+          opts.advanceLabel = `Next: ${next.name}`;
+          opts.advanceTitle =
+            `${ch.title} — ${next.name} · Lv ${Campaign.levelFor(next)}`;
+        }
+      }
+      return opts;
     }
     if (this.towerFight) {
       return { retry: true, next: true, nextLabel: 'Next Floor' };
@@ -555,10 +578,10 @@ class BattleScreen {
           // tab is hidden (real-time timers get throttled).
           this.chainCountdown = 2.5;
         }
-        this.ui.showBanner(winner, sub.join('<br>'), this.bannerOpts());
+        this.ui.showBanner(winner, sub.join('<br>'), this.bannerOpts(winner));
       } else {
         this.cancelChain(); // a wipe ends the hunt
-        this.ui.showBanner(winner, 'Your team was wiped out.', this.bannerOpts());
+        this.ui.showBanner(winner, 'Your team was wiped out.', this.bannerOpts(winner));
       }
       // Finished while the player was elsewhere: flag the Battle tab so
       // they know the result is waiting (a continuing chain isn't a

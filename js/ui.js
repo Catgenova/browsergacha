@@ -37,12 +37,14 @@ class UI {
     this.bannerReturn = document.getElementById('banner-return');
     this.bannerRetry = document.getElementById('banner-retry');
     this.bannerNext = document.getElementById('banner-next');
+    this.bannerAdvance = document.getElementById('banner-advance');
 
     this.activeHero = null;
     this.selectedAbility = null; // ability state awaiting a target
     this.onReturn = null;        // wired by the app (back to team screen)
     this.onRetry = null;         // boss banner: refight the same stage
     this.onNextStage = null;     // boss banner: advance to the next stage
+    this.onAdvance = null;       // campaign banner: straight into the next mission
 
     canvas.addEventListener('click', (e) => this.onCanvasClick(e));
     canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
@@ -57,6 +59,10 @@ class UI {
     this.bannerNext.addEventListener('click', () => {
       this.bannerEl.classList.add('hidden');
       if (this.onNextStage) this.onNextStage();
+    });
+    this.bannerAdvance.addEventListener('click', () => {
+      this.bannerEl.classList.add('hidden');
+      if (this.onAdvance) this.onAdvance();
     });
   }
 
@@ -349,6 +355,9 @@ class UI {
     this.bannerRetry.classList.toggle('hidden', !opts.retry);
     this.bannerNext.classList.toggle('hidden', !opts.next);
     this.bannerNext.textContent = opts.nextLabel || 'Next Stage';
+    this.bannerAdvance.classList.toggle('hidden', !opts.advance);
+    this.bannerAdvance.textContent = opts.advanceLabel || 'Next Mission';
+    this.bannerAdvance.title = opts.advanceTitle || '';
     this.bannerEl.classList.remove('hidden');
     this.appendLog(winner === TEAM.PLAYER ? 'Victory!' : 'Defeat…', 'log-system');
   }

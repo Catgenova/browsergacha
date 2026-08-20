@@ -163,6 +163,30 @@ const Campaign = (() => {
     return { done, total: ch.nodes.length, beaten: nodeCleared(bossNode(ch)) };
   }
 
+  // Where to go after clearing `nodeObj`: follow the road first — a
+  // successor of the node just cleared — then fall back to the shallowest
+  // fight still open in the chapter, and finally to the next chapter's
+  // gate once this one is finished. Null when there is nowhere to go,
+  // which is how the banner knows to hide the button.
+  function nextMission(nodeObj) {
+    const ch = chapterFor(nodeObj.id);
+    const shallowest = (list) => list
+      .slice()
+      .sort((a, b) => a.depth - b.depth || a.id.localeCompare(b.id))[0] || null;
+    // A successor of the node just cleared is open by definition, so it
+    // is not asked to prove it — that would make the answer depend on
+    // whether the clear had already been written down.
+    const onward = shallowest(ch.nodes.filter((n) =>
+      n.id !== nodeObj.id && !nodeCleared(n) && n.from.includes(nodeObj.id)));
+    if (onward) return onward;
+    const elsewhere = shallowest(ch.nodes.filter((n) =>
+      n.id !== nodeObj.id && nodeUnlocked(n) && !nodeCleared(n)));
+    if (elsewhere) return elsewhere;
+    const next = CAMPAIGN.CHAPTERS[CAMPAIGN.CHAPTERS.indexOf(ch) + 1];
+    if (!next || !chapterUnlocked(next)) return null;
+    return next.nodes.find((n) => n.from.length === 0) || null;
+  }
+
   // The furthest chapter the player can currently enter — where the
   // screen opens by default.
   function currentChapter() {
@@ -242,7 +266,7 @@ const Campaign = (() => {
   return {
     chapter, node, chapterFor, bossNode, levelFor, sizeFor, encounter, holderScale,
     chapterUnlocked, nodeUnlocked, nodeCleared, chapterProgress,
-    currentChapter, payout, firstClearBonus,
+    currentChapter, payout, firstClearBonus, nextMission,
     locationUnlocked, bossUnlocked, unlockedLocations,
   };
 })();
