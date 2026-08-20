@@ -46,6 +46,54 @@ class BattleScreen {
     this.speedBtn.addEventListener('click', () => {
       this.setSpeed(this.speed === 1 ? 3 : 1);
     });
+
+    // Damage meter: which contribution to show, over what stretch.
+    this.meterKind = 'damage';
+    this.meterScope = 'battle';
+    this.meterRowsEl = document.getElementById('meter-rows');
+    this.meterTotalEl = document.getElementById('meter-total');
+    document.querySelectorAll('.meter-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.meterKind = btn.dataset.kind;
+        document.querySelectorAll('.meter-tab').forEach((b) =>
+          b.classList.toggle('active', b === btn));
+        this.drawMeter();
+      });
+    });
+    document.querySelectorAll('.meter-scope').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.meterScope = btn.dataset.scope;
+        document.querySelectorAll('.meter-scope').forEach((b) =>
+          b.classList.toggle('active', b === btn));
+        this.drawMeter();
+      });
+    });
+    this.meterTimer = 0;
+  }
+
+  // Repaint the meter panel from the ledger.
+  drawMeter() {
+    if (!this.meterRowsEl) return;
+    const { list, total } = Meter.rows(this.meterKind, this.meterScope);
+    const LABEL = { damage: 'damage dealt', healing: 'healing done', mitigated: 'damage mitigated' };
+    if (list.length === 0) {
+      this.meterRowsEl.innerHTML =
+        `<div class="meter-empty">No ${LABEL[this.meterKind]} yet.</div>`;
+    } else {
+      this.meterRowsEl.innerHTML = list.map((r) => `
+        <div class="meter-row k-${this.meterKind}">
+          <div class="meter-fill" style="width:${Math.round(r.bar * 100)}%"></div>
+          <div class="meter-line">
+            <span class="meter-name">${r.name}</span>
+            <span class="meter-value">${r.value.toLocaleString()}</span>
+            <span class="meter-share">${Math.round(r.share * 100)}%</span>
+          </div>
+        </div>`).join('');
+    }
+    this.meterTotalEl.textContent = '';
+    const scope = this.meterScope === 'session' ? 'Session' : 'Battle';
+    this.meterTotalEl.innerHTML =
+      `${scope} ${LABEL[this.meterKind]}: <b>${total.toLocaleString()}</b>`;
   }
 
   setSpeed(mult) {
@@ -112,6 +160,7 @@ class BattleScreen {
   async enter() {
     // Coming back to a finished fight clears the "battle over" marker.
     this.finishedUnseen = false;
+    this.drawMeter();
     if (this.pendingMode || !this.battle ||
         (this.battle.state === BattleState.ENDED && this.chainCountdown == null)) {
       const mode = this.pendingMode || 'wave';
@@ -147,6 +196,7 @@ class BattleScreen {
 
   async startNewBattle(mode = 'wave') {
     const team = GameState.getTeam();
+    Meter.resetBattle(); // the session tally keeps running
     const battle = new Battle();
 
     // Player side: saved team placements, at their saved level/stars.
@@ -392,6 +442,11 @@ class BattleScreen {
 
   update(dt) {
     if (this.battle) this.battle.update(dt);
+    // Meter refresh: often enough to feel live, rarely enough to be free.
+    if (this.app.active === this) {
+      this.meterTimer -= dt;
+      if (this.meterTimer <= 0) { this.meterTimer = 0.25; this.drawMeter(); }
+    }
     // Between-battle chain pause, on the simulation clock.
     if (this.chainCountdown !== null && this.chainCountdown !== undefined) {
       this.chainCountdown -= dt;
