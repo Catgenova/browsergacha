@@ -325,4 +325,35 @@ test('next mission follows the road, then the map, then the next chapter', () =>
     'the final chapter offered a next mission');
 });
 
+test('every hero classifies into exactly one of the six archetypes', () => {
+  const { HEROES } = g;
+  const bench = require('./archetypes');
+  const counts = {};
+  const problems = [];
+  for (const def of Object.values(HEROES)) {
+    const key = bench.archetypeOf(def);
+    if (!bench.ARCHETYPES.includes(key)) {
+      problems.push(`${def.id}: landed in "${key}", which is not an archetype`);
+      continue;
+    }
+    counts[key] = (counts[key] || 0) + 1;
+    // A hero must be able to post the number its bucket is ranked on, or
+    // it is being compared on something it cannot do. Supports are the
+    // exception: a cleanse-only kit is a real support that never heals,
+    // and the bench labels those rather than flagging them.
+    const headline = bench.HEADLINE[key];
+    if (headline === 'dps' && !bench.kitCan(def, headline)) {
+      problems.push(`${def.id}: binned as ${key} but deals no damage`);
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 6).join(' | '));
+  for (const key of bench.ARCHETYPES) {
+    assert(counts[key] >= 4,
+      `${key} holds ${counts[key] || 0} heroes — too few to compare against`);
+  }
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  assert(total === Object.keys(HEROES).length,
+    `${total} heroes classified out of ${Object.keys(HEROES).length}`);
+});
+
 report();

@@ -1,0 +1,371 @@
+// Archetype bench: what every hero actually does, measured, with nothing
+// but their own kit to do it with.
+//
+// Heroes are run at MAX stars and MAX level with NO gear, so the numbers
+// are the kit and the statline and nothing else — no substat rolls, no
+// set bonuses, no investment gap. Each hero is measured only against its
+// own archetype, because a back-row healer and a front-row bruiser have
+// no business being on the same leaderboard.
+//
+// The six archetypes are position (where the hero's positional wants it)
+// crossed with what its kit is for:
+//
+//   front_dps   front_tank
+//   center_dps  center_support
+//   back_dps    back_support
+//
+// PROTOCOL. For each archetype a fixed sparring cast is drawn from that
+// same archetype — two allies and three opponents, the median-power
+// members of the bucket. Every hero in the bucket is then dropped into
+// the same fight in place of one ally, so the ONLY thing that changes
+// between runs is the hero under test. The tested hero always takes a
+// hex matching its own position, so its positional passive fires; the
+// cast fills in around it and is identical for everyone, which is what
+// makes the comparison fair rather than realistic.
+//
+// Runs are seeded, so the same hero replays the same fight every time
+// and a difference between two heroes is a difference in the heroes.
+//
+//   node test/archetypes.js                      # everything
+//   node test/archetypes.js --sims 9             # steadier numbers
+//   node test/archetypes.js --archetype back_dps # one bucket
+//   node test/archetypes.js --top 10             # best and worst only
+//   node test/archetypes.js --csv                # for a spreadsheet
+
+const { loadGame } = require('./harness');
+const g = loadGame();
+const { HEROES, POSITION, TEAM, Battle, Unit, Meter, Progression, Gear } = g;
+
+const arg = (name, fallback) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
+};
+const has = (name) => process.argv.includes(`--${name}`);
+
+const SIMS = Number(arg('sims', 5));
+const SQUAD = Number(arg('squad', 3));      // per side
+const ONLY = arg('archetype', null);
+const TOP = Number(arg('top', 0));          // 0 = show every hero
+const CSV = has('csv');
+const DT = 0.05;
+// Measurement window. Two support lines healing each other never resolve,
+// which is fine — every number here is a RATE, so a fight that runs the
+// clock out still measures throughput. A shorter window also keeps the
+// whole sweep to a couple of minutes.
+const WINDOW = Number(arg('seconds', 60));
+const MAX_TICKS = Math.round(WINDOW / DT);
+// Attrition: a flat percentage of max HP bled from EVERY unit each
+// second. Without it a support mirror measures nothing — both lines sit
+// at full health, heals land on nobody, and half the healers score a
+// flat zero that says more about the test than about them. It is applied
+// to both sides so the mirror stays a mirror, and it is excluded from
+// the tested hero's taken/s so combat damage stays legible.
+const ATTRITION = Number(arg('attrition', 2)) / 100;
+
+const STARS = Progression.MAX_STARS;
+const LEVEL = Progression.maxLevel(STARS);
+
+// ---- Archetypes ----------------------------------------------------------
+
+// What a kit is FOR, from what it does rather than what it is called.
+function roleOf(def) {
+  const effects = (def.abilities || []).flatMap((a) => a.effects || []);
+  const mends = effects.some((e) =>
+    ['heal', 'healHpPct', 'hot', 'revive', 'cleanse'].includes(e.type));
+  if (mends) return 'support';
+  const s = def.stats || {};
+  // Bulk against punch, on the same scale the wave builder uses.
+  const bulk = (s.hp || 0) / 10 + (s.def || 0);
+  const punch = (s.atk || 0) + (s.speed || 0) / 2;
+  return bulk > punch ? 'tank' : 'dps';
+}
+
+// Six buckets, not nine, and the two folds are chosen so that nothing
+// lands in a bucket whose headline number it cannot produce:
+//   front support -> tank   a mender on the line is there to hold it
+//   center/back tank -> dps a bulky back-liner that never heals is not
+//                           a support; by elimination it deals damage
+// Folding bulk into SUPPORT was the obvious-looking alternative and it
+// is wrong: it filled the support buckets with heroes healing zero and
+// pulled their medians to nearly nothing.
+const FOLDS = { front: { support: 'tank' }, center: { tank: 'dps' }, back: { tank: 'dps' } };
+const folded = { front: 0, center: 0, back: 0 };
+
+function archetypeOf(def) {
+  const position = def.positional ? def.positional.position : POSITION.FRONT;
+  let role = roleOf(def);
+  const fold = FOLDS[position];
+  if (fold && fold[role]) { folded[position]++; role = fold[role]; }
+  return `${position}_${role}`;
+}
+
+const ORDER = ['front_tank', 'front_dps', 'center_support', 'center_dps',
+  'back_support', 'back_dps'];
+const TITLE = {
+  front_tank: 'FRONT ROW — TANK', front_dps: 'FRONT ROW — DPS',
+  center_support: 'CENTER — SUPPORT', center_dps: 'CENTER — DPS',
+  back_support: 'BACK ROW — SUPPORT', back_dps: 'BACK ROW — DPS',
+};
+// The number each bucket lives or dies by.
+const HEADLINE = {
+  front_tank: 'ehp', front_dps: 'dps', center_support: 'heal/s',
+  center_dps: 'dps', back_support: 'heal/s', back_dps: 'dps',
+};
+// The effect types a kit needs to be able to post a number in each
+// headline. A hero whose kit simply cannot (a cleanse-only support has
+// no healing to do) is reported as such instead of flagged as an outlier.
+const NEEDS = {
+  dps: ['damage', 'damageDef', 'damageHpPct', 'dot'],
+  'heal/s': ['heal', 'healHpPct', 'hot'],
+  ehp: null, // every hero has an HP pool
+};
+function kitCan(def, headline) {
+  const need = NEEDS[headline];
+  if (!need) return true;
+  return (def.abilities || []).some((a) =>
+    (a.effects || []).some((e) => need.includes(e.type)));
+}
+
+const buckets = {};
+for (const def of Object.values(HEROES)) {
+  (buckets[archetypeOf(def)] ||= []).push(def);
+}
+
+// ---- One measured fight --------------------------------------------------
+
+const powerOf = (def) =>
+  Progression.power(Progression.scaledStats(def, LEVEL, STARS));
+
+// Seat a unit in a hex matching its position when one is free, else
+// anywhere. Only the tested hero is guaranteed its own position.
+function seat(battle, def, team, wantPosition) {
+  const slots = team === TEAM.PLAYER ? battle.playerSlots : battle.enemySlots;
+  const free = slots.filter((s) => !s.unit);
+  const pick = free.find((s) => s.position === wantPosition) || free[0];
+  if (!pick) return null;
+  const unit = new Unit(def, team, { level: LEVEL, stars: STARS }); // no gear
+  battle.placeUnit(unit, pick.index);
+  return unit;
+}
+
+function runOne(def, cast, seedValue) {
+  g.seed(seedValue);
+  Meter.resetBattle();
+  const battle = new Battle();
+  battle.autoMode = true;
+
+  const position = def.positional ? def.positional.position : POSITION.FRONT;
+  const hero = seat(battle, def, TEAM.PLAYER, position);
+  for (const ally of cast.allies) seat(battle, ally, TEAM.PLAYER, ally.positional.position);
+  for (const foe of cast.foes) seat(battle, foe, TEAM.ENEMY, foe.positional.position);
+
+  // Damage taken is not on the ledger (it credits whoever dealt it), so
+  // the tested hero counts its own — combat only, never attrition.
+  let taken = 0;
+  let bleeding = false;
+  const takeDamage = hero.takeDamage.bind(hero);
+  hero.takeDamage = (amount, source) => {
+    const dealt = takeDamage(amount, source);
+    if (!bleeding) taken += dealt;
+    return dealt;
+  };
+  const bleed = () => {
+    bleeding = true;
+    for (const u of battle.livingUnits()) {
+      u.takeDamage(Math.max(1, Math.round(u.maxHp * ATTRITION)));
+    }
+    bleeding = false;
+  };
+
+  let winner = null;
+  battle.onBattleEnd = (w) => { winner = w; };
+  let ticks = 0;
+  const bleedEvery = Math.round(1 / DT); // once a simulated second
+  while (!winner && ticks < MAX_TICKS) {
+    battle.update(DT);
+    ticks++;
+    if (ATTRITION > 0 && ticks % bleedEvery === 0) bleed();
+  }
+  const seconds = Math.max(0.1, ticks * DT);
+  const mine = (kind) => {
+    const row = Meter.rows(kind, 'battle').list.find((r) => r.id === def.id);
+    return row ? row.value : 0;
+  };
+  const mitigated = mine('mitigated');
+  return {
+    seconds,
+    stalled: !winner,
+    died: !hero.alive,
+    damage: mine('damage'),
+    healing: mine('healing'),
+    mitigated,
+    taken,
+    maxHp: hero.maxHp,
+    // Share of everything aimed at this hero that never landed.
+    mitRatio: mitigated + taken > 0 ? mitigated / (mitigated + taken) : 0,
+  };
+}
+
+// The sparring cast: the median-power members of the bucket, so the
+// yardstick is an ordinary member of the archetype rather than its best
+// or its worst. Swapped out when the hero under test IS one of them.
+function castFor(pool) {
+  const ranked = pool.slice().sort((a, b) => powerOf(a) - powerOf(b) || a.id.localeCompare(b.id));
+  const mid = Math.floor(ranked.length / 2);
+  const need = SQUAD - 1 + SQUAD;
+  const start = Math.max(0, Math.min(mid - Math.floor(need / 2), ranked.length - need));
+  const chosen = ranked.slice(start, start + need);
+  // A tiny bucket may not have enough distinct members; repeat rather
+  // than fail, and say so in the header.
+  while (chosen.length < need) chosen.push(ranked[chosen.length % ranked.length]);
+  return { pool: ranked, allies: chosen.slice(0, SQUAD - 1), foes: chosen.slice(SQUAD - 1) };
+}
+
+function castWithout(cast, def) {
+  const swap = (list) => list.map((d) => {
+    if (d.id !== def.id) return d;
+    return cast.pool.find((o) => o.id !== def.id &&
+      !cast.allies.includes(o) && !cast.foes.includes(o)) || d;
+  });
+  return { allies: swap(cast.allies), foes: swap(cast.foes) };
+}
+
+// ---- Report --------------------------------------------------------------
+
+const median = (xs) => {
+  if (!xs.length) return 0;
+  const s = xs.slice().sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+const round = (n, p = 1) => Number(n.toFixed(p));
+const pad = (s, n) => String(s).padStart(n);
+
+function measure(def, cast) {
+  const runs = [];
+  for (let i = 0; i < SIMS; i++) runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
+  const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
+  const mitRatio = avg((r) => r.mitRatio);
+  const maxHp = avg((r) => r.maxHp);
+  return {
+    def,
+    id: def.id,
+    name: def.name,
+    rarity: def.rarity,
+    power: powerOf(def),
+    dps: avg((r) => r.damage / r.seconds),
+    'heal/s': avg((r) => r.healing / r.seconds),
+    'mit/s': avg((r) => r.mitigated / r.seconds),
+    'taken/s': avg((r) => r.taken / r.seconds),
+    'mit%': mitRatio * 100,
+    // Effective health: the pool an attacker actually has to chew
+    // through, once this hero's dodges, reflects and guards are counted.
+    // Survival time saturates in a mirror — nobody dies inside the
+    // window — so this is what separates one tank from another.
+    ehp: maxHp / Math.max(0.05, 1 - mitRatio),
+    deaths: runs.filter((r) => r.died).length,
+    stalls: runs.filter((r) => r.stalled).length,
+    seconds: avg((r) => r.seconds),
+  };
+}
+
+const COLUMNS = [
+  ['dps', 'dps', 8, 1], ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 8, 1],
+  ['taken/s', 'taken/s', 9, 1], ['mit%', 'mit%', 6, 1], ['ehp', 'ehp', 9, 0],
+];
+
+const flagged = [];
+
+function report(key, rows) {
+  const headline = HEADLINE[key];
+  rows.sort((a, b) => b[headline] - a[headline]);
+  const mid = median(rows.map((r) => r[headline]));
+  console.log(`\n${TITLE[key]}  —  ${rows.length} heroes, ` +
+    `median ${headline} ${round(mid)}`);
+  console.log('  ' + 'hero'.padEnd(24) + '★'.padStart(3) +
+    COLUMNS.map(([, label, w]) => pad(label, w + 1)).join('') + '   vs median');
+
+  const shown = TOP > 0 && rows.length > TOP * 2
+    ? [...rows.slice(0, TOP), null, ...rows.slice(-TOP)]
+    : rows;
+  for (const r of shown) {
+    if (r === null) { console.log(`  … ${rows.length - TOP * 2} more …`); continue; }
+    const ratio = mid > 0 ? r[headline] / mid : 0;
+    // Only the headline metric earns a flag, and only when the kit could
+    // have posted a number at all — a cleanse-only support healing zero
+    // is a fact about its kit, not a balance problem.
+    const can = kitCan(r.def, headline);
+    const mark = !can ? `  (no ${headline} in kit)`
+      : ratio >= 2 ? ' ←← far above'
+      : ratio <= 0.4 ? ' ←← far below' : '';
+    if (can && (ratio >= 2 || ratio <= 0.4)) {
+      flagged.push({ key, name: r.name, headline, value: r[headline], ratio });
+    }
+    console.log('  ' + r.name.padEnd(24) + pad(r.rarity, 3) +
+      COLUMNS.map(([k, , w, p]) => pad(round(r[k], p), w + 1)).join('') +
+      `   ${pad(round(ratio, 2), 5)}×${mark}`);
+  }
+  const unresolved = rows.reduce((n, r) => n + r.stalls, 0);
+  const runs = rows.length * SIMS;
+  const fell = rows.filter((r) => r.deaths > 0);
+  console.log(`  ${fell.length} of ${rows.length} died at least once` +
+    (fell.length ? `: ${fell.slice(0, 6).map((r) => r.name).join(', ')}` +
+      (fell.length > 6 ? ', …' : '') : ''));
+  if (unresolved) {
+    console.log(`  ${Math.round((unresolved / runs) * 100)}% of fights ran the ` +
+      `${WINDOW}s clock out without a winner — expected in a mirror, and ` +
+      `harmless: every column above is a rate.`);
+  }
+  if (mid === 0) {
+    console.log('  ⚠ median is zero — this bucket is mis-binned, not balanced.');
+  }
+}
+
+// ---- Run -----------------------------------------------------------------
+
+// Importable so the test suite can guard the classification — the part
+// most likely to rot silently as heroes are added — without paying for a
+// few thousand simulated battles on every CI run.
+module.exports = { roleOf, archetypeOf, ARCHETYPES: ORDER, HEADLINE, kitCan };
+if (require.main !== module) return;
+
+const keys = ORDER.filter((k) => buckets[k] && (!ONLY || k === ONLY));
+if (ONLY && !keys.length) {
+  console.log(`No such archetype "${ONLY}". Try one of: ${ORDER.join(', ')}`);
+  process.exit(1);
+}
+
+console.log(`\nArchetype bench — ${Object.keys(HEROES).length} heroes at ` +
+  `${STARS}★ Lv ${LEVEL}, ungeared, ${SQUAD}v${SQUAD} within archetype, ` +
+  `${SIMS} seeded sims each, ${WINDOW}s window, ` +
+  `${Math.round(ATTRITION * 100)}%/s attrition`);
+console.log(`Folded into six buckets: ${folded.front} front menders read as tanks, ` +
+  `${folded.center + folded.back} bulky mid/back heroes read as dps`);
+
+const started = Date.now();
+const all = {};
+for (const key of keys) {
+  const pool = buckets[key];
+  const cast = castFor(pool);
+  all[key] = pool.map((def) => measure(def, cast));
+}
+for (const key of keys) report(key, all[key]);
+
+if (CSV) {
+  console.log('\narchetype,hero,rarity,power,' +
+    COLUMNS.map(([k]) => k).join(','));
+  for (const key of keys) {
+    for (const r of all[key]) {
+      console.log([key, r.name, r.rarity, r.power,
+        ...COLUMNS.map(([k, , , p]) => round(r[k], p))].join(','));
+    }
+  }
+}
+
+console.log(`\nOUTLIERS — ${flagged.length} hero(es) off their archetype's median`);
+if (!flagged.length) console.log('  none; every bucket is within 0.4×–2× of its median');
+for (const f of flagged.sort((a, b) => b.ratio - a.ratio)) {
+  console.log(`  ${TITLE[f.key].padEnd(20)} ${f.name.padEnd(24)} ` +
+    `${f.headline} ${pad(round(f.value), 8)}  ${round(f.ratio, 2)}× median`);
+}
+console.log(`\n${((Date.now() - started) / 1000).toFixed(1)}s\n`);
