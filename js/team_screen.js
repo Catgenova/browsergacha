@@ -540,7 +540,7 @@ class TeamScreen {
         <div class="report-card">
           <div class="report-title">Strongest heroes</div>
           ${top.map((r, i) => `<div class="report-row">
-            <span class="report-key">${i + 1}.</span>
+            <span class="report-key report-rank">${i + 1}.</span>
             <span class="report-name">${Elements.badge(r.def.element)} ${r.def.name}</span>
             <span class="report-power">${r.power.toLocaleString()}</span>
             <span class="report-sub">Lv ${r.pr.level} · ${r.gearCount}/6 gear</span>

@@ -169,6 +169,24 @@ function runOne(def, cast, seedValue) {
     if (!bleeding) taken += dealt;
     return dealt;
   };
+  // Poison is the only damage in the game that skips the DEF curve, so a
+  // single dps number hides which heroes are winning on their kit and
+  // which are winning on that exemption. Split it: an ability hit passes
+  // a caster into takeDamage, a status tick does not.
+  let dotDealt = 0;
+  for (const u of battle.units) {
+    if (u.team !== TEAM.ENEMY) continue;
+    const orig = u.takeDamage.bind(u);
+    u.takeDamage = (amount, source) => {
+      const dealt = orig(amount, source);
+      if (!source && !bleeding &&
+          u.statusEffects.some((fx) => fx.kind === 'dot' && fx.source === hero)) {
+        dotDealt += dealt;
+      }
+      return dealt;
+    };
+  }
+
   const bleed = () => {
     bleeding = true;
     for (const u of battle.livingUnits()) {
@@ -197,6 +215,7 @@ function runOne(def, cast, seedValue) {
     stalled: !winner,
     died: !hero.alive,
     damage: mine('damage'),
+    poison: dotDealt,
     healing: mine('healing'),
     mitigated,
     taken,
@@ -254,6 +273,8 @@ function measure(def, cast) {
     rarity: def.rarity,
     power: powerOf(def),
     dps: avg((r) => r.damage / r.seconds),
+    direct: avg((r) => (r.damage - r.poison) / r.seconds),
+    poison: avg((r) => r.poison / r.seconds),
     'heal/s': avg((r) => r.healing / r.seconds),
     'mit/s': avg((r) => r.mitigated / r.seconds),
     'taken/s': avg((r) => r.taken / r.seconds),
@@ -270,8 +291,9 @@ function measure(def, cast) {
 }
 
 const COLUMNS = [
-  ['dps', 'dps', 8, 1], ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 8, 1],
-  ['taken/s', 'taken/s', 9, 1], ['mit%', 'mit%', 6, 1], ['ehp', 'ehp', 9, 0],
+  ['dps', 'dps', 8, 1], ['direct', 'direct', 8, 1], ['poison', 'poison', 8, 1],
+  ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 7, 1],
+  ['taken/s', 'taken/s', 8, 1], ['mit%', 'mit%', 5, 1], ['ehp', 'ehp', 8, 0],
 ];
 
 const flagged = [];
