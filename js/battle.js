@@ -226,20 +226,28 @@ class Battle {
       return;
     }
 
-    // Movement: precompute anchor points around the chosen target.
-    if (strip.motion && target && target.slot) {
-      const dir = Math.sign(target.slot.x - caster.slot.x) || 1;
-      const tw = target.animator ? target.animator.sheet.size().w : 48;
-      caster.motionState = {
-        anim: ability.animation,
-        phases: strip.motion,
-        anchors: {
-          origin: { x: caster.slot.x, y: caster.slot.y },
-          originAir: { x: caster.slot.x, y: caster.slot.y - 120 },
-          targetFront: { x: target.slot.x - dir * (tw / 2 + 26), y: target.slot.y },
-          targetBehind: { x: target.slot.x + dir * (tw / 2 + 30), y: target.slot.y },
-        },
+    // Movement: precompute anchor points around the chosen target. Target
+    // anchors need a chosen target; the caster-local ones (origin, air,
+    // hover) don't, so self/ally abilities can still levitate or recoil.
+    if (strip.motion && caster.slot) {
+      const anchors = {
+        origin: { x: caster.slot.x, y: caster.slot.y },
+        originAir: { x: caster.slot.x, y: caster.slot.y - 120 },
+        // A gentler lift than originAir — ascension/levitation poses.
+        originHover: { x: caster.slot.x, y: caster.slot.y - 46 },
       };
+      if (target && target.slot) {
+        const dir = Math.sign(target.slot.x - caster.slot.x) || 1;
+        const tw = target.animator ? target.animator.sheet.size().w : 48;
+        anchors.targetFront = { x: target.slot.x - dir * (tw / 2 + 26), y: target.slot.y };
+        anchors.targetBehind = { x: target.slot.x + dir * (tw / 2 + 30), y: target.slot.y };
+      }
+      // Phases that need a target anchor can't run without one.
+      const usable = strip.motion.every(
+        (ph) => anchors[ph.from] && anchors[ph.to]);
+      if (usable) {
+        caster.motionState = { anim: ability.animation, phases: strip.motion, anchors };
+      }
     }
 
     // Frame-triggered side effects (dust clouds etc.) declared on the
@@ -337,7 +345,8 @@ class Battle {
       if (f <= p.frames[1]) { phase = p; break; }
     }
     const t = unit.animator.progressIn(phase.frames);
-    const grounded = (name) => name === 'originAir' ? 'origin' : name;
+    const grounded = (name) =>
+      (name === 'originAir' || name === 'originHover') ? 'origin' : name;
     const from = ms.anchors[grounded(phase.from)];
     const to = ms.anchors[grounded(phase.to)];
     const groundY = from.y + (to.y - from.y) * t;
@@ -521,12 +530,14 @@ class Battle {
       const defensiveOnly = a.def.effects.every((e) =>
         e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||
         e.type === 'cleanse' || (e.type === 'buff' && e.stat === 'def'));
-      const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies'].includes(a.def.targeting);
+      const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies',
+        'self-and-wounded-allies'].includes(a.def.targeting);
       return !(defensiveOnly && targetsAllies && !anyImpaired);
     });
     // Skip group-target abilities whose target set is currently empty
     // (e.g. a back-row nuke when no enemy holds a back hex).
-    const groupTargetings = ['all-enemies', 'back-enemies', 'front-enemies', 'front-allies', 'all-allies'];
+    const groupTargetings = ['all-enemies', 'back-enemies', 'front-enemies', 'front-allies',
+      'all-allies', 'self-and-wounded-allies'];
     const withTargets = (usable.length > 0 ? usable : ready).filter((a) => {
       if (a.def.targeting === 'dead-ally') {
         return this.units.some((u) => !u.alive && u.team === unit.team);

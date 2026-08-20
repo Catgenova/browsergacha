@@ -205,6 +205,16 @@ const Abilities = (() => {
         // Every living ally standing in a front-position hex.
         return battle.livingUnits(caster.team)
           .filter((u) => u.slot.position === POSITION.FRONT);
+      case 'self-and-wounded-allies': {
+        // The caster plus the `allyCount` most-wounded OTHER allies
+        // (lowest HP fraction first) — triage healing.
+        const n = ability.allyCount || 2;
+        const others = battle.livingUnits(caster.team)
+          .filter((u) => u !== caster)
+          .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)
+          .slice(0, n);
+        return [caster, ...others];
+      }
       case 'back-enemies':
         // Every living enemy standing in a back-position hex (a boss
         // spans every hex, so it always qualifies).

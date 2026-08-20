@@ -114,7 +114,7 @@ class UI {
     const targeting = abilityState.def.targeting;
     if (targeting === 'self' || targeting === 'all-enemies' ||
         targeting === 'all-allies' || targeting === 'front-allies' ||
-        targeting === 'back-enemies') {
+        targeting === 'back-enemies' || targeting === 'self-and-wounded-allies') {
       this.commit(null); // no target needed — fire immediately
     } else {
       // 'enemy', 'enemy-row' (pick any enemy in the row), 'ally', or

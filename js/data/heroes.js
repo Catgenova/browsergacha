@@ -104,6 +104,99 @@ const HEROES = {
     };
   })(),
 
+  // ---- 4★ ------------------------------------------------------------------
+
+  // Catherine: a Light paladin-support. Flail attacker up front, triage
+  // healer for the party's three most-wounded, and a front-line war cry
+  // that she delivers hovering off the ground.
+  catherine: {
+    id: 'catherine',
+    element: 'light',
+    name: 'Catherine',
+    title: 'White Paladin of Reverence',
+    rarity: 4,
+    stats: { hp: 1700, atk: 200, def: 160, speed: 98 },
+    tint: { body: '#e8e4dc', helm: '#f0ece0', weapon: '#c8b88a', skin: '#e8c0a0' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Catherine/catherineidle.png', frames: 9, fps: 5, loop: true },
+        // Timed fidgets while she idles: flail adjust, then a short prayer.
+        idle2: { src: 'assets/heroes/Catherine/catherineidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Catherine/catherineidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        ready: { src: 'assets/heroes/Catherine/catherineready.png', frames: 9, fps: 6, loop: true },
+        // Flail swing — the head connects on frame 9.
+        attack: { src: 'assets/heroes/Catherine/catherineskill1.png', frames: 10, fps: 11,
+                  loop: false, hitFrame: 9 },
+        // Consecration: the light crests around frame 9, when the heal lands.
+        heal:  { src: 'assets/heroes/Catherine/catherineskill2.png', frames: 15, fps: 12,
+                 loop: false, hitFrame: 9, holds: { 9: 2 } },
+        // Ascendant war cry: she lifts off after frame 4, hangs in the
+        // light, and settles back down over the last four frames.
+        skill3: { src: 'assets/heroes/Catherine/catherineskill3.png', frames: 15, fps: 12,
+                  loop: false, hitFrame: 9, holds: { 9: 2, 10: 2 },
+                  motion: [
+                    { frames: [1, 4],   from: 'origin',      to: 'origin' },
+                    { frames: [5, 8],   from: 'origin',      to: 'originHover' },
+                    { frames: [9, 11],  from: 'originHover', to: 'originHover' },
+                    { frames: [12, 15], from: 'originHover', to: 'origin' },
+                  ] },
+        death: { src: 'assets/heroes/Catherine/catherinedeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'reverent_strike', name: 'Reverent Strike',
+        icon: 'assets/icons/fc310.png',
+        description: 'Swing the flail at a single enemy for 120% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.2 }],
+      },
+      {
+        id: 'consecrated_mercy', name: 'Consecrated Mercy',
+        icon: 'assets/icons/fc311.png',
+        description: 'Heal herself and the 2 most-wounded allies for 30% ATK each.',
+        cooldown: 3, targeting: 'self-and-wounded-allies', allyCount: 2,
+        animation: 'heal',
+        effects: [{ type: 'heal', mult: 0.3 }],
+      },
+      {
+        id: 'ascendant_creed', name: 'Ascendant Creed',
+        icon: 'assets/icons/fc312.png',
+        description: 'Rise into the light: the front line gains +30% ATK and +30% DEF for 3 turns.',
+        cooldown: 5, targeting: 'front-allies', animation: 'skill3',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.3, turns: 3 },
+          { type: 'buff', stat: 'def', mult: 1.3, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Vow of Reverence',
+      icon: 'assets/icons/fc313.png',
+      description: 'Any ally restored to health is shielded: +12% DEF for 2 turns.',
+      hooks: {
+        onAllyHealed(unit, healedUnit) {
+          if (!healedUnit.alive) return null;
+          if (healedUnit.statusEffects.some((fx) => fx.stat === 'def' && fx.reverence)) {
+            return null; // already warded — don't stack every tick
+          }
+          healedUnit.addStatusEffect({
+            kind: 'buff', stat: 'def', mult: 1.12, turns: 2, reverence: true,
+          });
+          return { floats: [{ target: healedUnit, text: 'WARD ▲', color: '#ffe8a8' }] };
+        },
+      },
+    },
+    positional: {
+      position: POSITION.FRONT, stat: 'def', mult: 1.18,
+      description: 'Shieldbearer: +18% DEF while in a front hex.',
+    },
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
@@ -2833,10 +2926,10 @@ const HEROES = {
       {
         id: 'lance_dive', name: 'Lance Dive',
         icon: 'assets/icons/fc1461.png',
-        description: 'A diving thrust for 120% ATK.',
+        description: 'A diving thrust for 130% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.2 },
+          { type: 'damage', mult: 1.3 },
         ],
       },
       {
