@@ -191,10 +191,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Shieldbearer: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   // ---- 1★ rat cohort ------------------------------------------------------
@@ -249,10 +246,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Skirmisher: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   rat_brawler: {
@@ -311,10 +305,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Scrapper: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   rat_spearman: {
@@ -369,10 +360,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Shield Wall: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   // ---- 2★ rat cohort ------------------------------------------------------
@@ -426,10 +414,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Lurker: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   rat_berserker: {
@@ -484,10 +469,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'damage', mult: 1.15,
-      description: 'Bloodlust: +15% damage dealt from a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   rat_mauler: {
@@ -542,10 +524,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.2,
-      description: 'Bulwark: +20% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   rat_duelist: {
@@ -606,10 +585,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Point of Honor: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   // ---- 3★ rat cohort ------------------------------------------------------
@@ -666,10 +642,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
-      description: 'Standard Bearer: +20% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
 
@@ -740,10 +713,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.1,
-      description: 'Vanguard: +10% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   rat_slinger: {
@@ -799,10 +769,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Long Toss: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_scout: {
@@ -854,10 +821,7 @@ const HEROES = {
       description: '+10% chance to dodge attacks.',
       hooks: { dodgeAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Outrider: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_miner: {
@@ -913,10 +877,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Pit Prop: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   rat_cook: {
@@ -980,10 +941,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Kitchen Post: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   rat_torchbearer: {
@@ -1035,10 +993,7 @@ const HEROES = {
       description: 'His burns cling: damage-over-time he inflicts lasts 1 extra turn.',
       hooks: { dotExtraTurns: 1 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Beacon: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   // ---- 2★ placeholder rats ------------------------------------------------
@@ -1101,10 +1056,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Oathkeeper: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   rat_shaman: {
@@ -1159,10 +1111,7 @@ const HEROES = {
       description: '+35% debuff resistance.',
       hooks: { resistanceAdd: 0.35 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Warded Circle: +15% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_monk: {
@@ -1216,10 +1165,7 @@ const HEROES = {
       description: '+8% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
-      description: 'Perfect Balance: +10% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   rat_gunner: {
@@ -1275,10 +1221,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.18,
-      description: 'Firing Line: +18% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   rat_thief: {
@@ -1332,10 +1275,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Ambusher: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_herbalist: {
@@ -1396,10 +1336,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Herb Cart: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   // ---- 3★ placeholder rats ------------------------------------------------
@@ -1461,10 +1398,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Flagship Post: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   rat_ninja: {
@@ -1517,10 +1451,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Night Blade: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   rat_pyromancer: {
@@ -1576,10 +1507,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Cinder Perch: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   rat_tidecaller: {
@@ -1647,10 +1575,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Tidepool: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   rat_stormcaller: {
@@ -1707,10 +1632,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Storm Perch: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   // ---- Bird cohort --------------------------------------------------------
@@ -1766,10 +1688,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Circling: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   kingfisher: {
@@ -1824,10 +1743,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Shallows Hunter: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   rook_swordsman: {
@@ -1884,10 +1800,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
-      description: 'Murder\'s Eye: +15% damage dealt from the center hex.',
-    },
+    positional: POSITIONALS.drain_the_line,
   },
 
   rooster_duelist: {
@@ -1952,10 +1865,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'damage', mult: 1.15,
-      description: 'Center Stage: +15% damage dealt from a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   owl_sentinel: {
@@ -2009,10 +1919,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Bulwark of Dawn: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   eagle_champion: {
@@ -2066,10 +1973,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
-      description: 'Skycrown Banner: +20% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   raven_hexer: {
@@ -2123,10 +2027,7 @@ const HEROES = {
       description: '+25% debuff accuracy.',
       hooks: { accuracyAdd: 0.25 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Night Roost: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
 
@@ -2193,10 +2094,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Hedge Cover: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   pelican_porter: {
@@ -2259,10 +2157,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Fish Stand: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   heron_spearfisher: {
@@ -2322,10 +2217,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Reed Stand: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   finch_whistler: {
@@ -2384,10 +2276,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Songperch: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   duck_sapper: {
@@ -2456,10 +2345,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Demolition Range: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   magpie_filcher: {
@@ -2522,10 +2408,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Getaway Perch: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   woodpecker_driller: {
@@ -2588,10 +2471,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Braced Tail: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   gull_raider: {
@@ -2651,10 +2531,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Updraft: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   crane_dancer: {
@@ -2714,10 +2591,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
-      description: 'Stage Center: +12% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   falcon_diver: {
@@ -2772,10 +2646,7 @@ const HEROES = {
       description: '+10% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'High Perch: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   parrot_mimic: {
@@ -2837,10 +2708,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Soapbox: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   goose_bruiser: {
@@ -2902,10 +2770,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Beach Head: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   hawk_lancer: {
@@ -2965,10 +2830,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Thermal Column: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   swan_guardian: {
@@ -3033,10 +2895,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Lake Heart: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   phoenix_ascendant: {
@@ -3104,10 +2963,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Pyre Heart: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   albatross_stormrider: {
@@ -3177,10 +3033,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Weather Deck: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   peacock_radiant: {
@@ -3241,10 +3094,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Display Mound: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   stork_lifebringer: {
@@ -3314,10 +3164,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Rooftop Nest: +15% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   // ---- Minotaur cohort ----------------------------------------------------
@@ -3374,10 +3221,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Shield Line: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   minotaur_bruiser: {
@@ -3433,10 +3277,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
-      description: 'Immovable: +15% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   minotaur_guard: {
@@ -3493,10 +3334,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Gatekeeper: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   minotaur_crossbowman: {
@@ -3550,10 +3388,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Overwatch: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   minotaur_gladiator: {
@@ -3610,10 +3445,7 @@ const HEROES = {
         damageDealtMult() { return 1.1; },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
-      description: 'Center of Attention: +15% damage dealt from the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   minotaur_shaman: {
@@ -3669,10 +3501,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.2,
-      description: 'Spirit Shelter: +20% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   minotaur_necromancer: {
@@ -3744,10 +3573,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Grave Roost: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
 
@@ -3813,10 +3639,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Fell Stance: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   minotaur_herder: {
@@ -3880,10 +3703,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Fold Gate: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   minotaur_digger: {
@@ -3940,10 +3760,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Trenchwork: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   minotaur_piper: {
@@ -3997,10 +3814,7 @@ const HEROES = {
       description: '+5% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Piper\'s Knoll: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   minotaur_butcher: {
@@ -4054,10 +3868,7 @@ const HEROES = {
       description: '+20% DoT damage.',
       hooks: { dotBoostAdd: 0.20 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Chopping Block: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   minotaur_sentry: {
@@ -4118,10 +3929,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Watchpost: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   minotaur_thrower: {
@@ -4179,10 +3987,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Throwing Lane: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   minotaur_ravager: {
@@ -4245,10 +4050,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Ram Position: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   minotaur_warden: {
@@ -4305,10 +4107,7 @@ const HEROES = {
       description: '+10% debuff accuracy and +10% debuff resistance.',
       hooks: { accuracyAdd: 0.10, resistanceAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Gatekeeper: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   minotaur_skirmisher: {
@@ -4369,10 +4168,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
-      description: 'Pivot: +12% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   minotaur_runesmith: {
@@ -4433,10 +4229,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Anvil Stone: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   minotaur_wrestler: {
@@ -4495,10 +4288,7 @@ const HEROES = {
         damageTakenMult() { return 0.92; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Corner Post: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   minotaur_geomancer: {
@@ -4569,10 +4359,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Ley Line: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   minotaur_veteran: {
@@ -4631,10 +4418,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Old Ground: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   minotaur_warlord: {
@@ -4698,10 +4482,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'War Banner: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   minotaur_colossus: {
@@ -4761,10 +4542,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Rampart: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   minotaur_hexhorn: {
@@ -4818,10 +4596,7 @@ const HEROES = {
       description: '+15% debuff accuracy and +15% debuff resistance.',
       hooks: { accuracyAdd: 0.15, resistanceAdd: 0.15 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Cursing Distance: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   minotaur_sunbrand: {
@@ -4882,10 +4657,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Sun Disc: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   // ---- Snake cohort -------------------------------------------------------
@@ -4952,10 +4724,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Coiled Guard: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.rallying_banner,
   },
 
   snake_archer: {
@@ -5013,10 +4782,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Reed Blind: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_assassin: {
@@ -5074,10 +4840,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Ambush Coil: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_mage: {
@@ -5131,10 +4894,7 @@ const HEROES = {
       description: '+15% debuff accuracy.',
       hooks: { accuracyAdd: 0.15 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'damage', mult: 1.15,
-      description: 'Marsh Focus: +15% damage dealt from the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   snake_alchemist: {
@@ -5188,10 +4948,7 @@ const HEROES = {
       description: '+20% debuff resistance.',
       hooks: { resistanceAdd: 0.20 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
-      description: 'Hardened Brew: +15% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   snake_shaman: {
@@ -5247,10 +5004,7 @@ const HEROES = {
       description: '+25% DoT damage.',
       hooks: { dotBoostAdd: 0.25 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.2,
-      description: 'Mire Shelter: +20% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_healer: {
@@ -5306,10 +5060,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.15,
-      description: 'Sheltered Coil: +15% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   // ---- Placeholder snake cohort (filling the roster to 25) ---------------
@@ -5374,10 +5125,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Reed Runner: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   snake_spitter: {
@@ -5436,10 +5184,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'High Ground: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_grappler: {
@@ -5500,10 +5245,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Anchor Coil: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   snake_flutist: {
@@ -5571,10 +5313,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
-      description: 'Bandstand: +10% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   snake_broodtender: {
@@ -5640,10 +5379,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Nest Post: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   snake_fireeater: {
@@ -5701,10 +5437,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Fire Pit: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   snake_rattler: {
@@ -5765,10 +5498,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Rattle Range: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   snake_lancer: {
@@ -5828,10 +5558,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Couched Lance: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   snake_winddancer: {
@@ -5891,10 +5618,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Gale Step: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   snake_bogwitch: {
@@ -5948,10 +5672,7 @@ const HEROES = {
       description: '+15% DoT damage and +10% debuff accuracy.',
       hooks: { dotBoostAdd: 0.15, accuracyAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Weed Blind: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_shieldscale: {
@@ -6012,10 +5733,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Hearthstone: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   snake_venomsmith: {
@@ -6077,10 +5795,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Workbench: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_oracle: {
@@ -6140,10 +5855,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Sheltered Sight: +15% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   snake_pitfighter: {
@@ -6202,10 +5914,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Pit Footing: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   snake_basilisk: {
@@ -6263,10 +5972,7 @@ const HEROES = {
         resistanceAdd: 0.15,
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Plinth: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   snake_leviathan: {
@@ -6324,10 +6030,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Riverbed Anchor: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   snake_plaguebearer: {
@@ -6379,10 +6082,7 @@ const HEROES = {
       description: '+15% debuff accuracy and +15% DoT damage.',
       hooks: { accuracyAdd: 0.15, dotBoostAdd: 0.15 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Quarantine Distance: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   snake_sandviper: {
@@ -6443,10 +6143,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Dune Blind: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   // ---- Wolf cohort (the Snowfield) ----------------------------------------
@@ -6507,10 +6204,7 @@ const HEROES = {
       description: '+5% Stun chance on single-target attacks.',
       hooks: { stunAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Zoomies: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_tracker: {
@@ -6569,10 +6263,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Trailhead: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_howler: {
@@ -6635,10 +6326,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
-      description: 'Echo Point: +10% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   wolf_icefang: {
@@ -6692,10 +6380,7 @@ const HEROES = {
       description: '+15% debuff resistance and +5% debuff accuracy.',
       hooks: { resistanceAdd: 0.15, accuracyAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Ice Stance: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   wolf_snowstalker: {
@@ -6753,10 +6438,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Whiteout Cover: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   wolf_sledpuller: {
@@ -6818,10 +6500,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Harness Point: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   wolf_cavehunter: {
@@ -6882,10 +6561,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Cave Mouth: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   wolf_ashpelt: {
@@ -6946,10 +6622,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Cinder Bed: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   wolf_ridgeback: {
@@ -7007,10 +6680,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'High Ground Charge: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   wolf_fangknight: {
@@ -7070,10 +6740,7 @@ const HEROES = {
         damageTakenMult() { return 0.97; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Gate Stance: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   wolf_galecaller: {
@@ -7137,10 +6804,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Windward: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_frostshaman: {
@@ -7197,10 +6861,7 @@ const HEROES = {
       description: '+25% debuff resistance.',
       hooks: { resistanceAdd: 0.25 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Totem Ground: +12% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_moonblade: {
@@ -7260,10 +6921,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Moonshadow: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   wolf_packmother: {
@@ -7322,10 +6980,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Den Door: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   wolf_dervish: {
@@ -7387,10 +7042,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
-      description: 'Spinning Floor: +12% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   wolf_gnawbone: {
@@ -7449,10 +7101,7 @@ const HEROES = {
         damageTakenMult() { return 0.96; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Boneyard Footing: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   wolf_jawlock: {
@@ -7507,10 +7156,7 @@ const HEROES = {
       description: '+10% Stun chance on single-target attacks.',
       hooks: { stunAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Set Stance: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   wolf_outrider: {
@@ -7575,10 +7221,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Long Patrol: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_trapper: {
@@ -7632,10 +7275,7 @@ const HEROES = {
       description: '+20% debuff accuracy.',
       hooks: { accuracyAdd: 0.20 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Trapline: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_alphafang: {
@@ -7697,10 +7337,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Alpha Ground: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   wolf_winterwitch: {
@@ -7762,10 +7399,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Frozen Court: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_thunderjaw: {
@@ -7820,10 +7454,7 @@ const HEROES = {
       description: '+8% Stun chance on single-target attacks and +4% chance for an extra turn.',
       hooks: { stunAdd: 0.08, extraTurnAdd: 0.04 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Storm Eye: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   wolf_direhound: {
@@ -7878,10 +7509,7 @@ const HEROES = {
       description: '+25% DoT damage and +5% debuff accuracy.',
       hooks: { dotBoostAdd: 0.25, accuracyAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Scorched Trail: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   wolf_glacierguard: {
@@ -7942,10 +7570,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Glacier Face: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   wolf_dawnmother: {
@@ -8023,10 +7648,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Sunrise Watch: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   // ---- Boar cohort (the Savanna) ------------------------------------------
@@ -8088,10 +7710,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Tusk Line: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   boar_forager: {
@@ -8157,10 +7776,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Root Larder: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   boar_mudback: {
@@ -8229,10 +7845,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Mud Wall: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   boar_thistlehide: {
@@ -8286,10 +7899,7 @@ const HEROES = {
       description: '+8% chance to reflect all incoming damage.',
       hooks: { reflectAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Thorn Fence: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   boar_charger: {
@@ -8350,10 +7960,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Charge Lane: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   boar_rootdigger: {
@@ -8410,10 +8017,7 @@ const HEROES = {
         damageTakenMult() { return 0.96; },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Rooted: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   boar_sunbasker: {
@@ -8473,10 +8077,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
-      description: 'Sun Spot: +10% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   boar_dustroller: {
@@ -8537,10 +8138,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
-      description: 'Dust Bath: +10% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   boar_squealer: {
@@ -8602,10 +8200,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Lookout Rock: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_ironhide: {
@@ -8658,10 +8253,7 @@ const HEROES = {
       description: '+10% chance to reflect all incoming damage.',
       hooks: { reflectAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Iron Line: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   boar_bulwark: {
@@ -8723,10 +8315,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Wall Anchor: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   boar_brushfire: {
@@ -8784,10 +8373,7 @@ const HEROES = {
         damageDealtMult() { return 1.05; },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Fire Line: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   boar_stampeder: {
@@ -8844,10 +8430,7 @@ const HEROES = {
       description: '+6% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.06 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Lead Position: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   boar_thornmail: {
@@ -8901,10 +8484,7 @@ const HEROES = {
       description: '+8% chance to reflect all incoming damage and +8% debuff resistance.',
       hooks: { reflectAdd: 0.08, resistanceAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Hedgerow: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   boar_mireguard: {
@@ -8962,10 +8542,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Bog Gate: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   boar_gorehorn: {
@@ -9022,10 +8599,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Breaching Spot: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   boar_grassrunner: {
@@ -9081,10 +8655,7 @@ const HEROES = {
       description: '+7% chance to dodge and +3% chance for an extra turn.',
       hooks: { dodgeAdd: 0.07, extraTurnAdd: 0.03 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Reed Run: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_nightsow: {
@@ -9141,10 +8712,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Dark Thicket: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_drummer: {
@@ -9208,10 +8776,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
-      description: 'Drum Circle: +12% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.drain_the_line,
   },
 
   boar_warchief: {
@@ -9273,10 +8838,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'War Throne: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   boar_earthshaker: {
@@ -9330,10 +8892,7 @@ const HEROES = {
       description: '+10% chance to reflect all incoming damage and +10% debuff resistance.',
       hooks: { reflectAdd: 0.10, resistanceAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.2,
-      description: 'Bedrock: +20% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   boar_bramblelord: {
@@ -9389,10 +8948,7 @@ const HEROES = {
       description: 'His bleeds cling: +10% DoT damage and DoTs last 1 extra turn.',
       hooks: { dotBoostAdd: 0.10, dotExtraTurns: 1 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Hedge Heart: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   boar_cinderback: {
@@ -9459,10 +9015,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Hearth Line: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   boar_rainbringer: {
@@ -9522,10 +9075,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Stormwatch: +15% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_dawnsow: {
@@ -9590,10 +9140,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Sunrise Post: +15% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   // ---- Bear cohort (the Valley) -------------------------------------------
@@ -9660,10 +9207,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.12,
-      description: 'Behind Mother: +12% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   bear_fisher: {
@@ -9727,10 +9271,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
-      description: 'Fishing Hole: +12% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   bear_honeypaw: {
@@ -9784,10 +9325,7 @@ const HEROES = {
       description: 'His healing is 15% stronger.',
       hooks: { healBoostAdd: 0.15 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Honey Stash: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   bear_forestwalker: {
@@ -9843,10 +9381,7 @@ const HEROES = {
       description: '+8% chance to dodge attacks.',
       hooks: { dodgeAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
-      description: 'Old Growth: +12% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   bear_riverguard: {
@@ -9907,10 +9442,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Ford Post: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   bear_stonepaw: {
@@ -9971,10 +9503,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Quarry Floor: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   bear_berrypicker: {
@@ -10037,10 +9566,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.12,
-      description: 'Berry Thicket: +12% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   bear_napper: {
@@ -10105,10 +9631,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
-      description: 'Nap Spot: +15% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   bear_growler: {
@@ -10170,10 +9693,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Growling Ground: +12% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   bear_shieldpaw: {
@@ -10235,10 +9755,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
-      description: 'Den Door: +15% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   bear_salmoncaller: {
@@ -10301,10 +9818,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.12,
-      description: 'Riverbank: +12% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   bear_emberpelt: {
@@ -10364,10 +9878,7 @@ const HEROES = {
         damageTakenMult() { return 0.95; },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
-      description: 'Warm Hollow: +12% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   bear_nightmaw: {
@@ -10427,10 +9938,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Cave Mouth Shadow: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   bear_timberjack: {
@@ -10484,10 +9992,7 @@ const HEROES = {
       description: '+7% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.07 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Felling Line: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   bear_denwarden: {
@@ -10550,10 +10055,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.18,
-      description: 'Den Threshold: +18% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   bear_slugger: {
@@ -10608,10 +10110,7 @@ const HEROES = {
       description: '+6% Stun chance on single-target attacks.',
       hooks: { stunAdd: 0.06 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Ring Corner: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   bear_galeclaw: {
@@ -10674,10 +10173,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Weather Side: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   bear_herbmother: {
@@ -10731,10 +10227,7 @@ const HEROES = {
       description: 'Her healing is 25% stronger.',
       hooks: { healBoostAdd: 0.25 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.12,
-      description: 'Herb Garden: +12% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   bear_drumbelly: {
@@ -10793,10 +10286,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
-      description: 'Drum Circle Middle: +15% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   bear_patriarch: {
@@ -10858,10 +10348,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
-      description: 'Family Seat: +15% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   bear_frostmane: {
@@ -10923,10 +10410,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
-      description: 'Cold Front: +15% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   bear_thunderhide: {
@@ -10992,10 +10476,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.18,
-      description: 'Storm Shelter: +18% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   bear_ancientroot: {
@@ -11063,10 +10544,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.2,
-      description: 'Heartwood: +20% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   bear_flamemaw: {
@@ -11124,10 +10602,7 @@ const HEROES = {
       description: '+20% DoT damage, and devouring flame mends: +10% Healing.',
       hooks: { dotBoostAdd: 0.20, healBoostAdd: 0.10 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Fire Pit Throne: +12% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   bear_sunmother: {
@@ -11196,10 +10671,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.15,
-      description: 'Sunning Ledge: +15% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   // ---- Feline cohort (the Meadow) -----------------------------------------
@@ -11260,10 +10732,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Skirting Board: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   cat_angler: {
@@ -11324,10 +10793,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Riverbank Perch: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   cat_hearthcat: {
@@ -11388,10 +10854,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.1,
-      description: 'Fireplace Rug: +10% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   cat_alleyscrapper: {
@@ -11451,10 +10914,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Alley Mouth: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   cat_birdwatcher: {
@@ -11516,10 +10976,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Window Sill: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   cat_pouncer: {
@@ -11578,10 +11035,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Launch Pad: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   cat_bellringer: {
@@ -11643,10 +11097,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
-      description: 'Bell Tower: +10% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   cat_emberchaser: {
@@ -11709,10 +11160,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Spark Trail: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   cat_longtail: {
@@ -11773,10 +11221,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.12,
-      description: 'Fence Line: +12% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   cat_swashbuckler: {
@@ -11838,10 +11283,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Duelling Ground: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   cat_shadowpaw: {
@@ -11895,10 +11337,7 @@ const HEROES = {
       description: '+8% chance to drain 20% AP on attack.',
       hooks: { apDrainAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Umbra: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   cat_lynxarcher: {
@@ -11958,10 +11397,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Rooftop Blind: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   cat_pantherblade: {
@@ -12020,10 +11456,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.12,
-      description: 'Night Cover: +12% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   cat_tomcat: {
@@ -12086,10 +11519,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Fence Top: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   cat_silkdancer: {
@@ -12148,10 +11578,7 @@ const HEROES = {
       description: '+9% chance to take an extra turn after acting.',
       hooks: { extraTurnAdd: 0.09 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.15,
-      description: 'Stage Light: +15% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   cat_clockwatcher: {
@@ -12206,10 +11633,7 @@ const HEROES = {
       description: '+5% chance to drain 20% AP on attack.',
       hooks: { apDrainAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
-      description: 'Clock Tower: +10% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   cat_purrmother: {
@@ -12264,10 +11688,7 @@ const HEROES = {
       description: 'Her healing is 20% stronger.',
       hooks: { healBoostAdd: 0.20 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
-      description: 'Sunbeam: +12% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   cat_highwaycat: {
@@ -12331,10 +11752,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Ambush Bend: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   cat_ratter: {
@@ -12393,10 +11811,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Granary Post: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   cat_tigerlord: {
@@ -12453,10 +11868,7 @@ const HEROES = {
         extraTurnAdd: 0.05,
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Claimed Ground: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   cat_snowlynx: {
@@ -12519,10 +11931,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Snowline: +15% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   cat_cheetahstrike: {
@@ -12589,10 +11998,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.15,
-      description: 'Open Runway: +15% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   cat_pumaprowler: {
@@ -12650,10 +12056,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
-      description: 'Ledge Overlook: +12% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   cat_lionheart: {
@@ -12715,10 +12118,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Pride Rock: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   cat_moonwhisker: {
@@ -12798,10 +12198,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.12,
-      description: 'Moonrise Perch: +12% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   // ---- Drake cohort (the Volcano) -----------------------------------------
@@ -12864,10 +12261,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Nest Ledge: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   drake_ashling: {
@@ -12926,10 +12320,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.1,
-      description: 'Ashen Hollow: +10% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   drake_cinderwing: {
@@ -12995,10 +12386,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.1,
-      description: 'Ember Ring: +10% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   drake_steamhisser: {
@@ -13057,10 +12445,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Vent Cloud: +12% DEF while in the center hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   drake_geyserling: {
@@ -13125,10 +12510,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Spring Mouth: +12% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   drake_ashglider: {
@@ -13191,10 +12573,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Rising Column: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_smokewing: {
@@ -13256,10 +12635,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'speed', mult: 1.1,
-      description: 'Smoke Column: +10% SPD while in the center hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   drake_lavalapper: {
@@ -13325,10 +12701,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
-      description: 'Lava Pool Edge: +12% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   drake_ventcrawler: {
@@ -13382,10 +12755,7 @@ const HEROES = {
       description: '+12% DoT damage.',
       hooks: { dotBoostAdd: 0.12 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Fumarole: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   drake_magmascale: {
@@ -13442,10 +12812,7 @@ const HEROES = {
       description: '+7% chance to reflect all incoming damage.',
       hooks: { reflectAdd: 0.07 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Cooling Flow: +15% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   drake_sootback: {
@@ -13506,10 +12873,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.12,
-      description: 'Cinder Drift: +12% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_boilbelly: {
@@ -13568,10 +12932,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.12,
-      description: 'Hot Spring Rim: +12% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   drake_charblade: {
@@ -13630,10 +12991,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Forge Floor: +12% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   drake_pyroclast: {
@@ -13700,10 +13058,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Flow Front: +15% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   drake_mistwing: {
@@ -13758,10 +13113,7 @@ const HEROES = {
       description: '+15% debuff resistance and +5% chance to dodge.',
       hooks: { resistanceAdd: 0.15, dodgeAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Cloud Bank: +12% DEF while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_thermalrider: {
@@ -13820,10 +13172,7 @@ const HEROES = {
       description: '+6% chance for an extra turn and +4% chance to dodge.',
       hooks: { extraTurnAdd: 0.06, dodgeAdd: 0.04 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.15,
-      description: 'Thermal Column Top: +15% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   drake_obsidianfang: {
@@ -13881,10 +13230,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'damage', mult: 1.15,
-      description: 'Glass Field: +15% damage dealt from a back hex.',
-    },
+    positional: POSITIONALS.toxicologist,
   },
 
   drake_slagmaw: {
@@ -13945,10 +13291,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Foundry Gate: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   drake_stormvent: {
@@ -14003,10 +13346,7 @@ const HEROES = {
       description: '+6% chance to drain 20% AP on attack.',
       hooks: { apDrainAdd: 0.06 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Vent Ridge: +12% ATK while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_calderalord: {
@@ -14069,10 +13409,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Crater Throne: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   drake_tempestwing: {
@@ -14136,10 +13473,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.15,
-      description: 'Stormline: +15% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_deepvent: {
@@ -14198,10 +13532,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'hp', mult: 1.15,
-      description: 'Vent Mouth: +15% max HP while in a front hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   drake_hellscale: {
@@ -14258,10 +13589,7 @@ const HEROES = {
         dotBoostAdd: 0.10,
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.15,
-      description: 'Deep Fissure: +15% ATK while in the center hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   drake_mirrorscale: {
@@ -14315,10 +13643,7 @@ const HEROES = {
       description: '+6% chance to reflect all incoming damage and +12% debuff resistance.',
       hooks: { reflectAdd: 0.06, resistanceAdd: 0.12 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.18,
-      description: 'Mirror Face: +18% DEF while in a front hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   drake_sunscale: {
@@ -14390,10 +13715,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'hp', mult: 1.12,
-      description: 'Sunning Stone: +12% max HP while in the center hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   // ---- Twilight cohorts: dark & light 3-star heroes for every race --------
@@ -14455,10 +13777,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   rat_hexweaver: {
@@ -14514,10 +13833,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.12, dotBoostAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   rat_bloodleech: {
@@ -14586,10 +13902,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   rat_nightfang: {
@@ -14651,10 +13964,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   rat_doomcrier: {
@@ -14716,10 +14026,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   rat_lightmender: {
@@ -14774,10 +14081,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.12 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   rat_aegisbearer: {
@@ -14839,10 +14143,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   rat_dawnblade: {
@@ -14909,10 +14210,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   rat_sunherald: {
@@ -14972,10 +14270,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   rat_lightjudge: {
@@ -15033,10 +14328,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   crow_headsman: {
@@ -15094,10 +14386,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   cuckoo_hexmother: {
@@ -15153,10 +14442,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.08, dotBoostAdd: 0.18 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   shrike_bloodtithe: {
@@ -15225,10 +14511,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   nightjar_duskblade: {
@@ -15290,10 +14573,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   whippoorwill_doomsinger: {
@@ -15355,10 +14635,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   dove_peacebringer: {
@@ -15413,10 +14690,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.18 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   egret_aegiswing: {
@@ -15478,10 +14752,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   goldfinch_dawnlancer: {
@@ -15548,10 +14819,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   lark_brightcall: {
@@ -15611,10 +14879,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   ibis_truthbeak: {
@@ -15672,10 +14937,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   minotaur_headtaker: {
@@ -15733,10 +14995,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   minotaur_runecurser: {
@@ -15792,10 +15051,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.22 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   minotaur_soulgorger: {
@@ -15864,10 +15120,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   minotaur_duskhorn: {
@@ -15929,10 +15182,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   minotaur_terrorbellow: {
@@ -15994,10 +15244,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   minotaur_dawnpriest: {
@@ -16052,10 +15299,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.22 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   minotaur_aegishorn: {
@@ -16117,10 +15361,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   minotaur_radiantaxe: {
@@ -16187,10 +15428,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   minotaur_sunbellow: {
@@ -16250,10 +15488,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   minotaur_lawhorn: {
@@ -16311,10 +15546,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   snake_gravecoil: {
@@ -16372,10 +15604,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   snake_hexscale: {
@@ -16431,10 +15660,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.18, dotBoostAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   snake_bloodadder: {
@@ -16503,10 +15729,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   snake_nightslither: {
@@ -16568,10 +15791,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   snake_dreadhood: {
@@ -16633,10 +15853,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   snake_dawnpriestess: {
@@ -16691,10 +15908,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.28 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   snake_aegiscoil: {
@@ -16756,10 +15970,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   snake_radiantfang: {
@@ -16826,10 +16037,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   snake_sunwhisper: {
@@ -16889,10 +16097,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   snake_truthscale: {
@@ -16950,10 +16155,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   wolf_gallowsjaw: {
@@ -17011,10 +16213,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   wolf_cursehowl: {
@@ -17070,10 +16269,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.06, resistanceAdd: 0.18 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   wolf_bloodmuzzle: {
@@ -17142,10 +16338,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   wolf_duskprowler: {
@@ -17207,10 +16400,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   wolf_direomen: {
@@ -17272,10 +16462,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   wolf_lightmuzzle: {
@@ -17330,10 +16517,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.08, resistanceAdd: 0.08 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   wolf_aegisfur: {
@@ -17395,10 +16579,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   wolf_dawnfang: {
@@ -17465,10 +16646,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   wolf_sunhowl: {
@@ -17528,10 +16706,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   wolf_oathkeeper: {
@@ -17589,10 +16764,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   boar_tombtusk: {
@@ -17650,10 +16822,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   boar_hexbristle: {
@@ -17709,10 +16878,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.14, resistanceAdd: 0.06 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   boar_bloodsnout: {
@@ -17781,10 +16947,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   boar_nightrooter: {
@@ -17846,10 +17009,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   boar_doomgrunter: {
@@ -17911,10 +17071,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   boar_lightsnout: {
@@ -17969,10 +17126,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.14, dodgeAdd: 0.04 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.safe_distance,
   },
 
   boar_aegisback: {
@@ -18034,10 +17188,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   boar_dawntusk: {
@@ -18104,10 +17255,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   boar_sunbristle: {
@@ -18167,10 +17315,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   boar_oathtusker: {
@@ -18228,10 +17373,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   bear_gravemauler: {
@@ -18289,10 +17431,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   bear_hexclaw: {
@@ -18348,10 +17487,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.09, dotBoostAdd: 0.09 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   bear_bloodhoney: {
@@ -18420,10 +17556,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   bear_duskpelt: {
@@ -18485,10 +17618,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   bear_dreadroar: {
@@ -18550,10 +17680,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   bear_lightpaw: {
@@ -18608,10 +17735,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.16, resistanceAdd: 0.05 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   bear_aegishide: {
@@ -18673,10 +17797,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   bear_dawnclaw: {
@@ -18743,10 +17864,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   bear_sunroarer: {
@@ -18806,10 +17924,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   bear_oathguard: {
@@ -18867,10 +17982,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   cat_headhunter: {
@@ -18928,10 +18040,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   cat_hexwhisker: {
@@ -18987,10 +18096,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.16, dotBoostAdd: 0.04 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   cat_bloodlapper: {
@@ -19059,10 +18165,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   cat_duskstalker: {
@@ -19124,10 +18227,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   cat_doomyowler: {
@@ -19189,10 +18289,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   cat_lightpurr: {
@@ -19247,10 +18344,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.24, dodgeAdd: 0.02 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   cat_aegistail: {
@@ -19312,10 +18406,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   cat_dawnpouncer: {
@@ -19382,10 +18473,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   cat_sunsinger: {
@@ -19445,10 +18533,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   cat_oathclaw: {
@@ -19506,10 +18591,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   drake_gravewing: {
@@ -19567,10 +18649,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.standard_bearer,
   },
 
   drake_hexscorch: {
@@ -19626,10 +18705,7 @@ const HEROES = {
       description: 'Curses honed in the dark.',
       hooks: { accuracyAdd: 0.11, resistanceAdd: 0.13 },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   drake_bloodember: {
@@ -19698,10 +18774,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   drake_duskflier: {
@@ -19763,10 +18836,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.focal_point,
   },
 
   drake_dreadfume: {
@@ -19828,10 +18898,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.12,
-      description: 'Twilight Ground: +12% ATK from the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   drake_lightscale: {
@@ -19886,10 +18953,7 @@ const HEROES = {
       description: 'Healing hands, steadied by faith.',
       hooks: { healBoostAdd: 0.26 },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.windrunner,
   },
 
   drake_aegisplate: {
@@ -19951,10 +19015,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   drake_dawnflare: {
@@ -20021,10 +19082,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   drake_sunspire: {
@@ -20084,10 +19142,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   drake_oathflame: {
@@ -20145,10 +19200,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.12,
-      description: 'Radiant Ground: +12% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   // ---- Champion cohorts: 4-star heroes for every race ---------------------
@@ -20212,10 +19264,7 @@ const HEROES = {
         damageTakenMult() { return 0.97; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   rat_hexcrown: {
@@ -20267,7 +19316,7 @@ const HEROES = {
     passive: {
       name: 'Hexcrown Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\\u0027s ATK.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\'s ATK.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -20278,10 +19327,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_wallwhisker: {
@@ -20340,10 +19386,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   rat_longsight: {
@@ -20404,10 +19447,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   rat_mistmender: {
@@ -20463,10 +19503,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.13 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   rat_nullfang: {
@@ -20533,10 +19570,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   rat_glorytail: {
@@ -20588,7 +19622,7 @@ const HEROES = {
     passive: {
       name: 'Glorytail Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.4% of this hero\\u0027s max HP and gain a small atk blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.4% of this hero\'s max HP and gain a small atk blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -20599,10 +19633,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   osprey_seahammer: {
@@ -20662,10 +19693,7 @@ const HEROES = {
         damageTakenMult() { return 0.95; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   kestrel_spellgale: {
@@ -20717,7 +19745,7 @@ const HEROES = {
     passive: {
       name: 'Spellgale Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 0.8% of this hero\\u0027s max HP.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 0.8% of this hero\'s max HP.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -20728,10 +19756,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   condor_skywall: {
@@ -20790,10 +19815,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   harrier_farstrike: {
@@ -20854,10 +19876,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   flamingo_rosemyst: {
@@ -20913,10 +19932,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.17 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   skua_voidbeak: {
@@ -20983,10 +19999,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   tern_lightcrest: {
@@ -21038,7 +20051,7 @@ const HEROES = {
     passive: {
       name: 'Lightcrest Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.6% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.6% of this hero\'s max HP and gain a small def blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -21049,10 +20062,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   minotaur_gorebrand: {
@@ -21112,10 +20122,7 @@ const HEROES = {
         damageTakenMult() { return 0.94; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.vanguard_press,
   },
 
   minotaur_runemaw: {
@@ -21167,7 +20174,7 @@ const HEROES = {
     passive: {
       name: 'Runemaw Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 2% of this hero\\u0027s DEF.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2% of this hero\'s DEF.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -21178,10 +20185,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   minotaur_gatecolossus: {
@@ -21240,10 +20244,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   minotaur_longhorn: {
@@ -21304,10 +20305,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.opening_volley,
   },
 
   minotaur_mazemyst: {
@@ -21363,10 +20361,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.19 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   minotaur_nullhorn: {
@@ -21433,10 +20428,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   minotaur_gloryhorn: {
@@ -21488,7 +20480,7 @@ const HEROES = {
     passive: {
       name: 'Gloryhorn Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.8% of this hero\\u0027s max HP and gain a small crit blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.8% of this hero\'s max HP and gain a small crit blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -21499,10 +20491,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   snake_fangbrand: {
@@ -21562,10 +20551,7 @@ const HEROES = {
         damageTakenMult() { return 0.96; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   snake_spellscale: {
@@ -21617,7 +20603,7 @@ const HEROES = {
     passive: {
       name: 'Spellscale Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\\u0027s ATK.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\'s ATK.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -21628,10 +20614,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   snake_wallcoil: {
@@ -21690,10 +20673,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   snake_farfang: {
@@ -21753,10 +20733,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   snake_mystcoil: {
@@ -21812,10 +20789,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.21 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   snake_nullscale: {
@@ -21882,10 +20856,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   snake_glorycoil: {
@@ -21937,7 +20908,7 @@ const HEROES = {
     passive: {
       name: 'Glorycoil Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 1.2% of this hero\\u0027s max HP and gain a small speed blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 1.2% of this hero\'s max HP and gain a small speed blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -21948,10 +20919,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   wolf_bladefang: {
@@ -22011,10 +20979,7 @@ const HEROES = {
         damageTakenMult() { return 0.93; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   wolf_runehowl: {
@@ -22066,7 +21031,7 @@ const HEROES = {
     passive: {
       name: 'Runehowl Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 1.2% of this hero\\u0027s max HP.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.2% of this hero\'s max HP.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -22077,10 +21042,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_shieldmane: {
@@ -22139,10 +21101,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   wolf_farhowl: {
@@ -22202,10 +21161,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   wolf_mistmane: {
@@ -22261,10 +21217,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.23 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   wolf_nullmaw: {
@@ -22331,10 +21284,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   wolf_glorymane: {
@@ -22386,7 +21336,7 @@ const HEROES = {
     passive: {
       name: 'Glorymane Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.5% of this hero\\u0027s max HP and gain a small atk blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.5% of this hero\'s max HP and gain a small atk blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -22397,10 +21347,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   boar_battletusk: {
@@ -22460,10 +21407,7 @@ const HEROES = {
         damageTakenMult() { return 0.98; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   boar_runesnout: {
@@ -22515,7 +21459,7 @@ const HEROES = {
     passive: {
       name: 'Runesnout Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 1% of this hero\\u0027s DEF.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1% of this hero\'s DEF.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -22526,10 +21470,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_wallhide: {
@@ -22588,10 +21529,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.bulwark_oath,
   },
 
   boar_fartusk: {
@@ -22651,10 +21589,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.snipers_nest,
   },
 
   boar_mistbristle: {
@@ -22710,10 +21645,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.27 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.lifeline,
   },
 
   boar_nulltusk: {
@@ -22780,10 +21712,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   boar_glorytusk: {
@@ -22835,7 +21764,7 @@ const HEROES = {
     passive: {
       name: 'Glorytusk Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.9% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.9% of this hero\'s max HP and gain a small def blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -22846,10 +21775,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   bear_warclaw: {
@@ -22909,10 +21835,7 @@ const HEROES = {
         damageTakenMult() { return 0.92; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   bear_runefur: {
@@ -22964,7 +21887,7 @@ const HEROES = {
     passive: {
       name: 'Runefur Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 0.5% of this hero\\u0027s ATK.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 0.5% of this hero\'s ATK.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -22975,10 +21898,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   bear_wallpaw: {
@@ -23037,10 +21957,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.thornguard,
   },
 
   bear_farwatch: {
@@ -23100,10 +22017,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   bear_mistfur: {
@@ -23159,10 +22073,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.09, dodgeAdd: 0.06 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   bear_nullpaw: {
@@ -23229,10 +22140,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   bear_gloryclaw: {
@@ -23284,7 +22192,7 @@ const HEROES = {
     passive: {
       name: 'Gloryclaw Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 1.1% of this hero\\u0027s max HP and gain a small crit blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 1.1% of this hero\'s max HP and gain a small crit blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -23295,10 +22203,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   cat_bladewhisker: {
@@ -23358,10 +22263,7 @@ const HEROES = {
         damageTakenMult() { return 0.97; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.bloodied_fury,
   },
 
   cat_runepurr: {
@@ -23413,7 +22315,7 @@ const HEROES = {
     passive: {
       name: 'Runepurr Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\\u0027s max HP.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 1.5% of this hero\'s max HP.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -23424,10 +22326,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   cat_walltail: {
@@ -23486,10 +22385,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.shield_wall,
   },
 
   cat_farwhisker: {
@@ -23550,10 +22446,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.marked_quarry,
   },
 
   cat_mistpaw: {
@@ -23609,10 +22502,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.07, resistanceAdd: 0.12 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   cat_nullwhisker: {
@@ -23679,10 +22569,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   cat_glorypaw: {
@@ -23734,7 +22621,7 @@ const HEROES = {
     passive: {
       name: 'Glorypaw Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 0.3% of this hero\\u0027s max HP and gain a small speed blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 0.3% of this hero\'s max HP and gain a small speed blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -23745,10 +22632,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.keystone,
   },
 
   drake_warscale: {
@@ -23808,10 +22692,7 @@ const HEROES = {
         damageTakenMult() { return 0.94; },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.reckless_charge,
   },
 
   drake_runewing: {
@@ -23863,7 +22744,7 @@ const HEROES = {
     passive: {
       name: 'Runewing Resonance',
       icon: 'assets/icons/fc867.png',
-      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\\u0027s DEF.',
+      description: 'At turn start, arcane bleed sears ALL enemies for 2.5% of this hero\'s DEF.',
       hooks: {
         onTurnStart(unit, battle) {
           const enemies = battle.livingUnits(unit.enemyTeam());
@@ -23874,10 +22755,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_wallscale: {
@@ -23936,10 +22814,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.iron_wake,
   },
 
   drake_farwing: {
@@ -24000,10 +22875,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.overwatch,
   },
 
   drake_mistflame: {
@@ -24059,10 +22931,7 @@ const HEROES = {
       description: 'Healing woven a little stronger.',
       hooks: { healBoostAdd: 0.31 },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.pivot_step,
   },
 
   drake_nullflame: {
@@ -24129,10 +22998,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'atk', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% ATK in the chosen hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   drake_gloryflame: {
@@ -24184,7 +23050,7 @@ const HEROES = {
     passive: {
       name: 'Gloryflame Benevolence',
       icon: 'assets/icons/fc1003.png',
-      description: 'At turn start, ALL allies heal 1.3% of this hero\\u0027s max HP and gain a small def blessing for 1 turn.',
+      description: 'At turn start, ALL allies heal 1.3% of this hero\'s max HP and gain a small def blessing for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
@@ -24195,10 +23061,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'def', mult: 1.15,
-      description: 'Champion\\u0027s Ground: +15% DEF in the chosen hex.',
-    },
+    positional: POSITIONALS.warding_circle,
   },
 
   florence: {
@@ -24337,10 +23200,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.FRONT, stat: 'atk', mult: 1.2,
-      description: 'Duelist: +20% ATK while in a front hex.',
-    },
+    positional: POSITIONALS.last_stand,
   },
 
   vivian: {
@@ -24411,10 +23271,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'hp', mult: 1.2,
-      description: 'Rooted: +20% max HP while in a back hex.',
-    },
+    positional: POSITIONALS.field_medic,
   },
 
   vex: {
@@ -24490,10 +23347,7 @@ const HEROES = {
         debuffExtraTurns: 1,
       },
     },
-    positional: {
-      position: POSITION.BACK, stat: 'speed', mult: 1.15,
-      description: 'Skulker: +15% SPD while in a back hex.',
-    },
+    positional: POSITIONALS.hexweaver,
   },
 
   emily: {
@@ -24575,10 +23429,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'atk', mult: 1.2,
-      description: 'Choir Heart: +20% ATK (and stronger heals) in the center hex.',
-    },
+    positional: POSITIONALS.press_the_flank,
   },
 
   coral: {
@@ -24644,10 +23495,7 @@ const HEROES = {
         },
       },
     },
-    positional: {
-      position: POSITION.CENTER, stat: 'damage', mult: 1.2,
-      description: 'Tidal Focus: +20% damage dealt while in the center hex.',
-    },
+    positional: POSITIONALS.drain_the_line,
   },
 
 };
