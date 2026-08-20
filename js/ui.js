@@ -197,14 +197,23 @@ class UI {
     this.logEl.scrollTop = this.logEl.scrollHeight;
   }
 
+  // The log follows the newest line, but only while the player is already
+  // reading the bottom of it. Scroll up to check what happened and the
+  // view stays put until you come back down.
+  atLogBottom() {
+    return this.logEl.scrollHeight - this.logEl.scrollTop
+      - this.logEl.clientHeight < 24;
+  }
+
   appendLog(message, cls) {
+    const follow = this.atLogBottom();
     // Collapse an immediate repeat rather than printing it again.
     const last = this.logEl.lastElementChild;
     if (last && last.dataset.msg === message && last.className.startsWith(cls)) {
       const n = Number(last.dataset.count || 1) + 1;
       last.dataset.count = n;
       last.textContent = `${message}  ×${n}`;
-      this.logEl.scrollTop = this.logEl.scrollHeight;
+      if (follow) this.logEl.scrollTop = this.logEl.scrollHeight;
       return;
     }
     const line = document.createElement('div');
@@ -216,7 +225,7 @@ class UI {
     while (this.logEl.childElementCount > 300) {
       this.logEl.removeChild(this.logEl.firstElementChild);
     }
-    this.logEl.scrollTop = this.logEl.scrollHeight;
+    if (follow) this.logEl.scrollTop = this.logEl.scrollHeight;
   }
 
   toggleLegend(force) {

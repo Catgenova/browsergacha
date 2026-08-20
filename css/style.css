@@ -362,6 +362,26 @@ body {
   color: #b8b2cc;
 }
 
+/* The scrolling panels need a visible thumb — the platform default all
+   but disappears against the panel background. */
+/* Chromium ignores ::-webkit-scrollbar entirely once scrollbar-width or
+   scrollbar-color is set, so the standard properties are fenced off for
+   engines that have no pseudo-elements to style. */
+@supports not selector(::-webkit-scrollbar) {
+  #battle-log, #meter-rows { scrollbar-width: thin; scrollbar-color: #4a4468 #1c1926; }
+}
+#battle-log::-webkit-scrollbar, #meter-rows::-webkit-scrollbar { width: 10px; }
+#battle-log::-webkit-scrollbar-track,
+#meter-rows::-webkit-scrollbar-track { background: #1c1926; border-radius: 4px; }
+#battle-log::-webkit-scrollbar-thumb,
+#meter-rows::-webkit-scrollbar-thumb {
+  background: #4a4468;
+  border-radius: 4px;
+  border: 2px solid #1c1926;
+}
+#battle-log::-webkit-scrollbar-thumb:hover,
+#meter-rows::-webkit-scrollbar-thumb:hover { background: #6a628e; }
+
 #battle-log .log-player { color: #8ecbff; }
 #battle-log .log-enemy  { color: #ff9a8a; }
 #battle-log .log-system { color: #ffd76a; }
@@ -1246,20 +1266,26 @@ body {
 }
 
 /* ==== Damage meter (battle screen) ==== */
+/* A fixed-height band. Without a definite height here the row sizes to
+   its tallest child's CONTENT, so a long combat log stretched the band
+   (and the page) without ever engaging its own scrollbar. */
 #battle-bottom {
   display: flex;
   gap: 8px;
   margin-top: 8px;
   align-items: stretch;
+  height: 180px;
 }
 #battle-bottom #battle-log {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   margin-top: 0;
 }
 #meter-panel {
   flex: 0 0 268px;
   width: 268px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1388,6 +1414,7 @@ body {
 #battle-log-wrap {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1407,7 +1434,7 @@ body {
 .log-filter.active { color: #ffd76a; border-color: #ffd76a; background: #2c2545; }
 .log-hint { margin-left: auto; font-size: 10px; color: #6b6486; cursor: help; }
 
-#battle-bottom #battle-log { flex: 1; height: 76px; }
+#battle-bottom #battle-log { flex: 1; height: auto; min-height: 0; }
 /* Filtering hides the other channels without rebuilding the log. */
 #battle-log.filter-player .log-enemy,
 #battle-log.filter-player .log-system,
@@ -1524,9 +1551,15 @@ body {
   #hero-details { max-height: 420px; width: 100%; }
 
   #bs-main, #comp-body, #battle-bottom { flex-direction: column; }
-  #bs-detail, #comp-detail, #meter-panel { width: 100%; flex: 1 1 auto; }
+  #bs-detail, #comp-detail { width: 100%; flex: 1 1 auto; }
   #comp-list { width: 100%; max-height: 300px; }
-  #meter-panel { max-height: 260px; }
+  /* Stacked, so the band holds both panels rather than sitting beside
+     them. Each needs a flex BASIS, not just a height — flex-basis wins
+     on the main axis, which is now vertical, and a basis of auto or 0
+     would let the log's content stretch the page all over again. */
+  #battle-bottom { height: auto; }
+  #battle-log-wrap { flex: 0 0 168px; height: 168px; }
+  #meter-panel { width: 100%; flex: 0 0 216px; height: 216px; }
 
   /* Fingers need more than an 11px pill. */
   .nav-tab { padding: 10px 16px; font-size: 14px; }
