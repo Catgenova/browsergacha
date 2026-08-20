@@ -307,10 +307,12 @@ class Unit {
     if (sheet) this.animator.sheet = sheet;
   }
 
-  // Return from the dead at a fraction of max HP.
-  revive(pct) {
+  // Return from the dead at a fraction of max HP. `source` is whoever
+  // brought them back, credited with the restored HP on the meter.
+  revive(pct, source = null) {
     if (this.alive) return;
     this.hp = Math.max(1, Math.round(this.maxHp * pct));
+    if (typeof Meter !== 'undefined') Meter.healing(source || this, this.hp);
     this.statusEffects = [];
     this.turnMeter = 0;
     this.hitFlash = 0;
@@ -377,7 +379,7 @@ class Unit {
 
     // Gear regeneration (Bear set 6pc): a fixed cut of max HP per turn.
     if (this.gearRegen > 0) {
-      const healed = this.heal(Math.round(this.maxHp * this.gearRegen));
+      const healed = this.heal(Math.round(this.maxHp * this.gearRegen), this);
       if (healed > 0) {
         results.push({
           label: 'Regeneration',

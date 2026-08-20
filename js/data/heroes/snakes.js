@@ -708,7 +708,7 @@ Object.assign(HEROES, {
         onTurnStart(unit, battle) {
           let any = 0;
           for (const ally of battle.livingUnits(unit.team)) {
-            any += ally.heal(Math.round(unit.maxHp * 0.01));
+            any += ally.heal(Math.round(unit.maxHp * 0.01), unit);
           }
           if (any <= 0) return null;
           return {
@@ -2524,7 +2524,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.012));
+            a.heal(Math.round(unit.maxHp * 0.012), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.02, turns: 1 });
           }
           return null; // silent — small rolling benevolence

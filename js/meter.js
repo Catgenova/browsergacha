@@ -9,6 +9,11 @@
 // heals (abilities, passives, poisons, gear regen) lands in the same
 // ledger. Only the player's heroes are tallied; the meter answers
 // "how is my team performing", not "what did the rats do".
+//
+// Healing is booked from exactly one place — Unit.heal()/Unit.revive(),
+// crediting their `source` — so callers must pass the healer rather than
+// tallying it themselves, or the same HP gets counted twice. A heal with
+// no source belongs to whoever received it (self-mending, gear regen).
 
 const Meter = (() => {
   const KINDS = ['damage', 'healing', 'mitigated'];

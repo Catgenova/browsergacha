@@ -118,7 +118,7 @@ Object.assign(HEROES, {
             .filter((u) => u !== unit && u.hp < u.maxHp);
           if (allies.length > 0) {
             allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
-            allies[0].heal(Math.round(unit.maxHp * 0.01));
+            allies[0].heal(Math.round(unit.maxHp * 0.01), unit);
           }
           return null; // silent — small rolling snack
         },
@@ -2522,7 +2522,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.009));
+            a.heal(Math.round(unit.maxHp * 0.009), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.02, turns: 1 });
           }
           return null; // silent — small rolling benevolence

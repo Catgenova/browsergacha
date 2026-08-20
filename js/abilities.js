@@ -87,8 +87,7 @@ const Abilities = (() => {
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
-        const healed = target.heal(amount);
-        Meter.healing(caster, healed);
+        const healed = target.heal(amount, caster);
         return { kind: 'heal', target, amount: healed };
       }
       case 'healHpPct': {
@@ -97,8 +96,7 @@ const Abilities = (() => {
         const front = target.slot && target.slot.position === POSITION.FRONT;
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost));
-        Meter.healing(caster, healed);
+        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost), caster);
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {
@@ -140,7 +138,7 @@ const Abilities = (() => {
       }
       case 'revive': {
         if (target.alive) return null;
-        target.revive(effect.pct);
+        target.revive(effect.pct, caster);
         return { kind: 'revive', target, amount: target.hp };
       }
       case 'turnMeter': {

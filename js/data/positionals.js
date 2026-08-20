@@ -62,7 +62,7 @@ const POSITIONALS = (() => {
           .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
         const hurt = allies[0];
         if (!hurt || hurt.hp >= hurt.maxHp) return null;
-        const healed = hurt.heal(Math.round(unit.maxHp * 0.04));
+        const healed = hurt.heal(Math.round(unit.maxHp * 0.04), unit);
         if (healed <= 0) return null;
         return {
           label: 'Rallying Banner',

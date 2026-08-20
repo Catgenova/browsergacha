@@ -417,7 +417,7 @@ Object.assign(HEROES, {
             .filter((u) => u !== unit && u.hp < u.maxHp);
           if (allies.length === 0) return null;
           const ally = allies[Math.floor(Math.random() * allies.length)];
-          ally.heal(Math.round(unit.maxHp * 0.02));
+          ally.heal(Math.round(unit.maxHp * 0.02), unit);
           return null; // silent — small rolling snack
         },
       },
@@ -906,7 +906,7 @@ Object.assign(HEROES, {
           if (allies.length === 0) return null;
           allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
           allies[0].addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.06, turns: 1 });
-          allies[0].heal(Math.round(unit.maxHp * 0.01));
+          allies[0].heal(Math.round(unit.maxHp * 0.01), unit);
           return null; // silent — small rolling care
         },
       },
@@ -1201,7 +1201,7 @@ Object.assign(HEROES, {
         onTurnStart(unit, battle) {
           for (const ally of battle.livingUnits(unit.team)) {
             ally.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.04, turns: 1 });
-            ally.heal(Math.round(unit.maxHp * 0.005));
+            ally.heal(Math.round(unit.maxHp * 0.005), unit);
           }
           return null; // silent — small rolling stewardship
         },
@@ -1393,7 +1393,7 @@ Object.assign(HEROES, {
             .filter((u) => u.hp / u.maxHp < 0.7);
           if (thirsty.length === 0) return null;
           let total = 0;
-          for (const ally of thirsty) total += ally.heal(Math.round(unit.maxHp * 0.02));
+          for (const ally of thirsty) total += ally.heal(Math.round(unit.maxHp * 0.02), unit);
           if (total <= 0) return null;
           return {
             label: 'Ancient Roots',
@@ -1520,7 +1520,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const ally of battle.livingUnits(unit.team)) {
-            ally.heal(Math.round(unit.maxHp * 0.01));
+            ally.heal(Math.round(unit.maxHp * 0.01), unit);
             if (ally !== unit) {
               ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
                 ally.turnMeter + CONFIG.TURN_METER_MAX * 0.02);
@@ -2564,7 +2564,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.011));
+            a.heal(Math.round(unit.maxHp * 0.011), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.03, turns: 1 });
           }
           return null; // silent — small rolling benevolence

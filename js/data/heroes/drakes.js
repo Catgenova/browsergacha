@@ -1510,7 +1510,7 @@ Object.assign(HEROES, {
             .filter((u) => u.hp / u.maxHp < 0.8);
           if (dim.length === 0) return null;
           let total = 0;
-          for (const ally of dim) total += ally.heal(Math.round(unit.maxHp * 0.015));
+          for (const ally of dim) total += ally.heal(Math.round(unit.maxHp * 0.015), unit);
           if (total <= 0) return null;
           return {
             label: 'Sunscale Radiance',
@@ -2559,7 +2559,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const a of battle.livingUnits(unit.team)) {
-            a.heal(Math.round(unit.maxHp * 0.013));
+            a.heal(Math.round(unit.maxHp * 0.013), unit);
             a.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.04, turns: 1 });
           }
           return null; // silent — small rolling benevolence
