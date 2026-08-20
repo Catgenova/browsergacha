@@ -198,7 +198,7 @@ html = r'''<title>Toll, Bellringer of Reverence</title>
     <div class="mirror-copy">
       <ul>
         <li><b>Every blow answered.</b> Each time Toll takes a hit and survives it, the bell rings for <b>10% of his DEF to every living enemy</b> &mdash; not the attacker, the whole line.</li>
-        <li><b>The ward mends.</b> Held in a front hex, that same blow restores <b>5% of his DEF to the entire party</b>. One attack on him heals five allies.</li>
+        <li><b>The ward mends.</b> Held in a front hex, that same blow restores <b>5% of his DEF to the entire party</b>. One attack on him heals all seven.</li>
         <li><b>He has to live through it.</b> A killing blow rings nothing. The retaliation checks that he survived, which is what the 2650 HP is paying for.</li>
         <li><b>The bell cannot answer itself.</b> Retaliation damage is not a strike, so two Tolls facing each other trade one ring apiece instead of ringing until one dies.</li>
         <li><span class="dim">Both hooks fire on the attacker's turn and resolve inline &mdash; he never takes an extra turn for them.</span></li>
