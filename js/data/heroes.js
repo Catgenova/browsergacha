@@ -82,24 +82,27 @@ const HEROES = {
       passive: {
         name: 'Crystal Aegis',
         icon: 'assets/icons/fc308.png',
-        description: 'Begins battle with 6 crystal mirrors. Every hit she takes shatters one mirror, reflecting 25% of the damage back at the attacker. While in a front hex, she reforms 1 mirror at the start of her turn.',
+        description: 'Begins battle with 6 crystal mirrors. Every hit she takes shatters one mirror, reflecting 25% of the damage back at the attacker.',
+        hooks: {},
+      },
+      // The front-hex mirror reform lives here rather than in the
+      // passive: where she stands is the positional's business.
+      positional: {
+        id: 'resonance',
+        position: POSITION.FRONT,
+        name: 'Resonance',
+        description: 'Front hex: reforms 1 crystal mirror at the start of her turn.',
         hooks: {
           onTurnStart(unit) {
-            // Position bonus: front-row Aniani reforms one mirror per turn.
-            if (!unit.positionalActive || !unit.positionalActive()) return null;
             const gained = unit.addMirrors(1);
             if (gained <= 0) return null;
             return {
-              label: 'Crystal Aegis',
+              label: 'Resonance',
               message: `${unit.name} reforms a crystal mirror.`,
               floats: [{ target: unit, text: '◆ +1', color: '#8ee8ff' }],
             };
           },
         },
-      },
-      positional: {
-        position: POSITION.FRONT, stat: 'damage', mult: 1.0,
-        description: 'Resonance: reforms 1 crystal mirror at the start of her turn while in a front hex.',
       },
     };
   })(),
@@ -353,10 +356,10 @@ const HEROES = {
     passive: {
       name: 'Set Spear',
       icon: 'assets/icons/fc1801.png',
-      description: 'Deals 15% extra damage while holding a front hex.',
+      description: 'A braced spear catches the charge: +18% damage to enemies still at full HP.',
       hooks: {
-        damageDealtMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT ? 1.15 : 1;
+        damageDealtMult(unit, target) {
+          return target && target.hp >= target.maxHp ? 1.18 : 1;
         },
       },
     },
@@ -1049,10 +1052,12 @@ const HEROES = {
     passive: {
       name: 'Bulwark',
       icon: 'assets/icons/fc856.png',
-      description: 'Takes 12% less damage while holding a front hex.',
+      description: 'A shield wall needs a wall: takes 15% less damage while at least two other allies still stand.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT ? 0.88 : 1;
+          const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!battle) return 1;
+          return battle.livingUnits(unit.team).length >= 3 ? 0.85 : 1;
         },
       },
     },
@@ -1444,10 +1449,21 @@ const HEROES = {
     passive: {
       name: 'Smoke Veil',
       icon: 'assets/icons/fc862.png',
-      description: 'Takes 15% less damage while in a back hex.',
+      description: 'Struck once, gone the next: +25% dodge for a turn after losing HP.',
       hooks: {
-        damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.BACK ? 0.85 : 1;
+        onTurnStart(unit) {
+          const wasHit = unit._veilHp !== undefined && unit.hp < unit._veilHp;
+          unit._veilHp = unit.hp;
+          if (!wasHit) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'veil', turns: 1 });
+          return {
+            label: 'Smoke Veil',
+            message: `${unit.name} vanishes into smoke.`,
+            floats: [{ target: unit, text: 'VEIL', color: '#8ee8ff' }],
+          };
+        },
+        dodgeAdd(unit) {
+          return unit.statusEffects.some((fx) => fx.stat === 'veil') ? 0.25 : 0;
         },
       },
     },
@@ -3922,10 +3938,14 @@ const HEROES = {
     passive: {
       name: 'Line Watch',
       icon: 'assets/icons/fc856.png',
-      description: '+12% chance to dodge while holding a front hex.',
+      description: 'Alert before the first blow: +25% dodge until this sentry takes its first turn.',
       hooks: {
+        onTurnStart(unit) {
+          unit._watchTurns = (unit._watchTurns || 0) + 1;
+          return null;
+        },
         dodgeAdd(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT ? 0.12 : 0;
+          return (unit._watchTurns || 0) === 0 ? 0.25 : 0;
         },
       },
     },
@@ -4161,10 +4181,14 @@ const HEROES = {
     passive: {
       name: 'Pivot Point',
       icon: 'assets/icons/fc867.png',
-      description: 'Deals 15% extra damage while holding the center hex.',
+      description: 'Goes for the biggest target on the field: +20% damage to the enemy with the largest HP pool.',
       hooks: {
         damageDealtMult(unit, target) {
-          return unit.slot && unit.slot.position === POSITION.CENTER ? 1.15 : 1;
+          const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!battle || !target) return 1;
+          const biggest = battle.livingUnits(unit.enemyTeam())
+            .sort((a, b) => b.maxHp - a.maxHp)[0];
+          return target === biggest ? 1.20 : 1;
         },
       },
     },
@@ -5177,10 +5201,10 @@ const HEROES = {
     passive: {
       name: 'Spitting Arc',
       icon: 'assets/icons/fc862.png',
-      description: 'Deals 12% extra damage while holding a back hex.',
+      description: 'Venom sacs full: +12% damage, rising to +24% while above 80% HP.',
       hooks: {
-        damageDealtMult(unit, target) {
-          return unit.slot && unit.slot.position === POSITION.BACK ? 1.12 : 1;
+        damageDealtMult(unit) {
+          return unit.hp / unit.maxHp > 0.8 ? 1.24 : 1.12;
         },
       },
     },
@@ -5611,10 +5635,12 @@ const HEROES = {
     passive: {
       name: 'Tailwind',
       icon: 'assets/icons/fc868.png',
-      description: '+15% chance to dodge while in a back hex.',
+      description: 'Momentum builds as she moves: +12% dodge, and +8% SPD for a turn each time she acts.',
       hooks: {
-        dodgeAdd(unit) {
-          return unit.slot && unit.slot.position === POSITION.BACK ? 0.15 : 0;
+        dodgeAdd: 0.12,
+        onTurnStart(unit) {
+          unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.08, turns: 1 });
+          return null;
         },
       },
     },
@@ -5726,10 +5752,12 @@ const HEROES = {
     passive: {
       name: 'Heatproof Scales',
       icon: 'assets/icons/fc856.png',
-      description: 'Takes 20% less damage while holding the center hex.',
+      description: 'Intact scales turn everything: takes 22% less damage while carrying no debuff or poison.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.8 : 1;
+          const cursed = unit.statusEffects.some(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+          return cursed ? 1 : 0.78;
         },
       },
     },
@@ -8131,10 +8159,10 @@ const HEROES = {
     passive: {
       name: 'Dust Cloud',
       icon: 'assets/icons/fc882.png',
-      description: '+12% chance to dodge while holding the center hex.',
+      description: 'Kicks up more dust the harder it is pressed: +12% dodge, doubled below half HP.',
       hooks: {
         dodgeAdd(unit) {
-          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.12 : 0;
+          return unit.hp / unit.maxHp < 0.5 ? 0.24 : 0.12;
         },
       },
     },
@@ -10166,10 +10194,13 @@ const HEROES = {
     passive: {
       name: 'Gale Claws',
       icon: 'assets/icons/fc868.png',
-      description: '+10% chance to dodge while in a back hex.',
+      description: 'Fights loose while the pack has the numbers: +15% dodge while allies outnumber the enemy.',
       hooks: {
         dodgeAdd(unit) {
-          return unit.slot && unit.slot.position === POSITION.BACK ? 0.10 : 0;
+          const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!battle) return 0;
+          return battle.livingUnits(unit.team).length >
+            battle.livingUnits(unit.enemyTeam()).length ? 0.15 : 0;
         },
       },
     },
@@ -10969,10 +11000,11 @@ const HEROES = {
     passive: {
       name: 'Bird Watcher',
       icon: 'assets/icons/fc862.png',
-      description: 'Watches from cover: +25% damage to back-row enemies while she holds a back hex.',
+      description: 'Eyes on the perch: +25% damage to enemies in a back hex.',
       hooks: {
         damageDealtMult(unit, target) {
-          return unit.slot && unit.slot.position === POSITION.BACK && target && target.slot && target.slot.position === POSITION.BACK ? 1.25 : 1;
+          return target && target.slot && !target.isBoss &&
+            target.slot.position === POSITION.BACK ? 1.25 : 1;
         },
       },
     },
@@ -13284,10 +13316,17 @@ const HEROES = {
     passive: {
       name: 'Slag Armor',
       icon: 'assets/icons/fc856.png',
-      description: 'Takes 14% less damage while holding a front hex.',
+      description: 'Molten rock cools into plate: hardens by 5% each turn, stacking to 15% less damage taken.',
       hooks: {
+        onTurnStart(unit) {
+          const stacks = unit.statusEffects.filter((fx) => fx.stat === 'slag').length;
+          if (stacks >= 3) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'slag', turns: 99 });
+          return null;
+        },
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT ? 0.86 : 1;
+          const stacks = Math.min(3, unit.statusEffects.filter((fx) => fx.stat === 'slag').length);
+          return 1 - 0.05 * stacks;
         },
       },
     },
@@ -19379,10 +19418,10 @@ const HEROES = {
     passive: {
       name: 'Wallwhisker Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 15% less damage while holding a front hex above half HP.',
+      description: 'Takes 15% less damage while above half HP, and 8% less below it.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp > 0.5 ? 0.85 : 1;
+          return unit.hp / unit.maxHp > 0.5 ? 0.85 : 0.92;
         },
       },
     },
@@ -19808,10 +19847,13 @@ const HEROES = {
     passive: {
       name: 'Skywall Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 16% less damage while holding the center hex above half HP.',
+      description: 'The wall holds while the flock is whole: takes 18% less damage until an ally falls.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.CENTER && unit.hp / unit.maxHp > 0.5 ? 0.84 : 1;
+          const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!battle) return 1;
+          const fallen = battle.units.some((u) => u.team === unit.team && !u.alive);
+          return fallen ? 1 : 0.82;
         },
       },
     },
@@ -20237,10 +20279,10 @@ const HEROES = {
     passive: {
       name: 'Gatecolossus Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 22% less damage while holding a front hex below half HP.',
+      description: 'The gate never buckles: takes 22% less damage while below half HP.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp < 0.5 ? 0.78 : 1;
+          return unit.hp / unit.maxHp < 0.5 ? 0.78 : 1;
         },
       },
     },
@@ -20666,10 +20708,13 @@ const HEROES = {
     passive: {
       name: 'Wallcoil Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 13% less damage while in a back hex.',
+      description: 'Coils tight around the wounded: takes 16% less damage while any ally is below half HP.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.BACK ? 0.87 : 1;
+          const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!battle) return 1;
+          return battle.livingUnits(unit.team)
+            .some((u) => u !== unit && u.hp / u.maxHp < 0.5) ? 0.84 : 1;
         },
       },
     },
@@ -22378,10 +22423,10 @@ const HEROES = {
     passive: {
       name: 'Walltail Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 17% less damage while holding a front hex above 70% HP.',
+      description: 'Unhurried and unhurt: takes 17% less damage while above 70% HP.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.FRONT && unit.hp / unit.maxHp > 0.7 ? 0.83 : 1;
+          return unit.hp / unit.maxHp > 0.7 ? 0.83 : 1;
         },
       },
     },
@@ -22807,10 +22852,10 @@ const HEROES = {
     passive: {
       name: 'Wallscale Aegis',
       icon: 'assets/icons/fc868.png',
-      description: 'Takes 10% less damage while holding the center hex.',
+      description: 'Scales lock down as the wounds mount: takes 10% less damage, and 20% less below a quarter HP.',
       hooks: {
         damageTakenMult(unit) {
-          return unit.slot && unit.slot.position === POSITION.CENTER ? 0.9 : 1;
+          return unit.hp / unit.maxHp < 0.25 ? 0.80 : 0.90;
         },
       },
     },
