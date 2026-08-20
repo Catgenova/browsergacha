@@ -24204,7 +24204,7 @@ const HEROES = {
   florence: {
     id: 'florence',
     element: 'water',
-    name: 'Florence',
+    name: 'Tide',
     title: 'Crystal Blade',
     rarity: 4,
     stats: { hp: 1450, atk: 240, def: 130, speed: 105 },
