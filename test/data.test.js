@@ -175,4 +175,80 @@ test('a brand-new save yields complete roster entries', () => {
   }
 });
 
+
+test('every campaign chapter is a well-formed, walkable graph', () => {
+  const { CAMPAIGN, BOSSES, LOCATION_ENEMIES, CONFIG } = g;
+  const problems = [];
+  const seenIds = new Set();
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    if (!BOSSES[ch.boss]) problems.push(`${ch.id}: unknown boss ${ch.boss}`);
+    if (!LOCATION_ENEMIES[ch.location]) problems.push(`${ch.id}: location ${ch.location} has no enemies`);
+    if (!CONFIG.LOCATION_NAMES[ch.location]) problems.push(`${ch.id}: location ${ch.location} has no name`);
+    if (!ch.intro || !ch.outro) problems.push(`${ch.id}: missing story text`);
+
+    const ids = new Set(ch.nodes.map((n) => n.id));
+    const bosses = ch.nodes.filter((n) => n.type === 'boss');
+    if (bosses.length !== 1) problems.push(`${ch.id}: ${bosses.length} boss nodes`);
+    const entries = ch.nodes.filter((n) => n.from.length === 0);
+    if (entries.length !== 1) problems.push(`${ch.id}: ${entries.length} entrances`);
+
+    const cells = new Set();
+    for (const n of ch.nodes) {
+      if (seenIds.has(n.id)) problems.push(`duplicate node id ${n.id}`);
+      seenIds.add(n.id);
+      // A placeholder name means the shape grew past its name list.
+      if (/^Stage \d+$/.test(n.name)) problems.push(`${n.id}: unnamed`);
+      const cell = `${n.col},${n.row}`;
+      if (cells.has(cell)) problems.push(`${ch.id}: two nodes at ${cell}`);
+      cells.add(cell);
+      for (const f of n.from) {
+        if (!ids.has(f)) problems.push(`${n.id}: prerequisite ${f} is not in this chapter`);
+      }
+    }
+
+    // Every node must be reachable from the entrance, or it is content
+    // nobody can ever open.
+    const seen = new Set([entries[0] && entries[0].id]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const n of ch.nodes) {
+        if (seen.has(n.id)) continue;
+        if (n.from.some((f) => seen.has(f))) { seen.add(n.id); grew = true; }
+      }
+    }
+    for (const n of ch.nodes) {
+      if (!seen.has(n.id)) problems.push(`${n.id}: unreachable`);
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 6).join(' | '));
+});
+
+test('campaign difficulty rises across and within chapters', () => {
+  const { CAMPAIGN, Campaign } = g;
+  const problems = [];
+  let prevBossLevel = 0;
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    const boss = Campaign.bossNode(ch);
+    const bossLv = Campaign.levelFor(boss);
+    const entry = ch.nodes.find((n) => n.from.length === 0);
+    if (Campaign.levelFor(entry) >= bossLv) {
+      problems.push(`${ch.id}: entrance is not easier than the holder`);
+    }
+    if (bossLv <= prevBossLevel) {
+      problems.push(`${ch.id}: holder at Lv ${bossLv} is not past the last one (${prevBossLevel})`);
+    }
+    prevBossLevel = bossLv;
+    // An elite must out-weigh an ordinary node at the same depth.
+    for (const e of ch.nodes.filter((n) => n.type === 'elite')) {
+      const peer = ch.nodes.find((n) => n.type === 'normal' && n.depth === e.depth);
+      if (peer && Campaign.levelFor(e) <= Campaign.levelFor(peer)) {
+        problems.push(`${e.id}: elite is no harder than ${peer.id}`);
+      }
+    }
+  }
+  assert(prevBossLevel <= 100, `the final holder is Lv ${prevBossLevel}, past the level cap`);
+  assert(problems.length === 0, problems.slice(0, 5).join(' | '));
+});
+
 report();

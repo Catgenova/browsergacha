@@ -10,9 +10,13 @@ class BattleScreen {
     this.renderer = new Renderer(this.canvas);
     this.ui = new UI(this.renderer, this.canvas);
     this.ui.onReturn = () => app.showScreen('team');
-    // Banner shortcuts: refight, or push on to the next stage/floor.
+    // Banner shortcuts: refight, or push on to the next stage/floor. A
+    // campaign node has no ladder to climb, so its "next" is the map.
     this.ui.onRetry = () => {
-      if (this.towerFight) {
+      if (this.campaignFight) {
+        this.requestCampaign(this.campaignFight.nodeId);
+        this.enter();
+      } else if (this.towerFight) {
         this.requestBattle('tower');
         this.enter();
       } else {
@@ -20,7 +24,9 @@ class BattleScreen {
       }
     };
     this.ui.onNextStage = () => {
-      if (this.towerFight) {
+      if (this.campaignFight) {
+        app.showScreen('campaign');
+      } else if (this.towerFight) {
         this.requestBattle('tower'); // always climbs best + 1
         this.enter();
       } else {
@@ -176,14 +182,29 @@ class BattleScreen {
     }
   }
 
+  // Campaign nodes are fought one at a time — no repeat chain. A node
+  // is a fixed encounter you either beat or come back to, and looping
+  // it would turn the spine of the game into a farm.
+  requestCampaign(nodeId) {
+    this.pendingMode = 'campaign';
+    this.campaignNodeId = nodeId;
+    this.cancelChain();
+    this.chainMode = 'campaign';
+  }
+
   cancelChain() {
     this.chainRemaining = 0;
     this.chainCountdown = null;
   }
 
-  // Boss banners offer Retry always, and Next Stage when it's unlocked;
-  // tower banners offer Retry and Next Floor.
-  bossBannerOpts() {
+  // What the end-of-battle banner offers, by mode: boss banners offer
+  // Retry always and Next Stage when it's unlocked, tower banners offer
+  // Retry and Next Floor, and a campaign node offers a refight and a way
+  // back to the map.
+  bannerOpts() {
+    if (this.campaignFight) {
+      return { retry: true, next: true, nextLabel: 'To Campaign' };
+    }
     if (this.towerFight) {
       return { retry: true, next: true, nextLabel: 'Next Floor' };
     }
@@ -261,11 +282,45 @@ class BattleScreen {
     this.raceBonuses = RACES.applyParty(
       battle.units.filter((u) => u.team === TEAM.PLAYER));
 
+    // A campaign node whose id no longer resolves (chapter data moved
+    // under an old save) falls back to a hunt rather than fielding an
+    // empty enemy side.
+    const campNode = mode === 'campaign' ? Campaign.node(this.campaignNodeId) : null;
+    if (mode === 'campaign' && !campNode) mode = 'wave';
+
     let bgPin = null;
-    if (mode === 'boss') {
+    if (mode === 'campaign') {
+      // A campaign node: a fixed line-up at a fixed level, or the
+      // chapter's holder alone on the field.
+      const ch = Campaign.chapterFor(campNode.id);
+      this.bossFight = null;
+      this.towerFight = null;
+      this.campaignFight = { nodeId: campNode.id };
+      const level = Campaign.levelFor(campNode);
+      const pay = Campaign.payout(campNode);
+      this.rewardXp = pay.xp;
+      this.rewardWhetstones = pay.whetstones;
+      this.rewardArcana = pay.arcana;
+      bgPin = ch.location;
+      if (campNode.type === 'boss') {
+        const def = BOSSES[ch.boss];
+        bgPin = def.background || bgPin;
+        battle.placeUnit(new Unit(def, TEAM.ENEMY, {
+          level, stars: def.rarity, statScale: Campaign.holderScale(ch),
+        }), 0);
+        this.introLog =
+          `${ch.title} — ${campNode.name}: the ${def.name} holds the way! (Lv ${level})`;
+      } else {
+        for (const { def, slotIndex } of Campaign.encounter(campNode, battle.enemySlots)) {
+          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), slotIndex);
+        }
+        this.introLog = `${ch.title} — ${campNode.name} (Lv ${level}).`;
+      }
+    } else if (mode === 'boss') {
       // A boss fights alone from the center tile, spanning the formation.
       // The player picks a boss and any unlocked stage (clearing one
       // unlocks the next). Stage N = boss level 5*N.
+      this.campaignFight = null;
       const def = BOSSES[GameState.bossSettings.boss] || BOSSES.dragon;
       const cleared = GameState.bossStageCleared(def.id);
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
@@ -284,6 +339,7 @@ class BattleScreen {
       // levels climb ~1.5 per floor forever; every 10th floor a random
       // boss guards the way (extrapolating past its Lv 100 anchors).
       this.bossFight = null;
+      this.campaignFight = null;
       const floor = GameState.towerBest + 1;
       const level = Math.max(2, Math.ceil(floor * 1.5));
       const isBossFloor = floor % 10 === 0;
@@ -326,6 +382,7 @@ class BattleScreen {
       // deployed team.
       this.bossFight = null;
       this.towerFight = null;
+      this.campaignFight = null;
       const ws = GameState.waveSettings;
       bgPin = ws.location;
       // Stage 0 is the level-1 training ground; stage N is level ~5N.
@@ -397,15 +454,18 @@ class BattleScreen {
         GameState.addWhetstones(this.rewardWhetstones);
         GameState.addArcana(this.rewardArcana);
         GameState.questBump('wins');
-        const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);
-        GameState.questBump(asBoss ? 'bossWins' : 'huntWins');
+        // Campaign nodes bump their own counter below, by node type.
+        if (!this.campaignFight) {
+          const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);
+          GameState.questBump(asBoss ? 'bossWins' : 'huntWins');
+        }
         const sub = [
           `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
         ];
         // Random scroll drops (10% Common, 3% Rare) apply outside the
-        // tower — tower floors pay guaranteed scrolls instead.
-        if (!this.towerFight) {
+        // tower and the campaign — both pay their own fixed rewards.
+        if (!this.towerFight && !this.campaignFight) {
           if (Math.random() < 0.10) {
             GameState.addScrolls('common', 1);
             sub.push('A Common Summon Scroll drops! 📜');
@@ -445,6 +505,34 @@ class BattleScreen {
             sub.push(`Floor reward: ${tomes} Skill Tome${tomes > 1 ? 's' : ''}! 📖`);
           }
         }
+        if (this.campaignFight) {
+          const node = Campaign.node(this.campaignFight.nodeId);
+          const ch = Campaign.chapterFor(node.id);
+          const isFirst = GameState.recordCampaignClear(node.id);
+          sub.unshift(`${ch.title} — ${node.name} cleared!`);
+          // The one-off bonus is what the campaign is actually for;
+          // re-running a node pays only the XP and materials above.
+          if (isFirst) {
+            const bonus = Campaign.firstClearBonus(node);
+            if (bonus.scrolls) {
+              for (const [kind, n] of Object.entries(bonus.scrolls)) {
+                GameState.addScrolls(kind, n);
+                const icon = kind === 'rare' ? '✨' : kind === 'temporal' ? '🌀' : '📜';
+                sub.push(`${bonus.label}: ${n}× ${icon}`);
+              }
+            }
+            if (bonus.gear && bonus.gear.set) {
+              const piece = Gear.drop(bonus.gear.set, bonus.gear.stage);
+              GameState.addGear(piece);
+              sub.push(`${bonus.label}: ${Gear.describe(piece)}`);
+            }
+            if (bonus.unlocks) {
+              sub.push(`The ${CONFIG.LOCATION_NAMES[ch.location]} opens for hunting, ` +
+                `and the ${BOSSES[ch.boss].name} will now take challengers.`);
+            }
+          }
+          GameState.questBump(node.type === 'boss' ? 'bossWins' : 'huntWins');
+        }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
           sub.unshift(`Stage ${this.bossFight.stage} cleared!`);
@@ -472,10 +560,10 @@ class BattleScreen {
           // tab is hidden (real-time timers get throttled).
           this.chainCountdown = 2.5;
         }
-        this.ui.showBanner(winner, sub.join('<br>'), this.bossBannerOpts());
+        this.ui.showBanner(winner, sub.join('<br>'), this.bannerOpts());
       } else {
         this.cancelChain(); // a wipe ends the hunt
-        this.ui.showBanner(winner, 'Your team was wiped out.', this.bossBannerOpts());
+        this.ui.showBanner(winner, 'Your team was wiped out.', this.bannerOpts());
       }
       // Finished while the player was elsewhere: flag the Battle tab so
       // they know the result is waiting (a continuing chain isn't a

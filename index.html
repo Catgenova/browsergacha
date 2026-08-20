@@ -16,6 +16,7 @@
         <button class="nav-tab" data-screen="team">Team</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
+        <button class="nav-tab" data-screen="campaign">Campaign<span id="campaign-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="compendium">Compendium</button>
         <button class="nav-tab" data-screen="battle">Battle<span id="battle-badge" class="hidden"></span></button>
       </nav>
@@ -139,6 +140,24 @@
     </section>
 
     <!-- ================= Compendium screen ================= -->
+    <!-- ================= Campaign screen ================= -->
+    <section id="screen-campaign" class="screen hidden">
+      <div id="camp-top">
+        <h3>Campaign</h3>
+        <div id="camp-chapters"></div>
+      </div>
+      <div id="camp-body">
+        <div id="camp-map-wrap">
+          <div id="camp-story"></div>
+          <div id="camp-map">
+            <svg id="camp-edges" preserveAspectRatio="none"></svg>
+            <div id="camp-nodes"></div>
+          </div>
+        </div>
+        <aside id="camp-detail"></aside>
+      </div>
+    </section>
+
     <section id="screen-compendium" class="screen hidden">
       <div id="comp-top">
         <h3>Compendium</h3>
@@ -254,6 +273,7 @@
   <script src="js/data/heroes/cats.js?v=__BUILD__"></script>
   <script src="js/data/heroes/drakes.js?v=__BUILD__"></script>
   <script src="js/data/enemies.js?v=__BUILD__"></script>
+  <script src="js/data/campaign.js?v=__BUILD__"></script>
   <script src="js/data/bosses.js?v=__BUILD__"></script>
   <script src="js/data/effects.js?v=__BUILD__"></script>
   <script src="js/quests.js?v=__BUILD__"></script>
@@ -262,10 +282,12 @@
   <script src="js/gacha.js?v=__BUILD__"></script>
   <script src="js/ai.js?v=__BUILD__"></script>
   <script src="js/waves.js?v=__BUILD__"></script>
+  <script src="js/campaign.js?v=__BUILD__"></script>
   <script src="js/battle.js?v=__BUILD__"></script>
   <script src="js/render.js?v=__BUILD__"></script>
   <script src="js/ui.js?v=__BUILD__"></script>
   <script src="js/compendium_screen.js?v=__BUILD__"></script>
+  <script src="js/campaign_screen.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>

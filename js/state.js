@@ -8,7 +8,7 @@ const GameState = (() => {
   // Save schema version. Every structural change to the save gets a
   // numbered migration below rather than another ad-hoc patch in
   // load(), so an old save always walks a known path to the present.
-  const SCHEMA = 4;
+  const SCHEMA = 5;
 
   // Ordered migrations: each takes a save at version < its `to` and
   // brings it up to that version. They run in order, once, on load.
@@ -56,11 +56,44 @@ const GameState = (() => {
         }
       },
     },
+    {
+      to: 5,
+      what: 'the campaign became the spine, and now gates hunts and bosses',
+      run(s) {
+        // Hunt locations and bosses used to be open from the start and
+        // are now unlocked by clearing campaign chapters. A save made
+        // before this change must not LOSE access to a boss it has
+        // already beaten or a biome it has been farming, so seed the
+        // campaign from what the save already proves.
+        if (!s.campaign) s.campaign = { cleared: {}, chapter: 'ch1' };
+        if (!s.campaign.cleared) s.campaign.cleared = {};
+        if (typeof CAMPAIGN === 'undefined') return;
+        const grant = (ch) => {
+          const boss = ch.nodes.find((n) => n.type === 'boss');
+          if (boss) s.campaign.cleared[boss.id] = true;
+        };
+        // Every boss already beaten hands over its chapter...
+        for (const ch of CAMPAIGN.CHAPTERS) {
+          const def = typeof BOSSES !== 'undefined' ? BOSSES[ch.boss] : null;
+          if (def && (s.bossStages || {})[def.id] > 0) grant(ch);
+        }
+        // ...and so does the biome they were last hunting in, along with
+        // everything before it, since reaching it meant it was open.
+        const loc = s.waveSettings ? Number(s.waveSettings.location) : 0;
+        for (const ch of CAMPAIGN.CHAPTERS) {
+          if (ch.location <= loc) grant(ch);
+        }
+      },
+    },
   ];
 
   // Bring a loaded save up to the current schema.
-  function migrate(s) {
-    const from = typeof s.schemaVersion === 'number' ? s.schemaVersion : 0;
+  //
+  // `from` is passed in rather than read off `s`: the loaded object has
+  // already been merged over DEFAULTS, which carries the CURRENT
+  // schemaVersion, so a save that predates the field would look
+  // brand-new and skip every migration it needs.
+  function migrate(s, from) {
     for (const m of MIGRATIONS) {
       if (from >= m.to) continue;
       try {
@@ -89,6 +122,7 @@ const GameState = (() => {
     quests: {},                          // { daily, monthly } progress
     achievements: {},                    // achievementId -> true once claimed
     tower: { best: 0 },                  // Endless Tower highest floor
+    campaign: { cleared: {}, chapter: 'ch1' }, // nodeId -> true, plus last chapter viewed
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -114,13 +148,22 @@ const GameState = (() => {
 
   function load() {
     let loaded;
+    // The version has to come off the RAW save, before DEFAULTS supplies
+    // its own; a fresh save legitimately starts at the current schema
+    // and runs nothing.
+    let from = SCHEMA;
     try {
       const raw = localStorage.getItem(KEY);
-      loaded = raw
-        ? { ...structuredClone(DEFAULTS), ...JSON.parse(raw) }
-        : structuredClone(DEFAULTS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        from = typeof parsed.schemaVersion === 'number' ? parsed.schemaVersion : 0;
+        loaded = { ...structuredClone(DEFAULTS), ...parsed };
+      } else {
+        loaded = structuredClone(DEFAULTS);
+      }
     } catch (e) { /* storage unavailable or corrupt: start fresh */
       loaded = structuredClone(DEFAULTS);
+      from = SCHEMA;
     }
     for (const id of STARTERS) {
       if (!loaded.roster[id]) loaded.roster[id] = freshEntry(id);
@@ -141,7 +184,7 @@ const GameState = (() => {
       }
     }
     // Walk the save up to the current schema.
-    migrate(loaded);
+    migrate(loaded, from);
 
     // Shape guards: fields a save must have regardless of its age.
     // These are invariants, not migrations — a BRAND NEW save stamps the
@@ -165,6 +208,9 @@ const GameState = (() => {
     if (!loaded.quests) loaded.quests = {};
     if (!loaded.achievements) loaded.achievements = {};
     if (!loaded.tower) loaded.tower = { best: 0 };
+    if (!loaded.campaign) loaded.campaign = { cleared: {}, chapter: 'ch1' };
+    if (!loaded.campaign.cleared) loaded.campaign.cleared = {};
+    if (!loaded.campaign.chapter) loaded.campaign.chapter = 'ch1';
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
 
@@ -714,6 +760,23 @@ const GameState = (() => {
     recordBossClear(bossId, stage) {
       if (!state.bossStages) state.bossStages = {};
       state.bossStages[bossId] = Math.max(this.bossStageCleared(bossId), stage);
+      save();
+    },
+
+    // ---- Campaign ----
+    // Progress is a flat set of cleared node ids; the graph itself lives
+    // in the data, so a chapter can be re-shaped without touching saves.
+    campaignCleared(nodeId) { return !!state.campaign.cleared[nodeId]; },
+    recordCampaignClear(nodeId) {
+      const isFirst = !state.campaign.cleared[nodeId];
+      state.campaign.cleared[nodeId] = true;
+      save();
+      return isFirst;   // callers pay the one-off bonus on a true
+    },
+    campaignClearedCount() { return Object.keys(state.campaign.cleared).length; },
+    get campaignChapter() { return state.campaign.chapter; },
+    setCampaignChapter(chapterId) {
+      state.campaign.chapter = chapterId;
       save();
     },
 
