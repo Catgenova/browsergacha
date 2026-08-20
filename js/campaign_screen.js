@@ -181,8 +181,12 @@ class CampaignScreen {
     const bonus = Campaign.firstClearBonus(n);
     const bonusBits = [];
     if (bonus.scrolls) {
-      if (bonus.scrolls.common) bonusBits.push(`${bonus.scrolls.common}× 📜`);
-      if (bonus.scrolls.rare) bonusBits.push(`${bonus.scrolls.rare}× ✨`);
+      // Keyed off the bonus rather than listed by hand, so a scroll kind
+      // can never be granted and left invisible here.
+      const ICON = { common: '📜', rare: '✨', temporal: '🌀' };
+      for (const [kind, n] of Object.entries(bonus.scrolls)) {
+        bonusBits.push(`${n}× ${ICON[kind] || kind}`);
+      }
     }
     if (bonus.gear && bonus.gear.set) bonusBits.push('a gear piece');
     if (bonus.unlocks) {

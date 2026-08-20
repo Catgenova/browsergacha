@@ -190,13 +190,17 @@ const Campaign = (() => {
     };
   }
 
-  // One-off, on the first clear only.
+  // One-off, on the first clear only. Every node in the campaign pays a
+  // summon scroll the first time it goes down, graded by what the node
+  // asked of you: a skirmish on the road pays a Common, an elite out on
+  // a branch pays a Rare, and the chapter holder pays a Temporal — the
+  // Dark/Light currency, and the campaign's whole reason to exist.
   function firstClearBonus(nodeObj) {
     const ch = chapterFor(nodeObj.id);
     const index = CAMPAIGN.CHAPTERS.indexOf(ch);
     if (nodeObj.type === 'boss') {
       return {
-        scrolls: { rare: 1, common: 2 },
+        scrolls: { temporal: 1 },
         gear: { set: BOSSES[ch.boss] ? BOSSES[ch.boss].gearSet : null,
           stage: Math.max(1, index + 1) },
         unlocks: true,
