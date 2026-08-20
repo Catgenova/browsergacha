@@ -335,6 +335,23 @@ body {
   color: #9a92b8;
 }
 
+/* Which side an ability points at, readable before it is clicked. The
+   left edge carries it at a glance; the label spells it out. */
+.ability-btn .side-label {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.ability-btn { border-left-width: 4px; }
+.ability-btn.side-enemy { border-left-color: #d4614a; }
+.ability-btn.side-ally  { border-left-color: #5ec27a; }
+.ability-btn.side-self  { border-left-color: #6ba8d8; }
+.ability-btn.side-enemy .side-label { color: #ff9a8a; }
+.ability-btn.side-ally  .side-label { color: #7ae87a; }
+.ability-btn.side-self  .side-label { color: #8ecbff; }
+
+
 .ability-btn .cd-remaining {
   color: #ff8a8a;
 }
@@ -344,6 +361,12 @@ body {
   color: #8ecbff;
   animation: pulse 1s ease-in-out infinite;
 }
+
+/* The prompt names the side in the same colours the buttons use, so the
+   two never disagree about who you are about to click. */
+#target-hint.hint-enemy { color: #ff9a8a; }
+#target-hint.hint-ally  { color: #7ae87a; }
+#target-hint.hint-self  { color: #8ecbff; }
 
 @keyframes pulse {
   50% { opacity: 0.4; }

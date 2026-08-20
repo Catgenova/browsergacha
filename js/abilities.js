@@ -230,6 +230,29 @@ const Abilities = (() => {
     }
   }
 
+  // ---- Who an ability points at -----------------------------------------
+  // The UI has to answer two questions before a target exists: which side
+  // is this aimed at, and does the player have to pick someone. Both used
+  // to be re-derived from hardcoded lists of targeting names in ui.js,
+  // which meant a new targeting kind silently pointed at the wrong side.
+  const ENEMY_TARGETING = ['enemy', 'enemy-row', 'all-enemies',
+    'front-enemies', 'back-enemies'];
+  const ALLY_TARGETING = ['ally', 'dead-ally', 'all-allies', 'front-allies',
+    'self-and-wounded-allies'];
+
+  // 'enemy' | 'ally' | 'self'
+  function sideOf(targeting) {
+    if (targeting === 'self') return 'self';
+    if (ALLY_TARGETING.includes(targeting)) return 'ally';
+    if (ENEMY_TARGETING.includes(targeting)) return 'enemy';
+    return 'enemy'; // the default case in resolveTargets is a single enemy
+  }
+
+  // Does the player have to click someone, or does it fire on select?
+  function needsTarget(targeting) {
+    return ['enemy', 'enemy-row', 'ally', 'dead-ally'].includes(targeting);
+  }
+
   // Expand targeting into the concrete list of units affected.
   function resolveTargets(ability, caster, chosenTarget, battle) {
     switch (ability.targeting) {
@@ -339,5 +362,5 @@ const Abilities = (() => {
   // through the same pipeline instead of calling takeDamage directly,
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
-  return { execute, resolveTargets, damageFormula, strike };
+  return { execute, resolveTargets, damageFormula, strike, sideOf, needsTarget };
 })();
