@@ -312,6 +312,39 @@ test('achievements all report sane progress and rewards', () => {
   assert(ids.length >= 10, `only ${ids.length} achievements defined`);
 });
 
+test('favourites toggle, persist, and lead every sort order', () => {
+  const { GameState } = g;
+  const pinned = 'rat_cook';
+  GameState.addHero(pinned);
+  assert(!GameState.isFavorite(pinned), 'heroes should not start favourited');
+  assert(GameState.toggleFavorite(pinned) === true, 'toggle did not set it');
+  assert(GameState.isFavorite(pinned), 'the favourite did not stick');
+  const count = GameState.favoriteCount();
+
+  // Reloading a save must bring favourites back with it.
+  const saved = g.savedState();
+  assert(saved && saved.roster[pinned].favorite === true,
+    'the favourite was never written to the save');
+
+  // The ordering rule the roster uses: favourites first, then whatever
+  // the chosen sort said, and untouched heroes keep their own order.
+  const favoritesFirst = (cmp) => (a, b) =>
+    (GameState.isFavorite(b) ? 1 : 0) - (GameState.isFavorite(a) ? 1 : 0) || cmp(a, b);
+  const byName = (a, b) => HEROES[a].name.localeCompare(HEROES[b].name);
+  const ids = GameState.ownedHeroIds().filter((id) => HEROES[id]);
+  assert(ids.length > 2, 'need a few heroes owned to sort');
+  const sorted = [...ids].sort(favoritesFirst(byName));
+  assert(sorted[0] === pinned, `expected ${pinned} first, got ${sorted[0]}`);
+  const rest = sorted.slice(1);
+  assert(rest.every((id) => !GameState.isFavorite(id)),
+    'a favourite sorted below a non-favourite');
+  assert(rest.join() === [...rest].sort(byName).join(),
+    'the underlying sort order was disturbed');
+
+  assert(GameState.toggleFavorite(pinned) === false, 'toggle did not clear it');
+  assert(GameState.favoriteCount() === count - 1, 'the count did not follow');
+});
+
 test('star up all promotes exactly the eligible heroes', () => {
   const { GameState } = g;
   // Ready: at the level cap with spare duplicates.

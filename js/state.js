@@ -102,6 +102,7 @@ const GameState = (() => {
       stars: def ? def.rarity : 1,
       equipment: {}, // slot -> gear uid
       skills: {},    // ability index -> skill level (absent = 1)
+      favorite: false, // pinned to the top of the roster
     };
   }
 
@@ -153,6 +154,7 @@ const GameState = (() => {
       if (entry.stars === undefined) entry.stars = freshEntry(id).stars;
       if (!entry.equipment) entry.equipment = {};
       if (!entry.skills) entry.skills = {};
+      if (entry.favorite === undefined) entry.favorite = false;
     }
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
@@ -223,6 +225,23 @@ const GameState = (() => {
     },
     ownedHeroIds() { return Object.keys(state.roster); },
     copiesOf(heroId) { return state.roster[heroId] ? state.roster[heroId].copies : 0; },
+
+    // Favourites float to the top of the roster in every sort order.
+    // Purely a display preference — nothing in battle reads it.
+    isFavorite(heroId) {
+      const e = state.roster[heroId];
+      return !!(e && e.favorite);
+    },
+    toggleFavorite(heroId) {
+      const e = state.roster[heroId];
+      if (!e) return false;
+      e.favorite = !e.favorite;
+      save();
+      return e.favorite;
+    },
+    favoriteCount() {
+      return Object.values(state.roster).filter((e) => e.favorite).length;
+    },
 
     // ---- Progression ----
     // { copies, level, xp, stars } for an owned hero (null if unowned).

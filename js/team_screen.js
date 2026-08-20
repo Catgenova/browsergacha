@@ -280,6 +280,12 @@ class TeamScreen {
         Progression.scaledStats(HEROES[id], pr.level, pr.stars),
         GameState.equippedPieces(id)));
     };
+    // Favourites lead every sort order. They are not exempt from the
+    // filters above — a favourite that the search or "hide maxed" drops
+    // stays dropped; this only reorders what survived.
+    const favoritesFirst = (cmp) => (a, b) =>
+      (GameState.isFavorite(b) ? 1 : 0) - (GameState.isFavorite(a) ? 1 : 0) ||
+      cmp(a, b);
     const SORTS = {
       power: (a, b) => powerOf(b) - powerOf(a) || byLevel(a, b),
       level: byLevel,
@@ -304,7 +310,7 @@ class TeamScreen {
         const pr = p(id);
         return pr.level < Progression.maxLevel(pr.stars);
       })
-      .sort(SORTS[this.rosterSort.value] || SORTS.level);
+      .sort(favoritesFirst(SORTS[this.rosterSort.value] || SORTS.level));
 
     const frag = document.createDocumentFragment();
     for (const heroId of ids) {
@@ -344,13 +350,30 @@ class TeamScreen {
       up.className = 'card-starup';
       up.title = 'Ready to star up!';
       up.textContent = '★⬆';
-      card.append(portrait, name, stars, level, badge, dupes, up);
+      const fav = document.createElement('button');
+      fav.className = 'card-fav';
+      fav.type = 'button';
+      // Its own click target inside a clickable card: swallow the event
+      // so favouriting never doubles as selecting.
+      fav.addEventListener('click', (e) => {
+        e.stopPropagation();
+        GameState.toggleFavorite(heroId);
+        this.buildRoster();   // re-sort so it moves immediately
+      });
+      card.append(portrait, name, stars, level, badge, dupes, up, fav);
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
-      card._parts = { stars, level, badge, dupes, up };
+      card._parts = { stars, level, badge, dupes, up, fav };
       this.cardCache.set(heroId, card);
     }
     // Refresh the parts that actually change.
-    const { stars, level, badge, dupes, up } = card._parts;
+    const { stars, level, badge, dupes, up, fav } = card._parts;
+    const favorited = GameState.isFavorite(heroId);
+    fav.textContent = favorited ? '★' : '☆';
+    fav.classList.toggle('on', favorited);
+    fav.title = favorited
+      ? `Unfavourite ${def.name} — stops pinning them to the top`
+      : `Favourite ${def.name} — pins them to the top of the roster`;
+    fav.setAttribute('aria-pressed', favorited ? 'true' : 'false');
     card.classList.toggle('selected',
       !!this.selection && this.selection.heroId === heroId);
     stars.textContent = progress.stars <= 5
