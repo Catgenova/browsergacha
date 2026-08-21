@@ -73,7 +73,7 @@ class ImproveScreen {
         a.def.name.localeCompare(b.def.name));
 
     this.listEl.innerHTML = rows.map((r) => {
-      const ready = GameState.starUpReady(r.uid);
+      const ready = GameState.starUpAffordable(r.uid);
       const same = GameState.countOf(r.def.id);
       return `<div class="imp-row${r.uid === this.selected ? ' selected' : ''}"
            data-uid="${r.uid}">
@@ -117,7 +117,6 @@ class ImproveScreen {
     const cap = Progression.maxLevel(pr.stars);
     const maxed = pr.stars >= Progression.MAX_STARS;
     const need = Progression.starUpCost(pr.stars);
-    const ready = GameState.starUpReady(uid);
 
     const options = GameState.sacrificeOptions(uid);
     const picked = [...this.chosen];
@@ -126,7 +125,7 @@ class ImproveScreen {
       return p && p.stars === pr.stars;
     }).length;
     const skillPicks = picked.filter((u) => GameState.defIdOf(u) === def.id).length;
-    const willStar = ready && atRank >= need;
+    const willStar = !maxed && atRank >= need;
 
     const skillsHtml = def.abilities.map((a, i) => {
       const lv = GameState.skillLevel(uid, i);
@@ -151,9 +150,9 @@ class ImproveScreen {
     };
 
     const canStar = maxed ? 'Already at the star cap.'
-      : !ready ? `Needs Lv ${cap} first (currently Lv ${pr.level}).`
       : `${need} hero${need > 1 ? 'es' : ''} at ${pr.stars}&#9733; \u2014 ` +
-        `<b>${atRank}/${need}</b> chosen.`;
+        `<b>${atRank}/${need}</b> chosen. Raises the level cap to ` +
+        `${Progression.maxLevel(pr.stars + 1)}; the level is kept.`;
 
     this.detailEl.innerHTML = `
       <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}</div>

@@ -578,7 +578,9 @@ class TeamScreen {
     const same = GameState.countOf(GameState.defIdOf(heroId));
     dupes.textContent = `×${same}`;
     dupes.classList.toggle('hidden', same <= 1);
-    up.classList.toggle('hidden', !GameState.starUpReady(heroId));
+    // The arrow means "you could do this right now", not "eligible":
+    // with the level gate gone, nearly every hero is eligible.
+    up.classList.toggle('hidden', !GameState.starUpAffordable(heroId));
     return card;
   }
 
@@ -862,16 +864,17 @@ class TeamScreen {
     let starUpHtml = '';
     if (progress.stars < Progression.MAX_STARS) {
       const cost = Progression.starUpCost(progress.stars);
-      const ready = GameState.starUpReady(uid);
+      const afford = GameState.starUpAffordable(uid);
       starUpHtml = `
         <div class="detail-section">Star up</div>
         <div class="detail-ability">
-          ${progress.stars}★ → ${progress.stars + 1}★: needs Lv ${cap}, then
-          ${cost} hero${cost > 1 ? 'es' : ''} at ${progress.stars}★ sacrificed.
-          Boosts base stats +25%, resets level to 1.
+          ${progress.stars}★ → ${progress.stars + 1}★: sacrifice ${cost}
+          hero${cost > 1 ? 'es' : ''} at ${progress.stars}★. Boosts base stats
+          +25% and raises the level cap to ${Progression.maxLevel(progress.stars + 1)};
+          the level you have is kept.
         </div>
         <button id="star-up-btn" class="panel-btn gold">
-          ${ready ? 'Improve this hero' : `Improve (needs Lv ${cap})`}
+          ${afford ? 'Improve this hero' : 'Improve (need more heroes)'}
         </button>`;
     } else {
       starUpHtml = `
@@ -885,7 +888,7 @@ class TeamScreen {
       <div class="card-stars rarity-${def.rarity}">${starsText}</div>
       <div class="detail-level">
         Lv ${progress.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}
-        <span class="xp-text">${atCap ? 'Star up to continue leveling' : `XP ${progress.xp} / ${xpNeed}`}</span>
+        <span class="xp-text">${atCap ? 'Star up to raise the cap' : `XP ${progress.xp} / ${xpNeed}`}</span>
       </div>
       <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
       <div class="detail-stats">

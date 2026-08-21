@@ -534,11 +534,29 @@ const GameState = (() => {
       return e ? Progression.starUpCost(e.stars) : 0;
     },
 
-    // Can this hero be fed at all? Max level, below the star cap.
+    // Can this hero gain a star at all? Only the star cap stands in the
+    // way -- level is no longer a gate, and a star up no longer costs the
+    // level you had. Starring up raises the level CEILING; what you have
+    // already earned stays earned.
     starUpReady(uid) {
       const e = state.roster[uid];
-      if (!e || e.stars >= Progression.MAX_STARS) return false;
-      return e.level >= Progression.maxLevel(e.stars);
+      return !!e && e.stars < Progression.MAX_STARS;
+    },
+
+    // ...and whether the roster actually holds the heroes to pay for it.
+    // This is what the roster card's arrow means: not "eligible" (nearly
+    // everyone is) but "you could do this right now".
+    starUpAffordable(uid) {
+      const e = state.roster[uid];
+      if (!this.starUpReady(uid)) return false;
+      const need = Progression.starUpCost(e.stars);
+      let found = 0;
+      for (const other of Object.keys(state.roster)) {
+        if (state.roster[other].stars !== e.stars) continue;
+        if (!this.canSacrifice(other, uid)) continue;
+        if (++found >= need) return true;
+      }
+      return false;
     },
 
     // A hero can be spent if it is not the one being improved, not on
@@ -617,9 +635,9 @@ const GameState = (() => {
         this.questBumpQuiet('sacrifices');
       }
       if (willStar) {
+        // The level survives: a star up lifts the ceiling rather than
+        // sending the hero back to the bottom of it.
         target.stars++;
-        target.level = 1;
-        target.xp = 0;
         report.starred = true;
         report.to = target.stars;
         this.questBumpQuiet('starUps');

@@ -764,12 +764,17 @@ test('star ups and skill ups are paid for in heroes', () => {
   const hero = Object.values(HEROES).find((h) => (h.rarity || 1) === 3);
   assert(hero, 'the roster has no 3-star hero to test with');
   const target = GameState.addHero(hero.id).uid;
-  GameState.addXp(target, 1e9);
+  // Deliberately NOT at the level cap: level is not a gate on starring up.
+  GameState.addXp(target, 900);
   const stars = GameState.progressOf(target).stars;
   assert(stars === 3, `expected a 3-star hero, got ${stars}`);
+  const startLevel = GameState.progressOf(target).level;
+  assert(startLevel > 1 && startLevel < Progression.maxLevel(stars),
+    `test needs a part-levelled hero, got Lv ${startLevel}`);
   const need = Progression.starUpCost(stars);
   assert(need === stars, `cost should equal the rating, got ${need} for ${stars}`);
-  assert(GameState.starUpReady(target), 'a capped hero should be ready to star up');
+  assert(GameState.starUpReady(target),
+    'a hero below the star cap should be able to star up whatever its level');
 
   // Fodder: same character (skill up + rank), and strangers at the same
   // rank (rank only). Same rating, because that is what a star up eats.
@@ -795,6 +800,10 @@ test('star ups and skill ups are paid for in heroes', () => {
   // Skill ups sort to the top: they are the reason to keep a duplicate.
   assert(offered[0].skill, 'the list does not lead with a skill up');
 
+  // Affordability is about heroes in hand, not about level.
+  assert(GameState.starUpAffordable(target),
+    'the fodder is standing right there and it says otherwise');
+
   // Team members and favourites are never fodder.
   GameState.setTeamSlot(0, strangers[0]);
   assert(!GameState.sacrificeOptions(target).some((o) => o.uid === strangers[0]),
@@ -814,12 +823,17 @@ test('star ups and skill ups are paid for in heroes', () => {
   assert(GameState.progressOf(target).stars === before.stars, 'stars moved anyway');
   assert(!GameState.defOf(sameChar[0]), 'the sacrificed hero is still in the roster');
 
-  // Enough at the rank, and it stars up and resets to level 1.
+  // Enough at the rank, and it stars up -- keeping the level it had and
+  // raising the ceiling above it.
   const count = GameState.rosterCount();
   const report = GameState.sacrifice(target, strangers);
   assert(report.starred, `should have starred up: ${JSON.stringify(report)}`);
   assert(report.to === stars + 1, `went to ${report.to} from ${stars}`);
-  assert(GameState.progressOf(target).level === 1, 'a star up must reset the level');
+  assert(GameState.progressOf(target).level === startLevel,
+    `a star up must keep the level: was ${startLevel}, now ` +
+    `${GameState.progressOf(target).level}`);
+  assert(Progression.maxLevel(report.to) > Progression.maxLevel(stars),
+    'starring up did not raise the level cap');
   assert(GameState.rosterCount() === count - need,
     'the roster did not shrink by the heroes spent');
   for (const uid of strangers) {
