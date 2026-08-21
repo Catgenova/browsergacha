@@ -672,9 +672,21 @@ const ACHIEVEMENTS = (() => {
     return LIST.filter((a) => { const s = state(a); return s.done && !s.claimed; }).length;
   }
 
+  // Quests pay Diamonds now: whetstone and arcana rewards written into
+  // the entries above convert wholesale (a whetstone is worth about a
+  // third of a diamond, arcana one for one), so those currencies come
+  // only from actually playing -- battles, salvage, polish returns.
+  for (const a of LIST) {
+    const r = a.reward || {};
+    if (r.whetstones || r.arcana) {
+      a.reward = { diamonds: Math.max(10,
+        Math.round((r.whetstones || 0) / 3 + (r.arcana || 0))) };
+    }
+  }
+
   const REWARD_LABEL = {
     common: '📜 Common Scroll', rare: '✨ Rare Scroll', temporal: '🌀 Temporal Scroll',
-    whetstones: '🪨 Whetstones', arcana: '✦ Arcana',
+    whetstones: '🪨 Whetstones', arcana: '✦ Arcana', diamonds: '💎 Diamonds',
   };
   function rewardText(reward) {
     return Object.entries(reward)

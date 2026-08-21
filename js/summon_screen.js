@@ -22,15 +22,33 @@ class SummonScreen {
     for (const b of this.buttons) {
       b.el.addEventListener('click', () => this.summon(b.kind, b.count));
     }
+
+    // The Diamond exchange: quest earnings become scrolls.
+    const buyRare = document.getElementById('buy-rare-pack');
+    const buyTemporal = document.getElementById('buy-temporal');
+    const buy = (fn) => {
+      const got = fn();
+      this.errorEl.textContent = got === null ? 'Not enough Diamonds.' : '';
+      if (got !== null && typeof Sound !== 'undefined') Sound.play('click');
+      this.updateInfo();
+    };
+    if (buyRare) buyRare.addEventListener('click', () => buy(() => GameState.buyRareScrolls()));
+    if (buyTemporal) buyTemporal.addEventListener('click', () => buy(() => GameState.buyTemporalScroll()));
   }
 
   enter() {
     this.updateInfo();
   }
 
+  refreshExchange() {
+    const el = document.getElementById('exchange-balance');
+    if (el) el.textContent = `💎 ${GameState.diamonds.toLocaleString()}`;
+  }
+
   exit() {}
 
   updateInfo() {
+    this.refreshExchange();
     this.scrollsEl.textContent =
       `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare · 🌀 ${GameState.scrollsTemporal} temporal`;
     // Pity is only meaningful once a 5★ hero exists to be pitied into.

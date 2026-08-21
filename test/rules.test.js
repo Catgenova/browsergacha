@@ -1283,4 +1283,39 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
   assert(G.withdraw(uid) === null, 'withdrew into a full roster');
 });
 
+test('diamonds buy room and scrolls, within the ceilings', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  assert(G.diamonds === 0, 'a fresh save should start with no diamonds');
+  assert(G.expandRoster() === null, 'expanded a roster with no diamonds');
+  G.addDiamonds(10000);
+
+  const r0 = G.MAX_ROSTER;
+  assert(G.expandRoster() === r0 + 10, 'roster should grow by ten');
+  assert(G.diamonds === 10000 - G.ROSTER_STEP_COST, 'roster expansion mispriced');
+  const s0 = G.MAX_STORAGE;
+  assert(G.expandStorage() === s0 + 10, 'storage should grow by ten');
+
+  const rare0 = G.scrollsRare;
+  assert(G.buyRareScrolls() === 10 && G.scrollsRare === rare0 + 10,
+    'the rare pack should pay ten scrolls');
+  const t0 = G.scrollsTemporal;
+  assert(G.buyTemporalScroll() === 1 && G.scrollsTemporal === t0 + 1,
+    'the temporal purchase should pay one scroll');
+  assert(G.diamonds === 10000 - G.ROSTER_STEP_COST - G.STORAGE_STEP_COST -
+    G.RARE_PACK_COST - G.TEMPORAL_COST, 'exchange prices drifted');
+
+  // Ceilings hold however rich the player is.
+  G.addDiamonds(1000000);
+  let guard = 200;
+  while (G.expandRoster() !== null && guard-- > 0) {}
+  assert(G.MAX_ROSTER === G.ROSTER_CAP_MAX, `roster cap ${G.MAX_ROSTER}`);
+  guard = 400;
+  while (G.expandStorage() !== null && guard-- > 0) {}
+  assert(G.MAX_STORAGE === G.STORAGE_CAP_MAX, `storage cap ${G.MAX_STORAGE}`);
+  // The bonus survives the save round-trip via shape guards, not schema.
+  const raw = JSON.parse(w.localStorage.getItem('browsergacha_save_v1'));
+  assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 200, 'bonus not persisted');
+});
+
 report();

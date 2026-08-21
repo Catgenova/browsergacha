@@ -2634,6 +2634,16 @@ html.is-mobile .sub-compare { font-size: 13px; }
 /* Auto star up: a spender, so the armed (confirm) state looks like one. */
 #imp-auto { white-space: nowrap; font-size: 12px; }
 #storage-btn { white-space: nowrap; }
+.cap-expand { font-size: 10px; padding: 3px 8px; white-space: nowrap; }
+#summon-exchange {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 13px;
+}
+#exchange-balance { color: #8ecbff; }
 #storage-btn.storage-open { border-color: #8ecbff; color: #8ecbff; }
 .imp-tag-dim { opacity: 0.5; }
 .imp-team-tag {

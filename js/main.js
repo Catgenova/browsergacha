@@ -25,6 +25,8 @@ const App = {
     document.getElementById('scroll-temporal-count').textContent = GameState.scrollsTemporal.toLocaleString();
     document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
     document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
+    const d = document.getElementById('diamond-count');
+    if (d) d.textContent = GameState.diamonds.toLocaleString();
   },
 
   // Is this hero committed to a fight that's currently running? Gear
