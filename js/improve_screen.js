@@ -175,14 +175,17 @@ class ImproveScreen {
 
     const rowFor = (o) => {
       const on = this.chosen.has(o.uid);
+      const fodder = HEROES[o.heroId];
+      const info = Elements.info(fodder.element);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
       if (o.star) tags.push(`<span class="imp-tag">${o.stars}&#9733;</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
         <canvas class="imp-portrait" width="34" height="34"></canvas>
         <div class="imp-row-text">
-          <div class="imp-row-name">${HEROES[o.heroId].name}</div>
-          <div class="imp-row-sub">Lv ${o.level}</div>
+          <div class="imp-row-name">${Elements.badge(fodder.element)} ${fodder.name}</div>
+          <div class="imp-row-sub">Lv ${o.level}${info
+            ? ` &middot; <span style="color:${info.color}">${info.name}</span>` : ''}</div>
         </div>
         ${tags.join('')}
       </div>`;
