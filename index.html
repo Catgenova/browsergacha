@@ -218,52 +218,7 @@
             <button id="idle-team" class="panel-btn">Team</button>
             <button id="idle-campaign" class="panel-btn">Campaign</button>
           </div>
-          <div id="battle-select">
-            <div id="battle-select-head">Choose a fight</div>
-        <div id="wave-controls">
-          <span class="wave-label">Hunt:</span>
-          <select id="location-select" title="Battle location"></select>
-          <select id="stage-select" title="Stage (sets enemy levels)"></select>
-          <select id="repeat-select" title="How many battles to chain">
-          <option value="1">×1</option>
-          <option value="3">×3</option>
-          <option value="5">×5</option>
-          <option value="10">×10</option>
-          <option value="inf">∞</option>
-          </select>
-          <button id="fight-btn" class="panel-btn gold">Fight!</button>
-        </div>
-        <div id="boss-controls">
-          <span class="wave-label">Boss:</span>
-          <select id="boss-select" title="Which boss to challenge"></select>
-          <select id="boss-stage-select" title="Boss stage — clear a stage to unlock the next"></select>
-          <select id="boss-repeat-select" title="Repeats unlock once the stage is cleared">
-          <option value="1">×1</option>
-          <option value="3">×3</option>
-          <option value="5">×5</option>
-          <option value="10">×10</option>
-          <option value="inf">∞</option>
-          </select>
-          <button id="boss-btn" class="panel-btn danger" title="Take on the boss with your current team">Boss!</button>
-        </div>
-        <div id="attune-controls">
-          <span class="wave-label">Attune:</span>
-          <select id="attune-select" title="Which elemental boss to challenge"></select>
-          <select id="attune-stage-select" title="Stage — clear one to unlock the next"></select>
-          <select id="attune-repeat-select" title="Repeats unlock once the stage is cleared">
-          <option value="1">×1</option>
-          <option value="3">×3</option>
-          <option value="5">×5</option>
-          <option value="10">×10</option>
-          </select>
-          <button id="attune-btn" class="panel-btn gold" title="Fight this element's boss for attunement materials">Attune!</button>
-        </div>
-        <div id="tower-controls">
-          <span class="wave-label">Tower:</span>
-          <span id="tower-status"></span>
-          <button id="tower-btn" class="panel-btn gold" title="Climb the Endless Tower — every floor drops a Common Scroll, every 5th a Rare, every 50th a Temporal Scroll">Climb!</button>
-        </div>
-          </div>
+          <div id="battle-select"></div>
         </div>
 
         <!-- Auto-battle tactics: how the party picks abilities and targets -->
@@ -368,6 +323,7 @@
   <script src="js/ui.js?v=__BUILD__"></script>
   <script src="js/compendium_screen.js?v=__BUILD__"></script>
   <script src="js/campaign_screen.js?v=__BUILD__"></script>
+  <script src="js/battle_select.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
   <script src="js/improve_screen.js?v=__BUILD__"></script>

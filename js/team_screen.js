@@ -53,7 +53,6 @@ class TeamScreen {
     }
 
     this.detailsEl = document.getElementById('hero-details');
-    this.fightBtn = document.getElementById('fight-btn');
     this.clearBtn = document.getElementById('clear-team-btn');
     this.teamCountEl = document.getElementById('team-count');
 
@@ -69,105 +68,6 @@ class TeamScreen {
 
     this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
     this.canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
-    // Hunt picker: location (background), stage (enemy levels), repeat.
-    this.locationSel = document.getElementById('location-select');
-    this.stageSel = document.getElementById('stage-select');
-    this.repeatSel = document.getElementById('repeat-select');
-    this.buildLocationOptions();
-    // Stage 0 is the training ground: level 1 enemies for fresh teams.
-    this.stageSel.innerHTML =
-      '<option value="0">Stage 0 (Lv 1)</option>' +
-      Array.from({ length: 20 }, (_, i) =>
-        `<option value="${i + 1}">Stage ${i + 1} (Lv ${(i + 1) * 5})</option>`).join('');
-    const ws = GameState.waveSettings;
-    if (!this.huntOpen(ws.location)) {
-      GameState.setWaveSettings({ location: 0 }); // saved biome is not open
-      ws.location = 0;
-    }
-    this.locationSel.value = String(ws.location);
-    this.stageSel.value = String(ws.stage);
-    this.repeatSel.value = String(ws.repeat);
-    const saveWave = () => GameState.setWaveSettings({
-      location: Number(this.locationSel.value),
-      stage: Number(this.stageSel.value),
-      repeat: this.repeatSel.value === 'inf' ? 'inf' : Number(this.repeatSel.value),
-    });
-    [this.locationSel, this.stageSel, this.repeatSel].forEach((sel) =>
-      sel.addEventListener('change', () => { saveWave(); this.updateButtons(); }));
-
-    this.fightBtn.addEventListener('click', () => {
-      if (GameState.teamSize() === 0) return;
-      if (!this.huntOpen(Number(this.locationSel.value))) return;
-      this.app.screens.battle.requestBattle('wave');
-      this.app.showScreen('battle');
-    });
-    this.towerBtn = document.getElementById('tower-btn');
-    this.towerStatus = document.getElementById('tower-status');
-    this.towerBtn.addEventListener('click', () => {
-      if (GameState.teamSize() === 0) return;
-      this.app.screens.battle.requestBattle('tower');
-      this.app.showScreen('battle');
-    });
-    // Boss picker: which boss, stage (gated by per-boss clears), and
-    // repeat (cleared stages only).
-    this.bossBtn = document.getElementById('boss-btn');
-    this.bossSel = document.getElementById('boss-select');
-    this.bossStageSel = document.getElementById('boss-stage-select');
-    this.bossRepeatSel = document.getElementById('boss-repeat-select');
-    this.buildBossOptions();
-    if (!(GameState.bossSettings.boss in BOSSES) ||
-        !Campaign.bossUnlocked(GameState.bossSettings.boss)) {
-      const first = Object.keys(BOSSES).find((k) => Campaign.bossUnlocked(k));
-      GameState.setBossSettings({ boss: first || 'dragon' });
-    }
-    this.bossSel.value = GameState.bossSettings.boss;
-    this.bossRepeatSel.value = String(GameState.bossSettings.repeat);
-    const saveBoss = () => GameState.setBossSettings({
-      boss: this.bossSel.value,
-      stage: Number(this.bossStageSel.value),
-      repeat: this.bossRepeatSel.value === 'inf' ? 'inf' : Number(this.bossRepeatSel.value),
-    });
-    this.bossSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
-
-    // Elemental boss picker: the same shape as the gear bosses, one per
-    // element, paying the Elements that attune a hero of that element.
-    this.attuneBtn = document.getElementById('attune-btn');
-    this.attuneSel = document.getElementById('attune-select');
-    this.attuneStageSel = document.getElementById('attune-stage-select');
-    this.attuneRepeatSel = document.getElementById('attune-repeat-select');
-    if (this.attuneSel) {
-      this.attuneSel.innerHTML = Object.values(ELEMENTAL_BOSSES).map((b) => {
-        const info = Elements.info(b.element);
-        return `<option value="${b.attuneId}">${info ? info.emoji : ''} ${b.name}</option>`;
-      }).join('');
-      if (!(GameState.attuneSettings.boss in ELEMENTAL_BOSSES)) {
-        GameState.setAttuneSettings({ boss: 'fire' });
-      }
-      this.attuneSel.value = GameState.attuneSettings.boss;
-      this.attuneRepeatSel.value = String(GameState.attuneSettings.repeat);
-      const saveAttune = () => GameState.setAttuneSettings({
-        boss: this.attuneSel.value,
-        stage: Number(this.attuneStageSel.value) || 1,
-        repeat: this.attuneRepeatSel.value === 'inf' ? 'inf'
-          : Number(this.attuneRepeatSel.value),
-      });
-      this.attuneSel.addEventListener('change', () => { saveAttune(); this.updateButtons(); });
-      this.attuneStageSel.addEventListener('change', () => { saveAttune(); this.updateButtons(); });
-      this.attuneRepeatSel.addEventListener('change', saveAttune);
-      this.attuneBtn.addEventListener('click', () => {
-        saveAttune();
-        this.app.screens.battle.requestBattle('attune');
-        this.app.showScreen('battle');
-      });
-    }
-    this.bossStageSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
-    this.bossRepeatSel.addEventListener('change', saveBoss);
-    this.bossBtn.addEventListener('click', () => {
-      if (GameState.teamSize() === 0) return;
-      if (!Campaign.bossUnlocked(this.bossSel.value)) return;
-      this.app.screens.battle.requestBattle('boss');
-      this.app.showScreen('battle');
-    });
     this.clearBtn.addEventListener('click', () => {
       GameState.clearTeam();
       this.selection = null;
@@ -252,39 +152,8 @@ class TeamScreen {
   // A hunt location is open when it has an enemy race AND the campaign
   // chapter set there has been reached. The campaign is the spine: you
   // hunt where you have already marched.
-  huntOpen(loc) {
-    return !!LOCATION_ENEMIES[loc] && Campaign.locationUnlocked(loc);
-  }
-
-  buildLocationOptions() {
-    const keep = this.locationSel.value;
-    this.locationSel.innerHTML = CONFIG.LOCATION_NAMES
-      .map((n, i) => {
-        const open = this.huntOpen(i);
-        return `<option value="${i}" ${open ? '' : 'disabled'}>` +
-          `${n}${open ? '' : ' 🔒'}</option>`;
-      }).join('');
-    if (keep && this.huntOpen(Number(keep))) this.locationSel.value = keep;
-  }
-
-  buildBossOptions() {
-    const keep = this.bossSel.value;
-    this.bossSel.innerHTML = Object.entries(BOSSES)
-      .map(([key, b]) => {
-        const open = Campaign.bossUnlocked(key);
-        return `<option value="${key}" ${open ? '' : 'disabled'}>` +
-          `${Elements.badge(b.element)} ${b.name}${open ? '' : ' 🔒'}</option>`;
-      }).join('');
-    if (keep && Campaign.bossUnlocked(keep)) this.bossSel.value = keep;
-  }
-
   async enter() {
     this.selection = null;
-    // Campaign progress since the last visit may have opened a hunt
-    // location or a boss, so the pickers are rebuilt rather than being
-    // frozen at construction.
-    this.buildLocationOptions();
-    this.buildBossOptions();
     this.buildPresetOptions();
     // Paint immediately. Sprite sheets are fetched in the background by
     // refresh() and appear as they arrive — the screen must never wait
@@ -376,69 +245,6 @@ class TeamScreen {
         : '';
       raceEl.classList.toggle('hidden', rows.length === 0);
     }
-    this.fightBtn.disabled = size === 0 || !this.huntOpen(Number(this.locationSel.value));
-    this.towerBtn.disabled = size === 0;
-    // Bosses only take challengers once their chapter has been cleared;
-    // at the start of a save that is every one of them.
-    const bossOpen = Campaign.bossUnlocked(this.bossSel.value);
-    this.bossBtn.disabled = size === 0 || !bossOpen;
-    this.bossBtn.title = bossOpen
-      ? 'Take on the boss with your current team'
-      : 'Clear this boss\'s campaign chapter to challenge it';
-    this.bossStageSel.disabled = !bossOpen;
-    const nextFloor = GameState.towerBest + 1;
-    const floorLv = Math.max(2, Math.ceil(nextFloor * 1.5));
-    this.towerStatus.textContent =
-      `Best floor ${GameState.towerBest} — next: floor ${nextFloor} ` +
-      `(Lv ~${floorLv}${nextFloor % 10 === 0 ? ' · BOSS' : ''})`;
-
-    // Boss stage list for the SELECTED boss: cleared stages ✓
-    // (repeatable), the next stage open, everything past it locked.
-    const bossKey = this.bossSel.value in BOSSES ? this.bossSel.value : 'dragon';
-    if (!bossOpen) {
-      this.bossStageSel.innerHTML = '<option>🔒 Locked</option>';
-      this.bossRepeatSel.disabled = true;
-      return;
-    }
-    const cleared = GameState.bossStageCleared(BOSSES[bossKey].id);
-    const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
-    const saved = Math.min(GameState.bossSettings.stage, maxPick);
-    this.bossStageSel.innerHTML = Array.from(
-      { length: Progression.BOSS_MAX_STAGE }, (_, i) => {
-        const s = i + 1;
-        const mark = s <= cleared ? ' ✓' : s === maxPick ? '' : ' 🔒';
-        return `<option value="${s}" ${s > maxPick ? 'disabled' : ''}>` +
-          `Stage ${s} (Lv ${Progression.bossLevel(s)})${mark}</option>`;
-      }).join('');
-    this.bossStageSel.value = String(saved);
-    // Uncleared stages can't be repeated: lock the repeat picker at ×1.
-    const uncleared = saved > cleared;
-    this.bossRepeatSel.disabled = uncleared;
-    this.bossRepeatSel.value = uncleared ? '1' : String(GameState.bossSettings.repeat);
-    this.buildAttuneStages();
-  }
-
-  // Attune stage picker: cleared stages repeatable, the next one open,
-  // everything past it locked -- and each option says what it pays, since
-  // the whole reason to pick a stage is the size of Element it drops.
-  buildAttuneStages() {
-    if (!this.attuneStageSel) return;
-    const key = this.attuneSel.value in ELEMENTAL_BOSSES ? this.attuneSel.value : 'fire';
-    const cleared = GameState.attuneStageCleared(key);
-    const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
-    const saved = Math.min(GameState.attuneSettings.stage || 1, maxPick);
-    this.attuneStageSel.innerHTML = Array.from(
-      { length: Progression.BOSS_MAX_STAGE }, (_, i) => {
-        const st = i + 1;
-        const mark = st <= cleared ? ' ✓' : st === maxPick ? '' : ' 🔒';
-        return `<option value="${st}" ${st > maxPick ? 'disabled' : ''}>` +
-          `Stage ${st} (Lv ${Progression.bossLevel(st)}) — ${Attune.payoutText(st)}${mark}</option>`;
-      }).join('');
-    this.attuneStageSel.value = String(saved);
-    const uncleared = saved > cleared;
-    this.attuneRepeatSel.disabled = uncleared;
-    this.attuneRepeatSel.value = uncleared ? '1'
-      : String(GameState.attuneSettings.repeat);
   }
 
   // ---- Roster panel ------------------------------------------------------
