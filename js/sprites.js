@@ -240,11 +240,17 @@ const Sprites = (() => {
 
   // A strip that exists on the server must never silently become
   // placeholder art because one fetch hiccuped (mid-deploy, flaky
-  // mobile). One quick retry rides out the blip; a real 404 still
-  // resolves null quickly.
+  // mobile). One quick retry rides out the blip -- but only the FIRST
+  // time a given file fails this session: a hero whose art simply is
+  // not there yet would otherwise pay the retry delay on every battle
+  // they appear in, and hunts kept finding new ones, so battles got
+  // slower and slower.
+  const failedSrcs = new Set();
   async function loadImageRetry(src) {
     const first = await loadImage(src);
-    if (first) return first;
+    if (first) { failedSrcs.delete(src); return first; }
+    if (failedSrcs.has(src)) return null; // known absent: fail fast
+    failedSrcs.add(src);
     await new Promise((r) => setTimeout(r, 700));
     return loadImage(src);
   }
@@ -257,9 +263,20 @@ const Sprites = (() => {
       const animations = {};
       const strips = Object.entries(spriteDef.strips);
       strips.sort(([a], [b]) => (a === 'idle' ? -1 : b === 'idle' ? 1 : 0));
+      // Probe the idle strip first (a hero whose art is absent costs one
+      // request, not nine), then fetch the REST IN PARALLEL -- loading a
+      // seven-strip sheet serially made battle setup an image-by-image
+      // crawl.
+      const images = new Map();
+      const idleEntry = strips[0] && strips[0][0] === 'idle' ? strips[0] : null;
+      if (idleEntry) images.set('idle', await loadImageRetry(idleEntry[1].src));
+      if (!idleEntry || images.get('idle')) {
+        await Promise.all(strips
+          .filter(([name]) => name !== 'idle')
+          .map(async ([name, strip]) => images.set(name, await loadImageRetry(strip.src))));
+      }
       for (const [name, strip] of strips) {
-        if (name !== 'idle' && !animations.idle) break;
-        const img = await loadImageRetry(strip.src);
+        const img = images.get(name);
         if (!img) continue; // strip not delivered yet — skip it
         animations[name] = {
           image: img,
