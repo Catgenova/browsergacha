@@ -216,10 +216,20 @@ test('every hero resolves a full tag line', () => {
     `Vex should read debuffer of the Hedge: ${text('vex')}`);
 });
 
-test('the lifetime book pays about thirty thousand Diamonds', () => {
+test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
   const total = ACHIEVEMENTS.LIST.reduce((n, a) => n + (a.reward.diamonds || 0), 0);
   assert(total >= 29000 && total <= 31000,
     `achievement diamonds total ${total}, expected ~30,000`);
+  for (const a of ACHIEVEMENTS.LIST) {
+    const d = a.reward.diamonds;
+    if (d) assert(d % 10 === 0 && d >= 10, `${a.id}: diamond reward ${d} not a clean ten`);
+  }
+  for (const [type, list] of Object.entries(Quests.DEFS)) {
+    for (const q of list) {
+      const d = q.reward.diamonds;
+      if (d) assert(d % 10 === 0, `${type}/${q.id}: diamond reward ${d} not a clean ten`);
+    }
+  }
 });
 
 test('elements are real, and Dark/Light are always 3-star or better', () => {

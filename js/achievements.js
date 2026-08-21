@@ -689,14 +689,25 @@ const ACHIEVEMENTS = (() => {
   // proportionally onto that budget (floor of 5 per quest), so adding
   // more quests later spreads the same pot thinner instead of inflating
   // it.
+  // Every payout lands on a multiple of ten (rounded UP, floor of 10);
+  // a second pass trims the scale by whatever the rounding added, so
+  // the book still sums close to the budget.
   const DIAMOND_BUDGET = 30000;
-  const diamondTotal = LIST.reduce((n, a) => n + (a.reward.diamonds || 0), 0);
-  if (diamondTotal > 0) {
-    for (const a of LIST) {
-      if (a.reward.diamonds) {
-        a.reward = { diamonds: Math.max(5,
-          Math.round(a.reward.diamonds * DIAMOND_BUDGET / diamondTotal)) };
-      }
+  const roundUp10 = (n) => Math.max(10, Math.ceil(n / 10) * 10);
+  const raws = LIST.map((a) => a.reward.diamonds || 0);
+  const rawTotal = raws.reduce((n, v) => n + v, 0);
+  if (rawTotal > 0) {
+    let scale = DIAMOND_BUDGET / rawTotal;
+    for (let pass = 0; pass < 2; pass++) {
+      let total = 0;
+      LIST.forEach((a, i) => {
+        if (!raws[i]) return;
+        const v = roundUp10(raws[i] * scale);
+        a.reward = { diamonds: v };
+        total += v;
+      });
+      if (total <= DIAMOND_BUDGET * 1.02) break;
+      scale *= DIAMOND_BUDGET / total;
     }
   }
 
