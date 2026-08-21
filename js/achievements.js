@@ -555,6 +555,113 @@ const ACHIEVEMENTS = (() => {
     reward: { rare: 4 },
   });
 
+  // ---- The nine hundred --------------------------------------------------
+  // A census entry and a devotion entry for every character in the
+  // game, a trophy per boss stage milestone, and a "Beyond" rung series
+  // stretching every lifetime counter into the absurd. All generated:
+  // the data IS the quest list, so new heroes and bosses join on their
+  // own.
+  //
+  // The badge recomputes every progress() on each state change, so the
+  // per-hero scans behind Census/Devotion share one short-lived cache
+  // instead of re-walking the roster a thousand times per sweep.
+  let censusCache = { at: 0 };
+  function censusSets() {
+    const now = Date.now();
+    if (!censusCache.owned || now - censusCache.at > 250) {
+      const ownedSet = new Set();
+      const cappedSet = new Set();
+      for (const uid of GameState.ownedHeroIds()) {
+        const id = GameState.defIdOf(uid);
+        if (!id) continue;
+        ownedSet.add(id);
+        const pr = GameState.progressOf(uid);
+        if (pr.level >= Progression.maxLevel(pr.stars)) cappedSet.add(id);
+      }
+      censusCache = { at: now, owned: ownedSet, capped: cappedSet };
+    }
+    return censusCache;
+  }
+
+  const CENSUS_REWARD = {
+    1: { whetstones: 50 }, 2: { whetstones: 100 }, 3: { arcana: 50 },
+    4: { rare: 1 }, 5: { rare: 3 },
+  };
+  const DEVOTION_REWARD = {
+    1: { whetstones: 150 }, 2: { whetstones: 250 }, 3: { arcana: 150 },
+    4: { rare: 2 }, 5: { rare: 4 },
+  };
+  for (const h of Object.values(HEROES)) {
+    add({
+      id: `census_${h.id}`, group: 'Census', name: `Census: ${h.name}`,
+      detail: `Own ${h.name}.`,
+      progress: () => ({ have: censusSets().owned.has(h.id) ? 1 : 0, need: 1 }),
+      reward: CENSUS_REWARD[h.rarity] || { whetstones: 50 },
+    });
+    add({
+      id: `devote_${h.id}`, group: 'Devotion', name: `Devotion: ${h.name}`,
+      detail: `Take a ${h.name} to their level cap.`,
+      progress: () => ({ have: censusSets().capped.has(h.id) ? 1 : 0, need: 1 }),
+      reward: DEVOTION_REWARD[h.rarity] || { whetstones: 150 },
+    });
+  }
+
+  // Trophies: every boss, gear and elemental alike, at four milestones.
+  const TROPHY_REWARD = {
+    5: { arcana: 200 }, 10: { rare: 3 }, 15: { rare: 6 }, 20: { temporal: 5 },
+  };
+  const trophy = (name, cleared) => {
+    for (const st of [5, 10, 15, 20]) {
+      add({
+        id: `trophy_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${st}`,
+        group: 'Trophies', name: `${name}: Stage ${st}`,
+        detail: `Clear stage ${st} of the ${name}.`,
+        progress: () => ({ have: Math.min(st, cleared()), need: st }),
+        reward: TROPHY_REWARD[st],
+      });
+    }
+  };
+  for (const b of Object.values(BOSSES)) {
+    trophy(b.name, () => GameState.bossStageCleared(b.id));
+  }
+  for (const b of Object.values(ELEMENTAL_BOSSES)) {
+    trophy(b.name, () => GameState.attuneStageCleared(b.attuneId));
+  }
+
+  // Beyond: five more rungs on every lifetime counter, far past the
+  // named ladders. Roman-numbered because at this altitude the numbers
+  // ARE the story.
+  const BEYOND = {
+    wins: ['Battles Won', [25000, 50000, 100000, 250000, 500000]],
+    huntWins: ['Hunts Won', [5000, 10000, 25000, 50000, 100000]],
+    bossWins: ['Boss Stages', [2500, 5000, 10000, 25000, 50000]],
+    campaignWins: ['Campaign Clears', [2500, 5000, 10000, 25000, 50000]],
+    towerFloors: ['Tower Floors', [5000, 10000, 25000, 50000, 100000]],
+    summons: ['Summons', [5000, 10000, 25000, 50000, 100000]],
+    flawless: ['Flawless Wins', [2500, 5000, 10000, 25000, 50000]],
+    starUps: ['Star Ups', [500, 1000, 2500, 5000, 10000]],
+    sacrifices: ['Sacrifices', [2500, 5000, 10000, 25000, 50000]],
+    polishes: ['Polishes', [2500, 5000, 10000, 25000, 50000]],
+    enchants: ['Enchants', [2500, 5000, 10000, 25000, 50000]],
+    salvages: ['Salvages', [2500, 5000, 10000, 25000, 50000]],
+    rerolls: ['Rerolls', [2500, 5000, 10000, 25000, 50000]],
+    synergyWins: ['Synergy Wins', [1000, 2500, 5000, 10000, 25000]],
+  };
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+  const BEYOND_REWARD = [{ temporal: 5 }, { temporal: 8 }, { temporal: 12 },
+    { temporal: 20 }, { temporal: 30 }];
+  for (const [counter, [label, rungs]] of Object.entries(BEYOND)) {
+    rungs.forEach((n, i) => {
+      add({
+        id: `beyond_${counter}_${n}`, group: 'Beyond',
+        name: `Beyond: ${label} ${ROMAN[i]}`,
+        detail: `${label}: reach ${n.toLocaleString('en-US')} lifetime.`,
+        progress: () => ({ have: Math.min(n, GameState.stat(counter)), need: n }),
+        reward: BEYOND_REWARD[i],
+      });
+    });
+  }
+
   function state(a) {
     const { have, need } = a.progress();
     const claimed = GameState.achievementClaimed(a.id);
