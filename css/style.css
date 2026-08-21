@@ -823,6 +823,10 @@ body {
   font-size: 10px;
   letter-spacing: 1px;
 }
+/* Past five stars the tally wraps to a second row (never a "6-star"
+   numeral), so attuned stars stay countable at a glance. */
+.star-stack { display: inline-block; vertical-align: middle; }
+.star-row { display: block; line-height: 1.1; }
 
 .card-badge {
   position: absolute;
