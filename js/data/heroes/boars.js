@@ -214,11 +214,11 @@ Object.assign(HEROES, {
       {
         id: 'bristle_rake', name: 'Bristle Rake',
         icon: 'assets/icons/fc1444.png',
-        description: 'A raking pass of quills: 97% ATK plus a 7% ATK bleed for 1 turn.',
+        description: 'A raking pass of quills: 97% ATK plus a 14% ATK bleed for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.97 },
-          { type: 'dot', pct: 0.07, turns: 1 },
+          { type: 'dot', pct: 0.14, turns: 1 },
         ],
       },
       {
@@ -395,11 +395,11 @@ Object.assign(HEROES, {
       {
         id: 'stored_heat', name: 'Stored Heat',
         icon: 'assets/icons/fc1050.png',
-        description: 'Release the day\'s heat: 128% ATK plus a 16% ATK burn for 1 turn.',
+        description: 'Release the day\'s heat: 128% ATK plus a 32% ATK burn for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.28 },
-          { type: 'dot', pct: 0.16, turns: 1 },
+          { type: 'dot', pct: 0.32, turns: 1 },
         ],
       },
       {
@@ -684,31 +684,31 @@ Object.assign(HEROES, {
       {
         id: 'spark_tusk', name: 'Spark Tusk',
         icon: 'assets/icons/fc981.png',
-        description: 'A flint-striking tusk: 94% ATK plus a 13% ATK burn for 1 turn.',
+        description: 'A flint-striking tusk: 94% ATK plus a 26% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.94 },
-          { type: 'dot', pct: 0.13, turns: 1 },
+          { type: 'dot', pct: 0.26, turns: 1 },
         ],
       },
       {
         id: 'firebreak_charge', name: 'Firebreak Charge',
         icon: 'assets/icons/fc744.png',
-        description: 'Charge through the burn line: 138% ATK plus a 20% ATK burn for 2 turns.',
+        description: 'Charge through the burn line: 138% ATK plus a 40% ATK burn for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.38 },
-          { type: 'dot', pct: 0.2, turns: 2 },
+          { type: 'dot', pct: 0.4, turns: 2 },
         ],
       },
       {
         id: 'brushfire_ring', name: 'Brushfire Ring',
         icon: 'assets/icons/fc1044.png',
-        description: 'Light the grass in a ring: 55% ATK to ALL enemies plus a 15% ATK burn for 2 turns.',
+        description: 'Light the grass in a ring: 55% ATK to ALL enemies plus a 30% ATK burn for 2 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.55 },
-          { type: 'dot', pct: 0.15, turns: 2 },
+          { type: 'dot', pct: 0.3, turns: 2 },
         ],
       },
     ],
@@ -799,11 +799,11 @@ Object.assign(HEROES, {
       {
         id: 'thorn_press', name: 'Thorn Press',
         icon: 'assets/icons/fc1461.png',
-        description: 'Press the thorns in: 85% of DEF as damage plus a 6% ATK bleed for 1 turn.',
+        description: 'Press the thorns in: 85% of DEF as damage plus a 12% ATK bleed for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damageDef', mult: 0.85 },
-          { type: 'dot', pct: 0.06, turns: 1 },
+          { type: 'dot', pct: 0.12, turns: 1 },
         ],
       },
       {
@@ -1261,22 +1261,22 @@ Object.assign(HEROES, {
       {
         id: 'briar_gore', name: 'Briar Gore',
         icon: 'assets/icons/fc981.png',
-        description: 'A thorn-wrapped gore: 100% ATK plus a 15% ATK bleed for 2 turns.',
+        description: 'A thorn-wrapped gore: 100% ATK plus a 30% ATK bleed for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'dot', pct: 0.15, turns: 2 },
+          { type: 'dot', pct: 0.3, turns: 2 },
         ],
       },
       {
         id: 'strangling_growth', name: 'Strangling Growth',
         icon: 'assets/icons/fc1052.png',
-        description: 'Brambles climb them: 120% ATK, -12% SPD for 2 turns plus a 12% ATK bleed for 2 turns.',
+        description: 'Brambles climb them: 120% ATK, -12% SPD for 2 turns plus a 24% ATK bleed for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.2 },
           { type: 'debuff', stat: 'speed', mult: 0.88, turns: 2 },
-          { type: 'dot', pct: 0.12, turns: 2 },
+          { type: 'dot', pct: 0.24, turns: 2 },
         ],
       },
       {
@@ -1317,21 +1317,21 @@ Object.assign(HEROES, {
       {
         id: 'ember_shoulder', name: 'Ember Shoulder',
         icon: 'assets/icons/fc854.png',
-        description: 'A glowing check: 88% of DEF as damage plus an 8% ATK burn for 1 turn.',
+        description: 'A glowing check: 88% of DEF as damage plus an 16% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damageDef', mult: 0.88 },
-          { type: 'dot', pct: 0.08, turns: 1 },
+          { type: 'dot', pct: 0.16, turns: 1 },
         ],
       },
       {
         id: 'coal_bed_roll', name: 'Coal Bed Roll',
         icon: 'assets/icons/fc1050.png',
-        description: 'Roll through them trailing coals: 105% of DEF as damage to a hex row plus a 10% ATK burn for 1 turn.',
+        description: 'Roll through them trailing coals: 105% of DEF as damage to a hex row plus a 20% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy-row', animation: 'attack',
         effects: [
           { type: 'damageDef', mult: 1.05 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
       {

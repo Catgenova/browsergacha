@@ -20,11 +20,11 @@ Object.assign(HEROES, {
       {
         id: 'peck_and_tear', name: 'Peck & Tear',
         icon: 'assets/icons/fc746.png',
-        description: 'Rip for 90% ATK and open a bleed: 12% ATK per turn for 2 turns.',
+        description: 'Rip for 90% ATK and open a bleed: 24% ATK per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.9 },
-          { type: 'dot', pct: 0.12, turns: 2 },
+          { type: 'dot', pct: 0.24, turns: 2 },
         ],
       },
       {
@@ -661,11 +661,11 @@ Object.assign(HEROES, {
       {
         id: 'bomb_toss', name: 'Bomb Toss',
         icon: 'assets/icons/fc981.png',
-        description: 'A lobbed charge: 85% ATK plus a 9% ATK burn for 1 turn.',
+        description: 'A lobbed charge: 85% ATK plus a 18% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.85 },
-          { type: 'dot', pct: 0.09, turns: 1 },
+          { type: 'dot', pct: 0.18, turns: 1 },
         ],
       },
       {
@@ -681,11 +681,11 @@ Object.assign(HEROES, {
       {
         id: 'powder_keg', name: 'Powder Keg',
         icon: 'assets/icons/fc1050.png',
-        description: 'The big one: 80% ATK to ALL enemies plus a 12% ATK burn for 1 turn.',
+        description: 'The big one: 80% ATK to ALL enemies plus a 24% ATK burn for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
-          { type: 'dot', pct: 0.12, turns: 1 },
+          { type: 'dot', pct: 0.24, turns: 1 },
         ],
       },
     ],
@@ -1176,11 +1176,11 @@ Object.assign(HEROES, {
       {
         id: 'sunward_spiral', name: 'Sunward Spiral',
         icon: 'assets/icons/fc1044.png',
-        description: 'Climb and fall burning: 170% ATK plus a 15% ATK burn for 2 turns.',
+        description: 'Climb and fall burning: 170% ATK plus a 30% ATK burn for 2 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.7 },
-          { type: 'dot', pct: 0.15, turns: 2 },
+          { type: 'dot', pct: 0.3, turns: 2 },
         ],
       },
     ],
@@ -1280,21 +1280,21 @@ Object.assign(HEROES, {
       {
         id: 'ember_wing', name: 'Ember Wing',
         icon: 'assets/icons/fc981.png',
-        description: 'A burning wingtip: 102% ATK plus a 10% ATK burn for 1 turn.',
+        description: 'A burning wingtip: 102% ATK plus a 20% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.02 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
       {
         id: 'immolating_embrace', name: 'Immolating Embrace',
         icon: 'assets/icons/fc1050.png',
-        description: 'Hold them close: 120% ATK plus a 35% ATK burn for 2 turns.',
+        description: 'Hold them close: 120% ATK plus a 70% ATK burn for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.2 },
-          { type: 'dot', pct: 0.35, turns: 2 },
+          { type: 'dot', pct: 0.7, turns: 2 },
         ],
       },
       {

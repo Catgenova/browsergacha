@@ -767,29 +767,29 @@ Object.assign(HEROES, {
       {
         id: 'torch_jab', name: 'Torch Jab',
         icon: 'assets/icons/fc981.png',
-        description: 'Thrust the brand: 90% ATK and a singe of 8% ATK for 1 turn.',
+        description: 'Thrust the brand: 90% ATK and a singe of 16% ATK for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.9 },
-          { type: 'dot', pct: 0.08, turns: 1 },
+          { type: 'dot', pct: 0.16, turns: 1 },
         ],
       },
       {
         id: 'set_alight', name: 'Set Alight',
         icon: 'assets/icons/fc1050.png',
-        description: 'Hit for 80% ATK and burn for 25% ATK per turn for 2 turns.',
+        description: 'Hit for 80% ATK and burn for 50% ATK per turn for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
-          { type: 'dot', pct: 0.25, turns: 2 },
+          { type: 'dot', pct: 0.5, turns: 2 },
         ],
       },
       {
         id: 'wall_of_flame', name: 'Wall of Flame',
         icon: 'assets/icons/fc1044.png',
-        description: 'Ignite ALL enemies: 20% ATK burn per turn for 2 turns.',
+        description: 'Ignite ALL enemies: 40% ATK burn per turn for 2 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
-        effects: [{ type: 'dot', pct: 0.20, turns: 2 }],
+        effects: [{ type: 'dot', pct: 0.4, turns: 2 }],
       },
     ],
     passive: {
@@ -1290,21 +1290,21 @@ Object.assign(HEROES, {
       {
         id: 'cinder_bolt', name: 'Cinder Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A searing bolt: 80% ATK plus a 10% ATK burn for 2 turns.',
+        description: 'A searing bolt: 80% ATK plus a 20% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
-          { type: 'dot', pct: 0.10, turns: 2 },
+          { type: 'dot', pct: 0.2, turns: 2 },
         ],
       },
       {
         id: 'immolate', name: 'Immolate',
         icon: 'assets/icons/fc1052.png',
-        description: 'Hit for 60% ATK and burn for 40% ATK per turn for 2 turns.',
+        description: 'Hit for 60% ATK and burn for 80% ATK per turn for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.6 },
-          { type: 'dot', pct: 0.40, turns: 2 },
+          { type: 'dot', pct: 0.8, turns: 2 },
         ],
       },
       {

@@ -359,21 +359,21 @@ const BOSSES = {
       {
         id: 'empress_fang', name: 'Empress Fang',
         icon: 'assets/icons/fc746.png',
-        description: 'A royal strike for 120% ATK that poisons for 30% ATK per turn (2 turns).',
+        description: 'A royal strike for 120% ATK that poisons for 60% ATK per turn (2 turns).',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.2 },
-          { type: 'dot', pct: 0.3, turns: 2 },
+          { type: 'dot', pct: 0.6, turns: 2 },
         ],
       },
       {
         id: 'venomous_deluge', name: 'Venomous Deluge',
         icon: 'assets/icons/fc1067.png',
-        description: 'Drench ALL heroes: 70% ATK plus poison for 35% ATK per turn (2 turns).',
+        description: 'Drench ALL heroes: 70% ATK plus poison for 70% ATK per turn (2 turns).',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.7 },
-          { type: 'dot', pct: 0.35, turns: 2 },
+          { type: 'dot', pct: 0.7, turns: 2 },
         ],
       },
       {

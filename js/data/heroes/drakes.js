@@ -21,21 +21,21 @@ Object.assign(HEROES, {
       {
         id: 'whelp_snap', name: 'Whelp Snap',
         icon: 'assets/icons/fc746.png',
-        description: 'An eager snap: 100% ATK plus a 5% ATK scorch for 1 turn.',
+        description: 'An eager snap: 100% ATK plus a 10% ATK scorch for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'dot', pct: 0.05, turns: 1 },
+          { type: 'dot', pct: 0.1, turns: 1 },
         ],
       },
       {
         id: 'practice_breath', name: 'Practice Breath',
         icon: 'assets/icons/fc1050.png',
-        description: 'Almost a real one: 127% ATK plus a 12% ATK burn for 1 turn.',
+        description: 'Almost a real one: 127% ATK plus a 24% ATK burn for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.27 },
-          { type: 'dot', pct: 0.12, turns: 1 },
+          { type: 'dot', pct: 0.24, turns: 1 },
         ],
       },
       {
@@ -90,11 +90,11 @@ Object.assign(HEROES, {
       {
         id: 'cinder_burst', name: 'Cinder Burst',
         icon: 'assets/icons/fc1044.png',
-        description: 'Kick up the embers: 118% ATK plus an 8% ATK burn for 2 turns.',
+        description: 'Kick up the embers: 118% ATK plus an 16% ATK burn for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.18 },
-          { type: 'dot', pct: 0.08, turns: 2 },
+          { type: 'dot', pct: 0.16, turns: 2 },
         ],
       },
       {
@@ -139,31 +139,31 @@ Object.assign(HEROES, {
       {
         id: 'wing_singe', name: 'Wing Singe',
         icon: 'assets/icons/fc981.png',
-        description: 'A brushing wing: 91% ATK plus an 11% ATK burn for 1 turn.',
+        description: 'A brushing wing: 91% ATK plus an 22% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.91 },
-          { type: 'dot', pct: 0.11, turns: 1 },
+          { type: 'dot', pct: 0.22, turns: 1 },
         ],
       },
       {
         id: 'cinder_dive', name: 'Cinder Dive',
         icon: 'assets/icons/fc763.png',
-        description: 'A glowing dive: 137% ATK plus a 16% ATK burn for 1 turn.',
+        description: 'A glowing dive: 137% ATK plus a 32% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.37 },
-          { type: 'dot', pct: 0.16, turns: 1 },
+          { type: 'dot', pct: 0.32, turns: 1 },
         ],
       },
       {
         id: 'trail_of_fire', name: 'Trail of Fire',
         icon: 'assets/icons/fc724.png',
-        description: 'Drag flame through a hex row: 78% ATK plus a 10% ATK burn for 1 turn.',
+        description: 'Drag flame through a hex row: 78% ATK plus a 20% ATK burn for 1 turn.',
         cooldown: 6, targeting: 'enemy-row', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.78 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
     ],
@@ -454,11 +454,11 @@ Object.assign(HEROES, {
       {
         id: 'molten_lick', name: 'Molten Lick',
         icon: 'assets/icons/fc981.png',
-        description: 'A dripping strike: 96% ATK plus a 13% ATK burn for 1 turn.',
+        description: 'A dripping strike: 96% ATK plus a 26% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.96 },
-          { type: 'dot', pct: 0.13, turns: 1 },
+          { type: 'dot', pct: 0.26, turns: 1 },
         ],
       },
       {
@@ -474,11 +474,11 @@ Object.assign(HEROES, {
       {
         id: 'molten_spit', name: 'Molten Spit',
         icon: 'assets/icons/fc1044.png',
-        description: 'Share the drink: 132% ATK plus a 19% ATK burn for 1 turn.',
+        description: 'Share the drink: 132% ATK plus a 38% ATK burn for 1 turn.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.32 },
-          { type: 'dot', pct: 0.19, turns: 1 },
+          { type: 'dot', pct: 0.38, turns: 1 },
         ],
       },
     ],
@@ -520,11 +520,11 @@ Object.assign(HEROES, {
       {
         id: 'vent_claw', name: 'Vent Claw',
         icon: 'assets/icons/fc1444.png',
-        description: 'A claw from the crack: 101% ATK plus a 7% ATK sear for 1 turn.',
+        description: 'A claw from the crack: 101% ATK plus a 14% ATK sear for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.01 },
-          { type: 'dot', pct: 0.07, turns: 1 },
+          { type: 'dot', pct: 0.14, turns: 1 },
         ],
       },
       {
@@ -586,11 +586,11 @@ Object.assign(HEROES, {
       {
         id: 'magma_press', name: 'Magma Press',
         icon: 'assets/icons/fc1476.png',
-        description: 'Press them into the flow: 136% ATK plus a 14% ATK burn for 2 turns.',
+        description: 'Press them into the flow: 136% ATK plus a 28% ATK burn for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.36 },
-          { type: 'dot', pct: 0.14, turns: 2 },
+          { type: 'dot', pct: 0.28, turns: 2 },
         ],
       },
       {
@@ -751,21 +751,21 @@ Object.assign(HEROES, {
       {
         id: 'charred_cut', name: 'Charred Cut',
         icon: 'assets/icons/fc1587.png',
-        description: 'A blackened edge: 110% ATK plus a 6% ATK burn for 2 turns.',
+        description: 'A blackened edge: 110% ATK plus a 12% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.1 },
-          { type: 'dot', pct: 0.06, turns: 2 },
+          { type: 'dot', pct: 0.12, turns: 2 },
         ],
       },
       {
         id: 'quench_strike', name: 'Quench Strike',
         icon: 'assets/icons/fc1447.png',
-        description: 'Steel meets flesh, hissing: 153% ATK plus a 12% ATK burn for 1 turn.',
+        description: 'Steel meets flesh, hissing: 153% ATK plus a 24% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.53 },
-          { type: 'dot', pct: 0.12, turns: 1 },
+          { type: 'dot', pct: 0.24, turns: 1 },
         ],
       },
       {
@@ -820,21 +820,21 @@ Object.assign(HEROES, {
       {
         id: 'pyroclastic_rush', name: 'Pyroclastic Rush',
         icon: 'assets/icons/fc744.png',
-        description: 'Too fast to outrun: 147% ATK plus a 13% ATK burn for 2 turns.',
+        description: 'Too fast to outrun: 147% ATK plus a 26% ATK burn for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.47 },
-          { type: 'dot', pct: 0.13, turns: 2 },
+          { type: 'dot', pct: 0.26, turns: 2 },
         ],
       },
       {
         id: 'burying_wave', name: 'Burying Wave',
         icon: 'assets/icons/fc1044.png',
-        description: 'The hillside arrives: 68% ATK to ALL enemies plus an 8% ATK burn for 1 turn.',
+        description: 'The hillside arrives: 68% ATK to ALL enemies plus an 16% ATK burn for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.68 },
-          { type: 'dot', pct: 0.08, turns: 1 },
+          { type: 'dot', pct: 0.16, turns: 1 },
         ],
       },
     ],
@@ -991,11 +991,11 @@ Object.assign(HEROES, {
       {
         id: 'glass_bite', name: 'Glass Bite',
         icon: 'assets/icons/fc1444.png',
-        description: 'Volcanic glass, applied: 113% ATK plus an 8% ATK bleed for 1 turn.',
+        description: 'Volcanic glass, applied: 113% ATK plus an 16% ATK bleed for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.13 },
-          { type: 'dot', pct: 0.08, turns: 1 },
+          { type: 'dot', pct: 0.16, turns: 1 },
         ],
       },
       {
@@ -1059,11 +1059,11 @@ Object.assign(HEROES, {
       {
         id: 'spit_slag', name: 'Spit Slag',
         icon: 'assets/icons/fc981.png',
-        description: 'Molten leavings: 128% ATK plus a 17% ATK burn for 1 turn.',
+        description: 'Molten leavings: 128% ATK plus a 34% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.28 },
-          { type: 'dot', pct: 0.17, turns: 1 },
+          { type: 'dot', pct: 0.34, turns: 1 },
         ],
       },
       {
@@ -1172,31 +1172,31 @@ Object.assign(HEROES, {
       {
         id: 'caldera_claim', name: 'Caldera Claim',
         icon: 'assets/icons/fc746.png',
-        description: 'Rent is due: 118% ATK plus a 7% ATK burn for 1 turn.',
+        description: 'Rent is due: 118% ATK plus a 14% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.18 },
-          { type: 'dot', pct: 0.07, turns: 1 },
+          { type: 'dot', pct: 0.14, turns: 1 },
         ],
       },
       {
         id: 'crater_slam', name: 'Crater Slam',
         icon: 'assets/icons/fc767.png',
-        description: 'Bring the rim down: 144% ATK to a hex row plus a 9% ATK burn for 1 turn.',
+        description: 'Bring the rim down: 144% ATK to a hex row plus a 18% ATK burn for 1 turn.',
         cooldown: 5, targeting: 'enemy-row', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.44 },
-          { type: 'dot', pct: 0.09, turns: 1 },
+          { type: 'dot', pct: 0.18, turns: 1 },
         ],
       },
       {
         id: 'eruption_decree', name: 'Eruption Decree',
         icon: 'assets/icons/fc1044.png',
-        description: 'The mountain rules in his favor: 84% ATK to ALL enemies plus a 12% ATK burn for 2 turns.',
+        description: 'The mountain rules in his favor: 84% ATK to ALL enemies plus a 24% ATK burn for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.84 },
-          { type: 'dot', pct: 0.12, turns: 2 },
+          { type: 'dot', pct: 0.24, turns: 2 },
         ],
       },
     ],
@@ -1358,21 +1358,21 @@ Object.assign(HEROES, {
       {
         id: 'hellfire_rake', name: 'Hellfire Rake',
         icon: 'assets/icons/fc981.png',
-        description: 'Claws that remember the deep fire: 114% ATK plus a 10% ATK burn for 1 turn.',
+        description: 'Claws that remember the deep fire: 114% ATK plus a 20% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.14 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
       {
         id: 'scale_shrapnel', name: 'Scale Shrapnel',
         icon: 'assets/icons/fc1044.png',
-        description: 'Shed burning scales: 96% ATK to a hex row plus a 7% ATK burn for 1 turn.',
+        description: 'Shed burning scales: 96% ATK to a hex row plus a 14% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy-row', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.96 },
-          { type: 'dot', pct: 0.07, turns: 1 },
+          { type: 'dot', pct: 0.14, turns: 1 },
         ],
       },
       {
