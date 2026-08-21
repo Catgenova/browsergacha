@@ -230,18 +230,21 @@ const Gear = (() => {
     resistance: { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'Resistance' },
   };
 
-  function rollValue(t) {
-    const v = t.roll[0] + Math.random() * (t.roll[1] - t.roll[0]);
+  // `rand` lets a caller supply its own source. The campaign builds enemy
+  // gear from a hash of the node id, so the fight you lost to is the
+  // fight you come back to -- substats included.
+  function rollValue(t, rand = Math.random) {
+    const v = t.roll[0] + rand() * (t.roll[1] - t.roll[0]);
     return t.pct ? Math.round(v * 100) / 100 : Math.round(v);
   }
 
   // Add a new substat the piece doesn't already have.
-  function rollSub(piece) {
+  function rollSub(piece, rand = Math.random) {
     const taken = new Set(piece.subs.map((s) => s.stat));
     const open = Object.keys(SUB_POOL).filter((k) => !taken.has(k));
     if (open.length === 0) return null;
-    const stat = open[Math.floor(Math.random() * open.length)];
-    const sub = { stat, value: rollValue(SUB_POOL[stat]) };
+    const stat = open[Math.floor(rand() * open.length)];
+    const sub = { stat, value: rollValue(SUB_POOL[stat], rand) };
     piece.subs.push(sub);
     return sub;
   }
@@ -491,7 +494,7 @@ const Gear = (() => {
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
     baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
-    rerollCost, rollSubValues, subsScore,
+    rerollCost, rollSubValues, subsScore, rollSub,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,
   };
 })();

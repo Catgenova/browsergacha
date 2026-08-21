@@ -413,6 +413,52 @@ test('every quest names a real counter and pays something', () => {
   }
 });
 
+test('the campaign difficulty tiers climb the way they are advertised', () => {
+  const { Campaign, CAMPAIGN, Gear } = g;
+  const chapters = CAMPAIGN.CHAPTERS;
+  const first = chapters[0];
+  const last = chapters[chapters.length - 1];
+  const waveOf = (ch) => ch.nodes.find((n) => n.type === 'skirmish' || n.type === undefined)
+    || ch.nodes.find((n) => n.type !== 'boss');
+
+  for (const [tierId, from, to] of [['hard', 50, 80], ['expert', 80, 100]]) {
+    assert(Campaign.levelFor(waveOf(first), tierId) === from,
+      `${tierId} should start at Lv ${from}, got ${Campaign.levelFor(waveOf(first), tierId)}`);
+    assert(Campaign.levelFor(waveOf(last), tierId) === to,
+      `${tierId} should end at Lv ${to}, got ${Campaign.levelFor(waveOf(last), tierId)}`);
+
+    // Monotonic across the chapters, and the holder rides the same band.
+    let prev = 0;
+    for (const ch of chapters) {
+      const lv = Campaign.levelFor(waveOf(ch), tierId);
+      assert(lv >= prev, `${tierId}: ${ch.id} drops to Lv ${lv} from ${prev}`);
+      prev = lv;
+      const boss = Campaign.bossNode(ch);
+      assert(Campaign.levelFor(boss, tierId) === lv,
+        `${tierId}: ${ch.id} holder is Lv ${Campaign.levelFor(boss, tierId)}, wave is Lv ${lv}`);
+      // Every hex filled, and a full set of gear that can hold its level.
+      assert(Campaign.sizeFor(waveOf(ch), tierId) === 7,
+        `${tierId}: ${ch.id} fields ${Campaign.sizeFor(waveOf(ch), tierId)}, not a full formation`);
+      const worn = Campaign.gearFor(waveOf(ch), tierId, HEROES.rat_archer);
+      assert(worn.length === Gear.SLOTS.length, `${tierId}: ${ch.id} gear has ${worn.length} pieces`);
+      for (const piece of worn) {
+        assert(piece.level <= Gear.RARITIES[piece.rarity].maxLevel,
+          `${tierId}: ${ch.id} ${piece.rarity} piece at Lv ${piece.level} exceeds its cap`);
+      }
+    }
+  }
+
+  // Normal is untouched: the tiers are a re-run, not a re-tuning.
+  assert(Campaign.sizeFor(waveOf(first), 'normal') < 7, 'normal now fields a full formation');
+  assert(Campaign.gearFor(waveOf(first), 'normal', HEROES.rat_archer).length === 0,
+    'normal enemies were handed gear');
+
+  // Deterministic: the fight you lost to is the fight you come back to.
+  const a = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
+  const b2 = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
+  assert(a === b2, 'enemy gear is not stable between reads');
+});
+
 test('every quest and achievement reward can be shown and paid', () => {
   // A reward the label function does not know about renders as an empty
   // column, and one the grant function does not know about pays nothing
