@@ -80,8 +80,9 @@ class ImproveScreen {
         <canvas class="imp-portrait" width="40" height="40"></canvas>
         <div class="imp-row-text">
           <div class="imp-row-name">${Elements.badge(r.def.element)} ${r.def.name}</div>
-          <div class="imp-row-sub">Lv ${r.pr.level} · ${'★'.repeat(Math.min(5, r.pr.stars))}${
-            r.pr.stars > 5 ? `+${r.pr.stars - 5}` : ''}${same > 1 ? ` · ×${same}` : ''}</div>
+          <div class="imp-row-sub">Lv ${r.pr.level} · ${
+            Attune.starsHtml(r.pr.stars, r.pr.attune, r.def.element)}${
+            same > 1 ? ` · ×${same}` : ''}</div>
         </div>
         ${ready ? '<span class="imp-ready">★⬆</span>' : ''}
       </div>`;
@@ -156,8 +157,8 @@ class ImproveScreen {
 
     this.detailEl.innerHTML = `
       <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}</div>
-      <div class="imp-sub">Lv ${pr.level} / ${cap} &middot; ${'★'.repeat(Math.min(5, pr.stars))}${
-        pr.stars > 5 ? `+${pr.stars - 5}` : ''} &middot; ${pr.stars}&#9733;</div>
+      <div class="imp-sub">Lv ${pr.level} / ${cap} &middot; ${
+        Attune.starsHtml(pr.stars, pr.attune, def.element)} &middot; ${pr.stars}&#9733;</div>
 
       <div class="imp-section">Star up</div>
       <div class="imp-line">${canStar}</div>
@@ -168,6 +169,8 @@ class ImproveScreen {
         ? `${skillPicks} sacrifice${skillPicks > 1 ? 's' : ''} of ${def.name} \u2014 ` +
           `${skillPicks} random skill level${skillPicks > 1 ? 's' : ''}.`
         : 'Sacrifice another ' + def.name + ' to raise a random skill.'}</div>
+
+      ${this.attuneHtml(uid, def, pr)}
 
       <div class="imp-section">Sacrifices ${options.length
         ? `<span class="imp-note">${picked.length} chosen</span>` : ''}</div>
@@ -201,6 +204,55 @@ class ImproveScreen {
     if (go && !go.disabled) {
       go.addEventListener('click', () => this.commit(uid));
     }
+
+    const att = document.getElementById('imp-attune');
+    if (att && !att.disabled) {
+      att.addEventListener('click', () => {
+        const r = GameState.attune(uid);
+        if (!r) return;
+        const info = Elements.info(r.element);
+        this.message = `${def.name} is attuned to ${r.to} ` +
+          `(+${r.to * 10}% base stats)${info ? `, ${info.name}` : ''}.`;
+        if (typeof Sound !== 'undefined') Sound.play('levelup');
+        this.refresh();
+      });
+    }
+  }
+
+  // Attunement: capped by the star rating, paid for in the hero's own
+  // element, and shown as coloured stars because that is where it lands.
+  attuneHtml(uid, def, pr) {
+    const info = Elements.info(def.element);
+    const have = pr.attune || 0;
+    const room = Math.min(Attune.MAX, pr.stars);
+    const next = GameState.nextAttunement(uid);
+    const purse = GameState.elementsOf(def.element);
+
+    const stars = Array.from({ length: pr.stars }, (_, i) =>
+      `<span class="imp-star" style="color:${i < have && info ? info.color : '#4a4468'}">&#9733;</span>`
+    ).join('');
+
+    const held = Attune.SIZES.map((size) =>
+      `<span class="imp-purse"><b>${purse[size]}</b> ${Attune.SIZE_LABEL[size]}</span>`
+    ).join('');
+
+    let line;
+    if (have >= Attune.MAX) line = `Fully attuned &mdash; +${Attune.MAX * 10}% base stats.`;
+    else if (have >= room) {
+      line = `Attuned as far as ${pr.stars}&#9733; allows. Star up for more room.`;
+    } else if (next) {
+      line = `Next: <b>${next.n} ${Attune.SIZE_LABEL[next.size]}</b> ` +
+        `${info ? info.name : def.element} Elements (have ${next.held}).`;
+    }
+
+    return `
+      <div class="imp-section">Attunement
+        <span class="imp-note">${have}/${room} &middot; +${have * 10}% base stats</span></div>
+      <div class="imp-stars">${stars}</div>
+      <div class="imp-line">${line}</div>
+      <div class="imp-line imp-note">${info ? info.emoji : ''} ${held}</div>
+      ${next ? `<button id="imp-attune" class="panel-btn"
+        ${next.can ? '' : 'disabled'}>Attune to ${have + 1}</button>` : ''}`;
   }
 
   commit(uid) {

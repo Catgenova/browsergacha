@@ -23,6 +23,17 @@ class Unit {
     const scaled = (def.isBoss && def.stats5 && def.stats100)
       ? Progression.bossScaledStats(def, this.level)
       : Progression.scaledStats(def, this.level, this.stars);
+    // Attunement: +10% base stats per step, before gear. Speed is left
+    // alone deliberately -- a flat percentage on it would reorder the
+    // whole turn economy, and attunement is meant to be a power curve
+    // rather than a second speed stat.
+    this.attune = progress?.attune || 0;
+    if (this.attune > 0 && typeof Attune !== 'undefined') {
+      const m = Attune.statMult(this.attune);
+      scaled.hp = Math.round(scaled.hp * m);
+      scaled.atk = Math.round(scaled.atk * m);
+      scaled.def = Math.round(scaled.def * m);
+    }
     // `statScale` retunes one deployment of a unit without touching its
     // definition. The campaign uses it to hold its chapter holders to a
     // curve of their own: the boss roster is unevenly tuned relative to

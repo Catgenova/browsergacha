@@ -78,6 +78,18 @@
             </select>
             <button id="boss-btn" class="panel-btn danger" title="Take on the boss with your current team">Boss!</button>
           </div>
+          <div id="attune-controls">
+            <span class="wave-label">Attune:</span>
+            <select id="attune-select" title="Which elemental boss to challenge"></select>
+            <select id="attune-stage-select" title="Stage — clear one to unlock the next"></select>
+            <select id="attune-repeat-select" title="Repeats unlock once the stage is cleared">
+              <option value="1">×1</option>
+              <option value="3">×3</option>
+              <option value="5">×5</option>
+              <option value="10">×10</option>
+            </select>
+            <button id="attune-btn" class="panel-btn gold" title="Fight this element's boss for attunement materials">Attune!</button>
+          </div>
           <div id="tower-controls">
             <span class="wave-label">Tower:</span>
             <span id="tower-status"></span>
@@ -314,6 +326,7 @@
   <script src="js/sprites.js?v=__BUILD__"></script>
   <script src="js/abilities.js?v=__BUILD__"></script>
   <script src="js/progression.js?v=__BUILD__"></script>
+  <script src="js/attune.js?v=__BUILD__"></script>
   <script src="js/gear.js?v=__BUILD__"></script>
   <script src="js/hero.js?v=__BUILD__"></script>
   <script src="js/data/positionals.js?v=__BUILD__"></script>
@@ -331,6 +344,7 @@
   <script src="js/data/enemies.js?v=__BUILD__"></script>
   <script src="js/data/campaign.js?v=__BUILD__"></script>
   <script src="js/data/bosses.js?v=__BUILD__"></script>
+  <script src="js/data/elemental_bosses.js?v=__BUILD__"></script>
   <script src="js/data/effects.js?v=__BUILD__"></script>
   <script src="js/quests.js?v=__BUILD__"></script>
   <script src="js/state.js?v=__BUILD__"></script>

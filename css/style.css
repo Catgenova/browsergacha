@@ -537,6 +537,7 @@ body {
 
 #wave-controls,
 #boss-controls,
+#attune-controls,
 #tower-controls {
   display: flex;
   align-items: center;
@@ -549,7 +550,8 @@ body {
 }
 
 #wave-controls select,
-#boss-controls select {
+#boss-controls select,
+#attune-controls select {
   padding: 4px 6px;
   background: #2b2740;
   color: #e8e4d8;
@@ -558,6 +560,10 @@ body {
   font-family: inherit;
   font-size: 11px;
 }
+
+/* The attune stage option names what it pays, which runs long; cap it so
+   the row stays one line and let the option text ellipsis instead. */
+#attune-stage-select { max-width: min(330px, 100%); min-width: 0; }
 
 #team-count {
   flex: 1;
@@ -2069,7 +2075,11 @@ body {
   html.is-mobile #preset-controls,
   html.is-mobile #team-controls,
   html.is-mobile #wave-controls,
+  html.is-mobile #attune-controls,
   html.is-mobile #boss-controls { flex-wrap: wrap; }
+  /* The attune stage names its payout, which is far too long for a
+     phone; let it shrink rather than push the page sideways. */
+  html.is-mobile #attune-stage-select { flex: 1 1 160px; max-width: 100%; }
   html.is-mobile #preset-controls select { min-width: 0; flex: 1 1 120px; }
 
   html.is-mobile #ability-buttons { width: 100%; gap: 8px; }
@@ -2113,6 +2123,7 @@ body {
     font-size: 14px;
   }
   html.is-mobile #wave-controls,
+  html.is-mobile #attune-controls,
   html.is-mobile #boss-controls,
   html.is-mobile #tower-controls,
   html.is-mobile #team-controls,
@@ -2583,3 +2594,17 @@ html.is-mobile .sub-compare { font-size: 13px; }
   html.is-mobile .imp-row, html.is-mobile .imp-opt { min-height: 48px; }
   html.is-mobile #imp-detail { font-size: 14px; }
 }
+
+/* Attunement: the star row recoloured as it fills, and the element purse. */
+.imp-stars { font-size: 20px; letter-spacing: 3px; margin: 4px 0 6px; }
+.imp-star { text-shadow: 0 0 6px currentColor; }
+.imp-purse {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 1px 7px;
+  border: 1px solid #3a3450;
+  border-radius: 3px;
+}
+.imp-purse b { color: #e8e4d8; }
+#imp-attune { margin-top: 8px; width: 100%; }
+.star-attuned { text-shadow: 0 0 5px currentColor; }
