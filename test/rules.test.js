@@ -6,7 +6,7 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle } = g;
+  Battle, GameState } = g;
 
 // A battle stand-in: enough surface for hooks that reach for the field.
 function makeBattle() {
@@ -131,12 +131,47 @@ test('AI profiles pick an ability and a target for every race', () => {
   assert(broken.length === 0, broken.slice(0, 4).join(' | '));
 });
 
-test('bosses fight as tyrants and player heroes stay predictable', () => {
+test('bosses fight as tyrants and player heroes fight to the tactics', () => {
   const battle = makeBattle();
   const boss = new Unit(Object.values(BOSSES)[0], TEAM.ENEMY, { level: 50, stars: 5 });
   assert(AI.profileFor(boss).name === 'Tyrant', 'boss is not a tyrant');
   const hero = place(battle, HEROES.rat_archer, TEAM.PLAYER, 1);
-  assert(AI.profileFor(hero).name === 'Balanced', 'player hero is not balanced on auto');
+  assert(AI.profileFor(hero).name === 'Your tactics',
+    'player hero is not using the player tactics on auto');
+
+  // Every option in every axis has to resolve to something the engine
+  // can call, or a saved tactic silently falls back mid-fight.
+  const foes = [place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1),
+    place(battle, HEROES.rat_knight, TEAM.ENEMY, 4)];
+  for (const opt of AI.TACTICS.target) {
+    GameState.setTactic('target', opt.id);
+    const picked = AI.profileFor(hero).focus(foes, hero, battle);
+    assert(foes.includes(picked), `target tactic ${opt.id} chose nobody`);
+  }
+  GameState.setTactic('target', 'lowest');
+
+  const abilities = hero.abilities;
+  for (const opt of AI.TACTICS.skills) {
+    GameState.setTactic('skills', opt.id);
+    const chosen = AI.profileFor(hero).pick(abilities, hero, battle);
+    assert(abilities.includes(chosen), `skill tactic ${opt.id} chose nothing`);
+  }
+  // Basics only really means basics: never a cooldown when one is free.
+  GameState.setTactic('skills', 'basic');
+  assert(AI.profileFor(hero).pick(abilities, hero, battle).def.cooldown === 0,
+    'basics-only spent a cooldown');
+  GameState.setTactic('skills', 'burst');
+
+  for (const opt of AI.TACTICS.support) {
+    GameState.setTactic('support', opt.id);
+    assert(AI.healThreshold(hero) === opt.threshold,
+      `support tactic ${opt.id} did not move the heal threshold`);
+  }
+  GameState.setTactic('support', 'hurt');
+  // Enemies are never steered by the player's tactics.
+  GameState.setTactic('support', 'always');
+  assert(AI.healThreshold(boss) === 0.8, 'player tactics leaked onto the enemy AI');
+  GameState.setTactic('support', 'hurt');
 });
 
 test('gear scoring prefers the piece that suits the hero', () => {

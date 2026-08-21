@@ -231,17 +231,28 @@ body {
   cursor: default;
 }
 
-#auto-btn {
+/* One bar across the top of the canvas: Retreat on the left, the
+   auto-battle controls on the right. Absolutely positioned buttons got
+   as far as three; a fourth had nowhere to go that did not collide with
+   Retreat when it arms and grows. */
+#battle-controls-row {
   position: absolute;
   top: 10px;
+  left: 10px;
   right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 4;
+  /* The board underneath stays clickable between the buttons. */
+  pointer-events: none;
 }
 
-#speed-btn {
-  position: absolute;
-  top: 10px;
-  right: 106px;
-}
+#battle-controls-row .panel-btn { pointer-events: auto; }
+
+#retreat-btn { order: 0; margin-right: auto; }
+#tactics-btn { order: 1; }
+#speed-btn { order: 2; }
+#auto-btn { order: 3; }
 
 #speed-btn.auto-on {
   background: #4d4530;
@@ -1693,9 +1704,8 @@ body {
 
 /* Retreat sits beside Auto; the armed state is unmistakable. */
 #retreat-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  /* Placed by #battle-controls-row's flex bar. */
+  white-space: nowrap;
 }
 #retreat-btn.armed {
   background: #6a2020;
@@ -1983,7 +1993,9 @@ body {
     order: 2;
     position: static;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    pointer-events: auto;
   }
   html.is-mobile #ability-bar {
     order: 3;
@@ -1994,11 +2006,14 @@ body {
   }
   html.is-mobile #auto-btn,
   html.is-mobile #speed-btn,
+  html.is-mobile #tactics-btn,
   html.is-mobile #retreat-btn {
     position: static;
     flex: 1 1 auto;
     min-height: 44px;
   }
+  /* Stacked in flow on a phone: no auto-margin gap, just an even row. */
+  html.is-mobile #retreat-btn { margin-right: 0; }
   html.is-mobile #ability-buttons { width: 100%; gap: 8px; }
   html.is-mobile .ability-btn {
     flex: 1 1 0;
@@ -2194,6 +2209,55 @@ html.is-mobile .sum-k { font-size: 11px; }
 .sub-arrow.down, .sub-new.down { color: #ff9a8a; }
 .sub-new { color: #e8e4d8; }
 html.is-mobile .sub-compare { font-size: 13px; }
+
+/* ==== Auto-battle tactics ==== */
+#tactics-panel {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  background: rgba(20, 18, 30, 0.96);
+  border: 2px solid #5a5078;
+  border-radius: 8px;
+  z-index: 5;
+}
+
+.tactic-row { margin-bottom: 12px; }
+.tactic-row:last-child { margin-bottom: 0; }
+.tactic-row label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a92b8;
+  margin-bottom: 4px;
+}
+.tactic-row select {
+  width: 100%;
+  padding: 6px 8px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #6a5f96;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 12px;
+}
+.tactic-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8d86a8;
+}
+
+@media (max-width: 899px) {
+  html.is-mobile #tactics-panel { width: 92%; }
+  html.is-mobile .tactic-row select { min-height: 40px; font-size: 14px; }
+  html.is-mobile .tactic-hint { font-size: 13px; }
+}
 
 /* ==== First-run tour ==== */
 /* Fixed to the viewport rather than parented into #game-root, because

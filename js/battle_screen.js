@@ -64,6 +64,20 @@ class BattleScreen {
       this.setSpeed(this.speed === 1 ? 3 : 1);
     });
 
+    // Auto-battle tactics: three decisions the AI used to make for the
+    // player. Changes apply to the fight in progress, not just the next
+    // one — the point is being able to react to a fight going badly.
+    this.tacticsPanel = document.getElementById('tactics-panel');
+    const tacticsBtn = document.getElementById('tactics-btn');
+    if (tacticsBtn && this.tacticsPanel) {
+      tacticsBtn.addEventListener('click', () => {
+        const open = this.tacticsPanel.classList.toggle('hidden');
+        if (!open) this.renderTactics();
+      });
+      document.getElementById('tactics-close').addEventListener('click',
+        () => this.tacticsPanel.classList.add('hidden'));
+    }
+
 
     // Damage meter: which contribution to show, over what stretch.
     this.meterKind = 'damage';
@@ -143,6 +157,36 @@ class BattleScreen {
   // you are watching and useless when a chain has been grinding in
   // another tab. This keeps the most recent result on the battle screen
   // until the next one replaces it.
+  // Paint the tactics panel from AI.TACTICS, so a new option shows up
+  // here the moment it exists rather than needing a second edit.
+  renderTactics() {
+    const rows = document.getElementById('tactics-rows');
+    if (!rows) return;
+    const current = AI.tactics();
+    const AXES = [
+      ['target', 'Who to hit'],
+      ['skills', 'When to spend skills'],
+      ['support', 'When to heal'],
+    ];
+    rows.innerHTML = AXES.map(([key, label]) => {
+      const opts = AI.TACTICS[key].map((o) =>
+        `<option value="${o.id}"${o.id === current[key] ? ' selected' : ''}>` +
+        `${o.name}</option>`).join('');
+      const hint = (AI.TACTICS[key].find((o) => o.id === current[key]) || {}).hint || '';
+      return `<div class="tactic-row">
+        <label>${label}</label>
+        <select data-axis="${key}">${opts}</select>
+        <div class="tactic-hint">${hint}</div>
+      </div>`;
+    }).join('');
+    rows.querySelectorAll('select').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        GameState.setTactic(sel.dataset.axis, sel.value);
+        this.renderTactics();
+      });
+    });
+  }
+
   recordResult(winner, lines) {
     const what = this.campaignFight
       ? (() => {

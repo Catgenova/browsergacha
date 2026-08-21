@@ -177,6 +177,8 @@ const GameState = (() => {
     arcana: 0,                           // enchanting currency
     tomes: 0,                            // skill-leveling currency (tower only)
     onboarded: false,                    // has the first-run tour been seen?
+    // Autobattle policy: see AI.TACTICS in js/ai.js.
+    tactics: { target: 'lowest', skills: 'burst', support: 'hurt' },
   };
 
   function freshEntry(heroId) {
@@ -258,6 +260,10 @@ const GameState = (() => {
     if (!loaded.arcana) loaded.arcana = 0;
     if (!loaded.tomes) loaded.tomes = 0;
     if (loaded.onboarded === undefined) loaded.onboarded = false;
+    if (!loaded.tactics) loaded.tactics = { target: 'lowest', skills: 'burst', support: 'hurt' };
+    if (!loaded.tactics.target) loaded.tactics.target = 'lowest';
+    if (!loaded.tactics.skills) loaded.tactics.skills = 'burst';
+    if (!loaded.tactics.support) loaded.tactics.support = 'hurt';
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     if (!loaded.quests) loaded.quests = {};
     if (!loaded.achievements) loaded.achievements = {};
@@ -299,6 +305,14 @@ const GameState = (() => {
     // ---- First-run tour ----
     get onboarded() { return !!state.onboarded; },
     setOnboarded(v) { state.onboarded = !!v; save(); },
+
+    // ---- Autobattle tactics ----
+    get tactics() { return state.tactics; },
+    setTactic(key, value) {
+      if (!state.tactics) state.tactics = {};
+      state.tactics[key] = value;
+      save();
+    },
 
     // ---- Summon scrolls ----
     get scrollsCommon() { return state.scrollsCommon; },

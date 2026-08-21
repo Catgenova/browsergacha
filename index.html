@@ -212,6 +212,7 @@
         <div id="battle-controls-row">
           <button id="auto-btn" class="panel-btn" title="Let your heroes fight automatically">Auto: OFF</button>
           <button id="speed-btn" class="panel-btn hidden" title="Battle speed (auto-battle only)">Speed: 1×</button>
+          <button id="tactics-btn" class="panel-btn" title="How your heroes fight on auto">Tactics</button>
           <button id="retreat-btn" class="panel-btn danger" title="Abandon this fight — no rewards, and any repeat chain stops">Retreat</button>
         </div>
 
@@ -220,6 +221,12 @@
           <div id="active-hero-name"></div>
           <div id="ability-buttons"></div>
           <div id="target-hint" class="hidden">Select a target…</div>
+        </div>
+
+        <!-- Auto-battle tactics: how the party picks abilities and targets -->
+        <div id="tactics-panel" class="hidden">
+          <div class="legend-head">Auto-battle tactics<button id="tactics-close">✕</button></div>
+          <div id="tactics-rows"></div>
         </div>
 
         <!-- Status legend: what the nameplate pips mean -->

@@ -8,8 +8,10 @@
 //   focus(enemies, unit, battle)    -> who to point it at
 //
 // Profiles are assigned by race, with bosses naming their own. The
-// player's own heroes on autobattle use the balanced default, so
-// autobattle stays predictable.
+// player's own heroes on autobattle used to be locked to the balanced
+// default; they now fight to the player's own tactics (see TACTICS
+// below), which is the difference between autobattle being a way to skip
+// a fight and autobattle being a way to play one.
 
 const AI = (() => {
   const byHp = (a, b) => a.hp - b.hp;
@@ -166,6 +168,104 @@ const AI = (() => {
     },
   };
 
+  // ---- Player tactics -----------------------------------------------------
+  //
+  // Autobattle used to borrow the enemy AI's balanced profile, which
+  // meant every hero on auto fired its longest cooldown at whoever had
+  // the least HP left, forever. These are the three decisions worth
+  // handing to the player, and each one maps onto a real branch below.
+
+  const isHealer = (u) => (u.abilities || []).some((a) =>
+    a.def.effects.some((x) => x.type === 'heal' || x.type === 'healHpPct' ||
+      x.type === 'hot' || x.type === 'revive'));
+  const inFront = (u) => u.isBoss || (u.slot && u.slot.position === POSITION.FRONT);
+
+  const FOCUS = {
+    lowest: (e) => e.slice().sort(byHp)[0],
+    softest: (e) => softest(e),
+    healers: (e) => {
+      const healers = e.filter(isHealer);
+      return softest(healers.length ? healers : e);
+    },
+    threat: (e) => e.slice().sort((a, b) =>
+      b.effectiveStat('atk') - a.effectiveStat('atk'))[0],
+    front: (e) => {
+      const front = e.filter(inFront);
+      return (front.length ? front : e).slice().sort(byHp)[0];
+    },
+  };
+
+  const TACTICS = {
+    target: [
+      { id: 'lowest', name: 'Finish the wounded',
+        hint: 'Whoever has the least HP left.' },
+      { id: 'softest', name: 'Squishiest first',
+        hint: 'Lowest effective HP once DEF is counted -- who actually dies soonest.' },
+      { id: 'healers', name: 'Healers first',
+        hint: 'Cut the supports out before the damage, when the line lets you through.' },
+      { id: 'threat', name: 'Biggest attacker',
+        hint: 'Break the highest ATK on the board first.' },
+      { id: 'front', name: 'Front line first',
+        hint: 'Chew through the wall before going looking for the back row.' },
+    ],
+    skills: [
+      { id: 'burst', name: 'Spend skills freely',
+        hint: 'Always fire the longest cooldown that is up.' },
+      { id: 'boss', name: 'Hold big skills for bosses',
+        hint: '4+ turn cooldowns are saved until a boss is on the field.' },
+      { id: 'basic', name: 'Basics only',
+        hint: 'Never spend a cooldown. Slower, but nothing is wasted on trash.' },
+    ],
+    support: [
+      { id: 'hurt', name: 'Heal below 80%', threshold: 0.8,
+        hint: 'Top the party up early.' },
+      { id: 'low', name: 'Heal below 50%', threshold: 0.5,
+        hint: 'Hold heals until they are worth their full value.' },
+      { id: 'always', name: 'Heal whenever it is up', threshold: 1.01,
+        hint: 'Overheals and all -- for heal-scaling kits.' },
+    ],
+  };
+
+  const DEFAULT_TACTICS = { target: 'lowest', skills: 'burst', support: 'hurt' };
+
+  function tactics() {
+    const saved = typeof GameState !== 'undefined' ? GameState.tactics : null;
+    return { ...DEFAULT_TACTICS, ...(saved || {}) };
+  }
+
+  // The HP fraction below which an ally counts as worth healing. Enemies
+  // keep the old fixed threshold; only the player's tactics move it.
+  function healThreshold(unit) {
+    if (!unit || unit.team !== TEAM.PLAYER) return 0.8;
+    const id = tactics().support;
+    const opt = TACTICS.support.find((o) => o.id === id);
+    return opt ? opt.threshold : 0.8;
+  }
+
+  // Build the player's profile from the current tactics.
+  function playerProfile() {
+    const t = tactics();
+    const focus = FOCUS[t.target] || FOCUS.lowest;
+    return withThreat({
+      name: 'Your tactics',
+      pick: (candidates, unit, battle) => {
+        let pool = candidates;
+        if (t.skills === 'basic') {
+          const basics = candidates.filter((a) => a.def.cooldown === 0);
+          if (basics.length) pool = basics;
+        } else if (t.skills === 'boss') {
+          const bossHere = battle.livingUnits(unit.enemyTeam()).some((u) => u.isBoss);
+          if (!bossHere) {
+            const cheap = candidates.filter((a) => a.def.cooldown < 4);
+            if (cheap.length) pool = cheap;
+          }
+        }
+        return pool.slice().sort(longestCd)[0];
+      },
+      focus,
+    });
+  }
+
   // Which profile a unit fights with.
   const BY_RACE = {
     rat: 'scavenger', avian: 'stooper', cat: 'stooper',
@@ -192,8 +292,8 @@ const AI = (() => {
   }
 
   function profileFor(unit) {
-    // The player's heroes always use the predictable baseline on auto.
-    if (unit.team === TEAM.PLAYER) return withThreat(PROFILES.balanced);
+    // The player's heroes fight to the player's tactics on auto.
+    if (unit.team === TEAM.PLAYER) return playerProfile();
     if (unit.def && unit.def.ai && PROFILES[unit.def.ai]) {
       return withThreat(PROFILES[unit.def.ai]);
     }
@@ -202,5 +302,6 @@ const AI = (() => {
     return withThreat(PROFILES[BY_RACE[race]] || PROFILES.balanced);
   }
 
-  return { PROFILES, BY_RACE, profileFor, reachable, taunting };
+  return { PROFILES, BY_RACE, profileFor, reachable, taunting,
+    TACTICS, DEFAULT_TACTICS, tactics, healThreshold, playerProfile };
 })();
