@@ -205,6 +205,7 @@ const GameState = (() => {
     // Keyed by an instance id, not a hero id: the same character can
     // stand in the roster many times over, and each one is its own hero.
     roster: {},
+    storage: {},  // parked heroes: same entries, no gear, out of play
     nextHeroUid: 1,
     team: {},                            // slotIndex (0-6) -> roster uid
     pity: 0,                             // pulls since last 5★
@@ -239,8 +240,11 @@ const GameState = (() => {
   };
 
   // The most heroes the roster will hold. Star-ups and skill-ups eat
-  // heroes, so the cap is what makes those sinks matter.
+  // heroes, so the cap is what makes those sinks matter. The storage
+  // vault holds the overflow: heroes parked there are out of play (no
+  // team, no sacrifices) and go in stripped of gear.
   const MAX_ROSTER = 200;
+  const MAX_STORAGE = 1000;
 
   function freshEntry(heroId) {
     const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
@@ -346,6 +350,7 @@ const GameState = (() => {
       if (entry.favorite === undefined) entry.favorite = false;
       if (entry.attune === undefined) entry.attune = 0;
     }
+    if (!loaded.storage) loaded.storage = {};
     if (!loaded.elements) loaded.elements = {};
     if (!loaded.attuneStages) loaded.attuneStages = {};
     if (!loaded.attuneSettings) {
@@ -442,6 +447,41 @@ const GameState = (() => {
     rosterCount() { return Object.keys(state.roster).length; },
     rosterFull() { return this.rosterCount() >= MAX_ROSTER; },
     rosterSpace() { return Math.max(0, MAX_ROSTER - this.rosterCount()); },
+
+    // ---- Hero storage ----
+    // A vault beside the roster. Depositing strips the hero's gear back
+    // into the inventory (the vault stores heroes, not kits) and takes
+    // them out of play until withdrawn; withdrawing needs roster room.
+    MAX_STORAGE,
+    storageCount() { return Object.keys(state.storage).length; },
+    storageFull() { return this.storageCount() >= MAX_STORAGE; },
+    storedHeroIds() { return Object.keys(state.storage); },
+    storedEntry(uid) {
+      const e = state.storage[uid];
+      return e ? { ...e } : null;
+    },
+    deposit(uid) {
+      const e = state.roster[uid];
+      if (!e || this.storageFull()) return null;
+      if (this.teamSlotOf(uid) !== null) return null; // fielded heroes stay
+      let gearFreed = 0;
+      for (const slot of Object.keys(e.equipment || {})) {
+        this.unequipGear(uid, slot);
+        gearFreed++;
+      }
+      state.storage[uid] = e;
+      delete state.roster[uid];
+      save();
+      return { uid, gearFreed };
+    },
+    withdraw(uid) {
+      const e = state.storage[uid];
+      if (!e || this.rosterFull()) return null;
+      state.roster[uid] = e;
+      delete state.storage[uid];
+      save();
+      return { uid };
+    },
 
     addHero(heroId) {
       if (this.rosterFull()) return null;
