@@ -684,6 +684,22 @@ const ACHIEVEMENTS = (() => {
     }
   }
 
+  // Divvy: the whole lifetime book pays about thirty thousand Diamonds
+  // all told. Whatever the entries above add up to, they are rescaled
+  // proportionally onto that budget (floor of 5 per quest), so adding
+  // more quests later spreads the same pot thinner instead of inflating
+  // it.
+  const DIAMOND_BUDGET = 30000;
+  const diamondTotal = LIST.reduce((n, a) => n + (a.reward.diamonds || 0), 0);
+  if (diamondTotal > 0) {
+    for (const a of LIST) {
+      if (a.reward.diamonds) {
+        a.reward = { diamonds: Math.max(5,
+          Math.round(a.reward.diamonds * DIAMOND_BUDGET / diamondTotal)) };
+      }
+    }
+  }
+
   const REWARD_LABEL = {
     common: '📜 Common Scroll', rare: '✨ Rare Scroll', temporal: '🌀 Temporal Scroll',
     whetstones: '🪨 Whetstones', arcana: '✦ Arcana', diamonds: '💎 Diamonds',
