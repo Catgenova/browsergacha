@@ -113,6 +113,7 @@ class ImproveScreen {
 
     this.listEl.innerHTML = rows.map((r) => {
       const ready = GameState.starUpAffordable(r.uid);
+      const fielded = GameState.teamSlotOf(r.uid) !== null;
       return `<div class="imp-row${r.uid === this.selected ? ' selected' : ''}"
            data-uid="${r.uid}">
         <canvas class="imp-portrait" width="40" height="40"></canvas>
@@ -121,6 +122,7 @@ class ImproveScreen {
           <div class="imp-row-sub">Lv ${r.pr.level} · ${
             Attune.starsHtml(r.pr.stars, r.pr.attune, r.def.element)}</div>
         </div>
+        ${fielded ? '<span class="imp-tag imp-team-tag">IN TEAM</span>' : ''}
         ${ready ? '<span class="imp-ready">★⬆</span>' : ''}
       </div>`;
     }).join('') || '<div class="imp-empty">No heroes match.</div>';
@@ -201,7 +203,9 @@ class ImproveScreen {
         `${Progression.maxLevel(pr.stars + 1)}; the level is kept.`;
 
     this.detailEl.innerHTML = `
-      <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}</div>
+      <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}${
+        GameState.teamSlotOf(uid) !== null
+          ? ' <span class="imp-tag imp-team-tag">IN TEAM</span>' : ''}</div>
       <div class="imp-sub">Lv ${pr.level} / ${cap} &middot; ${
         Attune.starsHtml(pr.stars, pr.attune, def.element)} &middot; ${pr.stars}&#9733;</div>
       ${Tags.html(def)}
@@ -221,7 +225,9 @@ class ImproveScreen {
       <button id="imp-go" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
         ${picked.length
           ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
-            `${willStar ? ' and star up' : ''}`
+            (willStar ? ' and star up'
+              : maxed ? ''
+              : ` — NO star up (${atRank}/${need} at ${pr.stars}★)`)
           : 'Choose sacrifices below'}
       </button>
       ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}
