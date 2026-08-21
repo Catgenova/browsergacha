@@ -137,6 +137,54 @@ class BattleScreen {
     this.app.showScreen('team');
   }
 
+  // What the last fight was and what it paid.
+  //
+  // The banner says all of this and then disappears, which is fine when
+  // you are watching and useless when a chain has been grinding in
+  // another tab. This keeps the most recent result on the battle screen
+  // until the next one replaces it.
+  recordResult(winner, lines) {
+    const what = this.campaignFight
+      ? (() => {
+        const node = Campaign.node(this.campaignFight.nodeId);
+        const ch = node && Campaign.chapterFor(node.id);
+        return ch ? `${ch.title} — ${node.name}` : 'Campaign';
+      })()
+      : this.bossFight
+        ? `${BOSSES[this.bossFight.bossId].name}, stage ${this.bossFight.stage}`
+        : this.towerFight
+          ? `Endless Tower, floor ${this.towerFight.floor}`
+          : `${CONFIG.LOCATION_NAMES[GameState.waveSettings.location] || 'Hunt'}` +
+            ` — stage ${GameState.waveSettings.stage}`;
+    this.lastResult = {
+      won: winner === TEAM.PLAYER,
+      what,
+      lines: lines.filter((l) => !/Next battle in|Climbing on in/.test(l)),
+      // A snapshot: the live ledger resets when the next fight starts.
+      damage: Meter.rows('damage', 'battle').list.slice(0, 5),
+      healing: Meter.rows('healing', 'battle').list.slice(0, 3),
+      at: this.clock || 0,
+    };
+    this.drawSummary();
+  }
+
+  drawSummary() {
+    const el = document.getElementById('battle-summary');
+    if (!el) return;
+    const r = this.lastResult;
+    if (!r) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    const bar = (rows) => rows.map((x) =>
+      `<span class="sum-hero">${x.name} <b>${x.value.toLocaleString()}</b></span>`).join('');
+    el.innerHTML =
+      `<div class="sum-head ${r.won ? 'won' : 'lost'}">` +
+        `<span class="sum-verdict">${r.won ? 'Victory' : 'Defeat'}</span>` +
+        `<span class="sum-what">${r.what}</span></div>` +
+      `<div class="sum-lines">${r.lines.join('<br>')}</div>` +
+      (r.damage.length ? `<div class="sum-row"><span class="sum-k">Damage</span>${bar(r.damage)}</div>` : '') +
+      (r.healing.length ? `<div class="sum-row"><span class="sum-k">Healing</span>${bar(r.healing)}</div>` : '');
+  }
+
   // Repaint the meter panel from the ledger.
   drawMeter() {
     if (!this.meterRowsEl) return;
@@ -256,6 +304,7 @@ class BattleScreen {
   // Entering the screen starts a fresh battle unless one is still running
   // (an explicit fight request always starts fresh).
   async enter() {
+    this.drawSummary();
     // Coming back to a finished fight clears the "battle over" marker.
     this.finishedUnseen = false;
     this.drawMeter();
@@ -609,9 +658,11 @@ class BattleScreen {
           // tab is hidden (real-time timers get throttled).
           this.chainCountdown = 2.5;
         }
+        this.recordResult(winner, sub);
         this.ui.showBanner(winner, sub.join('<br>'), this.bannerOpts(winner));
       } else {
         this.cancelChain(); // a wipe ends the hunt
+        this.recordResult(winner, ['Your team was wiped out.']);
         this.ui.showBanner(winner, 'Your team was wiped out.', this.bannerOpts(winner));
       }
       // Finished while the player was elsewhere: flag the Battle tab so
