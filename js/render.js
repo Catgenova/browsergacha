@@ -238,8 +238,7 @@ class Renderer {
   // Whether a unit's sprite draws mirrored. Enemies face left by
   // default; art authored facing left (sprite.faceLeft) inverts that.
   spriteFlipped(unit) {
-    const faceLeft = !!(unit.def && unit.def.sprite && unit.def.sprite.faceLeft);
-    return (unit.team === TEAM.ENEMY) !== faceLeft;
+    return (unit.team === TEAM.ENEMY) !== Sprites.facesLeft(unit.def);
   }
 
   // Where a unit's feet sit horizontally: frame center plus the art's

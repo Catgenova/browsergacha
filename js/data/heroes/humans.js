@@ -751,6 +751,11 @@ Object.assign(HEROES, {
     // at 17. Four idles -- the base loop and three fidgets.
     sprite: {
       displayH: 90,
+      // Authored facing left, every strip. Flagged rather than mirrored
+      // into the files: the art is the artist's, and the flag is what it
+      // is for -- Sprites.facesLeft() is honoured by the board, the team
+      // screen, the dossier and the roster portraits alike.
+      faceLeft: true,
       strips: {
         idle:   { src: 'assets/heroes/Javarious/javariousidle.png', frames: 9, fps: 5, loop: true },
         idle2:  { src: 'assets/heroes/Javarious/javariousidle1.png', frames: 9, fps: 6, loop: false,

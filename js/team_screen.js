@@ -1003,7 +1003,7 @@ class TeamScreen {
       ctx.beginPath();
       ctx.ellipse(slot.x, slot.y + 8, rx, rx * 0.34, 0, 0, Math.PI * 2);
       ctx.fill();
-      if (animator) animator.draw(ctx, slot.x, yc, false);
+      if (animator) animator.draw(ctx, slot.x, yc, Sprites.facesLeft(def));
 
       const visualTop = yc - dh / 2 + ((sheet && sheet.headPad) || 0);
       ctx.fillStyle = '#bcd6ff';
