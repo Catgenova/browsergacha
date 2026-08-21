@@ -774,9 +774,9 @@ Object.assign(HEROES, {
       {
         id: 'unbroken_cut', name: 'Unbroken Cut',
         icon: 'assets/icons/fc1045.png',
-        description: 'A clean cut for 125% ATK. While Javarious is at full health, it lands for double.',
+        description: 'A clean cut for 155% ATK. While Javarious is at full health, it lands for double.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
-        effects: [{ type: 'damage', mult: 1.25, bonusWhen: { state: 'fullHp', mult: 2 } }],
+        effects: [{ type: 'damage', mult: 1.55, bonusWhen: { state: 'fullHp', mult: 2 } }],
       },
       {
         id: 'dawn_reliquary', name: 'Dawn Reliquary',
@@ -791,9 +791,9 @@ Object.assign(HEROES, {
       {
         id: 'daybreak_sweep', name: 'Daybreak Sweep',
         icon: 'assets/icons/fc1048.png',
-        description: 'Sweep the whole enemy front rank for 110% ATK. While Javarious is at full health, it lands for double.',
+        description: 'Sweep the whole enemy front rank for 140% ATK. While Javarious is at full health, it lands for double.',
         cooldown: 4, targeting: 'front-enemies', animation: 'skill3',
-        effects: [{ type: 'damage', mult: 1.1, bonusWhen: { state: 'fullHp', mult: 2 } }],
+        effects: [{ type: 'damage', mult: 1.4, bonusWhen: { state: 'fullHp', mult: 2 } }],
       },
     ],
     passive: {
