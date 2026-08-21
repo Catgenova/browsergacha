@@ -1163,4 +1163,71 @@ test('auto star up forges the 1-2 star shelf into 3-star heroes', () => {
   assert(G.planAutoStarUp().length === 0, 'a second pass should plan nothing');
 });
 
+test('element resonance tiers land on the numbers on the tin', () => {
+  const w = loadGame();
+  const R = w.RACES;
+  // Additive channels step 15% -> 20% exactly.
+  const totals = {};
+  for (const [el, tiers] of Object.entries(R.ELEMENT_BONUSES)) {
+    totals[el] = tiers;
+    assert(tiers.length === 3, `${el}: expected 3 tiers`);
+    assert(tiers.map((t) => t.count).join() === '3,5,7', `${el}: tier counts`);
+  }
+  const sum = (el, key) => R.ELEMENT_BONUSES[el]
+    .reduce((n, t) => n + (t.mods[key] || 0), 0);
+  assert(Math.abs(sum('fire', 'critChance') - 0.20) < 1e-9, 'fire crit total');
+  assert(Math.abs(sum('dark', 'accuracy') - 0.20) < 1e-9, 'dark accuracy total');
+  assert(Math.abs(sum('light', 'healBoost') - 0.20) < 1e-9, 'light healing total');
+  assert(Math.abs(R.ELEMENT_BONUSES.fire[2].mods.critDamage - 0.80) < 1e-9, 'fire crit damage');
+  assert(Math.abs(R.ELEMENT_BONUSES.water[2].mods.reflect - 0.15) < 1e-9, 'water reflect');
+  // Multiplicative channels: the product of the two steps is ~1.20.
+  for (const [el, key] of [['wind', 'spdPct'], ['water', 'defPct']]) {
+    const [t3, t5] = R.ELEMENT_BONUSES[el];
+    const product = (1 + t3.mods[key]) * (1 + t5.mods[key]);
+    assert(Math.abs(product - 1.20) < 0.005, `${el} ${key} total ${product}`);
+  }
+  assert(R.ELEMENT_BONUSES.light[2].mods.takenMult === 0.85, 'light 7pc damage cut');
+});
+
+test('wind resonance feeds AP only off enemy turns', () => {
+  const battle = makeBattle();
+  const hero = place(battle, HEROES.florence, TEAM.PLAYER, 0);
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
+  hero.synergyApOnEnemyTurn = 0.05;
+  hero.turnMeter = 0; foe.turnMeter = 0;
+  // The real Battle owns grantTurnApGain; borrow it onto the stand-in.
+  battle.grantTurnApGain = Battle.prototype.grantTurnApGain;
+  battle.grantTurnApGain(foe);
+  assert(hero.turnMeter === CONFIG.TURN_METER_MAX * 0.05,
+    `an enemy turn should pay 5% AP, got ${hero.turnMeter}`);
+  battle.grantTurnApGain(hero);
+  assert(hero.turnMeter === CONFIG.TURN_METER_MAX * 0.05,
+    'an allied turn paid wind AP');
+  assert(foe.turnMeter === 0, 'the enemy gained AP from its own turn');
+});
+
+test('dark resonance can stretch a debuff by one turn', () => {
+  const battle = makeBattle();
+  const hero = place(battle, HEROES.vex, TEAM.PLAYER, 0);
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
+  // Vex reads debuff durations off her own passive (+1); the resonance
+  // adds one more on top when the coin lands.
+  const debuff = hero.abilities[0].def.effects.find((e) => e.type === 'debuff');
+  const base = debuff.turns + 1; // her passive extension
+  const origRandom = Math.random;
+  const roll = (r) => {
+    foe.statusEffects.length = 0;
+    Math.random = () => r; // debuffLands roll and the coin share the stub
+    Abilities.execute(hero.abilities[0].def, hero, foe, battle);
+    const applied = foe.statusEffects.find((e) => e.kind === 'debuff');
+    return applied ? applied.turns : null;
+  };
+  hero.synergyDebuffExtraChance = 0.5;
+  assert(roll(0.99) === base, 'a lost coin flip should leave the duration alone');
+  assert(roll(0.01) === base + 1, 'a won coin flip should add a turn');
+  hero.synergyDebuffExtraChance = 0;
+  assert(roll(0.01) === base, 'no resonance, no extension');
+  Math.random = origRandom;
+});
+
 report();

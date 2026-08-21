@@ -255,6 +255,11 @@ const Abilities = (() => {
           for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
             if (p.hooks && p.hooks.debuffExtraTurns) turns += p.hooks.debuffExtraTurns;
           }
+          // Dark resonance 7pc: a coin flip for one more turn of misery.
+          if (caster.synergyDebuffExtraChance > 0 &&
+              Math.random() < caster.synergyDebuffExtraChance) {
+            turns += 1;
+          }
         }
         target.addStatusEffect({
           kind: effect.type,
