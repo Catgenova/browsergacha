@@ -961,19 +961,6 @@ body {
   min-height: 200px;
 }
 
-.card-starup {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  padding: 1px 4px;
-  background: #4d4530;
-  border: 1px solid #ffd76a;
-  border-radius: 4px;
-  font-size: 9px;
-  color: #ffd76a;
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
 .card-copies {
   position: absolute;
   top: 4px;

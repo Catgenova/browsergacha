@@ -487,9 +487,17 @@ class TeamScreen {
   // sight. Once painted a card is left alone — the bitmap is cached and
   // the card node is reused across rebuilds.
   watchPortrait(card) {
+    const paint = (el) => {
+      el._painted = true;
+      Sprites.paintPortrait(el._portrait, GameState.defOf(el.dataset.heroId))
+        .then((real) => {
+          // A failed fetch painted stand-in art; let the next rebuild
+          // retry so a network blip never sticks for the session.
+          if (!real) el._painted = false;
+        });
+    };
     if (typeof IntersectionObserver === 'undefined') {
-      card._painted = true;
-      Sprites.paintPortrait(card._portrait, GameState.defOf(card.dataset.heroId));
+      paint(card);
       return;
     }
     if (!this._portraitObs) {
@@ -498,8 +506,7 @@ class TeamScreen {
           if (!e.isIntersecting) continue;
           obs.unobserve(e.target);
           if (e.target._painted) continue;
-          e.target._painted = true;
-          Sprites.paintPortrait(e.target._portrait, GameState.defOf(e.target.dataset.heroId));
+          paint(e.target);
         }
       }, { rootMargin: '600px' }); // a couple of screens of headroom while scrolling
     }
@@ -536,10 +543,6 @@ class TeamScreen {
       badge.textContent = 'IN TEAM';
       const dupes = document.createElement('div');
       dupes.className = 'card-copies';
-      const up = document.createElement('div');
-      up.className = 'card-starup';
-      up.title = 'Ready to star up!';
-      up.textContent = '★⬆';
       const fav = document.createElement('button');
       fav.className = 'card-fav';
       fav.type = 'button';
@@ -550,13 +553,17 @@ class TeamScreen {
         GameState.toggleFavorite(heroId);
         this.buildRoster();   // re-sort so it moves immediately
       });
-      card.append(portrait, name, stars, level, badge, dupes, up, fav);
+      card.append(portrait, name, stars, level, badge, dupes, fav);
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
-      card._parts = { stars, level, badge, dupes, up, fav };
+      card._parts = { stars, level, badge, dupes, fav };
       this.cardCache.set(heroId, card);
     }
     // Refresh the parts that actually change.
-    const { stars, level, badge, dupes, up, fav } = card._parts;
+    // A card whose last paint fell back to stand-in art (asset fetch
+    // failed) gets watched again, so the real sprite lands on the next
+    // rebuild instead of sticking for the session.
+    if (!card._painted) this.watchPortrait(card);
+    const { stars, level, badge, dupes, fav } = card._parts;
     const favorited = GameState.isFavorite(heroId);
     fav.textContent = favorited ? '★' : '☆';
     fav.classList.toggle('on', favorited);
@@ -578,9 +585,6 @@ class TeamScreen {
     const same = GameState.countOf(GameState.defIdOf(heroId));
     dupes.textContent = `×${same}`;
     dupes.classList.toggle('hidden', same <= 1);
-    // The arrow means "you could do this right now", not "eligible":
-    // with the level gate gone, nearly every hero is eligible.
-    up.classList.toggle('hidden', !GameState.starUpAffordable(heroId));
     return card;
   }
 
