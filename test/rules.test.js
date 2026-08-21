@@ -845,7 +845,7 @@ test('star ups and skill ups are paid for in heroes', () => {
 test('the roster is capped and summoning refuses to overflow it', () => {
   const { GameState, Gacha } = g;
   const max = GameState.MAX_ROSTER;
-  assert(max === 200, `expected a 200 cap, got ${max}`);
+  assert(max === 100, `expected a 100 base cap, got ${max}`);
   while (!GameState.rosterFull()) {
     assert(GameState.addHero('rat_archer'), 'addHero refused below the cap');
   }
@@ -1315,7 +1315,7 @@ test('diamonds buy room and scrolls, within the ceilings', () => {
   assert(G.MAX_STORAGE === G.STORAGE_CAP_MAX, `storage cap ${G.MAX_STORAGE}`);
   // The bonus survives the save round-trip via shape guards, not schema.
   const raw = JSON.parse(w.localStorage.getItem('browsergacha_save_v1'));
-  assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 200, 'bonus not persisted');
+  assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 100, 'bonus not persisted');
 });
 
 report();

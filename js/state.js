@@ -246,8 +246,8 @@ const GameState = (() => {
   // heroes, so the cap is what makes those sinks matter. The storage
   // vault holds the overflow: heroes parked there are out of play (no
   // team, no sacrifices) and go in stripped of gear.
-  const MAX_ROSTER = 200;   // base -- Diamonds expand it in tens
-  const MAX_STORAGE = 1000; // base -- likewise
+  const MAX_ROSTER = 100;  // base -- Diamonds expand it in tens
+  const MAX_STORAGE = 100; // base -- likewise
   // The Diamond economy: quests pay Diamonds, and Diamonds buy room and
   // scrolls. Caps are hard ceilings on the expansions.
   const CAP_STEP = 10;
