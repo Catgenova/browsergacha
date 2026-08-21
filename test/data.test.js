@@ -216,6 +216,12 @@ test('every hero resolves a full tag line', () => {
     `Vex should read debuffer of the Hedge: ${text('vex')}`);
 });
 
+test('the lifetime book pays about thirty thousand Diamonds', () => {
+  const total = ACHIEVEMENTS.LIST.reduce((n, a) => n + (a.reward.diamonds || 0), 0);
+  assert(total >= 29000 && total <= 31000,
+    `achievement diamonds total ${total}, expected ~30,000`);
+});
+
 test('elements are real, and Dark/Light are always 3-star or better', () => {
   const known = new Set([...Elements.BASIC, ...Elements.TEMPORAL]);
   for (const h of heroes) {

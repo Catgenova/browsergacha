@@ -739,6 +739,13 @@ class BattleScreen {
           `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
           ...levelUps,
         ];
+        // A lucky glint: every battle won, of any kind, has a 1% chance
+        // to shake a few Diamonds loose.
+        if (Math.random() < 0.01) {
+          const d = 1 + Math.floor(Math.random() * 3);
+          GameState.addDiamonds(d);
+          sub.push(`💎 ${d} Diamond${d > 1 ? 's' : ''} glitter in the wreckage!`);
+        }
         // Random scroll drops (10% Common, 3% Rare) apply outside the
         // tower and the campaign — both pay their own fixed rewards.
         if (!this.towerFight && !this.campaignFight) {
@@ -772,6 +779,12 @@ class BattleScreen {
           if (floor % 50 === 0) {
             GameState.addScrolls('temporal', 1);
             sub.push('Floor reward: a TEMPORAL Scroll! 🌀');
+          }
+          if (floor % 10 === 0) {
+            // Boss floors pay Diamonds, in growing steps of fifty.
+            const diamonds = 50 * (floor / 10);
+            GameState.addDiamonds(diamonds);
+            sub.push(`Floor reward: ${diamonds} 💎 Diamonds!`);
           }
           if (floor % 20 === 0) {
             // Every 20th floor used to pay Skill Tomes. Skills are bought
