@@ -65,8 +65,12 @@ class Unit {
     this.gearResistance = stats.resistance || 0;
     this.gearDotBoost = stats.dotBoost || 0;
 
-    // Party synergy (Light resonance 7pc): flat incoming-damage cut.
+    // Party synergy (element resonance 7pc channels): a flat
+    // incoming-damage cut (Light), turn meter fed by enemy turns
+    // (Wind), and a chance for debuffs to run an extra turn (Dark).
     this.synergyTakenMult = 1;
+    this.synergyApOnEnemyTurn = 0;
+    this.synergyDebuffExtraChance = 0;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
     // one per hit. Sprite variants per count live in unit.mirrorSheets.

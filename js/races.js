@@ -102,31 +102,35 @@ const RACES = (() => {
   const ELEMENT_NAMES = {
     water: 'Water', fire: 'Fire', wind: 'Wind', dark: 'Dark', light: 'Light',
   };
+  // Tiers stack: the 5-piece mod is the step from the 3-piece value to
+  // the 5-piece total (e.g. 15% -> 20% is a +5% step). Additive channels
+  // (crit, accuracy, healing) step exactly; multiplicative ones (SPD,
+  // DEF) use a step chosen so the product still lands on the total.
   const ELEMENT_BONUSES = {
     water: [
-      { count: 3, mods: { healBoost: 0.08 }, label: '3: +8% Healing' },
-      { count: 5, mods: { healBoost: 0.08 }, label: '5: +8% more Healing' },
-      { count: 7, mods: { regen: 0.02 }, label: '7: restores 2% max HP each turn' },
+      { count: 3, mods: { defPct: 0.15 }, label: '3: +15% DEF' },
+      { count: 5, mods: { defPct: 0.0435 }, label: '5: +20% DEF total' },
+      { count: 7, mods: { reflect: 0.15 }, label: '7: reflects 15% of damage taken' },
     ],
     fire: [
-      { count: 3, mods: { atkPct: 0.04 }, label: '3: +4% ATK' },
-      { count: 5, mods: { atkPct: 0.04 }, label: '5: +4% more ATK' },
-      { count: 7, mods: { critDamage: 0.15 }, label: '7: +15% Crit Damage' },
+      { count: 3, mods: { critChance: 0.15 }, label: '3: +15% Crit Chance' },
+      { count: 5, mods: { critChance: 0.05 }, label: '5: +20% Crit Chance total' },
+      { count: 7, mods: { critDamage: 0.80 }, label: '7: +80% Crit Damage' },
     ],
     wind: [
-      { count: 3, mods: { spdPct: 0.04 }, label: '3: +4% SPD' },
-      { count: 5, mods: { spdPct: 0.04 }, label: '5: +4% more SPD' },
-      { count: 7, mods: { dodge: 0.05 }, label: '7: +5% Dodge' },
+      { count: 3, mods: { spdPct: 0.15 }, label: '3: +15% SPD' },
+      { count: 5, mods: { spdPct: 0.0435 }, label: '5: +20% SPD total' },
+      { count: 7, mods: { apOnEnemyTurn: 0.05 }, label: '7: +5 AP to each hero after every enemy turn' },
     ],
     dark: [
-      { count: 3, mods: { critChance: 0.05 }, label: '3: +5% Crit Chance' },
-      { count: 5, mods: { critChance: 0.05 }, label: '5: +5% more Crit Chance' },
-      { count: 7, mods: { atkPct: 0.08 }, label: '7: +8% ATK' },
+      { count: 3, mods: { accuracy: 0.15 }, label: '3: +15% Accuracy' },
+      { count: 5, mods: { accuracy: 0.05 }, label: '5: +20% Accuracy total' },
+      { count: 7, mods: { debuffExtraChance: 0.5 }, label: '7: debuffs have a 50% chance to last an extra turn' },
     ],
     light: [
-      { count: 3, mods: { resistance: 0.06 }, label: '3: +6% Resistance' },
-      { count: 5, mods: { resistance: 0.06 }, label: '5: +6% more Resistance' },
-      { count: 7, mods: { takenMult: 0.96 }, label: '7: takes 4% less damage' },
+      { count: 3, mods: { healBoost: 0.15 }, label: '3: +15% Healing' },
+      { count: 5, mods: { healBoost: 0.05 }, label: '5: +20% Healing total' },
+      { count: 7, mods: { takenMult: 0.85 }, label: '7: takes 15% less damage' },
     ],
   };
 
@@ -182,6 +186,8 @@ const RACES = (() => {
     if (mods.critChance) unit.baseCritChance += mods.critChance;
     if (mods.critDamage) unit.baseCritDamage += mods.critDamage;
     if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
+    if (mods.apOnEnemyTurn) unit.synergyApOnEnemyTurn += mods.apOnEnemyTurn;
+    if (mods.debuffExtraChance) unit.synergyDebuffExtraChance += mods.debuffExtraChance;
   }
 
   // Apply party synergy (race packs AND element resonance) to a built

@@ -167,7 +167,7 @@ class Battle {
         unit.animator.play('idle');
       }
       this.activeUnit = null;
-      this.grantTurnApGain(); // a lost turn is still a turn
+      this.grantTurnApGain(unit); // a lost turn is still a turn
       this.state = BattleState.TICKING;
       return;
     }
@@ -542,7 +542,7 @@ class Battle {
     }
 
     // Cat set 6pc: every completed turn feeds AP to the prowlers.
-    this.grantTurnApGain();
+    this.grantTurnApGain(caster);
 
     // Extra turns (Rat set 6pc / boss passives): refill the meter so
     // this unit acts again as soon as the tick resumes.
@@ -557,11 +557,17 @@ class Battle {
 
   // Cat set 6pc: wearers gain a slice of turn meter whenever ANY unit's
   // turn completes (their own included — a head start on the refill).
-  grantTurnApGain() {
+  // Wind resonance 7pc feeds here too, but only off OPPOSING turns:
+  // `ended` is the unit whose turn just finished.
+  grantTurnApGain(ended) {
     for (const u of this.livingUnits()) {
-      if (u.gearApGain > 0) {
+      let gain = u.gearApGain > 0 ? u.gearApGain : 0;
+      if (u.synergyApOnEnemyTurn > 0 && ended && ended.team !== u.team) {
+        gain += u.synergyApOnEnemyTurn;
+      }
+      if (gain > 0) {
         u.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-          u.turnMeter + CONFIG.TURN_METER_MAX * u.gearApGain);
+          u.turnMeter + CONFIG.TURN_METER_MAX * gain);
       }
     }
   }
