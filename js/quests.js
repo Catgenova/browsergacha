@@ -15,6 +15,8 @@ const Quests = (() => {
   //   salvages      item salvaged             rerolls    substats rerolled
   //   flawless      battle won with nobody down
   //   sacrifices    hero spent on another hero
+  //   synergyWins   battle won with any party bonus (pack/resonance) active
+  //   fullSynergyWins  won with a 7-strong pack or resonance active
   const DEFS = {
     daily: [
       { id: 'd_hunts', name: 'Win 5 hunts', counter: 'huntWins', goal: 5,
@@ -33,6 +35,8 @@ const Quests = (() => {
         reward: { whetstones: 100 } },
       { id: 'd_tower', name: 'Climb 3 tower floors', counter: 'towerFloors', goal: 3,
         reward: { arcana: 40 } },
+      { id: 'd_synergy', name: 'Win 3 battles with a party bonus active',
+        counter: 'synergyWins', goal: 3, reward: { whetstones: 150 } },
     ],
     weekly: [
       { id: 'w_wins', name: 'Win 40 battles', counter: 'wins', goal: 40,
@@ -53,6 +57,10 @@ const Quests = (() => {
         reward: { arcana: 250 } },
       { id: 'w_starup', name: 'Star up 3 heroes', counter: 'starUps', goal: 3,
         reward: { scrollsCommon: 8 } },
+      { id: 'w_synergy', name: 'Win 15 battles with a party bonus active',
+        counter: 'synergyWins', goal: 15, reward: { arcana: 200 } },
+      { id: 'w_full_synergy', name: 'Win 5 battles with a 7-strong party bonus',
+        counter: 'fullSynergyWins', goal: 5, reward: { scrollsRare: 2 } },
     ],
     monthly: [
       { id: 'm_wins', name: 'Win 150 battles', counter: 'wins', goal: 150,
@@ -77,6 +85,10 @@ const Quests = (() => {
         reward: { scrollsRare: 4 } },
       { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,
         reward: { scrollsRare: 4 } },
+      { id: 'm_synergy', name: 'Win 60 battles with a party bonus active',
+        counter: 'synergyWins', goal: 60, reward: { scrollsRare: 4 } },
+      { id: 'm_full_synergy', name: 'Win 25 battles with a 7-strong party bonus',
+        counter: 'fullSynergyWins', goal: 25, reward: { scrollsTemporal: 1 } },
     ],
   };
 

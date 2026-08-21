@@ -721,6 +721,15 @@ class BattleScreen {
             battle.units.filter((u) => u.team === TEAM.PLAYER).length) {
           GameState.questBump('flawless');
         }
+        // Party bonuses: raceBonuses is the applyParty summary from this
+        // battle's build -- any active pack/resonance counts, and a
+        // seven-strong group counts as a full one.
+        if ((this.raceBonuses || []).length > 0) {
+          GameState.questBump('synergyWins');
+          if (this.raceBonuses.some((b) => b.count >= 7)) {
+            GameState.questBump('fullSynergyWins');
+          }
+        }
         // Campaign nodes bump their own counter below, by node type.
         if (!this.campaignFight) {
           const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);

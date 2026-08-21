@@ -513,7 +513,7 @@ test('ability descriptions quote the numbers the ability actually applies', () =
 test('every quest names a real counter and pays something', () => {
   const COUNTERS = new Set(['wins', 'huntWins', 'bossWins', 'campaignWins',
     'towerFloors', 'summons', 'starUps', 'polishes', 'enchants', 'salvages',
-    'rerolls', 'flawless']);
+    'rerolls', 'flawless', 'synergyWins', 'fullSynergyWins']);
   const seen = new Set();
   for (const [type, list] of Object.entries(Quests.DEFS)) {
     for (const q of list) {
