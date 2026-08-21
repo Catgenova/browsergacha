@@ -534,7 +534,9 @@ class CompendiumScreen {
     ctx.fill();
     ctx.restore();
     const size = this.animator.size();
-    this.animator.draw(ctx, c.width / 2, baseY - size.h / 2 + 8, false);
+    const def = (typeof HEROES !== 'undefined' && HEROES[this.selectedId]) ||
+      (typeof BOSSES !== 'undefined' && BOSSES[this.selectedId]) || null;
+    this.animator.draw(ctx, c.width / 2, baseY - size.h / 2 + 8, Sprites.facesLeft(def));
   }
 }
 

@@ -493,6 +493,13 @@ const Sprites = (() => {
     return sheetCache.get(key);
   }
 
+  // Art authored facing LEFT. The board convention is facing right, and
+  // every surface that draws a hero has to agree on this or the same
+  // character faces two ways in two screens.
+  function facesLeft(def) {
+    return !!(def && def.sprite && def.sprite.faceLeft);
+  }
+
   // Portrait bitmaps, rendered once per hero and reused. The roster
   // grid draws hundreds of these; without a cache every refresh
   // re-decodes and re-rasterizes the same idle frames.
@@ -513,6 +520,7 @@ const Sprites = (() => {
       ctx.imageSmoothingQuality = 'high';
       const w = anim.frameW * scale;
       const h = anim.frameH * scale;
+      if (facesLeft(def)) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
       ctx.drawImage(anim.image, 0, anim.row * anim.frameH, anim.frameW, anim.frameH,
         (c.width - w) / 2, (c.height - h) / 2, w, h);
       return c;
@@ -559,6 +567,7 @@ const Sprites = (() => {
     ctx.imageSmoothingQuality = 'high';
     const w = anim.frameW * scale;
     const h = anim.frameH * scale;
+    if (facesLeft(def)) { ctx.translate(canvasEl.width, 0); ctx.scale(-1, 1); }
     ctx.drawImage(
       anim.image,
       0, anim.row * anim.frameH, anim.frameW, anim.frameH,
@@ -567,5 +576,5 @@ const Sprites = (() => {
   }
 
   return { load, getSheet, getMirrorSheets, getEffectSheet, drawPortrait,
-    paintPortrait, portraitBitmap, loadImage, assetUrl };
+    paintPortrait, portraitBitmap, loadImage, assetUrl, facesLeft };
 })();
