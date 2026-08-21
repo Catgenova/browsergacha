@@ -474,8 +474,16 @@ class Unit {
       this.turnMeter = 0;
       this.statusEffects = [];
       // Death animation (freezes on its last frame) when the hero has one.
-      if (this.animator && this.animator.sheet.animations.death) {
-        this.animator.play('death');
+      // A unit can die DURING ITS OWN ACTION -- reflected damage killed
+      // the caster mid-swing -- and playing 'death' replaces the action
+      // animation, discarding its completion callback. That callback is
+      // what advances the battle (afterAction), so it must survive: hand
+      // it to the fallback timer so it still fires a beat later.
+      if (this.animator) {
+        const pending = this.animator.onComplete;
+        if (this.animator.sheet.animations.death) this.animator.play('death');
+        else this.animator.onComplete = null;
+        if (pending) this.animator.fallbackTimer = { wait: 0.4, onComplete: pending };
       }
     } else if (amount + absorbed > 0) {
       this.struck(amount, attacker);
