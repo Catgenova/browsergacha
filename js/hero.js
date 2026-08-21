@@ -493,6 +493,7 @@ class Unit {
   // Spend shield against an incoming figure; returns how much it ate.
   absorb(amount) {
     if (amount <= 0) return 0;
+    const before = this.shieldTotal();
     let left = amount;
     let taken = 0;
     for (const fx of this.statusEffects) {
@@ -508,6 +509,12 @@ class Unit {
     if (taken > 0) {
       this.statusEffects = this.statusEffects.filter(
         (fx) => fx.kind !== 'shield' || fx.amount > 0);
+      // Broken by a hit, as opposed to running out its duration: the
+      // bubble bursts. Expiry gets no burst, because nothing broke it.
+      if (before > 0 && this.shieldTotal() === 0 &&
+          typeof Battle !== 'undefined' && Battle.active && this.slot) {
+        Battle.active.spawnImpact('shield_bubble', this.slot.x, this.slot.y - 14);
+      }
     }
     return taken;
   }

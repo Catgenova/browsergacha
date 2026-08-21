@@ -97,6 +97,29 @@ class Renderer {
     this.drawFloatingTexts();
   }
 
+  // One still frame of an effect sheet, centred, at an explicit height.
+  // The one-shot player owns the animated case; this is for art that
+  // persists while a state does (a shield bubble) rather than playing out.
+  drawEffectFrame(id, index, x, y, opts = {}) {
+    const sheets = this.battle && this.battle.effectSheets;
+    const sheet = sheets && sheets[id];
+    if (!sheet) return;
+    const anim = sheet.animations.play;
+    if (!anim) return;
+    const cols = anim.cols || anim.frames;
+    const sx = anim.vertical ? 0 : (index % cols) * anim.frameW;
+    const sy = anim.vertical ? index * anim.frameH
+      : (anim.cols ? Math.floor(index / cols) * anim.frameH : 0);
+    const h = opts.height || sheet.displayH;
+    const w = anim.frameW * (h / anim.frameH);
+    const { ctx } = this;
+    ctx.save();
+    ctx.globalAlpha = opts.alpha === undefined ? 1 : opts.alpha;
+    ctx.drawImage(anim.image, sx, sy, anim.frameW, anim.frameH,
+      x - w / 2, y - h / 2, w, h);
+    ctx.restore();
+  }
+
   drawVisualEffects() {
     const { ctx } = this;
     // One-shot impact sprites (slash/strike/punch/slam art).
@@ -316,6 +339,24 @@ class Renderer {
     // Bars sit just above the visible art (skip padded headroom).
     const headPad = (unit.animator && unit.animator.sheet.headPad) || 0;
     const visualTop = yc - dh / 2 + headPad;
+
+    // Shield: a gold bubble around whoever is holding one, drawn over the
+    // art so it reads as enclosing them. The source is mostly
+    // transparent (a glossy rim and a highlight), so the hero shows
+    // through at 75% opacity rather than being washed out.
+    const shield = unit.shieldTotal ? unit.shieldTotal() : 0;
+    if (shield > 0) {
+      // Centred on the VISIBLE art, not the frame: sheets carry padding
+      // above the head and below the feet, and centring on the frame put
+      // the bubble low enough for the hero's head to stick out of it.
+      const footPad = (unit.animator && unit.animator.sheet.footPad) || 0;
+      const visH = Math.max(8, dh - headPad - footPad);
+      // The bubble fills about 73% of its frame, so the frame is drawn
+      // bigger than the hero for the bubble itself to enclose them.
+      const breathe = 1 + Math.sin(performance.now() / 520 + unit.slot.index) * 0.03;
+      this.drawEffectFrame('shield_bubble', 0, this.feetX(unit, x), visualTop + visH / 2,
+        { alpha: 0.75, height: visH * 1.5 * breathe });
+    }
     this.drawBars(unit, x, visualTop);
 
     // Charging warning: what this unit is about to unleash.

@@ -57,6 +57,14 @@ const EFFECTS = {
     src: 'assets/strike_effect_spritesheet.png',
     frames: 5, fps: 15, displayH: 95, hue: 100,
   },
+  // Javarious's shield: a soap bubble painted gold. Frame 0 is the intact
+  // bubble, held over whoever is shielded; frames 1-5 are the burst,
+  // played when the shield is broken by a hit (see Unit.absorb).
+  shield_bubble: {
+    src: 'assets/bubble_pop_one_spritesheet_512px_by_512px_per_frame.png',
+    grid: { cols: 3, rows: 2 }, frames: 6, fps: 14, displayH: 130,
+    tint: '#ffd76a',
+  },
   // Golden holy glow for Emily's blessings.
   heal_gold: {
     src: 'assets/charge effect_spritesheets.png',
