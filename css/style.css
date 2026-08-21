@@ -817,6 +817,8 @@ body {
   border-radius: 6px;
 }
 
+.card-element { font-size: 9.5px; letter-spacing: 0.4px; }
+.summon-card.summon-linked { cursor: pointer; }
 .card-name {
   margin-top: 4px;
   font-size: 11px;

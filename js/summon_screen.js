@@ -110,7 +110,17 @@ class SummonScreen {
 
     const name = document.createElement('div');
     name.className = 'card-name';
-    name.textContent = def.name;
+    name.textContent = `${Elements.badge(def.element)} ${def.name}`.trim();
+
+    // The element, named in its own colour -- the badge alone is easy
+    // to miss on a card this small.
+    const elInfo = Elements.info(def.element);
+    const element = document.createElement('div');
+    element.className = 'card-element';
+    if (elInfo) {
+      element.textContent = elInfo.name;
+      element.style.color = elInfo.color;
+    }
 
     const stars = document.createElement('div');
     stars.className = `card-stars rarity-${rarity}`;
@@ -120,9 +130,18 @@ class SummonScreen {
     status.className = isNew ? 'card-new' : 'card-dupe';
     status.textContent = isNew ? 'NEW!' : `\u00d7${copies} in roster`;
 
-    front.append(portrait, name, stars, status);
+    front.append(portrait, name, element, stars, status);
     inner.append(back, front);
     card.appendChild(inner);
+
+    // A summon card is also a link: straight to this hero's compendium
+    // page, where the kit and animations live.
+    card.title = `Open ${def.name} in the compendium`;
+    card.classList.add('summon-linked');
+    card.addEventListener('click', () => {
+      this.app.screens.compendium.openHero(def.id);
+      this.app.showScreen('compendium');
+    });
     return card;
   }
 
