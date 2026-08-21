@@ -1043,14 +1043,6 @@ body {
   min-height: 200px;
 }
 
-.card-copies {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 9px;
-  color: #9a92b8;
-}
-
 /* Favourite toggle: the one free corner of the card. Dim outline until
    set, so a wall of un-favourited cards stays quiet. */
 .card-fav {

@@ -461,8 +461,6 @@ class TeamScreen {
       const badge = document.createElement('div');
       badge.className = 'card-badge';
       badge.textContent = 'IN TEAM';
-      const dupes = document.createElement('div');
-      dupes.className = 'card-copies';
       const store = document.createElement('button');
       store.className = 'card-store';
       store.type = 'button';
@@ -488,9 +486,9 @@ class TeamScreen {
         GameState.toggleFavorite(heroId);
         this.buildRoster();   // re-sort so it moves immediately
       });
-      card.append(portrait, name, stars, level, badge, dupes, fav, store);
+      card.append(portrait, name, stars, level, badge, fav, store);
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
-      card._parts = { stars, level, badge, dupes, fav, store };
+      card._parts = { stars, level, badge, fav, store };
       this.cardCache.set(heroId, card);
     }
     // Refresh the parts that actually change.
@@ -498,7 +496,7 @@ class TeamScreen {
     // failed) gets watched again, so the real sprite lands on the next
     // rebuild instead of sticking for the session.
     if (!card._painted) this.watchPortrait(card);
-    const { stars, level, badge, dupes, fav, store } = card._parts;
+    const { stars, level, badge, fav, store } = card._parts;
     const favorited = GameState.isFavorite(heroId);
     fav.textContent = favorited ? '★' : '☆';
     fav.classList.toggle('on', favorited);
@@ -517,11 +515,6 @@ class TeamScreen {
     badge.classList.toggle('hidden', !inTeam.has(heroId));
     // Fielded heroes cannot be deposited, and a full vault takes nobody.
     store.classList.toggle('hidden', inTeam.has(heroId) || GameState.storageFull());
-    // How many of this CHARACTER stand in the roster -- each card is one
-    // hero, so the count is context rather than a currency.
-    const same = GameState.countOf(GameState.defIdOf(heroId));
-    dupes.textContent = `×${same}`;
-    dupes.classList.toggle('hidden', same <= 1);
     return card;
   }
 
