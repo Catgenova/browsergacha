@@ -315,37 +315,41 @@ class TeamScreen {
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
 
-    // Party synergy readout: race packs and element resonance the team
-    // has live (and any group one short of its first tier).
+    // Party synergy readout: its own panel, one row per group, so each
+    // active buff reads separately instead of running together on one
+    // line. Active tiers light up; locked tiers stay visible (dimmed,
+    // with their threshold) so the next unlock is always in sight.
     const raceEl = document.getElementById('race-bonuses');
     if (raceEl) {
       const defs = Object.values(GameState.getTeam())
         .map((id) => GameState.defOf(id)).filter(Boolean);
-      const parts = [];
+      const rows = [];
+      const row = (title, color, count, tiers) => {
+        const chips = tiers.map((t) => {
+          const live = count >= t.count;
+          const text = t.label.replace(/^\d+: /, '');
+          return `<span class="syn-tier${live ? ' live' : ''}"
+            title="${live ? 'Active' : `Unlocks at ${t.count} heroes`}">${
+            live ? '' : `${t.count}: `}${text}</span>`;
+        }).join('');
+        rows.push(`<div class="syn-row">
+          <span class="syn-name"${color ? ` style="color:${color}"` : ''}>${title} &times;${count}</span>
+          ${chips}</div>`);
+      };
       for (const [race, count] of Object.entries(RACES.counts(defs))) {
         if (count < 2) continue;
-        const tiers = RACES.activeTiers(race, count);
-        if (tiers.length > 0) {
-          parts.push(`<b>${RACES.NAMES[race]} ×${count}</b>: ` +
-            tiers.map((t) => t.label.replace(/^\d+: /, '')).join(' · '));
-        } else {
-          parts.push(`${RACES.NAMES[race]} ×${count} <span class="race-next">(3 unlocks a pack bonus)</span>`);
-        }
+        row(`${RACES.NAMES[race]} pack`, null, count, RACES.BONUSES[race] || []);
       }
       for (const [el, count] of Object.entries(RACES.elementCounts(defs))) {
         if (count < 2) continue;
-        const tiers = RACES.activeElementTiers(el, count);
-        if (tiers.length > 0) {
-          parts.push(`<b>${RACES.ELEMENT_NAMES[el]} ×${count}</b>: ` +
-            tiers.map((t) => t.label.replace(/^\d+: /, '')).join(' · '));
-        } else {
-          parts.push(`${RACES.ELEMENT_NAMES[el]} ×${count} <span class="race-next">(3 unlocks a resonance)</span>`);
-        }
+        const info = Elements.info(el);
+        row(`${Elements.badge(el)} ${RACES.ELEMENT_NAMES[el]} resonance`,
+          info && info.color, count, RACES.ELEMENT_BONUSES[el] || []);
       }
-      raceEl.innerHTML = parts.length
-        ? 'Party synergy — ' + parts.join(' &nbsp;|&nbsp; ')
+      raceEl.innerHTML = rows.length
+        ? `<div class="syn-head">Party synergy</div>${rows.join('')}`
         : '';
-      raceEl.classList.toggle('hidden', parts.length === 0);
+      raceEl.classList.toggle('hidden', rows.length === 0);
     }
     this.fightBtn.disabled = size === 0 || !this.huntOpen(Number(this.locationSel.value));
     this.towerBtn.disabled = size === 0;

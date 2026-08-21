@@ -526,14 +526,51 @@ body {
 }
 
 /* Race synergy readout under the team controls */
+/* Party synergy panel: one row per pack/resonance, chips per tier.
+   Active tiers light up; locked ones stay dimmed with their threshold. */
 #race-bonuses {
-  margin-top: 4px;
+  margin-top: 6px;
+  padding: 6px 8px;
   font-size: 10px;
   color: #c8c2da;
   line-height: 1.5;
+  background: #1c1926;
+  border: 1px solid #3a3450;
+  border-radius: 6px;
 }
-#race-bonuses b { color: #ffd76a; }
-#race-bonuses .race-next { color: #9a92b8; }
+.syn-head {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #9a92b8;
+  margin-bottom: 3px;
+}
+.syn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  padding: 2px 0;
+}
+.syn-row + .syn-row { border-top: 1px solid #262133; }
+.syn-name {
+  font-weight: bold;
+  color: #ffd76a;
+  min-width: 110px;
+}
+.syn-tier {
+  padding: 0 5px;
+  border: 1px solid #34304a;
+  border-radius: 8px;
+  color: #7a7494;
+  background: #211d2e;
+  white-space: nowrap;
+}
+.syn-tier.live {
+  color: #d8f0c8;
+  border-color: #4a6a3a;
+  background: #24301e;
+}
 
 #wave-controls,
 #boss-controls,
