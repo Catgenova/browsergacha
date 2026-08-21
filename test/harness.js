@@ -22,7 +22,7 @@ const FILES = [
   'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/rats.js',
   'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',
   'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
-  'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/enemies.js',
+  'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];

@@ -7,7 +7,7 @@ const path = require('path');
 const { loadGame, test, assert, report, ROOT, FILES } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION, Quests,
-  ACHIEVEMENTS, GameState, ELEMENTS, Gear } = g;
+  ACHIEVEMENTS, GameState, ELEMENTS, Gear, Progression } = g;
 
 const heroes = Object.values(HEROES);
 const passivesOf = (d) => d.passives || (d.passive ? [d.passive] : []);
@@ -229,6 +229,23 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
       const d = q.reward.diamonds;
       if (d) assert(d % 10 === 0, `${type}/${q.id}: diamond reward ${d} not a clean ten`);
     }
+  }
+});
+
+test('every generic hero shares one base power budget', () => {
+  const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
+    'catherine', 'vex', 'vivian']);
+  for (const h of heroes) {
+    if (EXEMPT.has(h.id)) continue;
+    const p = Progression.power(h.stats);
+    assert(Math.abs(p - 520) <= 15,
+      `${h.id}: base power ${p}, expected ~520`);
+  }
+  // The named heroes keep their bespoke statlines.
+  for (const id of EXEMPT) {
+    if (!HEROES[id]) continue;
+    assert(Progression.power(HEROES[id].stats) > 540,
+      `${id} should stand above the shared budget`);
   }
 });
 
