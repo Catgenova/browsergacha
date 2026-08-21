@@ -6,7 +6,7 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState } = g;
+  Battle, GameState, RACES } = g;
 
 // A battle stand-in: enough surface for hooks that reach for the field.
 function makeBattle() {
@@ -1228,6 +1228,24 @@ test('dark resonance can stretch a debuff by one turn', () => {
   hero.synergyDebuffExtraChance = 0;
   assert(roll(0.01) === base, 'no resonance, no extension');
   Math.random = origRandom;
+});
+
+test('race packs pay the gear set to the whole party and stack with gear', () => {
+  const battle = makeBattle();
+  const rats = ['rat_warrior', 'rat_brawler', 'rat_duelist']
+    .map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
+  const human = place(battle, HEROES.florence, TEAM.PLAYER, 3);
+  // One rat already wears dodge from actual gear; the pack adds on top.
+  rats[0].gearDodge = 0.10;
+  const twoPc = Gear.SETS.rat.bonuses[0]; // the 2pc bonus = the 3-hero tier
+  assert(twoPc.stat === 'dodge', 'rat set 2pc is expected to be dodge');
+  const active = RACES.applyParty(battle.units.filter((u) => u.team === TEAM.PLAYER));
+  const pack = active.find((a) => a.title === 'Rat pack');
+  assert(pack && pack.count === 3, 'three rats should light the pack');
+  assert(Math.abs(human.gearDodge - twoPc.add) < 1e-9,
+    `the non-rat should get the party-wide dodge, got ${human.gearDodge}`);
+  assert(Math.abs(rats[0].gearDodge - (0.10 + twoPc.add)) < 1e-9,
+    `worn gear and the pack should stack, got ${rats[0].gearDodge}`);
 });
 
 report();

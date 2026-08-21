@@ -1,6 +1,7 @@
-// Race synergy: fielding 3 / 5 / 7 heroes of one race grants the whole
-// party's members of that race stacking bonuses (tiers add up, like
-// gear sets). Applied to the PLAYER party when a battle is built.
+// Race synergy: fielding 3 / 5 / 7 heroes of one race grants the WHOLE
+// party that race's gear-set bonuses (the 2/4/6-piece effects, tier for
+// tier). Tiers stack, and the pack stacks with gear actually worn.
+// Applied to the PLAYER party when a battle is built.
 
 const RACES = (() => {
   // Bird heroes are named by species, so the avian race is a lookup set.
@@ -42,60 +43,38 @@ const RACES = (() => {
     return null;
   }
 
-  // Tiered bonuses per race; tiers STACK (a 7-race party gets all three).
-  // mods use the same stat channels as gear (see Gear.applyToStats/Unit).
-  const BONUSES = {
-    rat: [
-      { count: 3, mods: { dodge: 0.05 }, label: '3: +5% Dodge' },
-      { count: 5, mods: { dodge: 0.05 }, label: '5: +5% more Dodge' },
-      { count: 7, mods: { extraTurn: 0.10 }, label: '7: +10% chance for an extra turn' },
-    ],
-    avian: [
-      { count: 3, mods: { spdPct: 0.05 }, label: '3: +5% SPD' },
-      { count: 5, mods: { spdPct: 0.05 }, label: '5: +5% more SPD' },
-      { count: 7, mods: { spdPct: 0.10 }, label: '7: +10% more SPD' },
-    ],
-    minotaur: [
-      { count: 3, mods: { atkPct: 0.05 }, label: '3: +5% ATK' },
-      { count: 5, mods: { atkPct: 0.05 }, label: '5: +5% more ATK' },
-      { count: 7, mods: { atkPct: 0.10 }, label: '7: +10% more ATK' },
-    ],
-    snake: [
-      { count: 3, mods: { accuracy: 0.10 }, label: '3: +10% Debuff Accuracy' },
-      { count: 5, mods: { accuracy: 0.10 }, label: '5: +10% more Accuracy' },
-      { count: 7, mods: { dotBoost: 0.25 }, label: '7: +25% DoT Damage' },
-    ],
-    wolf: [
-      { count: 3, mods: { stun: 0.04 }, label: '3: +4% Stun chance' },
-      { count: 5, mods: { stun: 0.04 }, label: '5: +4% more Stun chance' },
-      { count: 7, mods: { stun: 0.07 }, label: '7: +7% more Stun chance' },
-    ],
-    boar: [
-      { count: 3, mods: { defPct: 0.08 }, label: '3: +8% DEF' },
-      { count: 5, mods: { defPct: 0.08 }, label: '5: +8% more DEF' },
-      { count: 7, mods: { reflect: 0.10 }, label: '7: +10% chance to reflect damage' },
-    ],
-    bear: [
-      { count: 3, mods: { hpPct: 0.08 }, label: '3: +8% HP' },
-      { count: 5, mods: { hpPct: 0.08 }, label: '5: +8% more HP' },
-      { count: 7, mods: { regen: 0.03 }, label: '7: restores 3% max HP each turn' },
-    ],
-    cat: [
-      { count: 3, mods: { apDrain: 0.05 }, label: '3: +5% AP Drain on attack' },
-      { count: 5, mods: { apDrain: 0.05 }, label: '5: +5% more AP Drain' },
-      { count: 7, mods: { apGain: 0.03 }, label: '7: +3% AP on every character turn' },
-    ],
-    human: [
-      { count: 3, mods: { atkPct: 0.06, defPct: 0.06 }, label: '3: +6% ATK and +6% DEF' },
-      { count: 5, mods: { hpPct: 0.08 }, label: '5: +8% HP' },
-      { count: 7, mods: { critDamage: 0.20 }, label: '7: +20% Crit Damage' },
-    ],
-    drake: [
-      { count: 3, mods: { dotBoost: 0.08 }, label: '3: +8% DoT Damage' },
-      { count: 5, mods: { dotBoost: 0.07 }, label: '5: +7% more DoT Damage' },
-      { count: 7, mods: { dotBoost: 0.15 }, label: '7: +15% more DoT Damage' },
-    ],
-  };
+  // Race packs mirror the race's GEAR SET exactly: the 3/5/7-hero tiers
+  // are the set's 2/4/6-piece bonuses, applied to the whole party, and
+  // they stack with worn gear. Derived from Gear.SETS on first use (gear
+  // loads after this file), so the two tables can never drift apart.
+  // Drakes wear the Dragon set; Humans have no set, so they keep a
+  // bespoke pack.
+  const SET_OF_RACE = { drake: 'dragon' };
+  const HUMAN_PACK = [
+    { count: 3, mods: { atkPct: 0.06, defPct: 0.06 }, label: '3: +6% ATK and +6% DEF' },
+    { count: 5, mods: { hpPct: 0.08 }, label: '5: +8% HP' },
+    { count: 7, mods: { critDamage: 0.20 }, label: '7: +20% Crit Damage' },
+  ];
+  let bonusCache = null;
+  function buildBonuses() {
+    if (bonusCache) return bonusCache;
+    const out = { human: HUMAN_PACK };
+    // Load-order guard: races.js is evaluated before gear.js, so the
+    // table only materialises (and caches) once Gear exists.
+    if (typeof Gear === 'undefined') return out;
+    for (const race of Object.keys(NAMES)) {
+      if (race === 'human') continue;
+      const set = Gear.SETS[SET_OF_RACE[race] || race];
+      if (!set) continue;
+      out[race] = set.bonuses.map((b) => ({
+        count: b.pieces + 1,
+        mods: { [b.stat]: b.add },
+        label: `${b.pieces + 1}: ${b.label.replace(/^\dpc: /, '')}`,
+      }));
+    }
+    bonusCache = out;
+    return out;
+  }
 
   // Element synergy: fielding 3/5/7 heroes of one ELEMENT also grants
   // stacking bonuses, themed to the element's identity.
@@ -160,7 +139,7 @@ const RACES = (() => {
 
   // The tiers a given headcount unlocks for one race.
   function activeTiers(race, count) {
-    return (BONUSES[race] || []).filter((t) => count >= t.count);
+    return (buildBonuses()[race] || []).filter((t) => count >= t.count);
   }
 
   // Fold one tier's mods into a built Unit (same channels gear uses).
@@ -172,6 +151,8 @@ const RACES = (() => {
     if (mods.atkPct) unit.baseAtk = Math.round(unit.baseAtk * (1 + mods.atkPct));
     if (mods.defPct) unit.baseDef = Math.round(unit.baseDef * (1 + mods.defPct));
     if (mods.spdPct) unit.speed = Math.round(unit.speed * (1 + mods.spdPct));
+    if (mods.spdFlat) unit.speed += mods.spdFlat;
+    if (mods.cdr) unit.gearCdr += mods.cdr;
     if (mods.dodge) unit.gearDodge += mods.dodge;
     if (mods.extraTurn) unit.gearExtraTurn += mods.extraTurn;
     if (mods.stun) unit.gearStun += mods.stun;
@@ -199,8 +180,9 @@ const RACES = (() => {
     for (const [race, count] of Object.entries(tally)) {
       const tiers = activeTiers(race, count);
       if (tiers.length === 0) continue;
+      // The pack pays out to EVERYONE fielded, not just the race that
+      // earned it -- it is the party-wide copy of that race's gear set.
       for (const unit of units) {
-        if (of(unit.def) !== race) continue;
         for (const tier of tiers) applyModsToUnit(unit, tier.mods);
       }
       active.push({ title: `${NAMES[race]} pack`, count,
@@ -221,7 +203,8 @@ const RACES = (() => {
   }
 
   return {
-    of, NAMES, BONUSES, counts, activeTiers,
+    of, NAMES, counts, activeTiers,
+    get BONUSES() { return buildBonuses(); },
     ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
     applyParty,
   };
