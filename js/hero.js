@@ -65,6 +65,10 @@ class Unit {
 
     // Turn meter: 0..TURN_METER_MAX, fills with speed.
     this.turnMeter = 0;
+    // Action-bar pushes other heroes have handed this unit since its last
+    // turn, and the set that paid for the turn currently being taken.
+    this.meterGifts = [];
+    this.turnGifts = [];
 
     // Abilities: instantiate cooldown state per ability. Player heroes
     // carry saved skill levels (+10% power each past 1); enemies stay 1.
@@ -316,6 +320,109 @@ class Unit {
     return through;
   }
 
+  // ---- Assist credit -----------------------------------------------------
+  //
+  // The offensive mirror of damageTakenBreakdown/blunt. A hero whose kit
+  // is pure setup -- attack up, crit up, a shove up the action bar, an
+  // armour break on the target -- deals no damage of their own, so every
+  // point their work produced used to be booked to whoever swung. On the
+  // meter they read as idle, and on the balance bench they came back
+  // "no kit for it" rather than ranking at all.
+  //
+  // Each entry is { source, mult }, where mult is the factor by which
+  // that hero multiplied this hit. bookDamage() splits the hit between
+  // them and the attacker, so the total still equals the damage dealt.
+
+  // Multipliers on THIS unit's outgoing damage that another hero supplied.
+  outgoingAssists(crit) {
+    const out = [];
+    for (const fx of this.statusEffects) {
+      if (!fx.source || fx.source === this) continue;
+      if (fx.stat === 'atk' && fx.mult > 1) {
+        // Damage is linear in ATK all the way through the DEF curve.
+        out.push({ source: fx.source, mult: fx.mult });
+      } else if (crit && fx.stat === 'critDamage') {
+        const cd = this.effectiveStat('critDamage');
+        const base = fx.mult ? cd / fx.mult : cd - (fx.add || 0);
+        if (base > 0 && cd > base) out.push({ source: fx.source, mult: cd / base });
+      } else if (crit && fx.stat === 'critChance' && fx.add > 0) {
+        // The crit landed. The odds it landed BECAUSE of this buff are
+        // the share of the crit chance the buff supplied, so credit that
+        // share of the crit's extra damage -- unbiased across many hits.
+        const c = this.effectiveStat('critChance');
+        const cd = this.effectiveStat('critDamage');
+        const share = c > 0 ? Math.min(1, fx.add / c) : 0;
+        const part = share * (1 - 1 / Math.max(1, cd));
+        if (part > 0 && part < 1) out.push({ source: fx.source, mult: 1 / (1 - part) });
+      }
+    }
+    // Action-bar pushes: if half the meter that produced this turn was a
+    // gift, half of what the turn does belongs to whoever gave it.
+    const gifts = (this.turnGifts || []).filter((g) => g.source && g.source !== this);
+    const given = gifts.reduce((sum, g) => sum + g.amount, 0);
+    if (given > 0) {
+      // Capped: a turn is never entirely somebody else's doing, and the
+      // unit still had to have the kit to spend it on.
+      const share = Math.min(0.6, given / CONFIG.TURN_METER_MAX);
+      const mult = 1 / (1 - share);
+      for (const g of gifts) {
+        out.push({ source: g.source, mult: 1 + (mult - 1) * (g.amount / given) });
+      }
+    }
+    return out;
+  }
+
+  // Armour breaks on THIS unit (the target), expressed as how much more
+  // damage an incoming hit does because of them. The DEF curve is not
+  // linear, so the multiplier is measured against the DEF this unit would
+  // have had without the sourced reductions.
+  defBreakAssists() {
+    let product = 1;
+    const parts = [];
+    for (const fx of this.statusEffects) {
+      if (fx.stat !== 'def' || !fx.source || fx.source === this) continue;
+      if (!(fx.mult > 0) || fx.mult >= 1) continue;
+      product *= fx.mult;
+      parts.push(fx);
+    }
+    if (!parts.length) return [];
+    const now = this.effectiveStat('def');
+    const base = now / product;
+    const ratio = (base + 300) / (now + 300); // damageFormula's curve
+    if (!(ratio > 1)) return [];
+    const weight = parts.reduce((sum, fx) => sum + (1 / fx.mult - 1), 0);
+    return parts.map((fx) => ({
+      source: fx.source,
+      mult: 1 + (ratio - 1) * ((1 / fx.mult - 1) / weight),
+    }));
+  }
+
+  // Book a landed hit, splitting off the share owed to whoever set it up.
+  bookDamage(target, dealt, crit) {
+    if (typeof Meter === 'undefined' || dealt <= 0) return;
+    const assists = this.outgoingAssists(crit)
+      .concat(target.defBreakAssists ? target.defBreakAssists() : [])
+      // Never hand credit across the line: an enemy's own debuff on an
+      // enemy is not an assist to this attack.
+      .filter((a) => a.mult > 1 && a.source.team === this.team);
+    if (!assists.length) { Meter.damage(this, dealt); return; }
+    const total = assists.reduce((m, a) => m * a.mult, 1);
+    const assisted = dealt * (1 - 1 / total);
+    const weight = assists.reduce((sum, a) => sum + (a.mult - 1), 0);
+    // Flagged while the assist share is booked, so tooling can tell a
+    // setup hero's share of somebody else's swing from damage they dealt
+    // themselves (test/archetypes.js reads this).
+    Unit.assisting = true;
+    try {
+      for (const a of assists) {
+        Meter.damage(a.source, assisted * ((a.mult - 1) / weight));
+      }
+    } finally {
+      Unit.assisting = false;
+    }
+    Meter.damage(this, dealt - assisted);
+  }
+
   // ---- Health ------------------------------------------------------------
 
   // Returns the damage actually dealt. `attacker` (when known) is who
@@ -367,6 +474,8 @@ class Unit {
     const battle = typeof Battle !== 'undefined' ? Battle.active : null;
     if (!battle) return;
     Unit.retaliating = true;
+    const prevOwner = Unit.hookOwner;
+    Unit.hookOwner = this;
     try {
       for (const p of this.hookSources()) {
         const hook = p.hooks && p.hooks.onStruck;
@@ -374,6 +483,7 @@ class Unit {
       }
     } finally {
       Unit.retaliating = false;
+      Unit.hookOwner = prevOwner;
     }
   }
 
@@ -428,7 +538,15 @@ class Unit {
   // ---- Status effects ----------------------------------------------------
 
   addStatusEffect(fx) {
-    this.statusEffects.push({ ...fx });
+    const e = { ...fx };
+    // Effects a passive or positional hook puts on SOMEONE ELSE belong to
+    // the hook's owner. Abilities pass `source` explicitly; the ~150 hook
+    // call sites in the data files do not, and without this every rally
+    // and every armour break they hand out is anonymous.
+    if (e.source === undefined && Unit.hookOwner && Unit.hookOwner !== this) {
+      e.source = Unit.hookOwner;
+    }
+    this.statusEffects.push(e);
   }
 
   tickStatusEffects() {
@@ -445,6 +563,12 @@ class Unit {
   // Returns an array of display results:
   //   { label, message, floats: [{ target, text, color }] }
   startTurn(battle) {
+    // Whatever pushed this unit up the action bar since its last turn is
+    // what bought THIS turn; hold it for the duration so the damage the
+    // turn produces can be credited back.
+    this.turnGifts = this.meterGifts;
+    this.meterGifts = [];
+
     // Cooldowns tick down at the start of this unit's own turn.
     for (const a of this.abilities) {
       if (a.cooldownRemaining > 0) a.cooldownRemaining--;
@@ -487,8 +611,11 @@ class Unit {
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'dot' || !this.alive) continue;
       const dealt = (typeof Abilities !== 'undefined' && fx.source)
+        // The tick's size was locked in when the poison was cast, so
+        // whatever buffs the caster carries NOW did not buy it: no assist
+        // split on this one.
         ? Abilities.strike(fx.source, this, fx.amount,
-            { dodge: false, reflect: false }).amount
+            { dodge: false, reflect: false, assist: false }).amount
         : this.takeDamage(fx.amount); // sourceless tick: nobody to credit
       // strike() books the meter itself; crediting it again here would
       // count every tick twice.
@@ -502,11 +629,17 @@ class Unit {
 
     this.tickStatusEffects();
 
-    for (const p of this.hookSources()) {
-      if (p.hooks && p.hooks.onTurnStart) {
-        const r = p.hooks.onTurnStart(this, battle);
-        if (r) results.push(r);
+    const prevOwner = Unit.hookOwner;
+    Unit.hookOwner = this;
+    try {
+      for (const p of this.hookSources()) {
+        if (p.hooks && p.hooks.onTurnStart) {
+          const r = p.hooks.onTurnStart(this, battle);
+          if (r) results.push(r);
+        }
       }
+    } finally {
+      Unit.hookOwner = prevOwner;
     }
     return results;
   }

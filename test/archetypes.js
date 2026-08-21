@@ -123,8 +123,8 @@ const TITLE = {
 };
 // The number each bucket lives or dies by.
 const HEADLINE = {
-  front_tank: 'ehp', front_dps: 'dps', center_support: 'saved/s',
-  center_dps: 'dps', back_support: 'saved/s', back_dps: 'dps',
+  front_tank: 'ehp', front_dps: 'dps', center_support: 'worth/s',
+  center_dps: 'dps', back_support: 'worth/s', back_dps: 'dps',
 };
 // The effect types a kit needs to be able to post a number in each
 // headline. A hero whose kit simply cannot (a cleanse-only support has
@@ -136,6 +136,12 @@ const NEEDS = {
   // just as a heal restores it. Ranking supports on healing alone put
   // every protector at the bottom of its bucket for doing its job well.
   'saved/s': ['heal', 'healHpPct', 'hot', 'buff'],
+  // Everything a support contributes, in HP per second: restored, saved,
+  // and removed from the enemy. An attack buff is worth exactly the extra
+  // damage the ally deals with it, and since js/hero.js books that share
+  // back to the buffer, it finally lands in a column. Every support kit
+  // can post a number in at least one of the three.
+  'worth/s': null,
   ehp: null, // every hero has an HP pool
 };
 function kitCan(def, headline) {
@@ -212,6 +218,7 @@ function runOne(def, cast, seedValue) {
   // some OTHER unit is taking its turn is exactly a tick of the hero's
   // own poison — nothing else can produce it.
   let dotDealt = 0;
+  let assistDealt = 0;
   let acting = null;
   const realStartTurn = Unit.prototype.startTurn;
   const realMeterDamage = Meter.damage;
@@ -220,10 +227,15 @@ function runOne(def, cast, seedValue) {
     try { return realStartTurn.apply(this, rest); } finally { acting = null; }
   };
   Meter.damage = (unit, amount) => {
-    // ...unless it is a retaliation. An onStruck hook can fire while
-    // another unit is acting (it hit us on its turn), which looks exactly
-    // like a poison tick from out here. Unit.retaliating tells them apart.
-    if (acting && acting !== hero && unit === hero && !Unit.retaliating) {
+    // Damage bought rather than swung for: the hero's share of an ally's
+    // hit, earned by an attack buff, a crit buff, an action-bar push or an
+    // armour break. Unit.assisting is set only while that share is booked.
+    if (unit === hero && Unit.assisting) {
+      assistDealt += Math.round(amount);
+    } else if (acting && acting !== hero && unit === hero && !Unit.retaliating) {
+      // ...unless it is a retaliation. An onStruck hook can fire while
+      // another unit is acting (it hit us on its turn), which looks exactly
+      // like a poison tick from out here. Unit.retaliating tells them apart.
       dotDealt += Math.round(amount);
     }
     return realMeterDamage(unit, amount);
@@ -274,6 +286,7 @@ function runOne(def, cast, seedValue) {
     died: !hero.alive,
     damage: mine('damage'),
     poison: dotDealt,
+    assist: assistDealt,
     healing: mine('healing'),
     mitigated,
     taken,
@@ -322,12 +335,14 @@ function measure(def, cast) {
   const runs = [];
   for (let i = 0; i < SIMS; i++) runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
   const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
-  // direct + poison must reconstruct dps. If it does not, poison is being
-  // attributed to the wrong hero and every split on the page is fiction.
+  // direct + poison + assist must reconstruct dps. If they do not, one of
+  // the three is being attributed to the wrong hero and every split on the
+  // page is fiction.
   for (const r of runs) {
-    if (r.poison > r.damage + 1) {
-      throw new Error(`${def.id}: poison ${Math.round(r.poison)} exceeds total ` +
-        `damage ${Math.round(r.damage)} — poison attribution is broken`);
+    if (r.poison + r.assist > r.damage + 1) {
+      throw new Error(`${def.id}: poison ${Math.round(r.poison)} + assist ` +
+        `${Math.round(r.assist)} exceeds total damage ${Math.round(r.damage)} ` +
+        '— damage attribution is broken');
     }
   }
   const mitRatio = avg((r) => r.mitRatio);
@@ -339,14 +354,18 @@ function measure(def, cast) {
     rarity: def.rarity,
     power: powerOf(def),
     dps: avg((r) => r.damage / r.seconds),
-    direct: avg((r) => (r.damage - r.poison) / r.seconds),
+    direct: avg((r) => (r.damage - r.poison - r.assist) / r.seconds),
     poison: avg((r) => r.poison / r.seconds),
+    assist: avg((r) => r.assist / r.seconds),
     'heal/s': avg((r) => r.healing / r.seconds),
     'mit/s': avg((r) => r.mitigated / r.seconds),
     'taken/s': avg((r) => r.taken / r.seconds),
     'mit%': mitRatio * 100,
     // Healing plus mitigation: what a support actually saved the team.
     'saved/s': avg((r) => (r.healing + r.mitigated) / r.seconds),
+    // Saved plus dealt: the whole contribution in one number, so a hero
+    // who buffs the team's attack is comparable with one who heals it.
+    'worth/s': avg((r) => (r.healing + r.mitigated + r.damage) / r.seconds),
     // Effective health: the pool an attacker actually has to chew
     // through, once this hero's dodges, reflects and guards are counted.
     // Survival time saturates in a mirror — nobody dies inside the
@@ -360,7 +379,9 @@ function measure(def, cast) {
 
 const COLUMNS = [
   ['dps', 'dps', 8, 1], ['direct', 'direct', 8, 1], ['poison', 'poison', 8, 1],
+  ['assist', 'assist', 7, 1],
   ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 7, 1],
+  ['worth/s', 'worth/s', 8, 1],
   ['taken/s', 'taken/s', 8, 1], ['mit%', 'mit%', 5, 1], ['ehp', 'ehp', 8, 0],
 ];
 

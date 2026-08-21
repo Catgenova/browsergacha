@@ -41,11 +41,13 @@ const COLUMNS = [
   { key: 'dps', label: 'dps', dp: 1 },
   { key: 'direct', label: 'direct', dp: 1 },
   { key: 'poison', label: 'poison', dp: 1 },
+  { key: 'assist', label: 'assist', dp: 1 },
   { key: 'heal/s', label: 'heal/s', dp: 1 },
   { key: 'mit/s', label: 'mit/s', dp: 1 },
   { key: 'taken/s', label: 'taken/s', dp: 1 },
   { key: 'mit%', label: 'mit %', dp: 1 },
   { key: 'saved/s', label: 'saved/s', dp: 1 },
+  { key: 'worth/s', label: 'worth/s', dp: 1 },
   { key: 'ehp', label: 'ehp', dp: 0 },
 ];
 
@@ -263,12 +265,20 @@ footer code { background:var(--panel-2); border:1px solid var(--line); border-ra
       hits a row or the whole field is worth nothing against a half-empty board, so a smaller
       squad quietly undervalues every hero whose kit scales with target count. Runs are seeded,
       so a difference between two heroes is a difference in the heroes.</p>
-    <p><b>Reading the support buckets.</b> A support is ranked on <b>saved/s</b> &mdash;
-      healing plus mitigation &mdash; because a ward that prevents damage and a heal that
-      restores it are the same currency. Ranking on healing alone put every protector at
-      the bottom of its bucket for doing its job well. A hero whose kit is pure offensive
-      buffing (attack, speed, turn meter) says "no kit for it": that work is real, but its
-      value is extra damage the ALLY deals, which nothing here measures.</p>
+    <p><b>Reading the support buckets.</b> A support is ranked on <b>worth/s</b> &mdash;
+      healing plus mitigation plus damage &mdash; because every one of those is HP, and a
+      support who buys the team an extra swing has done the same size of favour as one who
+      heals the swing back. Ranking on healing alone put every protector at the bottom of
+      its bucket for doing its job well; ranking on healing plus mitigation still left
+      every offensive buffer saying "no kit for it".</p>
+    <p><b>Reading assist.</b> A hit is rarely one hero's work. An attack buff, a crit buff,
+      a shove up the action bar or an armour break on the target each bought part of it, and
+      the engine now splits the credit accordingly &mdash; the share comes out of the
+      attacker's total, so the ledger still adds up to the damage that landed. <b>assist</b>
+      is the part of a hero's dps that somebody else swung for. For a pure buffer it is
+      nearly all of it, which is the whole reason those heroes can be ranked at all now.
+      Action-bar pushes are capped at 60% of a turn's output: a turn is never entirely
+      somebody else's doing.</p>
     <p><b>Reading poison.</b> Poison used to skip the DEF curve entirely, which made
       it worth about 9&#xd7; ordinary damage at this max-level premise and put a DoT carry
       at the top of every bucket. It now goes through the same pipeline as everything

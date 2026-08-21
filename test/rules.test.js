@@ -171,6 +171,56 @@ test('the damage meter credits the right side and separates its scopes', () => {
   assert(Meter.rows('damage', 'session').total === sessionTotal, 'session scope was cleared');
 });
 
+test('an attack buff credits the buffer with the damage it bought', () => {
+  const battle = makeBattle();
+  const hero = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  // No dodging, no crits: the split has to be readable, not lucky.
+  foe.dodgeChance = () => 0;
+  const hit = () => {
+    Meter.resetSession();
+    foe.hp = foe.maxHp;
+    Abilities.strike(hero, foe, 1000, { dodge: false, reflect: false });
+    const rows = Meter.rows('damage', 'battle');
+    const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+    return { total: rows.total, hero: by(hero), buffer: by(buffer) };
+  };
+
+  const plain = hit();
+  assert(plain.buffer === 0, 'an unbuffed swing credited someone who did nothing');
+
+  hero.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: buffer });
+  const buffed = hit();
+  assert(buffed.buffer > 0, 'the buffer got no credit for a +50% ATK buff');
+  // The split comes OUT of the attacker's share, so the ledger still adds
+  // up to the damage that actually landed.
+  assert(Math.abs(buffed.hero + buffed.buffer - buffed.total) <= 1,
+    `split does not reconstruct the hit: ${JSON.stringify(buffed)}`);
+  // A x1.5 buff bought a third of the hit (1 - 1/1.5).
+  const share = buffed.buffer / buffed.total;
+  assert(Math.abs(share - 1 / 3) < 0.02,
+    `expected a third of the hit, got ${share.toFixed(3)}`);
+
+  // Self-buffs are the hero's own business.
+  hero.statusEffects = [];
+  hero.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: hero });
+  assert(hit().buffer === 0, 'a self-buff was credited to somebody else');
+
+  // An armour break on the target is the same kind of assist.
+  hero.statusEffects = [];
+  foe.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.5, turns: 5, source: buffer });
+  const broken = hit();
+  assert(broken.buffer > 0, 'the armour break earned its caster nothing');
+  assert(Math.abs(broken.hero + broken.buffer - broken.total) <= 1,
+    'armour-break split does not reconstruct the hit');
+
+  // ...but never across the line: an enemy's debuff is not our assist.
+  foe.statusEffects = [];
+  foe.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.5, turns: 5, source: foe });
+  assert(hit().buffer === 0, 'credit leaked to a unit on the other team');
+});
+
 test('a ward credits its mitigation to the support who cast it', () => {
   const battle = makeBattle();
   // A protector whose kit reduces an ally's damageTaken.
