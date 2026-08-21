@@ -157,11 +157,11 @@ Object.assign(HEROES, {
       {
         id: 'moonsong', name: 'Moonsong',
         icon: 'assets/icons/fc869.png',
-        description: 'The old song: ALL allies gain +8% ATK for 2 turns and heal 20% of ATK.',
+        description: 'The old song: ALL allies gain +8% ATK for 2 turns and heal 42.9% of ATK.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.08, turns: 2 },
-          { type: 'heal', mult: 0.2 },
+          { type: 'heal', mult: 0.429 },
         ],
       },
     ],
@@ -678,13 +678,13 @@ Object.assign(HEROES, {
       {
         id: 'rime_bolt', name: 'Rime Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A rimed bolt: 86% ATK that mends the caster for 10% of ATK.',
+        description: 'A rimed bolt: 86% ATK that mends the caster for 20.3% of ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.86 },
         ],
         selfEffects: [
-          { type: 'heal', mult: 0.1 },
+          { type: 'heal', mult: 0.203 },
         ],
       },
       {
@@ -1466,10 +1466,10 @@ Object.assign(HEROES, {
       {
         id: 'break_of_day', name: 'Break of Day',
         icon: 'assets/icons/fc855.png',
-        description: 'The night ends: ALL allies heal 70% of ATK, are cleansed, and gain 5% turn meter.',
+        description: 'The night ends: ALL allies heal 131.2% of ATK, are cleansed, and gain 5% turn meter.',
         cooldown: 7, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.7 },
+          { type: 'heal', mult: 1.312 },
           { type: 'cleanse' },
           { type: 'turnMeter', amount: 0.05 },
         ],
@@ -1843,21 +1843,21 @@ Object.assign(HEROES, {
       {
         id: 'wolf_lightmuzzle_grace', name: 'Lightmuzzle\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 104% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 87.5% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.04 },
+          { type: 'heal', mult: 0.875 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'wolf_lightmuzzle_communion', name: 'Lightmuzzle\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 68.1% of ATK plus 1.4% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 57.3% of ATK plus 1.2% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.681 },
-          { type: 'hot', pct: 0.014, turns: 2 },
+          { type: 'heal', mult: 0.573 },
+          { type: 'hot', pct: 0.012, turns: 2 },
         ],
       },
     ],

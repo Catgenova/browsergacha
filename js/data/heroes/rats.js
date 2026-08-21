@@ -710,18 +710,18 @@ Object.assign(HEROES, {
       {
         id: 'hot_soup', name: 'Hot Soup',
         icon: 'assets/icons/fc1112.png',
-        description: 'Serve an ally soup: heals 150% of ATK.',
+        description: 'Serve an ally soup: heals 103.8% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
-        effects: [{ type: 'heal', mult: 1.5 }],
+        effects: [{ type: 'heal', mult: 1.038 }],
       },
       {
         id: 'grand_feast', name: 'Grand Feast',
         icon: 'assets/icons/fc800.png',
-        description: 'Lay a feast: heals ALL allies for 80% of ATK plus 2% of the Cook\'s max HP for 2 turns.',
+        description: 'Lay a feast: heals ALL allies for 55.4% of ATK plus 1.4% of the Cook\'s max HP for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.8 },
-          { type: 'hot', pct: 0.02, turns: 2 },
+          { type: 'heal', mult: 0.554 },
+          { type: 'hot', pct: 0.014, turns: 2 },
         ],
       },
     ],
@@ -894,10 +894,10 @@ Object.assign(HEROES, {
       {
         id: 'spirit_mend', name: 'Spirit Mend',
         icon: 'assets/icons/fc1112.png',
-        description: 'Heal an ally for 130% of ATK and cleanse their debuffs.',
+        description: 'Heal an ally for 256.6% of ATK and cleanse their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.3 },
+          { type: 'heal', mult: 2.566 },
           { type: 'cleanse' },
         ],
       },
@@ -958,11 +958,11 @@ Object.assign(HEROES, {
       {
         id: 'meditate', name: 'Meditate',
         icon: 'assets/icons/fc1112.png',
-        description: 'Center the self: cleanse own debuffs and recover 25% max HP.',
+        description: 'Center the self: cleanse own debuffs and recover 42.6% max HP.',
         cooldown: 5, targeting: 'self', animation: 'attack',
         effects: [
           { type: 'cleanse' },
-          { type: 'healHpPct', pct: 0.25 },
+          { type: 'healHpPct', pct: 0.426 },
         ],
       },
     ],
@@ -1847,11 +1847,11 @@ Object.assign(HEROES, {
       {
         id: 'rat_aegisbearer_ward', name: 'Aegisbearer\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 12% less damage for 2 turns and heal 46% of ATK.',
+        description: 'Raise the aegis over an ally: they take 12% less damage for 2 turns and heal 138% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.88, turns: 2 },
-          { type: 'heal', mult: 0.46 },
+          { type: 'heal', mult: 1.38 },
         ],
       },
       {

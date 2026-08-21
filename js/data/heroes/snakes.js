@@ -308,13 +308,13 @@ Object.assign(HEROES, {
       {
         id: 'spirit_fang', name: 'Spirit Fang',
         icon: 'assets/icons/fc970.png',
-        description: 'A spectral bite for 85% ATK; spirits knit the Shaman for 2% max HP over 2 turns.',
+        description: 'A spectral bite for 85% ATK; spirits knit the Shaman for 4.3% max HP over 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.85 },
         ],
         selfEffects: [
-          { type: 'hot', pct: 0.02, turns: 2 },
+          { type: 'hot', pct: 0.043, turns: 2 },
         ],
       },
       {
@@ -616,10 +616,10 @@ Object.assign(HEROES, {
       {
         id: 'soothing_melody', name: 'Soothing Melody',
         icon: 'assets/icons/fc1112.png',
-        description: 'Mend an ally for 100% of ATK and quicken them: +10% SPD for 2 turns.',
+        description: 'Mend an ally for 197.4% of ATK and quicken them: +10% SPD for 2 turns.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.0 },
+          { type: 'heal', mult: 1.974 },
           { type: 'buff', stat: 'speed', mult: 1.1, turns: 2 },
         ],
       },
@@ -759,11 +759,11 @@ Object.assign(HEROES, {
       {
         id: 'swallow_the_sun', name: 'Swallow the Sun',
         icon: 'assets/icons/fc1050.png',
-        description: 'Gorge on flame: +40% ATK for 1 turn and 5% max HP regen for 2 turns.',
+        description: 'Gorge on flame: +40% ATK for 1 turn and 15% max HP regen for 2 turns.',
         cooldown: 6, targeting: 'self', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.4, turns: 1 },
-          { type: 'hot', pct: 0.05, turns: 2 },
+          { type: 'hot', pct: 0.15, turns: 2 },
         ],
       },
     ],
@@ -1829,21 +1829,21 @@ Object.assign(HEROES, {
       {
         id: 'snake_dawnpriestess_grace', name: 'Dawnpriestess\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 135% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 94.1% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.35 },
+          { type: 'heal', mult: 0.941 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'snake_dawnpriestess_communion', name: 'Dawnpriestess\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 85% of ATK plus 1.4% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 59.2% of ATK plus 1% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.85 },
-          { type: 'hot', pct: 0.014, turns: 2 },
+          { type: 'heal', mult: 0.592 },
+          { type: 'hot', pct: 0.01, turns: 2 },
         ],
       },
     ],

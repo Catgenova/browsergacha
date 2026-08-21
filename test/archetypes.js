@@ -123,8 +123,8 @@ const TITLE = {
 };
 // The number each bucket lives or dies by.
 const HEADLINE = {
-  front_tank: 'ehp', front_dps: 'dps', center_support: 'heal/s',
-  center_dps: 'dps', back_support: 'heal/s', back_dps: 'dps',
+  front_tank: 'ehp', front_dps: 'dps', center_support: 'saved/s',
+  center_dps: 'dps', back_support: 'saved/s', back_dps: 'dps',
 };
 // The effect types a kit needs to be able to post a number in each
 // headline. A hero whose kit simply cannot (a cleanse-only support has
@@ -132,13 +132,25 @@ const HEADLINE = {
 const NEEDS = {
   dps: ['damage', 'damageDef', 'damageHpPct', 'dot'],
   'heal/s': ['heal', 'healHpPct', 'hot'],
+  // A support's job is HP the team did not lose, and a ward prevents it
+  // just as a heal restores it. Ranking supports on healing alone put
+  // every protector at the bottom of its bucket for doing its job well.
+  'saved/s': ['heal', 'healHpPct', 'hot', 'buff'],
   ehp: null, // every hero has an HP pool
 };
 function kitCan(def, headline) {
   const need = NEEDS[headline];
   if (!need) return true;
   return (def.abilities || []).some((a) =>
-    (a.effects || []).some((e) => need.includes(e.type)));
+    (a.effects || []).some((e) => {
+      if (!need.includes(e.type)) return false;
+      // Only a damage-reduction ward counts toward HP saved. An ATK or
+      // speed buff is real support work, but its value is extra damage
+      // the ALLY deals — nothing this bench measures. Better to say so
+      // than to rank a buffer bottom of a table it cannot compete in.
+      if (e.type === 'buff') return e.stat === 'damageTaken';
+      return true;
+    }));
 }
 
 const buckets = {};
@@ -224,7 +236,15 @@ function runOne(def, cast, seedValue) {
   const bleed = () => {
     bleeding = true;
     for (const u of battle.livingUnits()) {
-      u.takeDamage(Math.max(1, Math.round(u.maxHp * ATTRITION)));
+      // Through the unit's defences, so a ward blunts the bleed the way
+      // it blunts anything else. Without this a protector has nothing to
+      // protect against in a mirror, and reads as a failed healer.
+      // selfCredit: false — attrition is a harness construct, so a unit
+      // must not bank mitigation against it and inflate its own ehp.
+      // Wards still earn their share, which is the point of routing the
+      // bleed through the defences at all.
+      u.takeDamage(u.blunt(Math.max(1, Math.round(u.maxHp * ATTRITION)),
+        { selfCredit: false }));
     }
     bleeding = false;
   };
@@ -325,6 +345,8 @@ function measure(def, cast) {
     'mit/s': avg((r) => r.mitigated / r.seconds),
     'taken/s': avg((r) => r.taken / r.seconds),
     'mit%': mitRatio * 100,
+    // Healing plus mitigation: what a support actually saved the team.
+    'saved/s': avg((r) => (r.healing + r.mitigated) / r.seconds),
     // Effective health: the pool an attacker actually has to chew
     // through, once this hero's dodges, reflects and guards are counted.
     // Survival time saturates in a mirror — nobody dies inside the

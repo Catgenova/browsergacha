@@ -63,10 +63,9 @@ const Abilities = (() => {
       return { kind: 'damage', target, amount: 0, dodged: true };
     }
     // Defensive multipliers (guard passives, wards, resonance) blunt the
-    // hit; the difference is mitigation.
-    const unblunted = dmg;
-    dmg = Math.round(dmg * target.damageTakenMult());
-    Meter.mitigated(target, unblunted - dmg);
+    // hit. blunt() books who prevented what — a ward cast by a support
+    // belongs to that support, not to the ally standing behind it.
+    dmg = target.blunt(dmg);
     // Reflect (Boar set 6pc / bristle passives): the whole hit bounces
     // back to the attacker instead of landing. Skipped when there is no
     // blow to bounce — a poison already inside you is not incoming.
@@ -219,6 +218,10 @@ const Abilities = (() => {
           kind: effect.type,
           stat: effect.stat,
           mult: effect.mult,
+          // Who granted it. A damageTaken ward is a support's whole
+          // contribution, and without this the mitigation it produces is
+          // credited to the ally who was not hit.
+          source: caster,
           add: effect.add,
           turns,
         });

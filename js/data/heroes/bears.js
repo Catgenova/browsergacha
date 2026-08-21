@@ -462,10 +462,10 @@ Object.assign(HEROES, {
       {
         id: 'five_more_minutes', name: 'Five More Minutes',
         icon: 'assets/icons/fc1112.png',
-        description: 'Roll over: heals 18% max HP and takes 15% less damage for 1 turn.',
+        description: 'Roll over: heals 54% max HP and takes 15% less damage for 1 turn.',
         cooldown: 6, targeting: 'self', animation: 'attack',
         effects: [
-          { type: 'healHpPct', pct: 0.18 },
+          { type: 'healHpPct', pct: 0.54 },
           { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 1 },
         ],
       },
@@ -1504,11 +1504,11 @@ Object.assign(HEROES, {
       {
         id: 'long_summer', name: 'Long Summer',
         icon: 'assets/icons/fc800.png',
-        description: 'A season of plenty: ALL allies heal 40% of ATK, regenerate 2% of her max HP for 3 turns, and gain +6% DEF for 2 turns.',
+        description: 'A season of plenty: ALL allies heal 33.2% of ATK, regenerate 1.7% of her max HP for 3 turns, and gain +6% DEF for 2 turns.',
         cooldown: 7, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.4 },
-          { type: 'hot', pct: 0.02, turns: 3 },
+          { type: 'heal', mult: 0.332 },
+          { type: 'hot', pct: 0.017, turns: 3 },
           { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
         ],
       },
@@ -1927,11 +1927,11 @@ Object.assign(HEROES, {
       {
         id: 'bear_aegishide_ward', name: 'Aegishide\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 7% less damage for 2 turns and heal 106% of ATK.',
+        description: 'Raise the aegis over an ally: they take 7% less damage for 2 turns and heal 209.2% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.92, turns: 2 },
-          { type: 'heal', mult: 1.06 },
+          { type: 'heal', mult: 2.092 },
         ],
       },
       {

@@ -1924,11 +1924,11 @@ Object.assign(HEROES, {
       {
         id: 'egret_aegiswing_ward', name: 'Aegiswing\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 13% less damage for 2 turns and heal 56% of ATK.',
+        description: 'Raise the aegis over an ally: they take 13% less damage for 2 turns and heal 155.6% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.87, turns: 2 },
-          { type: 'heal', mult: 0.56 },
+          { type: 'heal', mult: 1.556 },
         ],
       },
       {

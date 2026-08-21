@@ -1866,21 +1866,21 @@ Object.assign(HEROES, {
       {
         id: 'cat_lightpurr_grace', name: 'Lightpurr\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 145.8% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 92.7% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.458 },
+          { type: 'heal', mult: 0.927 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'cat_lightpurr_communion', name: 'Lightpurr\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 104.1% of ATK plus 1.8% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 66.2% of ATK plus 1.1% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.041 },
-          { type: 'hot', pct: 0.017, turns: 2 },
+          { type: 'heal', mult: 0.662 },
+          { type: 'hot', pct: 0.011, turns: 2 },
         ],
       },
     ],
@@ -1921,11 +1921,11 @@ Object.assign(HEROES, {
       {
         id: 'cat_aegistail_ward', name: 'Aegistail\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 5% less damage for 2 turns and heal 116% of ATK.',
+        description: 'Raise the aegis over an ally: they take 5% less damage for 2 turns and heal 217.5% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.95, turns: 2 },
-          { type: 'heal', mult: 1.16 },
+          { type: 'heal', mult: 2.175 },
         ],
       },
       {

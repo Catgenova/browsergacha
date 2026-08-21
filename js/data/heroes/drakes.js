@@ -887,11 +887,11 @@ Object.assign(HEROES, {
       {
         id: 'cloud_cover', name: 'Cloud Cover',
         icon: 'assets/icons/fc855.png',
-        description: 'Wrap an ally in mist: they take 18% less damage for 2 turns and heal 40% of ATK.',
+        description: 'Wrap an ally in mist: they take 18% less damage for 2 turns and heal 90.9% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.82, turns: 2 },
-          { type: 'heal', mult: 0.4 },
+          { type: 'heal', mult: 0.909 },
         ],
       },
       {
@@ -1492,10 +1492,10 @@ Object.assign(HEROES, {
       {
         id: 'thousand_dawns', name: 'Thousand Dawns',
         icon: 'assets/icons/fc855.png',
-        description: 'Every scale a sunrise: ALL allies heal 52% of ATK and gain +6% crit chance for 2 turns.',
+        description: 'Every scale a sunrise: ALL allies heal 36.4% of ATK and gain +6% crit chance for 2 turns.',
         cooldown: 7, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.52 },
+          { type: 'heal', mult: 0.364 },
           { type: 'buff', stat: 'critChance', add: 0.06, turns: 2 },
         ],
       },
@@ -1917,11 +1917,11 @@ Object.assign(HEROES, {
       {
         id: 'drake_aegisplate_ward', name: 'Aegisplate\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 16% less damage for 2 turns and heal 126% of ATK.',
+        description: 'Raise the aegis over an ally: they take 16% less damage for 2 turns and heal 175% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.84, turns: 2 },
-          { type: 'heal', mult: 1.26 },
+          { type: 'heal', mult: 1.75 },
         ],
       },
       {
