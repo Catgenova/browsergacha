@@ -578,8 +578,11 @@ class Battle {
     // allies) while nobody is hurt or debuffed. Offensive buffs (ATK,
     // crit, speed) are worth using anytime.
     const allies = this.livingUnits(unit.team);
+    // How hurt an ally has to be before a heal is worth spending. Fixed
+    // for enemies; the player's own tactics move it (see js/ai.js).
+    const hurtBelow = AI.healThreshold(unit);
     const anyImpaired =
-      allies.some((u) => u.hp / u.maxHp < 0.8) ||
+      allies.some((u) => u.hp / u.maxHp < hurtBelow) ||
       allies.some((u) => u.statusEffects.some(
         (fx) => fx.kind === 'debuff' || fx.kind === 'dot'));
     const usable = ready.filter((a) => {

@@ -2,9 +2,12 @@
 // quietly collapsing into each other or shipping broken text — the
 // kind of thing that is invisible in review and obvious in play.
 
-const { loadGame, test, assert, report } = require('./harness');
+const fs = require('fs');
+const path = require('path');
+const { loadGame, test, assert, report, ROOT, FILES } = require('./harness');
 const g = loadGame();
-const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION } = g;
+const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION, Quests,
+  ACHIEVEMENTS, GameState } = g;
 
 const heroes = Object.values(HEROES);
 const passivesOf = (d) => d.passives || (d.passive ? [d.passive] : []);
@@ -386,6 +389,71 @@ test('ability descriptions quote the numbers the ability actually applies', () =
   }
   assert(problems.length === 0,
     `${problems.length} stale: ` + problems.slice(0, 4).join(' | '));
+});
+
+
+
+
+// ---- Quests and achievements ---------------------------------------------
+
+test('every quest names a real counter and pays something', () => {
+  const COUNTERS = new Set(['wins', 'huntWins', 'bossWins', 'campaignWins',
+    'towerFloors', 'summons', 'starUps', 'polishes', 'enchants', 'salvages',
+    'rerolls', 'flawless']);
+  const seen = new Set();
+  for (const [type, list] of Object.entries(Quests.DEFS)) {
+    for (const q of list) {
+      assert(!seen.has(q.id), `duplicate quest id ${q.id}`);
+      seen.add(q.id);
+      assert(COUNTERS.has(q.counter),
+        `${type}/${q.id}: counter "${q.counter}" is never bumped by the game`);
+      assert(q.goal > 0, `${type}/${q.id}: goal ${q.goal}`);
+      assert(Object.keys(q.reward || {}).length > 0, `${type}/${q.id}: no reward`);
+    }
+  }
+});
+
+test('every achievement resolves its progress on a fresh save', () => {
+  const seen = new Set();
+  for (const a of ACHIEVEMENTS.LIST) {
+    assert(!seen.has(a.id), `duplicate achievement id ${a.id}`);
+    seen.add(a.id);
+    assert(a.name && a.detail && a.group, `${a.id}: missing name/detail/group`);
+    // The list is built at load, and it reads Campaign and Gear while it
+    // builds -- an ordering slip here is a blank achievements screen.
+    const st = ACHIEVEMENTS.state(a);
+    assert(Number.isFinite(st.have) && Number.isFinite(st.need) && st.need > 0,
+      `${a.id}: progress ${JSON.stringify(st)}`);
+    assert(ACHIEVEMENTS.rewardText(a.reward).length > 0, `${a.id}: no reward text`);
+  }
+});
+
+test('the test harness loads game files in the order the page does', () => {
+  // Load order is load-bearing: ACHIEVEMENTS reads the campaign's tier
+  // list while it is being defined, so achievements.js after campaign.js
+  // is a requirement, not a preference. If the harness and index.html
+  // disagree, the tests pass on an order the browser never runs.
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const inPage = [...html.matchAll(/<script src="(js\/[^?"]+)/g)].map((m) => m[1]);
+  let at = -1;
+  for (const rel of FILES) {
+    const i = inPage.indexOf(rel);
+    assert(i >= 0, `${rel} is loaded by the harness but not by index.html`);
+    assert(i > at, `${rel} loads before ${inPage[at]} in the harness ` +
+      'but after it in index.html');
+    at = i;
+  }
+});
+
+test('lifetime stats survive a quest period rolling over', () => {
+  const before = GameState.stat('wins');
+  GameState.questBump('wins', 3);
+  assert(GameState.stat('wins') === before + 3, 'lifetime total did not move');
+  // Force the board onto a new period the way a date change would.
+  GameState.questState('daily').period = 'not-today';
+  GameState.questState('daily');
+  assert(GameState.stat('wins') === before + 3,
+    'the lifetime total reset along with the quest board');
 });
 
 report();

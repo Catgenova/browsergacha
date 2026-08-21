@@ -13,14 +13,18 @@ const ROOT = path.join(__dirname, '..');
 
 // Files under test, in load order (mirrors index.html).
 const FILES = [
-  'js/config.js', 'js/hex.js', 'js/elements.js', 'js/races.js',
-  'js/abilities.js', 'js/progression.js', 'js/gear.js', 'js/hero.js',
-  'js/data/positionals.js', 'js/data/heroes.js',
-  'js/data/heroes/humans.js', 'js/data/heroes/rats.js', 'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js', 'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js', 'js/data/heroes/cats.js', 'js/data/heroes/drakes.js',
-  'js/data/enemies.js',
-  'js/data/bosses.js', 'js/data/campaign.js',
-  'js/ai.js', 'js/meter.js', 'js/quests.js', 'js/battle.js', 'js/state.js',
-  'js/waves.js', 'js/campaign.js',
+  // Same order as index.html, and a test in data.test.js keeps it that
+  // way: load order is load-bearing (ACHIEVEMENTS reads the campaign's
+  // tier list while it is being defined), so a harness that loads the
+  // files in a different order tests an order the browser never runs.
+  'js/meter.js', 'js/config.js', 'js/hex.js', 'js/elements.js', 'js/races.js',
+  'js/abilities.js', 'js/progression.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
+  'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/rats.js',
+  'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',
+  'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
+  'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/enemies.js',
+  'js/data/campaign.js', 'js/data/bosses.js', 'js/quests.js', 'js/state.js',
+  'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
 
 // `opts.save` pre-seeds localStorage before any game file runs, which is
@@ -73,7 +77,7 @@ function loadGame(opts = {}) {
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES',
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState',
-    'Waves', 'CAMPAIGN', 'Campaign'];
+    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
