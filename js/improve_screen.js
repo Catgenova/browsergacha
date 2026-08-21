@@ -113,15 +113,13 @@ class ImproveScreen {
 
     this.listEl.innerHTML = rows.map((r) => {
       const ready = GameState.starUpAffordable(r.uid);
-      const same = GameState.countOf(r.def.id);
       return `<div class="imp-row${r.uid === this.selected ? ' selected' : ''}"
            data-uid="${r.uid}">
         <canvas class="imp-portrait" width="40" height="40"></canvas>
         <div class="imp-row-text">
           <div class="imp-row-name">${Elements.badge(r.def.element)} ${r.def.name}</div>
           <div class="imp-row-sub">Lv ${r.pr.level} · ${
-            Attune.starsHtml(r.pr.stars, r.pr.attune, r.def.element)}${
-            same > 1 ? ` · ×${same}` : ''}</div>
+            Attune.starsHtml(r.pr.stars, r.pr.attune, r.def.element)}</div>
         </div>
         ${ready ? '<span class="imp-ready">★⬆</span>' : ''}
       </div>`;
