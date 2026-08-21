@@ -887,6 +887,7 @@ class TeamScreen {
       <div class="detail-name rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name} <span class="detail-title">${def.title || ''}</span></div>
       ${def.element && Elements.info(def.element) ? `<div class="detail-element" style="color:${Elements.info(def.element).color}">${Elements.info(def.element).name} element</div>` : ''}
       ${RACES.sectOf(def) ? `<div class="detail-element detail-sect">${RACES.sectOf(def).name} Sect &middot; No. ${RACES.sectOf(def).number}</div>` : ''}
+      ${Tags.html(def)}
       <div class="card-stars rarity-${def.rarity}">${starsText}</div>
       <div class="detail-level">
         Lv ${progress.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}
