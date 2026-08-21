@@ -2154,3 +2154,31 @@ body {
 }
 #mute-btn.muted { opacity: 0.55; }
 html.is-mobile #mute-btn { min-height: 44px; min-width: 44px; font-size: 18px; }
+
+/* ==== Last battle summary ==== */
+#battle-summary {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #1c1926;
+  border: 1px solid #3a3450;
+  border-left-width: 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #b8b2cc;
+  line-height: 1.55;
+}
+.sum-head { display: flex; align-items: baseline; gap: 10px; }
+.sum-verdict { font-weight: bold; letter-spacing: 1px; }
+.sum-head.won .sum-verdict { color: #7ae87a; }
+.sum-head.lost .sum-verdict { color: #ff9a8a; }
+.sum-what { color: #e8e4d8; }
+.sum-lines { margin-top: 3px; color: #9a92b8; }
+.sum-row { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.sum-k {
+  font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+  color: #6b6486; min-width: 52px;
+}
+.sum-hero { color: #b8b2cc; }
+.sum-hero b { color: #ffd76a; font-weight: 500; }
+html.is-mobile #battle-summary { font-size: 13px; }
+html.is-mobile .sum-k { font-size: 11px; }
