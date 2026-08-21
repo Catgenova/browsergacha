@@ -176,6 +176,7 @@ const GameState = (() => {
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
     tomes: 0,                            // skill-leveling currency (tower only)
+    onboarded: false,                    // has the first-run tour been seen?
   };
 
   function freshEntry(heroId) {
@@ -207,6 +208,9 @@ const GameState = (() => {
         const parsed = JSON.parse(raw);
         from = typeof parsed.schemaVersion === 'number' ? parsed.schemaVersion : 0;
         loaded = { ...structuredClone(DEFAULTS), ...parsed };
+        // A save that came off disk belongs to somebody who has already
+        // worked the game out. The first-run tour is for first runs.
+        if (parsed.onboarded === undefined) loaded.onboarded = true;
       } else {
         loaded = structuredClone(DEFAULTS);
       }
@@ -253,6 +257,7 @@ const GameState = (() => {
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
     if (!loaded.tomes) loaded.tomes = 0;
+    if (loaded.onboarded === undefined) loaded.onboarded = false;
     if (!loaded.waveSettings) loaded.waveSettings = { location: 0, stage: 1, repeat: 1 };
     if (!loaded.quests) loaded.quests = {};
     if (!loaded.achievements) loaded.achievements = {};
@@ -290,6 +295,10 @@ const GameState = (() => {
 
   return {
     onChange(fn) { listeners.push(fn); },
+
+    // ---- First-run tour ----
+    get onboarded() { return !!state.onboarded; },
+    setOnboarded(v) { state.onboarded = !!v; save(); },
 
     // ---- Summon scrolls ----
     get scrollsCommon() { return state.scrollsCommon; },

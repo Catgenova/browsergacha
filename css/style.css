@@ -2194,3 +2194,92 @@ html.is-mobile .sum-k { font-size: 11px; }
 .sub-arrow.down, .sub-new.down { color: #ff9a8a; }
 .sub-new { color: #e8e4d8; }
 html.is-mobile .sub-compare { font-size: 13px; }
+
+/* ==== First-run tour ==== */
+/* Fixed to the viewport rather than parented into #game-root, because
+   the root is transform-scaled to fit the window: measuring a target
+   with getBoundingClientRect already gives post-transform coordinates,
+   and a spotlight inside the scaled root would be scaled twice. */
+#onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+}
+
+/* The scrim is the spotlight's own shadow, so the highlighted control
+   stays at full brightness with no second element to keep in sync. */
+#onboarding .ob-spot {
+  position: fixed;
+  border: 2px solid #ffd76a;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(8, 6, 14, 0.74), 0 0 18px rgba(255, 215, 106, 0.35);
+  pointer-events: none;
+  transition: left 0.18s ease, top 0.18s ease, width 0.18s ease, height 0.18s ease;
+}
+
+#onboarding .ob-spot.hidden { display: none; }
+/* No target this step: dim the whole screen instead. */
+#onboarding:has(.ob-spot.hidden) { background: rgba(8, 6, 14, 0.74); }
+
+#onboarding .ob-card {
+  position: fixed;
+  width: min(380px, calc(100vw - 24px));
+  padding: 16px 18px;
+  background: #1c1926;
+  border: 2px solid #6a5f96;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#onboarding .ob-step {
+  font-size: 11px;
+  color: #9a92b8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#onboarding .ob-card h3 {
+  margin: 4px 0 8px;
+  font-size: 16px;
+  color: #ffd76a;
+}
+
+#onboarding .ob-card p { color: #cfc8dd; }
+
+#onboarding .ob-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+#onboarding .ob-skip { margin-right: auto; opacity: 0.75; }
+
+#onboarding .ob-dots { display: flex; gap: 4px; margin-right: 4px; }
+#onboarding .ob-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3d3760;
+}
+#onboarding .ob-dots i.on { background: #ffd76a; }
+
+#help-btn { padding: 8px 12px; }
+
+@media (max-width: 899px) {
+  /* Tap targets and a card that spans the width, same rules as the rest
+     of the mobile layout. */
+  html.is-mobile #onboarding .ob-card {
+    width: calc(100vw - 20px);
+    font-size: 15px;
+    padding: 14px;
+  }
+  html.is-mobile #onboarding .ob-card h3 { font-size: 18px; }
+  html.is-mobile #onboarding .ob-actions .panel-btn {
+    min-height: 40px;
+    font-size: 14px;
+  }
+  html.is-mobile #onboarding .ob-dots { display: none; }
+}

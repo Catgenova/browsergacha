@@ -240,6 +240,22 @@ const App = {
   updateCampaignBadge();
   App.showScreen('team');
 
+  // First-run tour. It points at controls on the team screen, so it waits
+  // for that screen to be up and laid out before measuring anything.
+  const helpBtn = document.getElementById('help-btn');
+  if (helpBtn) {
+    helpBtn.addEventListener('click', async () => {
+      if (Onboarding.active()) return;
+      await App.showScreen('team');
+      requestAnimationFrame(() => Onboarding.start());
+    });
+  }
+  if (!GameState.onboarded) {
+    // Two frames: one for the screen's own layout, one for fitToScreen's
+    // transform. A spotlight measured before either is aimed at nothing.
+    requestAnimationFrame(() => requestAnimationFrame(() => Onboarding.start()));
+  }
+
   // Keep the layout fitted: on window resize and whenever screen content
   // changes height (roster growth, summon results, screen switches).
   window.addEventListener('resize', () => App.fitToScreen());
