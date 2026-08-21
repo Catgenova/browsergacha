@@ -8,7 +8,7 @@ const GameState = (() => {
   // Save schema version. Every structural change to the save gets a
   // numbered migration below rather than another ad-hoc patch in
   // load(), so an old save always walks a known path to the present.
-  const SCHEMA = 6;
+  const SCHEMA = 7;
 
   // Ordered migrations: each takes a save at version < its `to` and
   // brings it up to that version. They run in order, once, on load.
@@ -150,14 +150,63 @@ const GameState = (() => {
     return s;
   }
 
+  // Schema 7: the roster stopped being a set of heroes with a duplicate
+  // COUNTER and became a list of individual heroes. A pull now hands you
+  // a whole hero rather than a tally mark, and the duplicates you were
+  // holding become real heroes standing in the roster.
+  MIGRATIONS.push({
+    to: 7,
+    what: 'roster entries became individual heroes',
+    run(s) {
+      const old = s.roster || {};
+      const roster = {};
+      let uid = 1;
+      for (const [heroId, e] of Object.entries(old)) {
+        // The hero as they stood, keeping level, stars, gear and skills.
+        const kept = String(uid++);
+        roster[kept] = {
+          heroId,
+          level: e.level ?? 1,
+          xp: e.xp ?? 0,
+          stars: e.stars ?? 1,
+          equipment: e.equipment || {},
+          skills: e.skills || {},
+          favorite: !!e.favorite,
+        };
+        // Every spare copy becomes a hero of its own, fresh.
+        const base = (typeof HEROES !== 'undefined' && HEROES[heroId])
+          ? (HEROES[heroId].rarity || 1) : (e.stars ?? 1);
+        for (let i = 1; i < (e.copies ?? 1); i++) {
+          roster[String(uid++)] = { heroId, level: 1, xp: 0, stars: base,
+            equipment: {}, skills: {}, favorite: false };
+        }
+        // The team pointed at hero ids; it points at the kept hero now.
+        for (const [slot, id] of Object.entries(s.team || {})) {
+          if (id === heroId) s.team[slot] = kept;
+        }
+        for (const preset of s.presets || []) {
+          for (const [slot, id] of Object.entries(preset.team || {})) {
+            if (id === heroId) preset.team[slot] = kept;
+          }
+        }
+      }
+      s.roster = roster;
+      s.nextHeroUid = uid;
+      delete s.tomes; // skill tomes retired with the copy model
+    },
+  });
+
   const DEFAULTS = {
     schemaVersion: SCHEMA,               // see MIGRATIONS above
     scrollsCommon: 5,                    // Common Summon Scrolls
     scrollsRare: 1,                      // Rare Summon Scrolls
     scrollsTemporal: 0,                  // Temporal Scrolls (dark/light)
-    // heroId -> { copies, level, xp, stars }
-    roster: { florence: { copies: 1 } },
-    team: { 1: 'florence' },             // slotIndex (0-6) -> heroId
+    // uid -> { heroId, level, xp, stars, equipment, skills, favorite }.
+    // Keyed by an instance id, not a hero id: the same character can
+    // stand in the roster many times over, and each one is its own hero.
+    roster: {},
+    nextHeroUid: 1,
+    team: {},                            // slotIndex (0-6) -> roster uid
     pity: 0,                             // pulls since last 5★
     bossStages: {},                      // bossId -> highest stage cleared
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
@@ -172,10 +221,10 @@ const GameState = (() => {
     // { hunt: chapterId -> true, boss: chapterId -> true }. It opens
     // those two gates and never counts as campaign progress.
     campaign: { cleared: {}, granted: { hunt: {}, boss: {} }, chapter: 'ch1' },
+    starters: {},                        // starter heroes already granted
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
-    tomes: 0,                            // skill-leveling currency (tower only)
     onboarded: false,                    // has the first-run tour been seen?
     // Autobattle policy: see AI.TACTICS in js/ai.js.
     tactics: { target: 'lowest', skills: 'burst', support: 'hurt' },
@@ -184,10 +233,15 @@ const GameState = (() => {
     stats: {},
   };
 
+  // The most heroes the roster will hold. Star-ups and skill-ups eat
+  // heroes, so the cap is what makes those sinks matter.
+  const MAX_ROSTER = 200;
+
   function freshEntry(heroId) {
     const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
     return {
-      copies: 1, level: 1, xp: 0,
+      heroId,
+      level: 1, xp: 0,
       stars: def ? def.rarity : 1,
       equipment: {}, // slot -> gear uid
       skills: {},    // ability index -> skill level (absent = 1)
@@ -203,6 +257,7 @@ const GameState = (() => {
 
   function load() {
     let loaded;
+    let fresh = false;   // no save on disk: a genuinely new player
     // The version has to come off the RAW save, before DEFAULTS supplies
     // its own; a fresh save legitimately starts at the current schema
     // and runs nothing.
@@ -218,41 +273,68 @@ const GameState = (() => {
         if (parsed.onboarded === undefined) loaded.onboarded = true;
       } else {
         loaded = structuredClone(DEFAULTS);
+        fresh = true;
       }
     } catch (e) { /* storage unavailable or corrupt: start fresh */
       loaded = structuredClone(DEFAULTS);
       from = SCHEMA;
     }
+    // Walk the save up to the current schema FIRST. Everything below
+    // reads the roster as a list of heroes, which is only true once
+    // migration 7 has turned the copy counters into real ones.
+    migrate(loaded, from);
+
+    if (!loaded.nextHeroUid) {
+      loaded.nextHeroUid = Object.keys(loaded.roster || {}).length + 1;
+    }
+    // The starters are granted once each, by character rather than by
+    // instance: a player who has fed their Florence to a star-up does not
+    // get handed another one on the next load.
+    if (!loaded.starters) loaded.starters = {};
+    const has = (heroId) =>
+      Object.values(loaded.roster || {}).some((e) => e && e.heroId === heroId);
+    let firstStarter = null;
     for (const id of STARTERS) {
-      if (!loaded.roster[id]) loaded.roster[id] = freshEntry(id);
+      if (loaded.starters[id]) continue;
+      if (!has(id)) {
+        const uid = String(loaded.nextHeroUid++);
+        loaded.roster[uid] = freshEntry(id);
+        if (!firstStarter) firstStarter = uid;
+      }
+      loaded.starters[id] = true;
+    }
+    // A brand-new player gets one hero already on the board, the way the
+    // old default team did. Only on a genuinely new save: re-placing a
+    // hero every load would fight anyone who cleared their team on purpose.
+    if (fresh && firstStarter && !Object.keys(loaded.team).length) {
+      loaded.team[1] = firstStarter;
     }
     // Scrub heroes that no longer exist (removed characters) from saves.
     if (typeof HEROES !== 'undefined') {
-      for (const id of Object.keys(loaded.roster)) {
-        if (!HEROES[id]) delete loaded.roster[id];
+      for (const [uid, entry] of Object.entries(loaded.roster)) {
+        if (!entry || !HEROES[entry.heroId]) delete loaded.roster[uid];
       }
       // Invariant, not a migration: promoting a character later must
-      // still lift copies already in the roster.
-      for (const [id, entry] of Object.entries(loaded.roster)) {
-        const base = HEROES[id].rarity || 1;
+      // still lift heroes already in the roster.
+      for (const entry of Object.values(loaded.roster)) {
+        const base = HEROES[entry.heroId].rarity || 1;
         if (entry.stars !== undefined && entry.stars < base) entry.stars = base;
       }
-      for (const [slot, id] of Object.entries(loaded.team)) {
-        if (!HEROES[id]) delete loaded.team[slot];
+      for (const [slot, uid] of Object.entries(loaded.team)) {
+        if (!loaded.roster[uid]) delete loaded.team[slot];
       }
     }
-    // Walk the save up to the current schema.
-    migrate(loaded, from);
 
     // Shape guards: fields a save must have regardless of its age.
     // These are invariants, not migrations — a BRAND NEW save stamps the
     // current schema and therefore runs no migrations at all, so the
     // defaults have to be completed here or heroes load without a level.
-    for (const [id, entry] of Object.entries(loaded.roster || {})) {
-      if (entry.copies === undefined) entry.copies = 1;
+    for (const entry of Object.values(loaded.roster || {})) {
+      if (!entry) continue;
+      delete entry.copies; // the copy counter is gone; heroes are real now
       if (entry.level === undefined) entry.level = 1;
       if (entry.xp === undefined) entry.xp = 0;
-      if (entry.stars === undefined) entry.stars = freshEntry(id).stars;
+      if (entry.stars === undefined) entry.stars = freshEntry(entry.heroId).stars;
       if (!entry.equipment) entry.equipment = {};
       if (!entry.skills) entry.skills = {};
       if (entry.favorite === undefined) entry.favorite = false;
@@ -261,7 +343,6 @@ const GameState = (() => {
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
-    if (!loaded.tomes) loaded.tomes = 0;
     if (loaded.onboarded === undefined) loaded.onboarded = false;
     if (!loaded.tactics) loaded.tactics = { target: 'lowest', skills: 'burst', support: 'hurt' };
     if (!loaded.tactics.target) loaded.tactics.target = 'lowest';
@@ -338,29 +419,53 @@ const GameState = (() => {
     },
 
     // ---- Roster ----
-    // Returns { isNew, copies } for the pulled hero.
-    addHero(heroId) {
-      const entry = state.roster[heroId];
-      if (entry) {
-        entry.copies++;
-        save();
-        return { isNew: false, copies: entry.copies };
-      }
-      state.roster[heroId] = freshEntry(heroId);
-      save();
-      return { isNew: true, copies: 1 };
-    },
-    ownedHeroIds() { return Object.keys(state.roster); },
-    copiesOf(heroId) { return state.roster[heroId] ? state.roster[heroId].copies : 0; },
+    // Every pull is a whole hero, not a tally mark against one you
+    // already have. Returns { uid, heroId } or null when the roster is
+    // full -- summoning refuses rather than dropping heroes on the floor.
+    MAX_ROSTER,
+    rosterCount() { return Object.keys(state.roster).length; },
+    rosterFull() { return this.rosterCount() >= MAX_ROSTER; },
+    rosterSpace() { return Math.max(0, MAX_ROSTER - this.rosterCount()); },
 
-    // Favourites float to the top of the roster in every sort order.
-    // Purely a display preference — nothing in battle reads it.
-    isFavorite(heroId) {
-      const e = state.roster[heroId];
+    addHero(heroId) {
+      if (this.rosterFull()) return null;
+      const uid = String(state.nextHeroUid++);
+      state.roster[uid] = freshEntry(heroId);
+      save();
+      return { uid, heroId, isNew: this.countOf(heroId) === 1 };
+    },
+
+    // Roster uids, in the order they were taken in.
+    ownedHeroIds() { return Object.keys(state.roster); },
+    // The character a roster entry is: `defIdOf` for the id, `defOf` for
+    // the definition. Call sites that want art or abilities want these.
+    defIdOf(uid) {
+      const e = state.roster[uid];
+      return e ? e.heroId : null;
+    },
+    defOf(uid) {
+      const id = this.defIdOf(uid);
+      return (id && typeof HEROES !== 'undefined' && HEROES[id]) || null;
+    },
+    // How many of one character stand in the roster.
+    countOf(heroId) {
+      return Object.values(state.roster).filter((e) => e.heroId === heroId).length;
+    },
+    // Whether the player has ever had one -- the compendium's question.
+    owns(heroId) { return this.countOf(heroId) > 0; },
+    // Every roster uid that is this character.
+    uidsOf(heroId) {
+      return Object.keys(state.roster).filter((uid) => state.roster[uid].heroId === heroId);
+    },
+
+    // Favourites float to the top of the roster in every sort order, and
+    // are never offered as sacrifice fodder.
+    isFavorite(uid) {
+      const e = state.roster[uid];
       return !!(e && e.favorite);
     },
-    toggleFavorite(heroId) {
-      const e = state.roster[heroId];
+    toggleFavorite(uid) {
+      const e = state.roster[uid];
       if (!e) return false;
       e.favorite = !e.favorite;
       save();
@@ -371,19 +476,19 @@ const GameState = (() => {
     },
 
     // ---- Progression ----
-    // { copies, level, xp, stars } for an owned hero (null if unowned).
-    progressOf(heroId) {
-      const e = state.roster[heroId];
+    // { heroId, level, xp, stars, skills } for a roster hero (null if gone).
+    progressOf(uid) {
+      const e = state.roster[uid];
       return e
-        ? { copies: e.copies, level: e.level, xp: e.xp, stars: e.stars,
+        ? { heroId: e.heroId, level: e.level, xp: e.xp, stars: e.stars,
             skills: { ...(e.skills || {}) } }
         : null;
     },
 
     // Grant XP, chaining level-ups. XP gained at max level is discarded
     // (star up to keep growing). Returns { levelsGained, level }.
-    addXp(heroId, amount) {
-      const e = state.roster[heroId];
+    addXp(uid, amount) {
+      const e = state.roster[uid];
       if (!e) return null;
       const cap = Progression.maxLevel(e.stars);
       let gained = 0;
@@ -400,49 +505,111 @@ const GameState = (() => {
       return { levelsGained: gained, level: e.level };
     },
 
-    // Spend duplicates to star up. Requires max level and enough spare
-    // copies (the first copy is the hero itself). Resets level to 1.
-    canStarUp(heroId) {
-      const e = state.roster[heroId];
+    // ---- Improvement: heroes are the currency ----
+    //
+    // Star up by sacrificing heroes at the SAME star rating, as many as
+    // the rating itself: a 3-star hero costs three 3-star heroes to
+    // reach 4. Sacrificing the same CHARACTER additionally raises one of
+    // their skills, so a true duplicate is worth more than a stranger of
+    // the same rank.
+
+    starUpCost(uid) {
+      const e = state.roster[uid];
+      return e ? Progression.starUpCost(e.stars) : 0;
+    },
+
+    // Can this hero be fed at all? Max level, below the star cap.
+    starUpReady(uid) {
+      const e = state.roster[uid];
       if (!e || e.stars >= Progression.MAX_STARS) return false;
-      return (
-        e.level >= Progression.maxLevel(e.stars) &&
-        e.copies - 1 >= Progression.starUpCost(e.stars)
-      );
-    },
-    starUp(heroId) {
-      if (!this.canStarUp(heroId)) return false;
-      const e = state.roster[heroId];
-      e.copies -= Progression.starUpCost(e.stars);
-      e.stars++;
-      e.level = 1;
-      e.xp = 0;
-      this.questBump('starUps'); // saves
-      return true;
+      return e.level >= Progression.maxLevel(e.stars);
     },
 
-    // Every hero that can star up right now, starred up in one pass.
-    // A star-up resets the hero to level 1, so nobody qualifies twice in
-    // the same sweep. Heroes currently fighting are skipped for the same
-    // reason their gear is locked: their stats are already committed.
-    starUpAll() {
-      const done = [];
-      for (const heroId of Object.keys(state.roster)) {
-        if (!this.canStarUp(heroId)) continue;
-        if (this.heroGearLocked(heroId)) continue;
-        const from = state.roster[heroId].stars;
-        if (this.starUp(heroId)) {
-          const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
-          done.push({ id: heroId, name: def ? def.name : heroId, from, to: from + 1 });
-        }
+    // A hero can be spent if it is not the one being improved, not on
+    // the team, and not favourited. Locking the team and favourites is
+    // the whole safety net on an action that destroys a hero.
+    canSacrifice(uid, targetUid = null) {
+      const e = state.roster[uid];
+      if (!e || uid === targetUid) return false;
+      if (e.favorite) return false;
+      return this.teamSlotOf(uid) === null;
+    },
+
+    // What is worth showing when improving `targetUid`: heroes at the
+    // required star rating (star-up fodder) and heroes of the same
+    // character (a skill up). Everything else is noise and is dropped.
+    sacrificeOptions(targetUid) {
+      const target = state.roster[targetUid];
+      if (!target) return [];
+      const out = [];
+      for (const uid of Object.keys(state.roster)) {
+        if (!this.canSacrifice(uid, targetUid)) continue;
+        const e = state.roster[uid];
+        const skill = e.heroId === target.heroId;
+        const star = e.stars === target.stars;
+        if (!skill && !star) continue;
+        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level, skill, star });
       }
-      return done;
+      // Skill-ups first: they are the reason to keep a duplicate.
+      out.sort((a, b) => (b.skill - a.skill) || (b.stars - a.stars) || (b.level - a.level));
+      return out;
     },
 
-    // How many heroes are waiting on a star-up right now.
-    starUpReadyCount() {
-      return Object.keys(state.roster).filter((id) =>
-        this.canStarUp(id) && !this.heroGearLocked(id)).length;
+    // Raise one random skill that is not already maxed. Returns the
+    // ability index raised, or null when every skill is at the cap.
+    raiseRandomSkill(uid) {
+      const e = state.roster[uid];
+      const def = this.defOf(uid);
+      if (!e || !def) return null;
+      const open = (def.abilities || [])
+        .map((_, i) => i)
+        .filter((i) => this.skillLevel(uid, i) < Progression.MAX_SKILL_LEVEL);
+      if (!open.length) return null;
+      const idx = open[Math.floor(Math.random() * open.length)];
+      if (!e.skills) e.skills = {};
+      e.skills[idx] = this.skillLevel(uid, idx) + 1;
+      return idx;
+    },
+
+    // Spend a set of heroes on one. Returns a report of what it bought.
+    sacrifice(targetUid, fodderUids) {
+      const target = state.roster[targetUid];
+      if (!target || !fodderUids || !fodderUids.length) return null;
+      const spend = fodderUids.filter((uid) => this.canSacrifice(uid, targetUid));
+      if (!spend.length) return null;
+
+      const need = Progression.starUpCost(target.stars);
+      const atRank = spend.filter((uid) => state.roster[uid].stars === target.stars);
+      const willStar = this.starUpReady(targetUid) && atRank.length >= need;
+
+      const report = { spent: 0, skills: [], starred: false,
+        from: target.stars, to: target.stars, gearFreed: 0 };
+      for (const uid of spend) {
+        const e = state.roster[uid];
+        // Their gear goes back to the inventory rather than down with
+        // them -- the hero is the cost, not the kit they were wearing.
+        for (const slot of Object.keys(e.equipment || {})) {
+          this.unequipGear(uid, slot);
+          report.gearFreed++;
+        }
+        if (e.heroId === target.heroId) {
+          const idx = this.raiseRandomSkill(targetUid);
+          if (idx !== null) report.skills.push(idx);
+        }
+        delete state.roster[uid];
+        report.spent++;
+        this.questBumpQuiet('sacrifices');
+      }
+      if (willStar) {
+        target.stars++;
+        target.level = 1;
+        target.xp = 0;
+        report.starred = true;
+        report.to = target.stars;
+        this.questBumpQuiet('starUps');
+      }
+      save();
+      return report;
     },
 
     // ---- Team ----
@@ -509,10 +676,11 @@ const GameState = (() => {
       if (!p) return null;
       const team = {};
       let missing = 0;
-      for (const [slot, id] of Object.entries(p.team)) {
-        if (state.roster[id] && (typeof HEROES === 'undefined' || HEROES[id])) {
-          team[slot] = id;
-        } else missing++;
+      // Presets store roster uids. A hero that has since been spent on a
+      // star-up is simply gone, and the rest of the formation still fields.
+      for (const [slot, uid] of Object.entries(p.team)) {
+        if (state.roster[uid]) team[slot] = uid;
+        else missing++;
       }
       state.team = team;
       save();
@@ -531,28 +699,15 @@ const GameState = (() => {
     addWhetstones(n) { state.whetstones += n; save(); },
     get arcana() { return state.arcana; },
     addArcana(n) { state.arcana += n; save(); },
-    get tomes() { return state.tomes; },
-    addTomes(n) { state.tomes += n; save(); },
 
     // ---- Skill leveling ----
-    // Skill levels live on the roster entry, keyed by ability index.
-    skillLevel(heroId, idx) {
-      const e = state.roster[heroId];
+    // Skill levels live on the roster entry, keyed by ability index, and
+    // are raised only by sacrificing another copy of the same character
+    // (see sacrifice()). The Skill Tome currency that used to buy them
+    // is gone.
+    skillLevel(uid, idx) {
+      const e = state.roster[uid];
       return (e && e.skills && e.skills[idx]) || 1;
-    },
-    // Spend Skill Tomes to raise one ability a level (max 5).
-    upgradeSkill(heroId, idx) {
-      const e = state.roster[heroId];
-      if (!e) return false;
-      const lv = this.skillLevel(heroId, idx);
-      if (lv >= Progression.MAX_SKILL_LEVEL) return false;
-      const cost = Progression.skillUpCost(lv);
-      if (state.tomes < cost) return false;
-      state.tomes -= cost;
-      if (!e.skills) e.skills = {};
-      e.skills[idx] = lv + 1;
-      save();
-      return true;
     },
 
     // Spend whetstones to raise an item one level.
@@ -840,7 +995,6 @@ const GameState = (() => {
         else if (kind === 'temporal') state.scrollsTemporal += amount;
         else if (kind === 'whetstones') state.whetstones += amount;
         else if (kind === 'arcana') state.arcana += amount;
-        else if (kind === 'tomes') state.tomes += amount;
       }
       save();
       return true;
@@ -872,6 +1026,18 @@ const GameState = (() => {
         q.counters[counter] = (q.counters[counter] || 0) + n;
       }
       save();
+    },
+
+    // Same as questBump without the write; used inside a batch that
+    // saves once at the end.
+    questBumpQuiet(counter, n = 1) {
+      if (!state.stats) state.stats = {};
+      state.stats[counter] = (state.stats[counter] || 0) + n;
+      if (typeof Quests === 'undefined') return;
+      for (const type of ['daily', 'weekly', 'monthly']) {
+        const q = this.questState(type);
+        q.counters[counter] = (q.counters[counter] || 0) + n;
+      }
     },
 
     // Lifetime total for a counter (0 if it has never been bumped).

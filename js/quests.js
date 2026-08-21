@@ -14,6 +14,7 @@ const Quests = (() => {
   //   polishes      item levelled             enchants   enchant attempted
   //   salvages      item salvaged             rerolls    substats rerolled
   //   flawless      battle won with nobody down
+  //   sacrifices    hero spent on another hero
   const DEFS = {
     daily: [
       { id: 'd_hunts', name: 'Win 5 hunts', counter: 'huntWins', goal: 5,
@@ -49,7 +50,7 @@ const Quests = (() => {
       { id: 'w_salvage', name: 'Salvage 10 items', counter: 'salvages', goal: 10,
         reward: { whetstones: 500 } },
       { id: 'w_tower', name: 'Climb 15 tower floors', counter: 'towerFloors', goal: 15,
-        reward: { tomes: 1 } },
+        reward: { arcana: 250 } },
       { id: 'w_starup', name: 'Star up 3 heroes', counter: 'starUps', goal: 3,
         reward: { scrollsCommon: 8 } },
     ],
@@ -73,7 +74,7 @@ const Quests = (() => {
       { id: 'm_reroll', name: 'Reroll 20 sets of substats', counter: 'rerolls',
         goal: 20, reward: { arcana: 600 } },
       { id: 'm_tower', name: 'Climb 50 tower floors', counter: 'towerFloors', goal: 50,
-        reward: { tomes: 5 } },
+        reward: { scrollsRare: 4 } },
       { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,
         reward: { scrollsRare: 4 } },
     ],
@@ -123,7 +124,6 @@ const Quests = (() => {
     if (reward.scrollsTemporal) parts.push(`${reward.scrollsTemporal} 🌀`);
     if (reward.whetstones) parts.push(`${reward.whetstones} 🪨`);
     if (reward.arcana) parts.push(`${reward.arcana} ✦`);
-    if (reward.tomes) parts.push(`${reward.tomes} 📖`);
     return parts.join(' · ');
   }
 
@@ -134,7 +134,6 @@ const Quests = (() => {
     if (reward.scrollsTemporal) GameState.addScrolls('temporal', reward.scrollsTemporal);
     if (reward.whetstones) GameState.addWhetstones(reward.whetstones);
     if (reward.arcana) GameState.addArcana(reward.arcana);
-    if (reward.tomes) GameState.addTomes(reward.tomes);
   }
 
   return { DEFS, periodKey, timeToReset, formatCountdown, rewardLabel, grant };

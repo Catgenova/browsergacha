@@ -424,10 +424,10 @@ class BattleScreen {
   lockedHeroIds() {
     const ids = new Set();
     if (!this.isFighting()) return ids;
-    for (const u of this.battle.units) {
-      if (u.team === TEAM.PLAYER) ids.add(u.def.id);
-    }
-    for (const heroId of Object.values(GameState.getTeam())) ids.add(heroId);
+    // Roster uids, because that is what a screen has in hand. The units
+    // themselves only know which CHARACTER they are, so the committed
+    // team is read off the saved team instead.
+    for (const uid of Object.values(GameState.getTeam())) ids.add(uid);
     return ids;
   }
 
@@ -440,7 +440,7 @@ class BattleScreen {
 
     // Player side: saved team placements, at their saved level/stars.
     for (const [slot, heroId] of Object.entries(team)) {
-      const def = HEROES[heroId];
+      const def = GameState.defOf(heroId);
       if (!def) continue;
       const progress = GameState.progressOf(heroId);
       if (progress) progress.gear = GameState.equippedPieces(heroId);
@@ -631,7 +631,7 @@ class BattleScreen {
           const r = GameState.addXp(heroId, this.rewardXp);
           if (r && r.levelsGained > 0 && before) {
             if (typeof Sound !== 'undefined') Sound.play('levelup');
-            levelUps.push(`${HEROES[heroId].name} Lv ${r.level}!`);
+            levelUps.push(`${GameState.defOf(heroId).name} Lv ${r.level}!`);
           }
         }
         GameState.addWhetstones(this.rewardWhetstones);
@@ -687,11 +687,11 @@ class BattleScreen {
             sub.push('Floor reward: a TEMPORAL Scroll! 🌀');
           }
           if (floor % 20 === 0) {
-            // Skill Tomes drop ONLY here — every 20th floor, scaling
-            // with height (floor 20 -> 1 tome, 40 -> 2, 60 -> 3 ...).
-            const tomes = floor / 20;
-            GameState.addTomes(tomes);
-            sub.push(`Floor reward: ${tomes} Skill Tome${tomes > 1 ? 's' : ''}! 📖`);
+            // Every 20th floor used to pay Skill Tomes. Skills are bought
+            // with heroes now, so the milestone pays arcana instead.
+            const arcana = 100 * (floor / 20);
+            GameState.addArcana(arcana);
+            sub.push(`Floor reward: ${arcana} Arcana! ✦`);
           }
         }
         if (this.campaignFight) {

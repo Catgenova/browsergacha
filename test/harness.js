@@ -24,7 +24,7 @@ const FILES = [
   'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
   'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/quests.js', 'js/state.js',
-  'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
+  'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
 
 // `opts.save` pre-seeds localStorage before any game file runs, which is
@@ -77,7 +77,7 @@ function loadGame(opts = {}) {
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES',
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState',
-    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS'];
+    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,

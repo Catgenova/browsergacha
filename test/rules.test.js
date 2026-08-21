@@ -685,8 +685,9 @@ test('every substat prints as the kind of number it is', () => {
 
 test('team presets round-trip and survive a hero going missing', () => {
   const { GameState } = g;
-  const ids = ['rat_knight', 'rat_archer', 'rat_cook'];
-  ids.forEach((id, i) => { GameState.addHero(id); GameState.setTeamSlot(i, id); });
+  const ids = ['rat_knight', 'rat_archer', 'rat_cook']
+    .map((heroId) => GameState.addHero(heroId).uid);
+  ids.forEach((uid, i) => GameState.setTeamSlot(i, uid));
   const before = GameState.getTeam();
 
   assert(GameState.savePreset('  Hunt  ') === 'Hunt', 'the name was not trimmed');
@@ -724,8 +725,7 @@ test('team presets round-trip and survive a hero going missing', () => {
 
 test('favourites toggle, persist, and lead every sort order', () => {
   const { GameState } = g;
-  const pinned = 'rat_cook';
-  GameState.addHero(pinned);
+  const pinned = GameState.addHero('rat_cook').uid;
   assert(!GameState.isFavorite(pinned), 'heroes should not start favourited');
   assert(GameState.toggleFavorite(pinned) === true, 'toggle did not set it');
   assert(GameState.isFavorite(pinned), 'the favourite did not stick');
@@ -740,8 +740,9 @@ test('favourites toggle, persist, and lead every sort order', () => {
   // the chosen sort said, and untouched heroes keep their own order.
   const favoritesFirst = (cmp) => (a, b) =>
     (GameState.isFavorite(b) ? 1 : 0) - (GameState.isFavorite(a) ? 1 : 0) || cmp(a, b);
-  const byName = (a, b) => HEROES[a].name.localeCompare(HEROES[b].name);
-  const ids = GameState.ownedHeroIds().filter((id) => HEROES[id]);
+  const byName = (a, b) =>
+    GameState.defOf(a).name.localeCompare(GameState.defOf(b).name);
+  const ids = GameState.ownedHeroIds().filter((uid) => GameState.defOf(uid));
   assert(ids.length > 2, 'need a few heroes owned to sort');
   const sorted = [...ids].sort(favoritesFirst(byName));
   assert(sorted[0] === pinned, `expected ${pinned} first, got ${sorted[0]}`);
@@ -755,38 +756,94 @@ test('favourites toggle, persist, and lead every sort order', () => {
   assert(GameState.favoriteCount() === count - 1, 'the count did not follow');
 });
 
-test('star up all promotes exactly the eligible heroes', () => {
-  const { GameState } = g;
-  // Ready: at the level cap with spare duplicates.
-  const ready = 'rat_archer';
-  for (let i = 0; i < 8; i++) GameState.addHero(ready);
-  GameState.addXp(ready, 1e9);
-  // Not ready: enough copies, but sitting at level 1.
-  const lowLevel = 'rat_brawler';
-  for (let i = 0; i < 8; i++) GameState.addHero(lowLevel);
-  // Not ready: at the cap, but only one copy.
-  const noCopies = 'rat_spearman';
-  GameState.addHero(noCopies);
-  GameState.addXp(noCopies, 1e9);
+test('star ups and skill ups are paid for in heroes', () => {
+  const { GameState, Progression, HEROES } = g;
 
-  const expected = GameState.starUpReadyCount();
-  assert(expected >= 1, 'nothing was set up as ready');
-  assert(GameState.canStarUp(ready), 'the ready hero is not eligible');
-  assert(!GameState.canStarUp(lowLevel), 'a level-1 hero should not be eligible');
-  assert(!GameState.canStarUp(noCopies), 'a hero without duplicates should not be eligible');
+  // A 3-star hero, so the cost is three and "one is not enough" is a
+  // real assertion rather than an accident of a 1-star costing one.
+  const hero = Object.values(HEROES).find((h) => (h.rarity || 1) === 3);
+  assert(hero, 'the roster has no 3-star hero to test with');
+  const target = GameState.addHero(hero.id).uid;
+  GameState.addXp(target, 1e9);
+  const stars = GameState.progressOf(target).stars;
+  assert(stars === 3, `expected a 3-star hero, got ${stars}`);
+  const need = Progression.starUpCost(stars);
+  assert(need === stars, `cost should equal the rating, got ${need} for ${stars}`);
+  assert(GameState.starUpReady(target), 'a capped hero should be ready to star up');
 
-  const before = GameState.progressOf(ready).stars;
-  const done = GameState.starUpAll();
-  assert(done.length === expected,
-    `starred ${done.length} but ${expected} were ready`);
-  assert(GameState.progressOf(ready).stars === before + 1,
-    'the ready hero did not gain a star');
-  assert(GameState.progressOf(ready).level === 1,
-    'a star-up must reset the level');
-  assert(GameState.progressOf(lowLevel).stars ===
-    HEROES[lowLevel].rarity, 'an ineligible hero was starred up');
-  // A second sweep does nothing: a star-up resets to level 1.
-  assert(GameState.starUpAll().length === 0, 'a hero starred up twice in a row');
+  // Fodder: same character (skill up + rank), and strangers at the same
+  // rank (rank only). Same rating, because that is what a star up eats.
+  const sameChar = [GameState.addHero(hero.id).uid, GameState.addHero(hero.id).uid];
+  const strangers = [];
+  for (const other of Object.values(HEROES)) {
+    if (strangers.length >= need) break;
+    if (other.id === hero.id) continue;
+    if ((other.rarity || 1) !== stars) continue;
+    strangers.push(GameState.addHero(other.id).uid);
+  }
+  assert(strangers.length === need, `could not find ${need} strangers at ${stars} stars`);
+
+  // Only heroes that can actually contribute are offered.
+  const offered = GameState.sacrificeOptions(target);
+  const ids = new Set(offered.map((o) => o.uid));
+  assert(!ids.has(target), 'the hero being improved was offered as its own fodder');
+  for (const o of offered) {
+    assert(o.skill || o.star,
+      `${o.heroId} is offered but can neither star up nor skill up`);
+  }
+  assert(sameChar.every((uid) => ids.has(uid)), 'a duplicate was not offered');
+  // Skill ups sort to the top: they are the reason to keep a duplicate.
+  assert(offered[0].skill, 'the list does not lead with a skill up');
+
+  // Team members and favourites are never fodder.
+  GameState.setTeamSlot(0, strangers[0]);
+  assert(!GameState.sacrificeOptions(target).some((o) => o.uid === strangers[0]),
+    'a hero on the team was offered as a sacrifice');
+  GameState.clearTeamSlot(0);
+  GameState.toggleFavorite(strangers[0]);
+  assert(!GameState.sacrificeOptions(target).some((o) => o.uid === strangers[0]),
+    'a favourite was offered as a sacrifice');
+  GameState.toggleFavorite(strangers[0]);
+
+  // Too few, and nothing is starred -- but a duplicate still pays a skill.
+  const before = GameState.progressOf(target);
+  const partial = GameState.sacrifice(target, [sameChar[0]]);
+  assert(partial.spent === 1, `spent ${partial.spent}`);
+  assert(!partial.starred, 'starred up on one sacrifice');
+  assert(partial.skills.length === 1, 'a duplicate paid no skill level');
+  assert(GameState.progressOf(target).stars === before.stars, 'stars moved anyway');
+  assert(!GameState.defOf(sameChar[0]), 'the sacrificed hero is still in the roster');
+
+  // Enough at the rank, and it stars up and resets to level 1.
+  const count = GameState.rosterCount();
+  const report = GameState.sacrifice(target, strangers);
+  assert(report.starred, `should have starred up: ${JSON.stringify(report)}`);
+  assert(report.to === stars + 1, `went to ${report.to} from ${stars}`);
+  assert(GameState.progressOf(target).level === 1, 'a star up must reset the level');
+  assert(GameState.rosterCount() === count - need,
+    'the roster did not shrink by the heroes spent');
+  for (const uid of strangers) {
+    assert(!GameState.defOf(uid), 'a spent hero is still in the roster');
+  }
+});
+
+test('the roster is capped and summoning refuses to overflow it', () => {
+  const { GameState, Gacha } = g;
+  const max = GameState.MAX_ROSTER;
+  assert(max === 200, `expected a 200 cap, got ${max}`);
+  while (!GameState.rosterFull()) {
+    assert(GameState.addHero('rat_archer'), 'addHero refused below the cap');
+  }
+  assert(GameState.rosterCount() === max, `roster holds ${GameState.rosterCount()}`);
+  assert(GameState.addHero('rat_archer') === null, 'a hero was added past the cap');
+
+  // A pull that cannot fit is refused whole rather than part-filled: a
+  // summon hands over a hero now, and dropping some on the floor is not
+  // something to do quietly.
+  const scrolls = GameState.scrollsCommon;
+  const res = Gacha.pull('common', 1);
+  assert(res && res.error === 'roster-full', `expected a refusal, got ${JSON.stringify(res)}`);
+  assert(GameState.scrollsCommon === scrolls, 'the scroll was spent on nothing');
 });
 
 test('a campaign node is the same fight every time it is opened', () => {

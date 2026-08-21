@@ -14,7 +14,8 @@ const Progression = (() => {
     return stars * 10;
   }
 
-  // Duplicates consumed to go from `stars` to `stars + 1`.
+  // Heroes at the SAME star rating consumed to go from `stars` to
+  // `stars + 1`: three 3-star heroes to reach 4.
   function starUpCost(stars) {
     return stars;
   }
@@ -88,12 +89,10 @@ const Progression = (() => {
 
   // ---- Skill leveling ----
   // Every active skill levels 1..5. Each level past 1 adds +10% to the
-  // skill's damage / heal / poison numbers. Skill Tomes are the only
-  // material and drop exclusively from the Endless Tower.
+  // skill's damage / heal / poison numbers. The only way to raise one is
+  // to sacrifice another copy of the same character (see
+  // GameState.sacrifice); there is no currency for it.
   const MAX_SKILL_LEVEL = 5;
-  function skillUpCost(level) {         // tomes to go from `level` to level+1
-    return level;
-  }
   function skillPower(level) {          // effect multiplier at `level`
     return 1 + 0.10 * (level - 1);
   }
@@ -101,6 +100,6 @@ const Progression = (() => {
   return {
     MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
     BOSS_MAX_STAGE, bossLevel, bossScaledStats, power,
-    MAX_SKILL_LEVEL, skillUpCost, skillPower,
+    MAX_SKILL_LEVEL, skillPower,
   };
 })();

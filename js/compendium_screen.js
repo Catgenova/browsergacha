@@ -68,7 +68,8 @@ class CompendiumScreen {
     this.buildList();
     if (!this.selectedId) {
       // Open on something the player owns when possible.
-      const owned = GameState.ownedHeroIds().filter((id) => HEROES[id]);
+      const owned = GameState.ownedHeroIds()
+        .map((uid) => GameState.defIdOf(uid)).filter((id) => HEROES[id]);
       this.selectedId = owned[0] || Object.keys(HEROES)[0];
     }
     await this.select(this.selectedId);
@@ -97,7 +98,7 @@ class CompendiumScreen {
     const element = this.elementEl.value;
     const race = this.raceEl.value;
     const ownedOnly = this.ownedEl.checked;
-    const owned = new Set(GameState.ownedHeroIds());
+    const owned = this.ownedDefIds();
     return Object.values(HEROES)
       .filter((h) => {
         if (rarity && h.rarity !== Number(rarity)) return false;
@@ -117,9 +118,15 @@ class CompendiumScreen {
       .map((h) => h.id);
   }
 
+  // Which CHARACTERS the player holds at least one of. The roster is
+  // keyed by hero instance, and the compendium is a book of characters.
+  ownedDefIds() {
+    return new Set(GameState.ownedHeroIds().map((uid) => GameState.defIdOf(uid)));
+  }
+
   buildList() {
     const ids = this.filteredIds();
-    const owned = new Set(GameState.ownedHeroIds());
+    const owned = this.ownedDefIds();
     const roster = this.roster();
     const noun = this.category === 'bosses' ? 'bosses' : 'heroes';
     this.listEl.innerHTML =
@@ -263,8 +270,12 @@ class CompendiumScreen {
 
   renderDetail(def, sheet) {
     if (def.isBoss) return this.renderBossDetail(def, sheet);
-    const owned = GameState.ownedHeroIds().includes(def.id);
-    const progress = owned ? GameState.progressOf(def.id) : null;
+    // The best one you hold, since the roster can carry several.
+    const mine = GameState.uidsOf(def.id)
+      .map((uid) => GameState.progressOf(uid))
+      .sort((a, b) => (b.stars - a.stars) || (b.level - a.level));
+    const owned = mine.length > 0;
+    const progress = mine[0] || null;
     const stars = def.rarity <= 5 ? '★'.repeat(def.rarity) : `${def.rarity}★`;
     const elInfo = def.element ? Elements.info(def.element) : null;
     const race = RACES.of(def);
@@ -297,7 +308,7 @@ class CompendiumScreen {
       const pStars = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
       ownedHtml = `
         <div class="comp-owned-row">
-          <b>Yours</b> — Lv ${progress.level} · ${pStars} · ×${progress.copies} copies
+          <b>Yours</b> — Lv ${progress.level} · ${pStars}${mine.length > 1 ? ` · ${mine.length} in roster` : ''}
           <span class="comp-note">HP ${scaled.hp} · ATK ${scaled.atk} · DEF ${scaled.def} · SPD ${scaled.speed}</span>
         </div>`;
     }

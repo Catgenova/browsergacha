@@ -55,6 +55,12 @@ class SummonScreen {
       this.errorEl.textContent = 'Not enough scrolls!';
       return;
     }
+    if (results.error === 'roster-full') {
+      this.errorEl.textContent =
+        `Roster full (${GameState.rosterCount()}/${results.max}) \u2014 ` +
+        `room for ${results.space}. Spend heroes in Improve to make space.`;
+      return;
+    }
 
     this.revealing = true;
     this.updateInfo();
@@ -112,7 +118,7 @@ class SummonScreen {
 
     const status = document.createElement('div');
     status.className = isNew ? 'card-new' : 'card-dupe';
-    status.textContent = isNew ? 'NEW!' : `Copy ×${copies}`;
+    status.textContent = isNew ? 'NEW!' : `\u00d7${copies} in roster`;
 
     front.append(portrait, name, stars, status);
     inner.append(back, front);

@@ -9,17 +9,22 @@
 // reward } where reward is applied once when claimed.
 
 const ACHIEVEMENTS = (() => {
-  const owned = () => GameState.ownedHeroIds().filter((id) => HEROES[id]);
+  // Achievements count CHARACTERS collected, not heroes standing in the
+  // roster: holding three Florences is one Florence for the registry.
+  const owned = () => [...new Set(GameState.ownedHeroIds()
+    .map((uid) => GameState.defIdOf(uid)))].filter((id) => HEROES[id]);
+  // ...but mastery is about individual heroes, so those count uids.
+  const heroes = () => GameState.ownedHeroIds().filter((uid) => GameState.defOf(uid));
   const raceCount = (race) => Object.values(HEROES).filter((h) => RACES.of(h) === race).length;
   const ownedOfRace = (race) =>
     owned().filter((id) => RACES.of(HEROES[id]) === race).length;
   const bestStars = () => Math.max(1,
-    ...owned().map((id) => GameState.progressOf(id).stars));
+    ...heroes().map((uid) => GameState.progressOf(uid).stars));
   const bestLevel = () => Math.max(1,
-    ...owned().map((id) => GameState.progressOf(id).level));
-  const maxedSkills = () => owned().filter((id) =>
-    (HEROES[id].abilities || []).every((_, i) =>
-      GameState.skillLevel(id, i) >= Progression.MAX_SKILL_LEVEL)).length;
+    ...heroes().map((uid) => GameState.progressOf(uid).level));
+  const maxedSkills = () => heroes().filter((uid) =>
+    (GameState.defOf(uid).abilities || []).every((_, i) =>
+      GameState.skillLevel(uid, i) >= Progression.MAX_SKILL_LEVEL)).length;
   const bossesCleared = (stage) => Object.values(BOSSES)
     .filter((b) => GameState.bossStageCleared(b.id) >= stage).length;
 
@@ -112,19 +117,19 @@ const ACHIEVEMENTS = (() => {
     id: 'skills_maxed', group: 'Mastery', name: 'Master of the Craft',
     detail: 'Max every skill on a single hero.',
     progress: () => ({ have: Math.min(1, maxedSkills()), need: 1 }),
-    reward: { tomes: 3 },
+    reward: { rare: 4 },
   });
   add({
     id: 'skills_maxed_5', group: 'Mastery', name: 'School of Arms',
     detail: 'Max every skill on five heroes.',
     progress: () => ({ have: Math.min(5, maxedSkills()), need: 5 }),
-    reward: { tomes: 10 },
+    reward: { temporal: 2 },
   });
 
   // The level cap is a function of stars, so "capped" means capped for
   // where that hero is now -- a 5-star hero at level 50 counts.
-  const atCap = () => owned().filter((id) => {
-    const p = GameState.progressOf(id);
+  const atCap = () => heroes().filter((uid) => {
+    const p = GameState.progressOf(uid);
     return p.level >= Progression.maxLevel(p.stars);
   }).length;
   add({
@@ -164,7 +169,7 @@ const ACHIEVEMENTS = (() => {
     id: 'tower_25', group: 'Conquest', name: 'The Long Climb',
     detail: 'Reach floor 25 of the Endless Tower.',
     progress: () => ({ have: Math.min(25, GameState.towerBest), need: 25 }),
-    reward: { tomes: 5 },
+    reward: { rare: 6 },
   });
   add({
     id: 'tower_100', group: 'Conquest', name: 'Above the Clouds',
@@ -190,10 +195,10 @@ const ACHIEVEMENTS = (() => {
   const bestPlus = () => Math.max(0, ...gear().map((p) => p.plus || 0), 0);
   const rarityCount = (rarity) => gear().filter((p) => p.rarity === rarity).length;
   // A hero wearing all six slots, and one wearing six pieces of one set.
-  const fullyGeared = () => owned().filter((id) =>
-    GameState.equippedPieces(id).length >= Gear.SLOTS.length).length;
-  const fullSet = () => owned().some((id) => {
-    const worn = GameState.equippedPieces(id);
+  const fullyGeared = () => heroes().filter((uid) =>
+    GameState.equippedPieces(uid).length >= Gear.SLOTS.length).length;
+  const fullSet = () => heroes().some((uid) => {
+    const worn = GameState.equippedPieces(uid);
     if (worn.length < 6) return false;
     const counts = {};
     for (const p of worn) counts[p.set] = (counts[p.set] || 0) + 1;
@@ -210,7 +215,7 @@ const ACHIEVEMENTS = (() => {
     id: 'craft_plus_15', group: 'Craft', name: 'Perfect Temper',
     detail: `Enchant a piece of gear to +${Gear.MAX_PLUS}.`,
     progress: () => ({ have: Math.min(Gear.MAX_PLUS, bestPlus()), need: Gear.MAX_PLUS }),
-    reward: { tomes: 5 },
+    reward: { rare: 6 },
   });
   add({
     id: 'craft_legendary', group: 'Craft', name: 'Something Worth Keeping',
@@ -323,7 +328,7 @@ const ACHIEVEMENTS = (() => {
 
   const REWARD_LABEL = {
     common: '📜 Common Scroll', rare: '✨ Rare Scroll', temporal: '🌀 Temporal Scroll',
-    whetstones: '🪨 Whetstones', arcana: '✦ Arcana', tomes: '📖 Skill Tomes',
+    whetstones: '🪨 Whetstones', arcana: '✦ Arcana',
   };
   function rewardText(reward) {
     return Object.entries(reward)
