@@ -123,6 +123,7 @@ const Quests = (() => {
     if (reward.scrollsTemporal) parts.push(`${reward.scrollsTemporal} 🌀`);
     if (reward.whetstones) parts.push(`${reward.whetstones} 🪨`);
     if (reward.arcana) parts.push(`${reward.arcana} ✦`);
+    if (reward.tomes) parts.push(`${reward.tomes} 📖`);
     return parts.join(' · ');
   }
 
@@ -133,6 +134,7 @@ const Quests = (() => {
     if (reward.scrollsTemporal) GameState.addScrolls('temporal', reward.scrollsTemporal);
     if (reward.whetstones) GameState.addWhetstones(reward.whetstones);
     if (reward.arcana) GameState.addArcana(reward.arcana);
+    if (reward.tomes) GameState.addTomes(reward.tomes);
   }
 
   return { DEFS, periodKey, timeToReset, formatCountdown, rewardLabel, grant };

@@ -17,12 +17,56 @@ class QuestsScreen {
   draw() {}
 
   refresh() {
+    // Assembled in independent pieces. Every card here is generated from
+    // data -- 28 quests and 52 achievements, each running its own
+    // progress function -- and one bad entry used to take the whole
+    // screen down to nothing, with no clue on the page as to why. Now a
+    // failure costs its own section and says what broke.
+    const parts = [];
+    parts.push(this.guarded('Quests', () => this.boardsHtml()));
+    parts.push(this.guarded('Achievements', () => this.achievementsHtml()));
+    this.boardsEl.innerHTML = parts.join('');
+
+    this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        GameState.claimQuest(btn.dataset.type, btn.dataset.id);
+        this.refresh();
+      });
+    });
+
+    this.boardsEl.querySelectorAll('.ach-claim:not([disabled])').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const a = ACHIEVEMENTS.LIST.find((x) => x.id === btn.dataset.id);
+        if (a) GameState.claimAchievement(a.id, a.reward);
+        this.refresh();
+      });
+    });
+  }
+
+  // Run one section's builder; on a throw, return a visible panel naming
+  // the section and the error instead of losing the page.
+  guarded(label, build) {
+    try {
+      return build();
+    } catch (e) {
+      console.error(`${label} failed to render`, e);
+      const msg = String((e && e.message) || e).replace(/[&<>]/g,
+        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      return `<div class="quest-board">
+        <div class="quest-board-header"><h3>${label}</h3>
+          <span class="quest-reset">failed to render</span></div>
+        <div class="quest-error">${msg}</div>
+      </div>`;
+    }
+  }
+
+  boardsHtml() {
     const boards = [
       { type: 'daily', title: 'Daily Quests' },
       { type: 'weekly', title: 'Weekly Quests' },
       { type: 'monthly', title: 'Monthly Quests' },
     ];
-    this.boardsEl.innerHTML = boards.map(({ type, title }) => {
+    return boards.map(({ type, title }) => {
       const q = GameState.questState(type);
       const rows = Quests.DEFS[type].map((def) => {
         const have = Math.min(q.counters[def.counter] || 0, def.goal);
@@ -53,22 +97,7 @@ class QuestsScreen {
           </div>
           ${rows}
         </div>`;
-    }).join('') + this.achievementsHtml();
-
-    this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        GameState.claimQuest(btn.dataset.type, btn.dataset.id);
-        this.refresh();
-      });
-    });
-
-    this.boardsEl.querySelectorAll('.ach-claim:not([disabled])').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const a = ACHIEVEMENTS.LIST.find((x) => x.id === btn.dataset.id);
-        if (a) GameState.claimAchievement(a.id, a.reward);
-        this.refresh();
-      });
-    });
+    }).join('');
   }
 
   // Achievements: one-time goals, grouped, that never reset. These are
@@ -77,22 +106,40 @@ class QuestsScreen {
   achievementsHtml() {
     const groups = {};
     for (const a of ACHIEVEMENTS.LIST) (groups[a.group] ||= []).push(a);
+    // One guarded read per achievement, shared by the header count and
+    // the row. Reading it twice meant the count could throw before the
+    // row-level guard ever got a chance to catch it.
+    const stateOf = (a) => {
+      try {
+        return ACHIEVEMENTS.state(a);
+      } catch (e) {
+        console.error(`achievement ${a.id} failed`, e);
+        return { error: String((e && e.message) || e) };
+      }
+    };
     return Object.entries(groups).map(([group, list]) => {
-      const done = list.filter((a) => ACHIEVEMENTS.state(a).done).length;
+      const states = new Map(list.map((a) => [a, stateOf(a)]));
+      const done = list.filter((a) => states.get(a).done).length;
       const rows = list.map((a) => {
-        const st = ACHIEVEMENTS.state(a);
+        const st = states.get(a);
+        if (st.error) {
+          return `<div class="quest-row"><div class="quest-info">
+            <div class="quest-name">${a.name}</div>
+            <div class="quest-error">${st.error}</div>
+          </div></div>`;
+        }
         const pct = Math.round((st.have / st.need) * 100);
         return `
           <div class="quest-row ${st.claimed ? 'quest-claimed' : st.done ? 'quest-done' : ''}">
             <div class="quest-info">
-              <div class="quest-name">${a.name}<span class="ach-detail"> — ${a.detail}</span></div>
+              <div class="quest-name">${a.name}<span class="ach-detail"> \u2014 ${a.detail}</span></div>
               <div class="quest-bar"><div class="quest-fill" style="width:${pct}%"></div></div>
               <div class="quest-progress">${st.have} / ${st.need}</div>
             </div>
             <div class="quest-reward">${ACHIEVEMENTS.rewardText(a.reward)}</div>
             <button class="panel-btn quest-claim ach-claim ${st.done && !st.claimed ? 'gold' : ''}"
               data-id="${a.id}" ${st.done && !st.claimed ? '' : 'disabled'}>
-              ${st.claimed ? 'Claimed ✓' : 'Claim'}
+              ${st.claimed ? 'Claimed \u2713' : 'Claim'}
             </button>
           </div>`;
       }).join('');

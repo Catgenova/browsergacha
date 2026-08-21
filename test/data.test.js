@@ -413,6 +413,35 @@ test('every quest names a real counter and pays something', () => {
   }
 });
 
+test('every quest and achievement reward can be shown and paid', () => {
+  // A reward the label function does not know about renders as an empty
+  // column, and one the grant function does not know about pays nothing
+  // when claimed. Both are silent: the quest still reads as complete.
+  const PURSE = ['scrollsCommon', 'scrollsRare', 'scrollsTemporal',
+    'whetstones', 'arcana', 'tomes'];
+  const purse = () => Object.fromEntries(PURSE.map((k) => [k, GameState[k]]));
+
+  for (const [type, list] of Object.entries(Quests.DEFS)) {
+    for (const q of list) {
+      assert(Quests.rewardLabel(q.reward) !== '',
+        `${type}/${q.id}: reward ${JSON.stringify(q.reward)} renders as nothing`);
+      const before = purse();
+      Quests.grant(q.reward);
+      const moved = PURSE.some((k) => GameState[k] !== before[k]);
+      assert(moved, `${type}/${q.id}: granting ${JSON.stringify(q.reward)} paid nothing`);
+    }
+  }
+
+  for (const a of ACHIEVEMENTS.LIST) {
+    assert(ACHIEVEMENTS.rewardText(a.reward) !== '',
+      `${a.id}: reward ${JSON.stringify(a.reward)} renders as nothing`);
+    const before = purse();
+    GameState.claimAchievement(`probe_${a.id}`, a.reward);
+    assert(PURSE.some((k) => GameState[k] !== before[k]),
+      `${a.id}: claiming ${JSON.stringify(a.reward)} paid nothing`);
+  }
+});
+
 test('every achievement resolves its progress on a fresh save', () => {
   const seen = new Set();
   for (const a of ACHIEVEMENTS.LIST) {
