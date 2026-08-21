@@ -668,25 +668,30 @@ class BattleScreen {
         `Hunting in the ${CONFIG.LOCATION_NAMES[ws.location] || 'wilds'} — Stage ${ws.stage}.`;
     }
 
-    // Load sprites (cached sheets, one animator per unit).
-    for (const unit of battle.units) {
-      const sheet = await Sprites.getSheet(unit.def);
-      unit.animator = new AnimationPlayer(sheet);
-      unit.animator.play('idle');
-      unit.animator.elapsed = Math.random() * 0.5; // desync idle bobbing
-      // Mirror-count sprite variants (Echo): start on the sheet matching
-      // the unit's opening mirror count.
-      if (unit.def.mirrorSprites) {
-        unit.mirrorSheets = await Sprites.getMirrorSheets(unit.def);
-        unit.syncMirrorSheet();
-      }
-    }
-
-    // Preload impact/projectile effect sheets (null when art is absent).
-    for (const id of Object.keys(EFFECTS)) {
-      const sheet = await Sprites.getEffectSheet(id);
-      if (sheet) battle.effectSheets[id] = sheet;
-    }
+    // Load sprites (cached sheets, one animator per unit) -- ALL of it
+    // in parallel. Only the units actually in this fight are fetched,
+    // but fetching them one at a time (and their strips one at a time)
+    // made a 7v7 fight a hundred sequential requests.
+    await Promise.all([
+      ...battle.units.map(async (unit) => {
+        const sheet = await Sprites.getSheet(unit.def);
+        unit.animator = new AnimationPlayer(sheet);
+        unit.animator.play('idle');
+        unit.animator.elapsed = Math.random() * 0.5; // desync idle bobbing
+        // Mirror-count sprite variants (Aniani): start on the sheet
+        // matching the unit's opening mirror count.
+        if (unit.def.mirrorSprites) {
+          unit.mirrorSheets = await Sprites.getMirrorSheets(unit.def);
+          unit.syncMirrorSheet();
+        }
+      }),
+      // Impact/projectile effect sheets (null when art is absent);
+      // cached across battles, so only the first fight pays at all.
+      ...Object.keys(EFFECTS).map(async (id) => {
+        const sheet = await Sprites.getEffectSheet(id);
+        if (sheet) battle.effectSheets[id] = sheet;
+      }),
+    ]);
 
     this.battle = battle;
     this.renderer.setBattle(battle, bgPin);
