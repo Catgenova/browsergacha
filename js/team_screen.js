@@ -145,6 +145,80 @@ class TeamScreen {
       this.selection = null;
       this.refresh();
     });
+
+    // ---- Team presets ----
+    // Named snapshots of the formation, so the campaign team and the
+    // boss team are one click apart instead of rebuilt by hand.
+    this.presetSel = document.getElementById('preset-select');
+    this.presetMsg = document.getElementById('preset-msg');
+    const saveBtn = document.getElementById('preset-save');
+    const loadBtn = document.getElementById('preset-load');
+    const delBtn = document.getElementById('preset-delete');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        if (GameState.teamSize() === 0) {
+          this.presetNote('Place a hero first — there is nothing to save.');
+          return;
+        }
+        const suggested = this.presetSel.value || `Team ${GameState.presets().length + 1}`;
+        const name = prompt('Name this formation:', suggested);
+        if (name === null) return;
+        const saved = GameState.savePreset(name);
+        if (!saved) {
+          this.presetNote(GameState.presets().length >= GameState.MAX_PRESETS
+            ? `All ${GameState.MAX_PRESETS} preset slots are full — delete one first.`
+            : 'That name is empty.');
+          return;
+        }
+        this.buildPresetOptions(saved);
+        this.presetNote(`Saved "${saved}" — ${GameState.teamSize()} heroes.`);
+      });
+    }
+    if (loadBtn) {
+      loadBtn.addEventListener('click', () => {
+        const name = this.presetSel.value;
+        if (!name) return;
+        const r = GameState.loadPreset(name);
+        if (!r) return;
+        this.selection = null;
+        this.refresh();
+        this.presetNote(r.missing
+          ? `Loaded "${name}" — ${r.placed} placed, ${r.missing} no longer owned.`
+          : `Loaded "${name}".`);
+      });
+    }
+    if (delBtn) {
+      delBtn.addEventListener('click', () => {
+        const name = this.presetSel.value;
+        if (!name) return;
+        if (!confirm(`Delete the formation "${name}"?`)) return;
+        GameState.deletePreset(name);
+        this.buildPresetOptions();
+        this.presetNote(`Deleted "${name}".`);
+      });
+    }
+    this.buildPresetOptions();
+  }
+
+  presetNote(text) {
+    if (this.presetMsg) this.presetMsg.textContent = text;
+  }
+
+  // Rebuild the preset picker, keeping `select` chosen when it survives.
+  buildPresetOptions(select = null) {
+    if (!this.presetSel) return;
+    const presets = GameState.presets();
+    const keep = select || this.presetSel.value;
+    this.presetSel.innerHTML = presets.length
+      ? presets.map((p) =>
+        `<option value="${p.name}">${p.name} (${Object.keys(p.team).length})</option>`).join('')
+      : '<option value="">No saved formations</option>';
+    if (presets.some((p) => p.name === keep)) this.presetSel.value = keep;
+    const empty = presets.length === 0;
+    for (const id of ['preset-load', 'preset-delete']) {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = empty;
+    }
   }
 
   // A hunt location is open when it has an enemy race AND the campaign
@@ -183,6 +257,7 @@ class TeamScreen {
     // frozen at construction.
     this.buildLocationOptions();
     this.buildBossOptions();
+    this.buildPresetOptions();
     // Paint immediately. Sprite sheets are fetched in the background by
     // refresh() and appear as they arrive — the screen must never wait
     // on the network to show a roster it already has in the save.

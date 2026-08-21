@@ -166,6 +166,7 @@ const GameState = (() => {
     quests: {},                          // { daily, monthly } progress
     achievements: {},                    // achievementId -> true once claimed
     tower: { best: 0 },                  // Endless Tower highest floor
+    presets: [],                         // [{ name, team: {slot: heroId} }]
     // cleared: nodeId -> true (fights actually won).
     // granted: access carried over from a pre-campaign save, as
     // { hunt: chapterId -> true, boss: chapterId -> true }. It opens
@@ -256,6 +257,7 @@ const GameState = (() => {
     if (!loaded.quests) loaded.quests = {};
     if (!loaded.achievements) loaded.achievements = {};
     if (!loaded.tower) loaded.tower = { best: 0 };
+    if (!Array.isArray(loaded.presets)) loaded.presets = [];
     if (!loaded.campaign) loaded.campaign = { cleared: {}, chapter: 'ch1' };
     if (!loaded.campaign.tier) loaded.campaign.tier = 'normal';
     if (!loaded.campaign.cleared) loaded.campaign.cleared = {};
@@ -449,6 +451,53 @@ const GameState = (() => {
       save();
     },
     teamSize() { return Object.keys(state.team).length; },
+
+    // ---- Team presets ----
+    // Campaign, boss, tower and hunt all want different formations, and
+    // rebuilding one by hand out of 386 heroes is the slowest thing on
+    // this screen. A preset is a named snapshot of the placements.
+    MAX_PRESETS: 8,
+    presets() {
+      return state.presets.map((p) => ({ name: p.name, team: { ...p.team } }));
+    },
+    // Saving under an existing name overwrites it, so re-saving a tweaked
+    // formation does not quietly leave two entries called the same thing.
+    savePreset(name) {
+      const clean = String(name || '').trim().slice(0, 24);
+      if (!clean || Object.keys(state.team).length === 0) return null;
+      const team = { ...state.team };
+      const at = state.presets.findIndex((p) => p.name === clean);
+      if (at >= 0) state.presets[at] = { name: clean, team };
+      else {
+        if (state.presets.length >= this.MAX_PRESETS) return null;
+        state.presets.push({ name: clean, team });
+      }
+      save();
+      return clean;
+    },
+    // Heroes sold or otherwise gone are dropped on load rather than
+    // placing a slot that refers to nothing.
+    loadPreset(name) {
+      const p = state.presets.find((x) => x.name === name);
+      if (!p) return null;
+      const team = {};
+      let missing = 0;
+      for (const [slot, id] of Object.entries(p.team)) {
+        if (state.roster[id] && (typeof HEROES === 'undefined' || HEROES[id])) {
+          team[slot] = id;
+        } else missing++;
+      }
+      state.team = team;
+      save();
+      return { placed: Object.keys(team).length, missing };
+    },
+    deletePreset(name) {
+      const at = state.presets.findIndex((p) => p.name === name);
+      if (at < 0) return false;
+      state.presets.splice(at, 1);
+      save();
+      return true;
+    },
 
     // ---- Upgrade currencies ----
     get whetstones() { return state.whetstones; },
