@@ -223,6 +223,17 @@
           <div id="target-hint" class="hidden">Select a target…</div>
         </div>
 
+        <!-- Nothing running: the tab no longer starts a fight by itself -->
+        <div id="battle-idle" class="hidden">
+          <div id="idle-title">No battle active</div>
+          <div id="idle-sub"></div>
+          <div id="idle-actions">
+            <button id="idle-again" class="panel-btn hidden">Fight again</button>
+            <button id="idle-team" class="panel-btn gold">Choose a fight</button>
+            <button id="idle-campaign" class="panel-btn">Campaign</button>
+          </div>
+        </div>
+
         <!-- Auto-battle tactics: how the party picks abilities and targets -->
         <div id="tactics-panel" class="hidden">
           <div class="legend-head">Auto-battle tactics<button id="tactics-close">✕</button></div>
