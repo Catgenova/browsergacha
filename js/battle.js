@@ -424,6 +424,11 @@ class Battle {
     }
     for (const res of results) {
       if (res.kind === 'damage') {
+        // One cue per resolution; Sound collapses repeats inside a few
+        // milliseconds so a seven-target sweep is a hit, not a spike.
+        if (typeof Sound !== 'undefined' && !res.dodged) {
+          Sound.play(res.crit ? 'crit' : 'hit');
+        }
         if (res.reflected) {
           this.addFloatingText(res.target, 'REFLECT!', '#ffd76a', true);
           this.addFloatingText(caster, `-${res.reflectAmount}`, '#ff6a6a');
@@ -448,8 +453,12 @@ class Battle {
           this.addFloatingText(res.target, 'RESIST', '#8ecbff');
           this.log(`  ${Elements.info(res.target.element).name} resists ${Elements.info(caster.element).name} — ${Math.round((1 - res.elem) * 100)}% less damage.`, cls);
         }
-        if (!res.target.alive) this.log(`${res.target.name} is defeated!`, 'log-system');
+        if (!res.target.alive) {
+          if (typeof Sound !== 'undefined') Sound.play('death');
+          this.log(`${res.target.name} is defeated!`, 'log-system');
+        }
       } else if (res.kind === 'heal') {
+        if (typeof Sound !== 'undefined' && res.amount > 0) Sound.play('heal');
         this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
         this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
       } else if (res.kind === 'cleanse') {
@@ -481,6 +490,12 @@ class Battle {
         this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
         this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
+        // A ward gets its own note — it is the one buff whose whole
+        // value is invisible until something hits the ally wearing it.
+        if (typeof Sound !== 'undefined' && !res.resisted &&
+            res.kind === 'buff' && res.stat === 'damageTaken') {
+          Sound.play('ward');
+        }
         if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');
           this.log(`${res.target.name} resists ${caster.name}'s debuff!`, cls);
