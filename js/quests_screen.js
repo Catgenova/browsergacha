@@ -84,7 +84,14 @@ class QuestsScreen {
     ];
     return boards.map(({ type, title }) => {
       const q = GameState.questState(type);
-      const rows = Quests.DEFS[type].map((def) => {
+      // Ready-to-claim first, in-progress next, claimed last.
+      const rank = (def) => {
+        const done = (q.counters[def.counter] || 0) >= def.goal;
+        const claimed = !!q.claimed[def.id];
+        return claimed ? 2 : done ? 0 : 1;
+      };
+      const rows = [...Quests.DEFS[type]].sort((a, b) => rank(a) - rank(b))
+        .map((def) => {
         const have = Math.min(q.counters[def.counter] || 0, def.goal);
         const done = have >= def.goal;
         const claimed = !!q.claimed[def.id];
@@ -133,10 +140,23 @@ class QuestsScreen {
         return { error: String((e && e.message) || e) };
       }
     };
-    return Object.entries(groups).map(([group, list]) => {
+    const entries = Object.entries(groups).map(([group, list]) => {
       const states = new Map(list.map((a) => [a, stateOf(a)]));
+      const claimable = list.filter((a) => {
+        const st = states.get(a);
+        return st.done && !st.claimed;
+      }).length;
+      return { group, list, states, claimable };
+    });
+    // Groups holding rewards rise to the top of the page.
+    entries.sort((a, b) => (b.claimable > 0) - (a.claimable > 0));
+    return entries.map(({ group, list, states, claimable }) => {
       const done = list.filter((a) => states.get(a).done).length;
-      const rows = list.map((a) => {
+      const rank = (a) => {
+        const st = states.get(a);
+        return st.error ? 3 : st.claimed ? 2 : st.done ? 0 : 1;
+      };
+      const rows = [...list].sort((a, b) => rank(a) - rank(b)).map((a) => {
         const st = states.get(a);
         if (st.error) {
           return `<div class="quest-row"><div class="quest-info">
@@ -163,10 +183,6 @@ class QuestsScreen {
       // hundred-plus rows they would bury the daily boards. A group
       // stays open when something in it is ready to claim, or when the
       // player opened it themselves this session.
-      const claimable = list.filter((a) => {
-        const st = states.get(a);
-        return st.done && !st.claimed;
-      }).length;
       const open = this.groupOpen.has(group)
         ? this.groupOpen.get(group)
         : claimable > 0;
