@@ -174,6 +174,79 @@ test('bosses fight as tyrants and player heroes fight to the tactics', () => {
   GameState.setTactic('support', 'hurt');
 });
 
+test('a shield absorbs before HP and credits whoever raised it', () => {
+  const battle = makeBattle();
+  const hero = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const support = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  foe.dodgeChance = () => 0;
+  hero.hookSources = () => [];   // no guards of its own muddying the split
+  hero.statusEffects = [];
+
+  Meter.resetSession();
+  hero.hp = hero.maxHp;
+  hero.addShield(400, 3, support);
+  assert(hero.shieldTotal() === 400, `shield reads ${hero.shieldTotal()}`);
+
+  // A hit smaller than the shield costs no HP at all.
+  const absorbed = hero.takeDamage(150, foe);
+  assert(absorbed === 0, `HP loss should be 0, got ${absorbed}`);
+  assert(hero.hp === hero.maxHp, 'a fully absorbed hit still cost HP');
+  assert(hero.shieldTotal() === 250, `shield should be 250, got ${hero.shieldTotal()}`);
+  const mit = Meter.rows('mitigated', 'battle');
+  const supportRow = mit.list.find((r) => r.id === support.def.id);
+  assert(supportRow && supportRow.value === 150,
+    `the shield's caster should be credited 150, got ${JSON.stringify(mit.list)}`);
+
+  // A hit bigger than the shield spills the remainder onto HP.
+  const before = hero.hp;
+  const through = hero.takeDamage(400, foe);
+  assert(through === 150, `expected 150 through, got ${through}`);
+  assert(hero.hp === before - 150, 'HP did not take the spill');
+  assert(hero.shieldTotal() === 0, 'shield should be spent');
+  // A spent shield does not linger as a zero-value status effect.
+  assert(!hero.statusEffects.some((fx) => fx.kind === 'shield'),
+    'an empty shield stack was left on the unit');
+});
+
+test('Javarious doubles his damage while the shield holds him at full HP', () => {
+  const battle = makeBattle();
+  const jav = place(battle, HEROES.javarious, TEAM.PLAYER, 1);
+  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  foe.dodgeChance = () => 0;
+  jav.baseCritChance = 0;  // the doubling has to be readable, not lucky
+  const cut = HEROES.javarious.abilities[0];
+
+  const hit = () => {
+    foe.hp = foe.maxHp;
+    Abilities.execute(cut, jav, foe, battle);
+    return foe.maxHp - foe.hp;
+  };
+
+  jav.hp = jav.maxHp;
+  const full = hit();
+  jav.hp = jav.maxHp - 1;   // one point off full
+  const chipped = hit();
+  assert(full > chipped * 1.9 && full < chipped * 2.1,
+    `expected roughly double at full HP: ${full} vs ${chipped}`);
+
+  // ...and a shield keeps him at full HP through a hit, so the doubling
+  // survives being attacked. That is the whole kit.
+  jav.hp = jav.maxHp;
+  jav.statusEffects = [];
+  jav.addShield(5000, 3, jav);
+  jav.takeDamage(400, foe);
+  assert(jav.hp === jav.maxHp, 'the shield let HP through');
+  assert(hit() > chipped * 1.9, 'the doubling did not survive a shielded hit');
+
+  // The front-hex positional turns his own damage into more shield.
+  jav.statusEffects = [];
+  jav.slot = battle.playerSlots.find((s) => s.position === POSITION.FRONT);
+  assert(jav.positionalActive(), 'test needs Javarious on a front hex');
+  hit();
+  assert(jav.shieldTotal() > 0, 'landing a blow built no shield');
+});
+
 test('gear scoring prefers the piece that suits the hero', () => {
   const striker = { hp: 1000, atk: 400, def: 60, speed: 100 };
   const wall = { hp: 3000, atk: 90, def: 400, speed: 90 };

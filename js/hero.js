@@ -448,6 +448,11 @@ class Unit {
         }
       }
     }
+    // Shields eat the blow before HP does. This sits AFTER the mitigation
+    // pipeline on purpose: a ward reduces what arrives, and the shield
+    // then absorbs what is left, so the two stack rather than competing.
+    const absorbed = this.absorb(amount);
+    amount -= absorbed;
     this.hp = Math.max(0, this.hp - amount);
     this.hitFlash = 0.18;
     if (!this.alive) {
@@ -457,10 +462,77 @@ class Unit {
       if (this.animator && this.animator.sheet.animations.death) {
         this.animator.play('death');
       }
-    } else if (amount > 0) {
+    } else if (amount + absorbed > 0) {
       this.struck(amount, attacker);
     }
     return amount;
+  }
+
+  // ---- Shields -----------------------------------------------------------
+  //
+  // A shield is a pool of absorbed damage with a lifetime, held as an
+  // ordinary status effect so it expires, stacks and reads on the
+  // nameplate like everything else. It is spent oldest-first, which
+  // matters: the stack about to run out should be the one doing the work.
+
+  shieldTotal() {
+    let n = 0;
+    for (const fx of this.statusEffects) {
+      if (fx.kind === 'shield') n += Math.max(0, fx.amount);
+    }
+    return n;
+  }
+
+  addShield(amount, turns, source = null) {
+    const value = Math.round(amount);
+    if (value <= 0) return 0;
+    this.addStatusEffect({ kind: 'shield', amount: value, turns, source });
+    return value;
+  }
+
+  // Spend shield against an incoming figure; returns how much it ate.
+  absorb(amount) {
+    if (amount <= 0) return 0;
+    let left = amount;
+    let taken = 0;
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'shield' || left <= 0) continue;
+      const eaten = Math.min(fx.amount, left);
+      fx.amount -= eaten;
+      left -= eaten;
+      taken += eaten;
+      // Absorbed damage is prevented damage, and it belongs to whoever
+      // put the shield up -- the same rule Unit.blunt applies to wards.
+      if (typeof Meter !== 'undefined') Meter.mitigated(fx.source || this, eaten);
+    }
+    if (taken > 0) {
+      this.statusEffects = this.statusEffects.filter(
+        (fx) => fx.kind !== 'shield' || fx.amount > 0);
+    }
+    return taken;
+  }
+
+  // The other side of struck(): hooks that answer LANDING a blow. Fires
+  // once per target actually damaged, from Abilities.strike, after the
+  // hit has been booked.
+  //
+  // Guarded the same way retaliation is, and for the same reason: a hook
+  // here that deals damage of its own would otherwise feed itself.
+  dealt(amount, target) {
+    if (amount <= 0 || Unit.dealing) return;
+    const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+    Unit.dealing = true;
+    const prevOwner = Unit.hookOwner;
+    Unit.hookOwner = this;
+    try {
+      for (const p of this.hookSources()) {
+        const hook = p.hooks && p.hooks.onDealtDamage;
+        if (hook) hook(this, { amount, target, battle });
+      }
+    } finally {
+      Unit.dealing = false;
+      Unit.hookOwner = prevOwner;
+    }
   }
 
   // Retaliation: hooks that answer being hit. Fires only on a hit that

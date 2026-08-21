@@ -379,6 +379,8 @@ class Renderer {
                      note: 'much harder to hit this turn' },
       slag:        { glyph: '▨', color: '#ff9a5a', title: 'Slag plating',
                      note: 'hardened armour, stacking' },
+      shield:      { glyph: '▣', color: '#7ae8d8', title: 'Shielded',
+                     note: 'absorbs damage before HP; the pip is what is left' },
       atk:         { glyph: 'A', color: null, title: 'ATK' },
       def:         { glyph: 'D', color: null, title: 'DEF' },
       speed:       { glyph: 'S', color: null, title: 'SPD' },
@@ -392,6 +394,9 @@ class Renderer {
     const ICONS = Renderer.STATUS_ICONS;
     const seen = new Map();
     for (const fx of unit.statusEffects || []) {
+      // Shields are a pool, not a flag: the plate shows what is LEFT of
+      // it, added once below rather than one pip per stack.
+      if (fx.kind === 'shield') continue;
       // Poisons and regens are keyed by kind; everything else by stat.
       const key = fx.kind === 'dot' || fx.kind === 'hot' ? fx.kind : fx.stat;
       const icon = ICONS[key];
@@ -407,6 +412,11 @@ class Renderer {
         glyph: icon.glyph + (icon.color ? '' : (buff ? '▲' : '▼')),
         color, count: 1, turns: fx.turns || 0,
       });
+    }
+    const shield = unit.shieldTotal ? unit.shieldTotal() : 0;
+    if (shield > 0) {
+      const shown = shield >= 1000 ? `${(shield / 1000).toFixed(1)}k` : String(shield);
+      seen.set('shield', { glyph: `▣${shown}`, color: '#7ae8d8', count: 1, turns: 0 });
     }
     // Crystal mirrors are a resource, not a status, but they belong on
     // the plate for the same reason: they change what the hit does.

@@ -190,11 +190,16 @@ class CompendiumScreen {
   // Friendly names: map a strip to the ability that plays it.
   animLabel(def, name) {
     const byAnim = (def.abilities || []).find((a) => a.animation === name);
-    const fixed = {
-      idle: 'Idle', ready: 'Ready', death: 'Death',
-      idle2: 'Idle fidget I', idle3: 'Idle fidget II',
-    };
+    const fixed = { idle: 'Idle', ready: 'Ready', death: 'Death' };
     if (fixed[name]) return fixed[name];
+    // Idle fidgets are numbered from 2 up, and heroes carry as many as
+    // their art has -- naming only the first two left "Idle4" showing.
+    const fidget = /^idle(\d+)$/.exec(name);
+    if (fidget) {
+      const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+      const n = Number(fidget[1]) - 1;
+      return `Idle fidget ${ROMAN[n - 1] || n}`;
+    }
     return byAnim ? byAnim.name : name.charAt(0).toUpperCase() + name.slice(1);
   }
 
