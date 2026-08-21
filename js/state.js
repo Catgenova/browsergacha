@@ -609,9 +609,11 @@ const GameState = (() => {
       return this.teamSlotOf(uid) === null;
     },
 
-    // What is worth showing when improving `targetUid`: heroes at the
-    // required star rating (star-up fodder) and heroes of the same
-    // character (a skill up). Everything else is noise and is dropped.
+    // Everyone who can be spent when improving `targetUid`. The
+    // contributors lead -- same character (skill up), then heroes at
+    // the required star rating (star-up fodder) -- but the rest of the
+    // bench is offered too: a hero is sacrificeable whatever their
+    // level or stars, as long as they are not favourited or fielded.
     sacrificeOptions(targetUid) {
       const target = state.roster[targetUid];
       if (!target) return [];
@@ -619,13 +621,11 @@ const GameState = (() => {
       for (const uid of Object.keys(state.roster)) {
         if (!this.canSacrifice(uid, targetUid)) continue;
         const e = state.roster[uid];
-        const skill = e.heroId === target.heroId;
-        const star = e.stars === target.stars;
-        if (!skill && !star) continue;
-        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level, skill, star });
+        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level,
+          skill: e.heroId === target.heroId, star: e.stars === target.stars });
       }
-      // Skill-ups first: they are the reason to keep a duplicate.
-      out.sort((a, b) => (b.skill - a.skill) || (b.stars - a.stars) || (b.level - a.level));
+      out.sort((a, b) => (b.skill - a.skill) || (b.star - a.star) ||
+        (b.stars - a.stars) || (b.level - a.level));
       return out;
     },
 

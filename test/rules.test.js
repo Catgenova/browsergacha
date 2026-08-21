@@ -788,13 +788,16 @@ test('star ups and skill ups are paid for in heroes', () => {
   }
   assert(strangers.length === need, `could not find ${need} strangers at ${stars} stars`);
 
-  // Only heroes that can actually contribute are offered.
+  // Every sacrificeable hero is offered, contributors first: a hero
+  // that neither stars nor skills the target up can still be spent.
   const offered = GameState.sacrificeOptions(target);
   const ids = new Set(offered.map((o) => o.uid));
   assert(!ids.has(target), 'the hero being improved was offered as its own fodder');
+  let seenNonContributor = false;
   for (const o of offered) {
-    assert(o.skill || o.star,
-      `${o.heroId} is offered but can neither star up nor skill up`);
+    if (!o.skill && !o.star) { seenNonContributor = true; continue; }
+    assert(!seenNonContributor,
+      `${o.heroId} contributes but is sorted below a non-contributor`);
   }
   assert(sameChar.every((uid) => ids.has(uid)), 'a duplicate was not offered');
   // Skill ups sort to the top: they are the reason to keep a duplicate.
