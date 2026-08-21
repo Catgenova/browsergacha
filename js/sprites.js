@@ -454,6 +454,25 @@ const Sprites = (() => {
       ctx.drawImage(image, 0, 0);
       image = canvas;
     }
+    // Paint a near-white effect a solid colour. A hue rotation cannot do
+    // this: rotating the hue of something desaturated leaves it
+    // desaturated, which is why the bubble stayed grey. Multiply carries
+    // the colour into every lit pixel and leaves the highlights bright;
+    // the destination-in pass puts the original alpha back, since
+    // multiply also paints the transparent margin.
+    if (fx.tint) {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = fx.tint;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(image, 0, 0);
+      image = canvas;
+    }
     const animations = {
       play: {
         image, row: 0, frames, fps: fx.fps, loop: false,
