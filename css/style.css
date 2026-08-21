@@ -2475,6 +2475,14 @@ html.is-mobile .sub-compare { font-size: 13px; }
   margin-bottom: 10px;
 }
 #imp-count { font-size: 13px; color: #9a92b8; }
+/* Auto star up: a spender, so the armed (confirm) state looks like one. */
+#imp-auto { white-space: nowrap; font-size: 12px; }
+#imp-auto.armed {
+  background: #4d4530;
+  border-color: #ffd76a;
+  color: #ffd76a;
+  animation: pulse 0.9s ease-in-out infinite;
+}
 #imp-count b { color: #e8e4d8; }
 #imp-count.imp-at-cap b { color: #ff9a8a; }
 .imp-full { color: #ff9a8a; margin-left: 6px; }

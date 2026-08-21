@@ -1113,4 +1113,54 @@ test('an old save keeps the hunts and bosses it already earned', () => {
     'a new save should open exactly one hunt');
 });
 
+test('favourites and team members are never sacrifice material', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === 1);
+  const target = G.addHero(cheap.id).uid;
+  const fav = G.addHero(cheap.id).uid;
+  const fielded = G.addHero(cheap.id).uid;
+  const spare = G.addHero(cheap.id).uid;
+  G.toggleFavorite(fav);
+  G.setTeamSlot(0, fielded);
+  assert(!G.canSacrifice(fav, target), 'a favourite can be sacrificed');
+  assert(!G.canSacrifice(fielded, target), 'a team member can be sacrificed');
+  const opts = G.sacrificeOptions(target).map((o) => o.uid);
+  assert(!opts.includes(fav), 'a favourite is offered as a sacrifice');
+  assert(!opts.includes(fielded), 'a team member is offered as a sacrifice');
+  assert(opts.includes(spare), 'the spare hero should be offered');
+  // The one-click path obeys the same locks: nothing protected is in
+  // any plan step's fodder list.
+  for (const step of G.planAutoStarUp()) {
+    assert(!step.fodder.includes(fav) && !step.fodder.includes(fielded),
+      'auto star up plans to spend a protected hero');
+  }
+  const r = G.sacrifice(target, [fav, fielded, spare]);
+  assert(r && r.spent === 1, 'sacrifice() spent a protected hero');
+  assert(G.owns(cheap.id) && G.progressOf(fav) && G.progressOf(fielded),
+    'a protected hero died anyway');
+});
+
+test('auto star up forges the 1-2 star shelf into 3-star heroes', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === 1);
+  assert(ones.length >= 2, 'need two 1-star characters for this test');
+  // Six 1-star bodies: pairs make three 2-stars, which make one 3-star.
+  const uids = [];
+  for (let i = 0; i < 6; i++) uids.push(G.addHero(ones[i % 2].id).uid);
+  // The keeper: favourited and levelled, so it must be the survivor.
+  const keeper = uids[0];
+  G.toggleFavorite(keeper);
+  const r = G.autoStarUp();
+  assert(r.starUps === 4, `expected 4 star ups (3x 1->2, 1x 2->3), got ${r.starUps}`);
+  assert(r.spent === 5, `expected 5 heroes spent, got ${r.spent}`);
+  assert(G.progressOf(keeper) && G.progressOf(keeper).stars === 3,
+    'the favourite should survive and stand at 3 stars');
+  const left = uids.filter((u) => G.progressOf(u));
+  assert(left.length === 1, `expected one survivor, found ${left.length}`);
+  // Idempotent: a second press finds nothing to do.
+  assert(G.planAutoStarUp().length === 0, 'a second pass should plan nothing');
+});
+
 report();

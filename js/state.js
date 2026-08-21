@@ -589,6 +589,58 @@ const GameState = (() => {
       return out;
     },
 
+    // One-click shelf clearing: churn spare 1-star and 2-star heroes into
+    // 3-star heroes. The plan is computed first so the button can say
+    // what it will cost before anything dies; execution replays the plan
+    // through sacrifice(), which re-checks every hero, so the team and
+    // favourites are protected twice over.
+    //
+    // Recipients are picked protected-first (a hero on the team or
+    // favourited cannot be fodder anyway, so starring them is pure
+    // gain), then by investment; fodder is same-character first (the
+    // sacrifice doubles as a skill up) and least-invested after that.
+    planAutoStarUp(target = 3) {
+      const model = new Map();
+      for (const uid of Object.keys(state.roster)) {
+        const e = state.roster[uid];
+        model.set(uid, { uid, heroId: e.heroId, stars: e.stars,
+          level: e.level, xp: e.xp || 0, locked: !this.canSacrifice(uid) });
+      }
+      const invested = (h) => h.level * 1e6 + h.xp;
+      const steps = [];
+      for (let s = 1; s < target; s++) {
+        const cost = Progression.starUpCost(s);
+        for (;;) {
+          const pool = [...model.values()].filter((h) => h.stars === s);
+          const recipient = pool
+            .sort((a, b) => (b.locked - a.locked) || (invested(b) - invested(a)))[0];
+          if (!recipient) break;
+          const fodder = pool
+            .filter((h) => h !== recipient && !h.locked)
+            .sort((a, b) =>
+              ((b.heroId === recipient.heroId) - (a.heroId === recipient.heroId)) ||
+              (invested(a) - invested(b)))
+            .slice(0, cost);
+          if (fodder.length < cost) break;
+          steps.push({ target: recipient.uid, fodder: fodder.map((h) => h.uid) });
+          recipient.stars += 1;
+          for (const h of fodder) model.delete(h.uid);
+        }
+      }
+      return steps;
+    },
+    autoStarUp(target = 3) {
+      const totals = { starUps: 0, spent: 0, skills: 0 };
+      for (const step of this.planAutoStarUp(target)) {
+        const r = this.sacrifice(step.target, step.fodder);
+        if (!r) continue;
+        totals.spent += r.spent;
+        totals.skills += r.skills.length;
+        if (r.starred) totals.starUps++;
+      }
+      return totals;
+    },
+
     // Raise one random skill that is not already maxed. Returns the
     // ability index raised, or null when every skill is at the cap.
     raiseRandomSkill(uid) {

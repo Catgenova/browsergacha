@@ -865,27 +865,6 @@ class TeamScreen {
       return `<div class="detail-ability"><b>${set.name} set (${count}/6)</b>${rows}</div>`;
     }).join('');
 
-    let starUpHtml = '';
-    if (progress.stars < Progression.MAX_STARS) {
-      const cost = Progression.starUpCost(progress.stars);
-      const afford = GameState.starUpAffordable(uid);
-      starUpHtml = `
-        <div class="detail-section">Star up</div>
-        <div class="detail-ability">
-          ${progress.stars}★ → ${progress.stars + 1}★: sacrifice ${cost}
-          hero${cost > 1 ? 'es' : ''} at ${progress.stars}★. Boosts base stats
-          +25% and raises the level cap to ${Progression.maxLevel(progress.stars + 1)};
-          the level you have is kept.
-        </div>
-        <button id="star-up-btn" class="panel-btn gold">
-          ${afford ? 'Improve this hero' : 'Improve (need more heroes)'}
-        </button>`;
-    } else {
-      starUpHtml = `
-        <div class="detail-section">Star up</div>
-        <div class="detail-ability">Max stars reached — ${Progression.MAX_STARS}★.</div>`;
-    }
-
     this.detailsEl.innerHTML = `
       <div class="detail-name rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name} <span class="detail-title">${def.title || ''}</span></div>
       ${def.element && Elements.info(def.element) ? `<div class="detail-element" style="color:${Elements.info(def.element).color}">${Elements.info(def.element).name} element</div>` : ''}
@@ -914,7 +893,6 @@ class TeamScreen {
         ${def.positional.name ? `<b>${def.positional.name}</b><br>` : ''}${def.positional.description}
         ${bonusLive ? '<br><b>★ Active in current slot</b>' : ''}
       </div>
-      ${starUpHtml}
       ${slotIndex !== null ? '<button id="remove-hero-btn" class="panel-btn danger">Remove from team</button>' : ''}
     `;
 
@@ -935,14 +913,6 @@ class TeamScreen {
         GameState.clearTeamSlot(slotIndex);
         this.selection = null;
         this.refresh();
-      });
-    }
-
-    const starUpBtn = document.getElementById('star-up-btn');
-    if (starUpBtn) {
-      starUpBtn.addEventListener('click', () => {
-        this.app.screens.improve.select(uid);
-        this.app.showScreen('improve');
       });
     }
 
