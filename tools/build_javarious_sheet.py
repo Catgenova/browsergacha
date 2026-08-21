@@ -99,7 +99,7 @@ def clip(fname, frames, fps, shield_last=0):
 IMG = {name: clip(f, n, fps, SHIELD_ON.get(name, 0)) for f, n, fps, name in STRIPS}
 
 
-html = r'''<title>Javarious, Unbroken Dawn</title>
+html = r'''<title>Javarious, Leader of Reverence</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
   :root {
@@ -289,7 +289,7 @@ html = r'''<title>Javarious, Unbroken Dawn</title>
     <div class="hero-id">
       <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;<span class="rank">RARITY 5</span></div>
       <h1>JAVARIOUS</h1>
-      <div class="title-line">Unbroken Dawn</div>
+      <div class="title-line">Leader of Reverence</div>
       <div class="badges">
         <span class="badge light">&#9728; Light</span>
         <span class="badge">Front-line carry</span>

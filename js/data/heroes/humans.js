@@ -739,7 +739,7 @@ Object.assign(HEROES, {
     id: 'javarious',
     element: 'light',
     name: 'Javarious',
-    title: 'Unbroken Dawn',
+    title: 'Leader of Reverence',
     rarity: 5,
     // A front-line carry whose damage is conditional on being untouched,
     // which is a contradiction until you read the shield: absorbed damage
