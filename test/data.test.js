@@ -7,7 +7,7 @@ const path = require('path');
 const { loadGame, test, assert, report, ROOT, FILES } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION, Quests,
-  ACHIEVEMENTS, GameState, ELEMENTS } = g;
+  ACHIEVEMENTS, GameState, ELEMENTS, Gear } = g;
 
 const heroes = Object.values(HEROES);
 const passivesOf = (d) => d.passives || (d.passive ? [d.passive] : []);
@@ -136,11 +136,29 @@ test('every hero belongs to a race', () => {
   assert(raceless.length === 0, `raceless: ${raceless.slice(0, 6).join(', ')}`);
 });
 
-test('every race with heroes has a name and three bonus tiers', () => {
+test('every race pack mirrors its gear set, tier for tier', () => {
   const races = new Set(heroes.map((h) => RACES.of(h)));
   for (const r of races) {
     assert(RACES.NAMES[r], `race ${r} has no display name`);
-    assert((RACES.BONUSES[r] || []).length === 3, `race ${r} lacks 3 tiers`);
+    const tiers = RACES.BONUSES[r] || [];
+    assert(tiers.length >= 3, `race ${r} lacks tiers`);
+    for (const t of tiers) {
+      assert([3, 5, 7].includes(t.count), `${r}: tier at odd count ${t.count}`);
+      assert(t.label && Object.keys(t.mods).length, `${r}: empty tier`);
+    }
+    // Humans have no gear set and keep a bespoke pack; every other race's
+    // 3/5/7 tiers must be its set's 2/4/6-piece bonuses exactly.
+    if (r === 'human') continue;
+    const set = Gear.SETS[r === 'drake' ? 'dragon' : r];
+    assert(set, `race ${r} has no gear set to mirror`);
+    assert(tiers.length === set.bonuses.length,
+      `${r}: ${tiers.length} tiers vs ${set.bonuses.length} set bonuses`);
+    set.bonuses.forEach((b, i) => {
+      assert(tiers[i].count === b.pieces + 1,
+        `${r}: tier ${i} at ${tiers[i].count}, set at ${b.pieces} pieces`);
+      assert(tiers[i].mods[b.stat] === b.add,
+        `${r}: tier ${i} ${b.stat} ${tiers[i].mods[b.stat]} != set ${b.add}`);
+    });
   }
 });
 
