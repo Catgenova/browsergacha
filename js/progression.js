@@ -4,7 +4,9 @@
 // - Max level is 10 per star (1★ -> 10, 2★ -> 20 ... 10★ -> 100).
 // - Star-ups require max level plus N spare duplicates, where N is the
 //   CURRENT star count (1★->2★ costs 1 dup ... 9★->10★ costs 9).
-// - Starring up boosts base stats permanently and resets level to 1.
+// - Starring up boosts base stats permanently and raises the level cap.
+//   The level itself is kept: a star up lifts the ceiling, it does not
+//   send the hero back to the bottom of it.
 // - The whole party gains XP on victory, based on enemy levels.
 
 const Progression = (() => {
