@@ -1869,7 +1869,7 @@ Object.assign(HEROES, {
       {
         id: 'dove_peacebringer_grace', name: 'Peacebringer\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 114% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 115% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'heal', mult: 1.15 },
@@ -1879,7 +1879,7 @@ Object.assign(HEROES, {
       {
         id: 'dove_peacebringer_communion', name: 'Peacebringer\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 64% of ATK plus 1.2% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 65% of ATK plus 1.2% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
           { type: 'heal', mult: 0.65 },
@@ -1924,7 +1924,7 @@ Object.assign(HEROES, {
       {
         id: 'egret_aegiswing_ward', name: 'Aegiswing\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 13% less damage for 2 turns and heal 55% of ATK.',
+        description: 'Raise the aegis over an ally: they take 13% less damage for 2 turns and heal 56% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.87, turns: 2 },

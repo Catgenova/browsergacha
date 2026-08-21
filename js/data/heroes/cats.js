@@ -1866,20 +1866,20 @@ Object.assign(HEROES, {
       {
         id: 'cat_lightpurr_grace', name: 'Lightpurr\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 175% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 145.8% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.75 },
+          { type: 'heal', mult: 1.458 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'cat_lightpurr_communion', name: 'Lightpurr\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 125% of ATK plus 1.8% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 104.1% of ATK plus 1.8% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.25 },
+          { type: 'heal', mult: 1.041 },
           { type: 'hot', pct: 0.017, turns: 2 },
         ],
       },
@@ -2218,30 +2218,30 @@ Object.assign(HEROES, {
       {
         id: 'cat_runepurr_bolt', name: 'Runepurr\'s Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Twin arcane bolts: 91% then 49% ATK.',
+        description: 'Twin arcane bolts: 59.6% then 32.1% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.91 },
-          { type: 'damage', mult: 0.49 },
+          { type: 'damage', mult: 0.596 },
+          { type: 'damage', mult: 0.321 },
         ],
       },
       {
         id: 'cat_runepurr_torrent', name: 'Runepurr\'s Torrent',
         icon: 'assets/icons/fc1084.png',
-        description: 'A torrent of power: 144% ATK to ALL enemies and -7% SPD for 2 turns.',
+        description: 'A torrent of power: 94.3% ATK to ALL enemies and -7% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.44 },
+          { type: 'damage', mult: 0.943 },
           { type: 'debuff', stat: 'speed', mult: 0.93, turns: 2 },
         ],
       },
       {
         id: 'cat_runepurr_cataclysm', name: 'Runepurr\'s Cataclysm',
         icon: 'assets/icons/fc1044.png',
-        description: 'The big one: 160% ATK to ALL enemies and -8% ATK for 2 turns.',
+        description: 'The big one: 104.8% ATK to ALL enemies and -8% ATK for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.6 },
+          { type: 'damage', mult: 1.048 },
           { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
         ],
       },

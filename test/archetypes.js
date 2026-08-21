@@ -38,7 +38,7 @@
 
 const { loadGame } = require('./harness');
 const g = loadGame();
-const { HEROES, POSITION, TEAM, Battle, Unit, Meter, Progression, Gear } = g;
+const { HEROES, POSITION, TEAM, Battle, Unit, Meter, Progression, Gear, Abilities } = g;
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -72,11 +72,22 @@ const LEVEL = Progression.maxLevel(STARS);
 // ---- Archetypes ----------------------------------------------------------
 
 // What a kit is FOR, from what it does rather than what it is called.
+//
+// Healing is not the only way to be a support. A kit that spends most of
+// its abilities on its own side — buffs, turn meter, damage-reduction
+// wards — is a support too, and binning it as dps ranks it on damage it
+// was never built to do. The Sun heroes were reading as 0.28x of their
+// bucket for exactly that reason: they are buffers, measured on a
+// leaderboard of attackers.
 function roleOf(def) {
-  const effects = (def.abilities || []).flatMap((a) => a.effects || []);
+  const abilities = def.abilities || [];
+  const effects = abilities.flatMap((a) => a.effects || []);
   const mends = effects.some((e) =>
     ['heal', 'healHpPct', 'hot', 'revive', 'cleanse'].includes(e.type));
   if (mends) return 'support';
+  const forAllies = abilities.filter((a) =>
+    ['ally', 'self'].includes(Abilities.sideOf(a.targeting))).length;
+  if (forAllies > abilities.length / 2) return 'support';
   const s = def.stats || {};
   // Bulk against punch, on the same scale the wave builder uses.
   const bulk = (s.hp || 0) / 10 + (s.def || 0);
@@ -336,7 +347,12 @@ const flagged = [];
 function report(key, rows) {
   const headline = HEADLINE[key];
   rows.sort((a, b) => b[headline] - a[headline]);
-  const mid = median(rows.map((r) => r[headline]));
+  // The yardstick is taken over heroes whose kit can post this number.
+  // A support bucket holds buffers as well as healers, and counting a
+  // buffer's zero heal/s as a data point halves the healers' median and
+  // makes every one of them look strong.
+  const mid = median(rows.filter((r) => kitCan(r.def, headline))
+    .map((r) => r[headline]));
   console.log(`\n${TITLE[key]}  —  ${rows.length} heroes, ` +
     `median ${headline} ${round(mid)}`);
   console.log('  ' + 'hero'.padEnd(24) + '★'.padStart(3) +

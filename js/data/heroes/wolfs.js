@@ -1843,20 +1843,20 @@ Object.assign(HEROES, {
       {
         id: 'wolf_lightmuzzle_grace', name: 'Lightmuzzle\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 145% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 104% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.45 },
+          { type: 'heal', mult: 1.04 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'wolf_lightmuzzle_communion', name: 'Lightmuzzle\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 95% of ATK plus 1.4% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 68.1% of ATK plus 1.4% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.95 },
+          { type: 'heal', mult: 0.681 },
           { type: 'hot', pct: 0.014, turns: 2 },
         ],
       },
@@ -2195,30 +2195,30 @@ Object.assign(HEROES, {
       {
         id: 'wolf_runehowl_bolt', name: 'Runehowl\'s Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Twin arcane bolts: 100% then 43% ATK.',
+        description: 'Twin arcane bolts: 87.5% then 37.6% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.0 },
-          { type: 'damage', mult: 0.43 },
+          { type: 'damage', mult: 0.875 },
+          { type: 'damage', mult: 0.376 },
         ],
       },
       {
         id: 'wolf_runehowl_torrent', name: 'Runehowl\'s Torrent',
         icon: 'assets/icons/fc1084.png',
-        description: 'A torrent of power: 123% ATK to ALL enemies and -4% SPD for 2 turns.',
+        description: 'A torrent of power: 107.6% ATK to ALL enemies and -4% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.23 },
+          { type: 'damage', mult: 1.076 },
           { type: 'debuff', stat: 'speed', mult: 0.96, turns: 2 },
         ],
       },
       {
         id: 'wolf_runehowl_cataclysm', name: 'Runehowl\'s Cataclysm',
         icon: 'assets/icons/fc1044.png',
-        description: 'The big one: 139% ATK to ALL enemies and -8% ATK for 2 turns.',
+        description: 'The big one: 121.6% ATK to ALL enemies and -8% ATK for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.39 },
+          { type: 'damage', mult: 1.216 },
           { type: 'debuff', stat: 'atk', mult: 0.92, turns: 2 },
         ],
       },

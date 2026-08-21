@@ -54,10 +54,12 @@ const buckets = data.order.map((key) => {
   const headline = data.headline[key];
   const rows = data.buckets[key].slice()
     .sort((a, b) => b[headline] - a[headline]);
-  const mid = median(rows.map((r) => r[headline]));
+  for (const r of rows) r.can = bench.kitCan(HEROES[r.id], headline);
+  // Median over the heroes that can post this metric — a buffer's zero
+  // heal/s is not a data point about healing.
+  const mid = median(rows.filter((r) => r.can).map((r) => r[headline]));
   let outliers = 0;
   for (const r of rows) {
-    r.can = bench.kitCan(HEROES[r.id], headline);
     r.ratio = mid > 0 ? r[headline] / mid : 0;
     r.flag = !r.can ? 'na'
       : r.ratio >= 2 ? 'over'
