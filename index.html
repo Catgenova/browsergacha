@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browser Gacha — Hero Battler</title>
-  <link rel="stylesheet" href="css/style.css?v=e2727c0f" />
+  <link rel="stylesheet" href="css/style.css?v=ba841268" />
 </head>
 <body>
   <div id="game-root">
     <!-- Top bar: nav + currency -->
     <header id="topbar">
-      <div id="logo">BROWSER GACHA <span id="version-tag">v279 · e2727c0f</span></div>
+      <div id="logo">BROWSER GACHA <span id="version-tag">v280 · ba841268</span></div>
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
@@ -24,7 +24,7 @@
       <div id="scroll-display" title="Common · Rare · Temporal summon scrolls">📜 <span id="scroll-common-count">0</span> · ✨ <span id="scroll-rare-count">0</span> · 🌀 <span id="scroll-temporal-count">0</span></div>
       <button id="mute-btn" class="panel-btn" title="Mute or unmute the game">🔊</button>
       <button id="help-btn" class="panel-btn" title="Replay the first-run tour">?</button>
-      <div id="mat-display" title="Whetstones (item leveling) · Arcana (enchanting)">🪨 <span id="whetstone-count">0</span> · ✦ <span id="arcana-count">0</span></div>
+      <div id="mat-display" title="Whetstones (item leveling) · Arcana (enchanting) · Diamonds (quests; buy room and scrolls)">🪨 <span id="whetstone-count">0</span> · ✦ <span id="arcana-count">0</span> · 💎 <span id="diamond-count">0</span></div>
     </header>
 
     <!-- ================= Summon screen ================= -->
@@ -42,6 +42,13 @@
           <button id="summon-rare-ten" class="panel-btn gold">Rare ×10 (10 ✨)</button>
           <button id="summon-temporal-one" class="panel-btn danger">Temporal ×1 (1 🌀)</button>
           <button id="summon-temporal-ten" class="panel-btn danger">Temporal ×10 (10 🌀)</button>
+        </div>
+        <div id="summon-exchange">
+          <span id="exchange-balance"></span>
+          <button id="buy-rare-pack" class="panel-btn gold"
+            title="Trade Diamonds for ten Rare Summon Scrolls">10 ✨ for 1,000 💎</button>
+          <button id="buy-temporal" class="panel-btn danger"
+            title="Trade Diamonds for one Temporal Summon Scroll">1 🌀 for 500 💎</button>
         </div>
         <div id="summon-error"></div>
       </div>
@@ -73,14 +80,16 @@
       <div id="roster-section">
         <div id="roster-header">
           <h3>Your Heroes <span id="roster-cap"
-            title="Roster capacity — summons stop at the cap; sacrifice heroes in Improve to make room"></span></h3>
+            title="Roster capacity — summons stop at the cap; sacrifice heroes in Improve or use storage to make room"></span>
+            <button id="roster-expand" class="panel-btn cap-expand"></button></h3>
           <input id="roster-search" type="search" placeholder="Search name or element…">
           <label id="hide-maxed-label" title="Hide heroes already at their level cap">
             <input id="hide-maxed" type="checkbox"> Hide maxed
           </label>
           <button id="roster-report-btn" class="panel-btn" title="Who is worth investing in?">📊 Report</button>
           <button id="storage-btn" class="panel-btn"
-            title="The vault beside the roster: park up to 1000 extra heroes. Depositing removes their gear; stored heroes are out of play until withdrawn."></button>
+            title="The vault beside the roster. Depositing removes their gear; stored heroes are out of play until withdrawn."></button>
+          <button id="storage-expand" class="panel-btn cap-expand"></button>
           <select id="roster-sort" title="Sort the roster">
             <option value="power">Sort: Power</option>
             <option value="level">Sort: Level</option>
@@ -281,57 +290,57 @@
     </section>
   </div>
 
-  <script src="js/sound.js?v=e2727c0f"></script>
-  <script src="js/meter.js?v=e2727c0f"></script>
-  <script src="js/config.js?v=e2727c0f"></script>
-  <script src="js/hex.js?v=e2727c0f"></script>
-  <script src="js/elements.js?v=e2727c0f"></script>
-  <script src="js/races.js?v=e2727c0f"></script>
-  <script src="js/tags.js?v=e2727c0f"></script>
-  <script src="js/placeholder_art.js?v=e2727c0f"></script>
-  <script src="js/sprites.js?v=e2727c0f"></script>
-  <script src="js/abilities.js?v=e2727c0f"></script>
-  <script src="js/progression.js?v=e2727c0f"></script>
-  <script src="js/attune.js?v=e2727c0f"></script>
-  <script src="js/gear.js?v=e2727c0f"></script>
-  <script src="js/hero.js?v=e2727c0f"></script>
-  <script src="js/data/positionals.js?v=e2727c0f"></script>
-  <script src="js/data/heroes.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/humans.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/rats.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/avians.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/minotaurs.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/snakes.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/wolfs.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/boars.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/bears.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/cats.js?v=e2727c0f"></script>
-  <script src="js/data/heroes/drakes.js?v=e2727c0f"></script>
-  <script src="js/data/enemies.js?v=e2727c0f"></script>
-  <script src="js/data/campaign.js?v=e2727c0f"></script>
-  <script src="js/data/bosses.js?v=e2727c0f"></script>
-  <script src="js/data/elemental_bosses.js?v=e2727c0f"></script>
-  <script src="js/data/effects.js?v=e2727c0f"></script>
-  <script src="js/quests.js?v=e2727c0f"></script>
-  <script src="js/state.js?v=e2727c0f"></script>
-  <script src="js/gacha.js?v=e2727c0f"></script>
-  <script src="js/ai.js?v=e2727c0f"></script>
-  <script src="js/waves.js?v=e2727c0f"></script>
-  <script src="js/campaign.js?v=e2727c0f"></script>
-  <script src="js/achievements.js?v=e2727c0f"></script>
-  <script src="js/battle.js?v=e2727c0f"></script>
-  <script src="js/render.js?v=e2727c0f"></script>
-  <script src="js/ui.js?v=e2727c0f"></script>
-  <script src="js/compendium_screen.js?v=e2727c0f"></script>
-  <script src="js/campaign_screen.js?v=e2727c0f"></script>
-  <script src="js/battle_select.js?v=e2727c0f"></script>
-  <script src="js/battle_screen.js?v=e2727c0f"></script>
-  <script src="js/team_screen.js?v=e2727c0f"></script>
-  <script src="js/improve_screen.js?v=e2727c0f"></script>
-  <script src="js/blacksmith_screen.js?v=e2727c0f"></script>
-  <script src="js/quests_screen.js?v=e2727c0f"></script>
-  <script src="js/summon_screen.js?v=e2727c0f"></script>
-  <script src="js/onboarding.js?v=e2727c0f"></script>
-  <script src="js/main.js?v=e2727c0f"></script>
+  <script src="js/sound.js?v=ba841268"></script>
+  <script src="js/meter.js?v=ba841268"></script>
+  <script src="js/config.js?v=ba841268"></script>
+  <script src="js/hex.js?v=ba841268"></script>
+  <script src="js/elements.js?v=ba841268"></script>
+  <script src="js/races.js?v=ba841268"></script>
+  <script src="js/tags.js?v=ba841268"></script>
+  <script src="js/placeholder_art.js?v=ba841268"></script>
+  <script src="js/sprites.js?v=ba841268"></script>
+  <script src="js/abilities.js?v=ba841268"></script>
+  <script src="js/progression.js?v=ba841268"></script>
+  <script src="js/attune.js?v=ba841268"></script>
+  <script src="js/gear.js?v=ba841268"></script>
+  <script src="js/hero.js?v=ba841268"></script>
+  <script src="js/data/positionals.js?v=ba841268"></script>
+  <script src="js/data/heroes.js?v=ba841268"></script>
+  <script src="js/data/heroes/humans.js?v=ba841268"></script>
+  <script src="js/data/heroes/rats.js?v=ba841268"></script>
+  <script src="js/data/heroes/avians.js?v=ba841268"></script>
+  <script src="js/data/heroes/minotaurs.js?v=ba841268"></script>
+  <script src="js/data/heroes/snakes.js?v=ba841268"></script>
+  <script src="js/data/heroes/wolfs.js?v=ba841268"></script>
+  <script src="js/data/heroes/boars.js?v=ba841268"></script>
+  <script src="js/data/heroes/bears.js?v=ba841268"></script>
+  <script src="js/data/heroes/cats.js?v=ba841268"></script>
+  <script src="js/data/heroes/drakes.js?v=ba841268"></script>
+  <script src="js/data/enemies.js?v=ba841268"></script>
+  <script src="js/data/campaign.js?v=ba841268"></script>
+  <script src="js/data/bosses.js?v=ba841268"></script>
+  <script src="js/data/elemental_bosses.js?v=ba841268"></script>
+  <script src="js/data/effects.js?v=ba841268"></script>
+  <script src="js/quests.js?v=ba841268"></script>
+  <script src="js/state.js?v=ba841268"></script>
+  <script src="js/gacha.js?v=ba841268"></script>
+  <script src="js/ai.js?v=ba841268"></script>
+  <script src="js/waves.js?v=ba841268"></script>
+  <script src="js/campaign.js?v=ba841268"></script>
+  <script src="js/achievements.js?v=ba841268"></script>
+  <script src="js/battle.js?v=ba841268"></script>
+  <script src="js/render.js?v=ba841268"></script>
+  <script src="js/ui.js?v=ba841268"></script>
+  <script src="js/compendium_screen.js?v=ba841268"></script>
+  <script src="js/campaign_screen.js?v=ba841268"></script>
+  <script src="js/battle_select.js?v=ba841268"></script>
+  <script src="js/battle_screen.js?v=ba841268"></script>
+  <script src="js/team_screen.js?v=ba841268"></script>
+  <script src="js/improve_screen.js?v=ba841268"></script>
+  <script src="js/blacksmith_screen.js?v=ba841268"></script>
+  <script src="js/quests_screen.js?v=ba841268"></script>
+  <script src="js/summon_screen.js?v=ba841268"></script>
+  <script src="js/onboarding.js?v=ba841268"></script>
+  <script src="js/main.js?v=ba841268"></script>
 </body>
 </html>

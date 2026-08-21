@@ -205,6 +205,9 @@ const GameState = (() => {
     // Keyed by an instance id, not a hero id: the same character can
     // stand in the roster many times over, and each one is its own hero.
     roster: {},
+    diamonds: 0,
+    rosterCapBonus: 0,   // purchased roster room, in tens
+    storageCapBonus: 0,  // purchased vault room, in tens
     storage: {},  // parked heroes: same entries, no gear, out of play
     nextHeroUid: 1,
     team: {},                            // slotIndex (0-6) -> roster uid
@@ -243,8 +246,18 @@ const GameState = (() => {
   // heroes, so the cap is what makes those sinks matter. The storage
   // vault holds the overflow: heroes parked there are out of play (no
   // team, no sacrifices) and go in stripped of gear.
-  const MAX_ROSTER = 200;
-  const MAX_STORAGE = 1000;
+  const MAX_ROSTER = 200;   // base -- Diamonds expand it in tens
+  const MAX_STORAGE = 1000; // base -- likewise
+  // The Diamond economy: quests pay Diamonds, and Diamonds buy room and
+  // scrolls. Caps are hard ceilings on the expansions.
+  const CAP_STEP = 10;
+  const ROSTER_CAP_MAX = 500;
+  const STORAGE_CAP_MAX = 3000;
+  const ROSTER_STEP_COST = 300;
+  const STORAGE_STEP_COST = 100;
+  const RARE_PACK_COST = 1000;
+  const RARE_PACK_COUNT = 10;
+  const TEMPORAL_COST = 500;
 
   function freshEntry(heroId) {
     const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
@@ -351,6 +364,9 @@ const GameState = (() => {
       if (entry.attune === undefined) entry.attune = 0;
     }
     if (!loaded.storage) loaded.storage = {};
+    if (!loaded.diamonds) loaded.diamonds = 0;
+    if (!loaded.rosterCapBonus) loaded.rosterCapBonus = 0;
+    if (!loaded.storageCapBonus) loaded.storageCapBonus = 0;
     if (!loaded.elements) loaded.elements = {};
     if (!loaded.attuneStages) loaded.attuneStages = {};
     if (!loaded.attuneSettings) {
@@ -443,18 +459,22 @@ const GameState = (() => {
     // Every pull is a whole hero, not a tally mark against one you
     // already have. Returns { uid, heroId } or null when the roster is
     // full -- summoning refuses rather than dropping heroes on the floor.
-    MAX_ROSTER,
+    get MAX_ROSTER() {
+      return Math.min(ROSTER_CAP_MAX, MAX_ROSTER + (state.rosterCapBonus || 0));
+    },
     rosterCount() { return Object.keys(state.roster).length; },
-    rosterFull() { return this.rosterCount() >= MAX_ROSTER; },
-    rosterSpace() { return Math.max(0, MAX_ROSTER - this.rosterCount()); },
+    rosterFull() { return this.rosterCount() >= this.MAX_ROSTER; },
+    rosterSpace() { return Math.max(0, this.MAX_ROSTER - this.rosterCount()); },
 
     // ---- Hero storage ----
     // A vault beside the roster. Depositing strips the hero's gear back
     // into the inventory (the vault stores heroes, not kits) and takes
     // them out of play until withdrawn; withdrawing needs roster room.
-    MAX_STORAGE,
+    get MAX_STORAGE() {
+      return Math.min(STORAGE_CAP_MAX, MAX_STORAGE + (state.storageCapBonus || 0));
+    },
     storageCount() { return Object.keys(state.storage).length; },
-    storageFull() { return this.storageCount() >= MAX_STORAGE; },
+    storageFull() { return this.storageCount() >= this.MAX_STORAGE; },
     storedHeroIds() { return Object.keys(state.storage); },
     storedEntry(uid) {
       const e = state.storage[uid];
@@ -875,6 +895,44 @@ const GameState = (() => {
     },
 
     // ---- Upgrade currencies ----
+    get diamonds() { return state.diamonds; },
+    addDiamonds(n) { state.diamonds += n; save(); },
+    spendDiamonds(n) {
+      if (state.diamonds < n) return false;
+      state.diamonds -= n;
+      save();
+      return true;
+    },
+    CAP_STEP, ROSTER_CAP_MAX, STORAGE_CAP_MAX,
+    ROSTER_STEP_COST, STORAGE_STEP_COST,
+    RARE_PACK_COST, RARE_PACK_COUNT, TEMPORAL_COST,
+    // Diamonds buy room: ten roster slots or ten vault slots per step,
+    // up to hard ceilings. Returns the new cap, or null (capped/broke).
+    expandRoster() {
+      if (this.MAX_ROSTER >= ROSTER_CAP_MAX) return null;
+      if (!this.spendDiamonds(ROSTER_STEP_COST)) return null;
+      state.rosterCapBonus = (state.rosterCapBonus || 0) + CAP_STEP;
+      save();
+      return this.MAX_ROSTER;
+    },
+    expandStorage() {
+      if (this.MAX_STORAGE >= STORAGE_CAP_MAX) return null;
+      if (!this.spendDiamonds(STORAGE_STEP_COST)) return null;
+      state.storageCapBonus = (state.storageCapBonus || 0) + CAP_STEP;
+      save();
+      return this.MAX_STORAGE;
+    },
+    // ...and scrolls, at fixed exchange rates.
+    buyRareScrolls() {
+      if (!this.spendDiamonds(RARE_PACK_COST)) return null;
+      this.addScrolls('rare', RARE_PACK_COUNT);
+      return RARE_PACK_COUNT;
+    },
+    buyTemporalScroll() {
+      if (!this.spendDiamonds(TEMPORAL_COST)) return null;
+      this.addScrolls('temporal', 1);
+      return 1;
+    },
     get whetstones() { return state.whetstones; },
     addWhetstones(n) { state.whetstones += n; save(); },
     get arcana() { return state.arcana; },
@@ -1175,6 +1233,7 @@ const GameState = (() => {
         else if (kind === 'temporal') state.scrollsTemporal += amount;
         else if (kind === 'whetstones') state.whetstones += amount;
         else if (kind === 'arcana') state.arcana += amount;
+        else if (kind === 'diamonds') state.diamonds += amount;
       }
       save();
       return true;

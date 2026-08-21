@@ -24,41 +24,41 @@ const Quests = (() => {
       { id: 'd_boss', name: 'Clear a boss stage', counter: 'bossWins', goal: 1,
         reward: { scrollsRare: 1 } },
       { id: 'd_wins', name: 'Win 10 battles', counter: 'wins', goal: 10,
-        reward: { whetstones: 150 } },
+        reward: { diamonds: 50 } },
       { id: 'd_flawless', name: 'Win 3 battles without losing a hero',
-        counter: 'flawless', goal: 3, reward: { whetstones: 200 } },
+        counter: 'flawless', goal: 3, reward: { diamonds: 65 } },
       { id: 'd_campaign', name: 'Clear a campaign node', counter: 'campaignWins',
         goal: 1, reward: { scrollsCommon: 2 } },
       { id: 'd_summon', name: 'Summon a hero', counter: 'summons', goal: 1,
-        reward: { arcana: 25 } },
+        reward: { diamonds: 25 } },
       { id: 'd_polish', name: 'Polish items 5 times', counter: 'polishes', goal: 5,
-        reward: { whetstones: 100 } },
+        reward: { diamonds: 35 } },
       { id: 'd_tower', name: 'Climb 3 tower floors', counter: 'towerFloors', goal: 3,
-        reward: { arcana: 40 } },
+        reward: { diamonds: 40 } },
       { id: 'd_synergy', name: 'Win 3 battles with a party bonus active',
-        counter: 'synergyWins', goal: 3, reward: { whetstones: 150 } },
+        counter: 'synergyWins', goal: 3, reward: { diamonds: 50 } },
     ],
     weekly: [
       { id: 'w_wins', name: 'Win 40 battles', counter: 'wins', goal: 40,
         reward: { scrollsRare: 2 } },
       { id: 'w_hunts', name: 'Win 25 hunts', counter: 'huntWins', goal: 25,
-        reward: { whetstones: 400 } },
+        reward: { diamonds: 130 } },
       { id: 'w_boss', name: 'Clear 7 boss stages', counter: 'bossWins', goal: 7,
-        reward: { arcana: 150 } },
+        reward: { diamonds: 150 } },
       { id: 'w_campaign', name: 'Clear 10 campaign nodes', counter: 'campaignWins',
         goal: 10, reward: { scrollsRare: 2 } },
       { id: 'w_flawless', name: 'Win 15 battles without losing a hero',
-        counter: 'flawless', goal: 15, reward: { arcana: 200 } },
+        counter: 'flawless', goal: 15, reward: { diamonds: 200 } },
       { id: 'w_summons', name: 'Summon 10 heroes', counter: 'summons', goal: 10,
         reward: { scrollsCommon: 5 } },
       { id: 'w_salvage', name: 'Salvage 10 items', counter: 'salvages', goal: 10,
-        reward: { whetstones: 500 } },
+        reward: { diamonds: 165 } },
       { id: 'w_tower', name: 'Climb 15 tower floors', counter: 'towerFloors', goal: 15,
-        reward: { arcana: 250 } },
+        reward: { diamonds: 250 } },
       { id: 'w_starup', name: 'Star up 3 heroes', counter: 'starUps', goal: 3,
         reward: { scrollsCommon: 8 } },
       { id: 'w_synergy', name: 'Win 15 battles with a party bonus active',
-        counter: 'synergyWins', goal: 15, reward: { arcana: 200 } },
+        counter: 'synergyWins', goal: 15, reward: { diamonds: 200 } },
       { id: 'w_full_synergy', name: 'Win 5 battles with a 7-strong party bonus',
         counter: 'fullSynergyWins', goal: 5, reward: { scrollsRare: 2 } },
     ],
@@ -76,11 +76,11 @@ const Quests = (() => {
       { id: 'm_summons', name: 'Summon 30 heroes', counter: 'summons', goal: 30,
         reward: { scrollsRare: 3 } },
       { id: 'm_enchant', name: 'Attempt 50 enchants', counter: 'enchants', goal: 50,
-        reward: { arcana: 400 } },
+        reward: { diamonds: 400 } },
       { id: 'm_salvage', name: 'Salvage 25 items', counter: 'salvages', goal: 25,
-        reward: { whetstones: 1500 } },
+        reward: { diamonds: 500 } },
       { id: 'm_reroll', name: 'Reroll 20 sets of substats', counter: 'rerolls',
-        goal: 20, reward: { arcana: 600 } },
+        goal: 20, reward: { diamonds: 600 } },
       { id: 'm_tower', name: 'Climb 50 tower floors', counter: 'towerFloors', goal: 50,
         reward: { scrollsRare: 4 } },
       { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,
@@ -131,6 +131,7 @@ const Quests = (() => {
 
   function rewardLabel(reward) {
     const parts = [];
+    if (reward.diamonds) parts.push(`${reward.diamonds} 💎`);
     if (reward.scrollsCommon) parts.push(`${reward.scrollsCommon} 📜`);
     if (reward.scrollsRare) parts.push(`${reward.scrollsRare} ✨`);
     if (reward.scrollsTemporal) parts.push(`${reward.scrollsTemporal} 🌀`);
@@ -141,6 +142,7 @@ const Quests = (() => {
 
   // Grant a quest reward into the save.
   function grant(reward) {
+    if (reward.diamonds) GameState.addDiamonds(reward.diamonds);
     if (reward.scrollsCommon) GameState.addScrolls('common', reward.scrollsCommon);
     if (reward.scrollsRare) GameState.addScrolls('rare', reward.scrollsRare);
     if (reward.scrollsTemporal) GameState.addScrolls('temporal', reward.scrollsTemporal);

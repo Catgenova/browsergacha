@@ -674,7 +674,7 @@ test('every quest and achievement reward can be shown and paid', () => {
   // A reward the label function does not know about renders as an empty
   // column, and one the grant function does not know about pays nothing
   // when claimed. Both are silent: the quest still reads as complete.
-  const PURSE = ['scrollsCommon', 'scrollsRare', 'scrollsTemporal',
+  const PURSE = ['diamonds', 'scrollsCommon', 'scrollsRare', 'scrollsTemporal',
     'whetstones', 'arcana', 'tomes'];
   const purse = () => Object.fromEntries(PURSE.map((k) => [k, GameState[k]]));
 
