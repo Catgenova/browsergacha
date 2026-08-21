@@ -2403,3 +2403,15 @@ html.is-mobile .sub-compare { font-size: 13px; }
   }
   html.is-mobile #onboarding .ob-dots { display: none; }
 }
+
+/* A section of the quests screen that failed to build says so, in place,
+   rather than leaving the page blank with the reason only in a console
+   nobody has open. */
+.quest-error {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #ff9a8a;
+  background: rgba(120, 40, 40, 0.18);
+  border-left: 3px solid #a85a5a;
+  border-radius: 0 4px 4px 0;
+}
