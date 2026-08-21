@@ -563,11 +563,12 @@ class TeamScreen {
       const level = document.createElement('div');
       level.className = 'card-level';
       level.textContent = `Lv ${r.e.level}`;
-      const out = document.createElement('div');
-      out.className = 'card-badge stored-badge';
-      out.textContent = 'WITHDRAW';
-      card.append(portrait, name, stars, level, out);
-      card.addEventListener('click', () => {
+      const up = document.createElement('button');
+      up.className = 'card-store';
+      up.type = 'button';
+      up.textContent = '▲';
+      up.title = `Withdraw ${r.def.name} to the roster`;
+      const withdraw = () => {
         if (GameState.rosterFull()) {
           this.rosterMsg = 'The roster is full — make room before withdrawing.';
           this.buildRoster();
@@ -576,7 +577,10 @@ class TeamScreen {
         const res = GameState.withdraw(r.uid);
         this.rosterMsg = res ? `${r.def.name} returned to the roster.` : 'Could not withdraw.';
         this.buildRoster();
-      });
+      };
+      up.addEventListener('click', (e) => { e.stopPropagation(); withdraw(); });
+      card.append(portrait, name, stars, level, up);
+      card.addEventListener('click', withdraw);
       frag.appendChild(card);
     }
     if (!uids.length) {
@@ -653,6 +657,21 @@ class TeamScreen {
       badge.textContent = 'IN TEAM';
       const dupes = document.createElement('div');
       dupes.className = 'card-copies';
+      const store = document.createElement('button');
+      store.className = 'card-store';
+      store.type = 'button';
+      store.textContent = '▼';
+      store.title = `Send ${def.name} to storage — gear returns to the inventory`;
+      store.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const r = GameState.deposit(heroId);
+        this.rosterMsg = r
+          ? `${def.name} sent to storage` +
+            (r.gearFreed ? ` — ${r.gearFreed} piece${r.gearFreed > 1 ? 's' : ''} of gear returned.` : '.')
+          : 'Could not store this hero.';
+        if (this.selection && this.selection.heroId === heroId) this.selection = null;
+        this.refresh();
+      });
       const fav = document.createElement('button');
       fav.className = 'card-fav';
       fav.type = 'button';
@@ -663,9 +682,9 @@ class TeamScreen {
         GameState.toggleFavorite(heroId);
         this.buildRoster();   // re-sort so it moves immediately
       });
-      card.append(portrait, name, stars, level, badge, dupes, fav);
+      card.append(portrait, name, stars, level, badge, dupes, fav, store);
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
-      card._parts = { stars, level, badge, dupes, fav };
+      card._parts = { stars, level, badge, dupes, fav, store };
       this.cardCache.set(heroId, card);
     }
     // Refresh the parts that actually change.
@@ -673,7 +692,7 @@ class TeamScreen {
     // failed) gets watched again, so the real sprite lands on the next
     // rebuild instead of sticking for the session.
     if (!card._painted) this.watchPortrait(card);
-    const { stars, level, badge, dupes, fav } = card._parts;
+    const { stars, level, badge, dupes, fav, store } = card._parts;
     const favorited = GameState.isFavorite(heroId);
     fav.textContent = favorited ? '★' : '☆';
     fav.classList.toggle('on', favorited);
@@ -690,6 +709,8 @@ class TeamScreen {
     level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
     level.classList.toggle('card-level-max', capped);
     badge.classList.toggle('hidden', !inTeam.has(heroId));
+    // Fielded heroes cannot be deposited, and a full vault takes nobody.
+    store.classList.toggle('hidden', inTeam.has(heroId) || GameState.storageFull());
     // How many of this CHARACTER stand in the roster -- each card is one
     // hero, so the count is context rather than a currency.
     const same = GameState.countOf(GameState.defIdOf(heroId));
