@@ -150,6 +150,12 @@ class ImproveScreen {
       return;
     }
 
+    // Toggling a sacrifice re-renders this whole panel; without saving
+    // the scroll, every pick snapped the list back to the top.
+    const panelScroll = this.detailEl.scrollTop;
+    const optsEl = this.detailEl.querySelector('.imp-opts');
+    const optsScroll = optsEl ? optsEl.scrollTop : 0;
+
     const uid = this.selected;
     const def = GameState.defOf(uid);
     const pr = GameState.progressOf(uid);
@@ -214,21 +220,25 @@ class ImproveScreen {
 
       ${this.attuneHtml(uid, def, pr)}
 
+      <button id="imp-go" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
+        ${picked.length
+          ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
+            `${willStar ? ' and star up' : ''}`
+          : 'Choose sacrifices below'}
+      </button>
+      ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}
+
       <div class="imp-section">Sacrifices ${options.length
         ? `<span class="imp-note">${picked.length} chosen</span>` : ''}</div>
       ${options.length
         ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
         : `<div class="imp-line imp-note">Nothing in the roster can improve
            ${def.name} right now. You need another ${def.name} for a skill
-           level, or a spare hero at ${pr.stars}&#9733; for a star up.</div>`}
+           level, or a spare hero at ${pr.stars}&#9733; for a star up.</div>`}`;
 
-      <button id="imp-go" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
-        ${picked.length
-          ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
-            `${willStar ? ' and star up' : ''}`
-          : 'Choose sacrifices'}
-      </button>
-      ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}`;
+    this.detailEl.scrollTop = panelScroll;
+    const optsEl2 = this.detailEl.querySelector('.imp-opts');
+    if (optsEl2) optsEl2.scrollTop = optsScroll;
 
     this.detailEl.querySelectorAll('.imp-opt').forEach((row) => {
       Sprites.paintPortrait(row.querySelector('canvas'),
