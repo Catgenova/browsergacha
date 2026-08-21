@@ -35,7 +35,13 @@ class QuestsScreen {
       ...this.guardedBoards('Achievements', () => this.achievementBoards()),
     ].map((b, i) => ({ ...b, i }));
     boards.sort((a, b) => ((b.claimable > 0) - (a.claimable > 0)) || (a.i - b.i));
+    // Claiming re-sorts the page (the claimed row sinks, its board may
+    // drop out of the claimable block), which used to yank the viewport
+    // along with the moved content. Rebuild, then put the scroll back
+    // exactly where the player left it.
+    const sx = window.scrollX, sy = window.scrollY;
     this.boardsEl.innerHTML = boards.map((b) => b.html).join('');
+    window.scrollTo(sx, sy);
 
     this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
       btn.addEventListener('click', () => {
