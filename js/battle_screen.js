@@ -216,9 +216,9 @@ class BattleScreen {
         return ch ? `${ch.title} — ${node.name}` : 'Campaign';
       })()
       : this.attuneFight
-        ? `${ELEMENTAL_BOSSES[this.attuneFight.element].name}, stage ${this.attuneFight.stage}`
+        ? `${this.attuneFight.name}, stage ${this.attuneFight.stage}`
         : this.bossFight
-        ? `${BOSSES[this.bossFight.bossId].name}, stage ${this.bossFight.stage}`
+          ? `${this.bossFight.name}, stage ${this.bossFight.stage}`
         : this.towerFight
           ? `Endless Tower, floor ${this.towerFight.floor}`
           : `${CONFIG.LOCATION_NAMES[GameState.waveSettings.location] || 'Hunt'}` +
@@ -526,7 +526,9 @@ class BattleScreen {
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const stage = Math.min(Math.max(1, GameState.bossSettings.stage), maxPick);
       const level = Progression.bossLevel(stage);
-      this.bossFight = { bossId: def.id, stage, gearSet: def.gearSet || 'dragon' };
+      // Carry the display name: bossId is the save key (def.id), which is
+      // NOT the key BOSSES is indexed by, so it cannot be looked back up.
+      this.bossFight = { bossId: def.id, name: def.name, stage, gearSet: def.gearSet || 'dragon' };
       this.towerFight = null;
       this.rewardXp = Progression.enemyXp(level) * 6; // worth a full wave
       this.rewardWhetstones = 10 + level * 2;
@@ -546,7 +548,7 @@ class BattleScreen {
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const stage = Math.min(Math.max(1, as.stage), maxPick);
       const level = Progression.bossLevel(stage);
-      this.attuneFight = { element: def.attuneId, stage };
+      this.attuneFight = { element: def.attuneId, name: def.name, stage };
       this.rewardXp = Progression.enemyXp(level) * 6;
       this.rewardWhetstones = 10 + level * 2;
       this.rewardArcana = 3 + Math.ceil(stage / 2);
