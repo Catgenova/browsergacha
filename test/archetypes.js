@@ -81,9 +81,13 @@ const LEVEL = Progression.maxLevel(STARS);
 // leaderboard of attackers.
 function roleOf(def) {
   const abilities = def.abilities || [];
-  const effects = abilities.flatMap((a) => a.effects || []);
-  const mends = effects.some((e) =>
-    ['heal', 'healHpPct', 'hot', 'revive', 'cleanse'].includes(e.type));
+  const MEND = ['heal', 'healHpPct', 'hot', 'revive', 'cleanse'];
+  // A mend that can only ever reach the caster is self-sustain, not
+  // support work: Javarious heals himself to restore a damage condition,
+  // and binning him with the healers ranked a carry on healing.
+  const mends = abilities.some((a) =>
+    Abilities.sideOf(a.targeting) === 'ally' &&
+    (a.effects || []).some((e) => MEND.includes(e.type)));
   if (mends) return 'support';
   const forAllies = abilities.filter((a) =>
     ['ally', 'self'].includes(Abilities.sideOf(a.targeting))).length;

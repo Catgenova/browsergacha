@@ -458,9 +458,14 @@ class Battle {
           this.log(`${res.target.name} is defeated!`, 'log-system');
         }
       } else if (res.kind === 'heal') {
-        if (typeof Sound !== 'undefined' && res.amount > 0) Sound.play('heal');
-        this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
-        this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
+        // A heal onto a full-health target is a real outcome, not an
+        // event: Javarious casts his at full HP on purpose, for the
+        // shield that comes with it. Say nothing rather than "for 0".
+        if (res.amount > 0) {
+          if (typeof Sound !== 'undefined') Sound.play('heal');
+          this.addFloatingText(res.target, `+${res.amount}`, '#7ae87a');
+          this.log(`${caster.name} uses ${ability.name}: heals ${res.target.name} for ${res.amount}.`, cls);
+        }
       } else if (res.kind === 'cleanse') {
         if (res.count > 0) {
           this.addFloatingText(res.target, 'CLEANSED', '#ffe8a8');
@@ -483,6 +488,11 @@ class Battle {
           this.addFloatingText(res.target, `◆ +${res.amount}`, '#8ee8ff');
           this.log(`${res.target.name} reforms ${res.amount} crystal mirror${res.amount > 1 ? 's' : ''}.`, cls);
         }
+      } else if (res.kind === 'shield') {
+        if (typeof Sound !== 'undefined') Sound.play('ward');
+        this.addFloatingText(res.target, `\u25a3 +${res.amount}`, '#7ae8d8');
+        this.log(`${res.target.name} raises a shield for ${res.amount} ` +
+          `(${res.turns} turn${res.turns > 1 ? 's' : ''}).`, cls);
       } else if (res.kind === 'stun') {
         this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
         this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);

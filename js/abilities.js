@@ -17,6 +17,23 @@
 //   { type: 'debuff', stat, mult, turns } — temporary stat multiplier (< 1)
 
 const Abilities = (() => {
+  // Caster-state conditions an effect can key a bonus off, via
+  //   { bonusWhen: { state: 'fullHp', mult: 2 } }
+  // Named states rather than a predicate, so hero data stays data.
+  const CASTER_STATES = {
+    fullHp: (u) => u.hp >= u.maxHp,
+    hurt: (u) => u.hp < u.maxHp,
+    lowHp: (u) => u.hp / u.maxHp < 0.4,
+    shielded: (u) => (u.shieldTotal ? u.shieldTotal() : 0) > 0,
+  };
+
+  function bonusWhenMult(effect, caster) {
+    const cond = effect.bonusWhen;
+    if (!cond) return 1;
+    const test = CASTER_STATES[cond.state];
+    return test && test(caster) ? cond.mult : 1;
+  }
+
   function damageFormula(rawAtk, targetDef) {
     // Simple mitigation curve; keeps damage positive and DEF meaningful.
     const mitigation = targetDef / (targetDef + 300);
@@ -83,6 +100,9 @@ const Abilities = (() => {
     // of it. bookDamage splits the credit and books the remainder here.
     if (opts.assist === false) Meter.damage(caster, dealt);
     else caster.bookDamage(target, dealt, crit);
+    // Hooks that answer landing a blow (Javarious builds his shield out
+    // of his own damage). After the books, so a hook sees a settled hit.
+    if (caster.dealt) caster.dealt(dealt, target);
     return { kind: 'damage', target, amount: dealt, crit };
   }
 
@@ -105,6 +125,8 @@ const Abilities = (() => {
           caster.damageDealtMult(target) * elemMult;
         // Combo hits: multiplied damage against a marked status — by
         // stat (methane fog) or by kind (detonating poisons).
+        // Conditional on the CASTER's own state (Javarious at full HP).
+        raw *= bonusWhenMult(effect, caster);
         if (effect.bonusVs && target.statusEffects.some((fx) =>
             (effect.bonusVs.stat && fx.stat === effect.bonusVs.stat) ||
             (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
@@ -147,6 +169,15 @@ const Abilities = (() => {
           caster.damageDealtMult(target) *
           Elements.mult(caster.element, target.element);
         return strike(caster, target, raw);
+      }
+      case 'shield': {
+        // A pool that eats damage before HP. Scaled off the caster's ATK
+        // like a heal, and boosted by the same healing modifiers -- both
+        // are HP the target does not lose.
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
+        const gained = target.addShield(amount, effect.turns, caster);
+        return { kind: 'shield', target, amount: gained, turns: effect.turns };
       }
       case 'taunt': {
         // Force attackers onto this unit for a few turns.

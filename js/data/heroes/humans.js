@@ -735,4 +735,101 @@ Object.assign(HEROES, {
     positional: POSITIONALS.drain_the_line,
   },
 
+  javarious: {
+    id: 'javarious',
+    element: 'light',
+    name: 'Javarious',
+    title: 'Unbroken Dawn',
+    rarity: 5,
+    // A front-line carry whose damage is conditional on being untouched,
+    // which is a contradiction until you read the shield: absorbed damage
+    // never reaches HP, so a shielded Javarious is a FULL-HEALTH
+    // Javarious. The shield is the win condition, not the safety net.
+    stats: { hp: 1650, atk: 258, def: 125, speed: 110 },
+    tint: { body: '#f0e8d8', helm: '#e8c060', weapon: '#7ae8d8', shield: '#e8c060', skin: '#8a5a3a' },
+    // 256px square frames: 9 across, except skill 3 at 14 and the death
+    // at 17. Four idles -- the base loop and three fidgets.
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:   { src: 'assets/heroes/Javarious/javariousidle.png', frames: 9, fps: 5, loop: true },
+        idle2:  { src: 'assets/heroes/Javarious/javariousidle1.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [8, 15] },
+        idle3:  { src: 'assets/heroes/Javarious/javariousidle2.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [8, 15] },
+        idle4:  { src: 'assets/heroes/Javarious/javariousidle3.png', frames: 9, fps: 6, loop: false,
+                  variantOf: 'idle', every: [8, 15] },
+        ready:  { src: 'assets/heroes/Javarious/javariousready.png', frames: 9, fps: 6, loop: true },
+        attack: { src: 'assets/heroes/Javarious/javariousskill1.png', frames: 9, fps: 12, loop: false,
+                  hitFrame: 7 },
+        skill2: { src: 'assets/heroes/Javarious/javariousskill2.png', frames: 9, fps: 9, loop: false,
+                  hitFrame: 4 },
+        skill3: { src: 'assets/heroes/Javarious/javariousskill3.png', frames: 14, fps: 12, loop: false,
+                  hitFrame: 12 },
+        death:  { src: 'assets/heroes/Javarious/javariousdeath.png', frames: 17, fps: 10, loop: false,
+                  freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'unbroken_cut', name: 'Unbroken Cut',
+        icon: 'assets/icons/fc1045.png',
+        description: 'A clean cut for 125% ATK. While Javarious is at full health, it lands for double.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.25, bonusWhen: { state: 'fullHp', mult: 2 } }],
+      },
+      {
+        id: 'dawn_reliquary', name: 'Dawn Reliquary',
+        icon: 'assets/icons/fc1043.png',
+        description: 'Plant the blade and take the light in: heal 20% ATK and raise a shield worth 30% ATK for 3 turns.',
+        cooldown: 3, targeting: 'self', animation: 'skill2',
+        effects: [
+          { type: 'heal', mult: 0.2 },
+          { type: 'shield', mult: 0.3, turns: 3 },
+        ],
+      },
+      {
+        id: 'daybreak_sweep', name: 'Daybreak Sweep',
+        icon: 'assets/icons/fc1048.png',
+        description: 'Sweep the whole enemy front rank for 110% ATK. While Javarious is at full health, it lands for double.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'skill3',
+        effects: [{ type: 'damage', mult: 1.1, bonusWhen: { state: 'fullHp', mult: 2 } }],
+      },
+    ],
+    passive: {
+      name: 'Light Kept In',
+      icon: 'assets/icons/fc1040.png',
+      description: 'At the start of his turn, Javarious mends 5% of whatever shield is still standing.',
+      hooks: {
+        onTurnStart(unit) {
+          const shield = unit.shieldTotal();
+          if (shield <= 0 || unit.hp >= unit.maxHp) return null;
+          const healed = unit.heal(Math.max(1, Math.round(shield * 0.05)), unit);
+          if (healed <= 0) return null;
+          return {
+            label: 'Light Kept In',
+            message: `${unit.name} draws ${healed} HP out of the light he is holding.`,
+            floats: [{ target: unit, text: `+${healed}`, color: '#7ae8d8' }],
+          };
+        },
+      },
+    },
+    // The shield is what keeps him at full health, and it is built out of
+    // his own damage -- so the hex that puts him in reach of the enemy is
+    // the hex that pays for staying untouched there.
+    positional: {
+      id: 'gathering_dawn',
+      position: POSITION.FRONT,
+      name: 'Gathering Dawn',
+      description: 'Front hex: every blow Javarious lands adds 10% of its damage to his shield.',
+      hooks: {
+        onDealtDamage(unit, { amount }) {
+          const gain = Math.round(amount * 0.10);
+          if (gain <= 0) return;
+          unit.addShield(gain, 3, unit);
+        },
+      },
+    },
+  },
+
 });
