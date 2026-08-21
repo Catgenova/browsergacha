@@ -7,7 +7,7 @@ const path = require('path');
 const { loadGame, test, assert, report, ROOT, FILES } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION, Quests,
-  ACHIEVEMENTS, GameState } = g;
+  ACHIEVEMENTS, GameState, ELEMENTS } = g;
 
 const heroes = Object.values(HEROES);
 const passivesOf = (d) => d.passives || (d.passive ? [d.passive] : []);
@@ -499,6 +499,103 @@ test('the campaign difficulty tiers climb the way they are advertised', () => {
   const a = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
   const b2 = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
   assert(a === b2, 'enemy gear is not stable between reads');
+});
+
+test('attunement costs and drops follow the ladder they advertise', () => {
+  const { Attune, ELEMENTAL_BOSSES, ELEMENTS } = g;
+
+  // The costs the design names, and a sane fill for the steps between.
+  const named = { 1: ['small', 5], 3: ['small', 15], 4: ['medium', 5],
+    6: ['medium', 15], 7: ['large', 5], 10: ['large', 20] };
+  for (const [step, [size, n]] of Object.entries(named)) {
+    const c = Attune.COST[step];
+    assert(c && c.size === size && c.n === n,
+      `attunement ${step} should cost ${n} ${size}, got ${JSON.stringify(c)}`);
+  }
+  for (let i = 1; i <= Attune.MAX; i++) {
+    assert(Attune.COST[i], `attunement ${i} has no cost`);
+  }
+  assert(!Attune.costFor(Attune.MAX), 'there is an 11th attunement');
+  assert(Math.abs(Attune.statMult(Attune.MAX) - 2) < 1e-9,
+    `full attunement should double base stats, got ${Attune.statMult(Attune.MAX)}`);
+  assert(Math.abs(Attune.statMult(1) - 1.1) < 1e-9, 'one step should be +10%');
+
+  // Bands: small through 8, medium through 15, large to the top, and the
+  // upgrade chance climbs inside each band rather than sitting flat.
+  for (const [stage, size] of [[1, 'small'], [8, 'small'], [9, 'medium'],
+    [15, 'medium'], [16, 'large'], [20, 'large']]) {
+    assert(Attune.bandFor(stage).base === size,
+      `stage ${stage} should pay ${size}, pays ${Attune.bandFor(stage).base}`);
+  }
+  assert(Attune.upgradeChance(8) > Attune.upgradeChance(1),
+    'the medium chance does not grow across floors 1-8');
+  assert(Attune.upgradeChance(15) > Attune.upgradeChance(9),
+    'the large chance does not grow across floors 9-15');
+  assert(Attune.upgradeChance(20) === 0, 'the top band upgrades into nothing');
+  assert(Attune.quantityFor(20) > Attune.quantityFor(16),
+    'the top band does not pay more the higher you climb');
+
+  // A roll only ever pays its own band's size or one step up.
+  for (const stage of [1, 8, 9, 15, 16, 20]) {
+    const band = Attune.bandFor(stage);
+    for (let i = 0; i < 40; i++) {
+      const r = Attune.roll(stage);
+      const total = r.small + r.medium + r.large;
+      assert(total === Attune.quantityFor(stage),
+        `stage ${stage} paid ${total} of an expected ${Attune.quantityFor(stage)}`);
+      for (const size of Attune.SIZES) {
+        if (size === band.base || size === band.up) continue;
+        assert(r[size] === 0, `stage ${stage} paid ${size}, outside its band`);
+      }
+    }
+  }
+
+  // One boss per element, each with a full kit.
+  const elements = Object.keys(ELEMENTS);
+  const covered = Object.values(ELEMENTAL_BOSSES).map((b) => b.element);
+  for (const el of elements) {
+    assert(covered.includes(el), `no elemental boss for ${el}`);
+  }
+  for (const b of Object.values(ELEMENTAL_BOSSES)) {
+    assert(b.isBoss && b.isElemental, `${b.id} is not flagged as an elemental boss`);
+    assert((b.abilities || []).length === 3, `${b.id} has ${(b.abilities || []).length} abilities`);
+    assert((b.passives || []).length === 3, `${b.id} has ${(b.passives || []).length} passives`);
+    assert(b.stats5 && b.stats100, `${b.id} has no stage anchors`);
+    assert(b.stats100.hp > b.stats5.hp, `${b.id} does not grow with stages`);
+  }
+});
+
+test('a hero attunes only in its own element, up to its stars', () => {
+  const { GameState, Attune, HEROES, Elements } = g;
+  const fire = Object.values(HEROES).find((h) => h.element === 'fire' && (h.rarity || 1) === 3);
+  assert(fire, 'no 3-star fire hero to test with');
+  const uid = GameState.addHero(fire.id).uid;
+
+  assert(GameState.attunementOf(uid) === 0, 'a new hero starts attuned');
+  assert(GameState.attune(uid) === null, 'attuned with an empty purse');
+
+  // The purse is per element: water does not buy a fire attunement.
+  GameState.addElements('water', { small: 999 });
+  assert(GameState.attune(uid) === null, 'the wrong element paid for an attunement');
+
+  GameState.addElements('fire', { small: 999, medium: 999, large: 999 });
+  const stars = GameState.progressOf(uid).stars;
+  for (let i = 1; i <= stars; i++) {
+    const r = GameState.attune(uid);
+    assert(r && r.to === i, `attunement ${i} failed: ${JSON.stringify(r)}`);
+  }
+  // Capped by the star rating, not by the purse.
+  assert(GameState.attunementOf(uid) === stars, 'attunement passed the star cap');
+  assert(GameState.nextAttunement(uid) === null, 'a capped hero was offered more');
+  assert(GameState.attune(uid) === null, 'a capped hero attuned anyway');
+
+  // And it actually moves the statline the battle builds.
+  const plain = new g.Unit(fire, g.TEAM.PLAYER, { level: 20, stars, attune: 0 });
+  const tuned = new g.Unit(fire, g.TEAM.PLAYER, { level: 20, stars, attune: stars });
+  const want = Attune.statMult(stars);
+  assert(Math.abs(tuned.baseAtk / plain.baseAtk - want) < 0.02,
+    `expected ${want}x ATK, got ${(tuned.baseAtk / plain.baseAtk).toFixed(3)}`);
+  assert(tuned.speed === plain.speed, 'attunement moved speed');
 });
 
 test('every quest and achievement reward can be shown and paid', () => {

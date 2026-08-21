@@ -222,6 +222,11 @@ const GameState = (() => {
     // those two gates and never counts as campaign progress.
     campaign: { cleared: {}, granted: { hunt: {}, boss: {} }, chapter: 'ch1' },
     starters: {},                        // starter heroes already granted
+    // element -> { small, medium, large }: attunement materials, one
+    // purse per element (see js/attune.js).
+    elements: {},
+    attuneStages: {},                    // element -> highest stage cleared
+    attuneSettings: { boss: 'fire', stage: 1, repeat: 1 },
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -243,6 +248,7 @@ const GameState = (() => {
       heroId,
       level: 1, xp: 0,
       stars: def ? def.rarity : 1,
+      attune: 0,     // elemental attunements, capped by the star rating
       equipment: {}, // slot -> gear uid
       skills: {},    // ability index -> skill level (absent = 1)
       favorite: false, // pinned to the top of the roster
@@ -338,6 +344,16 @@ const GameState = (() => {
       if (!entry.equipment) entry.equipment = {};
       if (!entry.skills) entry.skills = {};
       if (entry.favorite === undefined) entry.favorite = false;
+      if (entry.attune === undefined) entry.attune = 0;
+    }
+    if (!loaded.elements) loaded.elements = {};
+    if (!loaded.attuneStages) loaded.attuneStages = {};
+    if (!loaded.attuneSettings) {
+      loaded.attuneSettings = { boss: 'fire', stage: 1, repeat: 1 };
+    }
+    if (!loaded.attuneSettings.boss) loaded.attuneSettings.boss = 'fire';
+    for (const entry of Object.values(loaded.roster || {})) {
+      if (entry && entry.attune === undefined) entry.attune = 0;
     }
     if (!loaded.gear) loaded.gear = {};
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
@@ -481,7 +497,7 @@ const GameState = (() => {
       const e = state.roster[uid];
       return e
         ? { heroId: e.heroId, level: e.level, xp: e.xp, stars: e.stars,
-            skills: { ...(e.skills || {}) } }
+            attune: e.attune || 0, skills: { ...(e.skills || {}) } }
         : null;
     },
 
@@ -610,6 +626,58 @@ const GameState = (() => {
       }
       save();
       return report;
+    },
+
+    // ---- Attunement ----
+    // One purse per element, filled by that element's boss.
+    elementsOf(el) {
+      const p = state.elements[el] || {};
+      return { small: p.small || 0, medium: p.medium || 0, large: p.large || 0 };
+    },
+    addElements(el, drops) {
+      const p = (state.elements[el] ||= { small: 0, medium: 0, large: 0 });
+      for (const size of Attune.SIZES) p[size] = (p[size] || 0) + (drops[size] || 0);
+      save();
+    },
+    attuneStageCleared(el) { return state.attuneStages[el] || 0; },
+    recordAttuneClear(el, stage) {
+      state.attuneStages[el] = Math.max(state.attuneStages[el] || 0, stage);
+      save();
+    },
+    get attuneSettings() { return { ...state.attuneSettings }; },
+    setAttuneSettings(patch) {
+      Object.assign(state.attuneSettings, patch);
+      save();
+    },
+
+    attunementOf(uid) {
+      const e = state.roster[uid];
+      return e ? (e.attune || 0) : 0;
+    },
+    // What stands between this hero and one more attunement, or null when
+    // it is already as attuned as its stars allow.
+    nextAttunement(uid) {
+      const e = state.roster[uid];
+      const def = this.defOf(uid);
+      if (!e || !def) return null;
+      const have = e.attune || 0;
+      // Capped by the star rating: attunement is the second axis, and a
+      // hero has to earn the room for it by starring up first.
+      if (have >= Math.min(Attune.MAX, e.stars)) return null;
+      const cost = Attune.costFor(have);
+      if (!cost) return null;
+      const purse = this.elementsOf(def.element);
+      return { ...cost, element: def.element, have,
+        held: purse[cost.size], can: purse[cost.size] >= cost.n };
+    },
+    attune(uid) {
+      const next = this.nextAttunement(uid);
+      if (!next || !next.can) return null;
+      state.elements[next.element][next.size] -= next.n;
+      state.roster[uid].attune = next.have + 1;
+      this.questBumpQuiet('attunements');
+      save();
+      return { to: next.have + 1, element: next.element, spent: next };
     },
 
     // ---- Team ----

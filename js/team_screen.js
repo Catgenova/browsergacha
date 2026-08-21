@@ -117,6 +117,38 @@ class TeamScreen {
       repeat: this.bossRepeatSel.value === 'inf' ? 'inf' : Number(this.bossRepeatSel.value),
     });
     this.bossSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
+
+    // Elemental boss picker: the same shape as the gear bosses, one per
+    // element, paying the Elements that attune a hero of that element.
+    this.attuneBtn = document.getElementById('attune-btn');
+    this.attuneSel = document.getElementById('attune-select');
+    this.attuneStageSel = document.getElementById('attune-stage-select');
+    this.attuneRepeatSel = document.getElementById('attune-repeat-select');
+    if (this.attuneSel) {
+      this.attuneSel.innerHTML = Object.values(ELEMENTAL_BOSSES).map((b) => {
+        const info = Elements.info(b.element);
+        return `<option value="${b.attuneId}">${info ? info.emoji : ''} ${b.name}</option>`;
+      }).join('');
+      if (!(GameState.attuneSettings.boss in ELEMENTAL_BOSSES)) {
+        GameState.setAttuneSettings({ boss: 'fire' });
+      }
+      this.attuneSel.value = GameState.attuneSettings.boss;
+      this.attuneRepeatSel.value = String(GameState.attuneSettings.repeat);
+      const saveAttune = () => GameState.setAttuneSettings({
+        boss: this.attuneSel.value,
+        stage: Number(this.attuneStageSel.value) || 1,
+        repeat: this.attuneRepeatSel.value === 'inf' ? 'inf'
+          : Number(this.attuneRepeatSel.value),
+      });
+      this.attuneSel.addEventListener('change', () => { saveAttune(); this.updateButtons(); });
+      this.attuneStageSel.addEventListener('change', () => { saveAttune(); this.updateButtons(); });
+      this.attuneRepeatSel.addEventListener('change', saveAttune);
+      this.attuneBtn.addEventListener('click', () => {
+        saveAttune();
+        this.app.screens.battle.requestBattle('attune');
+        this.app.showScreen('battle');
+      });
+    }
     this.bossStageSel.addEventListener('change', () => { saveBoss(); this.updateButtons(); });
     this.bossRepeatSel.addEventListener('change', saveBoss);
     this.bossBtn.addEventListener('click', () => {
@@ -354,6 +386,30 @@ class TeamScreen {
     const uncleared = saved > cleared;
     this.bossRepeatSel.disabled = uncleared;
     this.bossRepeatSel.value = uncleared ? '1' : String(GameState.bossSettings.repeat);
+    this.buildAttuneStages();
+  }
+
+  // Attune stage picker: cleared stages repeatable, the next one open,
+  // everything past it locked -- and each option says what it pays, since
+  // the whole reason to pick a stage is the size of Element it drops.
+  buildAttuneStages() {
+    if (!this.attuneStageSel) return;
+    const key = this.attuneSel.value in ELEMENTAL_BOSSES ? this.attuneSel.value : 'fire';
+    const cleared = GameState.attuneStageCleared(key);
+    const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+    const saved = Math.min(GameState.attuneSettings.stage || 1, maxPick);
+    this.attuneStageSel.innerHTML = Array.from(
+      { length: Progression.BOSS_MAX_STAGE }, (_, i) => {
+        const st = i + 1;
+        const mark = st <= cleared ? ' ✓' : st === maxPick ? '' : ' 🔒';
+        return `<option value="${st}" ${st > maxPick ? 'disabled' : ''}>` +
+          `Stage ${st} (Lv ${Progression.bossLevel(st)}) — ${Attune.payoutText(st)}${mark}</option>`;
+      }).join('');
+    this.attuneStageSel.value = String(saved);
+    const uncleared = saved > cleared;
+    this.attuneRepeatSel.disabled = uncleared;
+    this.attuneRepeatSel.value = uncleared ? '1'
+      : String(GameState.attuneSettings.repeat);
   }
 
   // ---- Roster panel ------------------------------------------------------
@@ -510,8 +566,9 @@ class TeamScreen {
     fav.setAttribute('aria-pressed', favorited ? 'true' : 'false');
     card.classList.toggle('selected',
       !!this.selection && this.selection.heroId === heroId);
-    stars.textContent = progress.stars <= 5
-      ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+    // Attuned stars burn in their element's colour, so the card says how
+    // far a hero has come on both axes at a glance.
+    stars.innerHTML = Attune.starsHtml(progress.stars, progress.attune, def.element);
     const capped = progress.level >= Progression.maxLevel(progress.stars);
     level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
     level.classList.toggle('card-level-max', capped);
@@ -722,7 +779,7 @@ class TeamScreen {
     const atCap = progress.level >= cap;
     const xpNeed = atCap ? 0 : Progression.xpToNext(progress.level);
     const xpPct = atCap ? 100 : Math.min(100, Math.round((progress.xp / xpNeed) * 100));
-    const starsText = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+    const starsText = Attune.starsHtml(progress.stars, progress.attune, def.element);
 
     // Gear: one row per slot with an equip picker, plus a focused-piece
     // panel (level/polish + enchant) and set bonuses. A hero currently

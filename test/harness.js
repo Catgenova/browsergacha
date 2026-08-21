@@ -18,12 +18,12 @@ const FILES = [
   // tier list while it is being defined), so a harness that loads the
   // files in a different order tests an order the browser never runs.
   'js/meter.js', 'js/config.js', 'js/hex.js', 'js/elements.js', 'js/races.js',
-  'js/abilities.js', 'js/progression.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
+  'js/abilities.js', 'js/progression.js', 'js/attune.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
   'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/rats.js',
   'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',
   'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
   'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/enemies.js',
-  'js/data/campaign.js', 'js/data/bosses.js', 'js/quests.js', 'js/state.js',
+  'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
 
@@ -77,7 +77,8 @@ function loadGame(opts = {}) {
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES',
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState',
-    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha'];
+    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
+    'Attune', 'ELEMENTAL_BOSSES', 'ELEMENTS', 'Unit'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,

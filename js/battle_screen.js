@@ -19,6 +19,9 @@ class BattleScreen {
       } else if (this.towerFight) {
         this.requestBattle('tower');
         this.enter();
+      } else if (this.attuneFight) {
+        this.requestBattle('attune');
+        this.enter();
       } else {
         this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
       }
@@ -39,6 +42,10 @@ class BattleScreen {
         app.showScreen('campaign');
       } else if (this.towerFight) {
         this.requestBattle('tower'); // always climbs best + 1
+        this.enter();
+      } else if (this.attuneFight) {
+        GameState.setAttuneSettings({ stage: this.attuneFight.stage + 1 });
+        this.requestBattle('attune');
         this.enter();
       } else {
         this.launchBossStage((this.bossFight ? this.bossFight.stage : 0) + 1);
@@ -208,7 +215,9 @@ class BattleScreen {
         const ch = node && Campaign.chapterFor(node.id);
         return ch ? `${ch.title} — ${node.name}` : 'Campaign';
       })()
-      : this.bossFight
+      : this.attuneFight
+        ? `${ELEMENTAL_BOSSES[this.attuneFight.element].name}, stage ${this.attuneFight.stage}`
+        : this.bossFight
         ? `${BOSSES[this.bossFight.bossId].name}, stage ${this.bossFight.stage}`
         : this.towerFight
           ? `Endless Tower, floor ${this.towerFight.floor}`
@@ -291,6 +300,13 @@ class BattleScreen {
       const cleared = GameState.bossStageCleared(bossDef.id);
       if (bs.stage <= cleared) {
         const r = bs.repeat;
+        this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+      }
+    } else if (mode === 'attune') {
+      const as = GameState.attuneSettings;
+      const cleared = GameState.attuneStageCleared(as.boss);
+      if (as.stage <= cleared) {
+        const r = as.repeat;
         this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
       }
     } else if (mode === 'tower') {
@@ -468,6 +484,7 @@ class BattleScreen {
       const tier = Campaign.tier(tierId);
       this.bossFight = null;
       this.towerFight = null;
+      this.attuneFight = null;
       this.campaignFight = { nodeId: campNode.id, tier: tierId };
       const level = Campaign.levelFor(campNode, tierId);
       const pay = Campaign.payout(campNode, tierId);
@@ -503,6 +520,7 @@ class BattleScreen {
       // The player picks a boss and any unlocked stage (clearing one
       // unlocks the next). Stage N = boss level 5*N.
       this.campaignFight = null;
+      this.attuneFight = null;
       const def = BOSSES[GameState.bossSettings.boss] || BOSSES.dragon;
       const cleared = GameState.bossStageCleared(def.id);
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
@@ -516,12 +534,32 @@ class BattleScreen {
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
       bgPin = def.background || null; // boss arenas pin their own backdrop
       this.introLog = `Stage ${stage}: the ${def.name} descends! (Lv ${level})`;
+    } else if (mode === 'attune') {
+      // Elemental boss: the same shape as a gear boss, paying the
+      // Elements that attune a hero of its own element.
+      this.campaignFight = null;
+      this.bossFight = null;
+      this.towerFight = null;
+      const as = GameState.attuneSettings;
+      const def = ELEMENTAL_BOSSES[as.boss] || ELEMENTAL_BOSSES.fire;
+      const cleared = GameState.attuneStageCleared(def.attuneId);
+      const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      const stage = Math.min(Math.max(1, as.stage), maxPick);
+      const level = Progression.bossLevel(stage);
+      this.attuneFight = { element: def.attuneId, stage };
+      this.rewardXp = Progression.enemyXp(level) * 6;
+      this.rewardWhetstones = 10 + level * 2;
+      this.rewardArcana = 3 + Math.ceil(stage / 2);
+      battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+      bgPin = def.background || null;
+      this.introLog = `Stage ${stage}: the ${def.name} rises! (Lv ${level})`;
     } else if (mode === 'tower') {
       // Endless Tower: always fight the floor above your best. Enemy
       // levels climb ~1.5 per floor forever; every 10th floor a random
       // boss guards the way (extrapolating past its Lv 100 anchors).
       this.bossFight = null;
       this.campaignFight = null;
+      this.attuneFight = null;
       const floor = GameState.towerBest + 1;
       const level = Math.max(2, Math.ceil(floor * 1.5));
       const isBossFloor = floor % 10 === 0;
@@ -564,6 +602,7 @@ class BattleScreen {
       // deployed team.
       this.bossFight = null;
       this.towerFight = null;
+      this.attuneFight = null;
       this.campaignFight = null;
       const ws = GameState.waveSettings;
       bgPin = ws.location;
@@ -732,6 +771,18 @@ class BattleScreen {
           }
           GameState.questBump(node.type === 'boss' ? 'bossWins' : 'huntWins');
           GameState.questBump('campaignWins');
+        }
+        if (this.attuneFight) {
+          const { element, stage } = this.attuneFight;
+          GameState.recordAttuneClear(element, stage);
+          const drops = Attune.roll(stage);
+          GameState.addElements(element, drops);
+          const info = Elements.info(element);
+          const bits = Attune.SIZES
+            .filter((size) => drops[size] > 0)
+            .map((size) => `${drops[size]} ${Attune.SIZE_LABEL[size]}`);
+          sub.unshift(`Stage ${stage} cleared!`);
+          sub.push(`${info ? info.emoji : ''} ${bits.join(' · ')} ${info ? info.name : element} Elements!`);
         }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);
