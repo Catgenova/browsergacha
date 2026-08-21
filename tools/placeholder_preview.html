@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{background:#1b1720;color:#eee;font:11px sans-serif;margin:8px}
+.c{display:inline-block;text-align:center;margin:4px;vertical-align:top}
+canvas{image-rendering:pixelated;background:#2a2434}
+</style></head><body>
+<p style="color:#9a92a8">Contact sheet for the generated placeholder characters
+(js/placeholder_art.js). Serve the repo root and open this page:
+<code>?ids=rat_archer,bear_cub</code> picks heroes (default: the first 60),
+<code>?s=6</code> sets the zoom, <code>?atk=1</code> adds the attack row.</p>
+<div id="out"></div>
+<script src="../js/config.js"></script>
+<script src="../js/hex.js"></script>
+<script src="../js/elements.js"></script>
+<script src="../js/races.js"></script>
+<script src="../js/placeholder_art.js"></script>
+<script src="../js/abilities.js"></script>
+<script src="../js/data/positionals.js"></script>
+<script src="../js/data/heroes.js"></script>
+<script src="../js/data/heroes/rats.js"></script>
+<script src="../js/data/heroes/avians.js"></script>
+<script src="../js/data/heroes/minotaurs.js"></script>
+<script src="../js/data/heroes/snakes.js"></script>
+<script src="../js/data/heroes/wolfs.js"></script>
+<script src="../js/data/heroes/boars.js"></script>
+<script src="../js/data/heroes/bears.js"></script>
+<script src="../js/data/heroes/cats.js"></script>
+<script src="../js/data/heroes/drakes.js"></script>
+<script src="../js/data/heroes/humans.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const ids = (params.get('ids')||'').split(',').filter(Boolean);
+const list = ids.length ? ids : Object.keys(HEROES).slice(0, 60);
+const out = document.getElementById('out');
+for (const id of list) {
+  const def = HEROES[id]; if (!def) continue;
+  const art = PlaceholderArt.sheetCanvas(def);
+  const d = document.createElement('div'); d.className='c';
+  const c = document.createElement('canvas');
+  const S = +(params.get('s')||4);
+  const rows = params.get('atk') ? 2 : 1;
+  const cols = params.get('atk') ? art.attack : 1;
+  c.width = art.frameW*S*cols; c.height = art.frameH*S*rows;
+  const cx = c.getContext('2d'); cx.imageSmoothingEnabled=false;
+  for (let r=0;r<rows;r++) for (let i=0;i<cols;i++)
+    cx.drawImage(art.canvas, i*art.frameW, r*art.frameH, art.frameW, art.frameH,
+      i*art.frameW*S, r*art.frameH*S, art.frameW*S, art.frameH*S);
+  d.appendChild(c);
+  const l = document.createElement('div'); l.textContent = def.name;
+  d.appendChild(l);
+  out.appendChild(d);
+}
+document.title = 'ready';
+</script></body></html>
