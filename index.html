@@ -16,6 +16,7 @@
         <button class="nav-tab" data-screen="team">Team</button>
         <button class="nav-tab" data-screen="improve">Improve</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
+        <button class="nav-tab" data-screen="shop">Shop</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="campaign">Campaign<span id="campaign-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="compendium">Compendium</button>
@@ -42,13 +43,6 @@
           <button id="summon-rare-ten" class="panel-btn gold">Rare ×10 (10 ✨)</button>
           <button id="summon-temporal-one" class="panel-btn danger">Temporal ×1 (1 🌀)</button>
           <button id="summon-temporal-ten" class="panel-btn danger">Temporal ×10 (10 🌀)</button>
-        </div>
-        <div id="summon-exchange">
-          <span id="exchange-balance"></span>
-          <button id="buy-rare-pack" class="panel-btn gold"
-            title="Trade Diamonds for ten Rare Summon Scrolls">10 ✨ for 1,000 💎</button>
-          <button id="buy-temporal" class="panel-btn danger"
-            title="Trade Diamonds for one Temporal Summon Scroll">1 🌀 for 500 💎</button>
         </div>
         <div id="summon-error"></div>
       </div>
@@ -80,16 +74,14 @@
       <div id="roster-section">
         <div id="roster-header">
           <h3>Your Heroes <span id="roster-cap"
-            title="Roster capacity — summons stop at the cap; sacrifice heroes in Improve or use storage to make room"></span>
-            <button id="roster-expand" class="panel-btn cap-expand"></button></h3>
+            title="Roster capacity — expand it in the Shop; summons stop at the cap"></span></h3>
           <input id="roster-search" type="search" placeholder="Search name or element…">
           <label id="hide-maxed-label" title="Hide heroes already at their level cap">
             <input id="hide-maxed" type="checkbox"> Hide maxed
           </label>
           <button id="roster-report-btn" class="panel-btn" title="Who is worth investing in?">📊 Report</button>
           <button id="storage-btn" class="panel-btn"
-            title="The vault beside the roster. Depositing removes their gear; stored heroes are out of play until withdrawn."></button>
-          <button id="storage-expand" class="panel-btn cap-expand"></button>
+            title="The vault beside the roster. Depositing removes their gear; stored heroes are out of play until withdrawn. Expand it in the Shop."></button>
           <select id="roster-sort" title="Sort the roster">
             <option value="power">Sort: Power</option>
             <option value="level">Sort: Level</option>
@@ -196,6 +188,12 @@
         <div id="comp-list"></div>
         <article id="comp-detail"></article>
       </div>
+    </section>
+
+    <!-- ================= Shop screen ================= -->
+    <section id="screen-shop" class="screen hidden">
+      <div id="shop-top"><h2>Diamond Shop</h2></div>
+      <div id="shop-body"></div>
     </section>
 
     <!-- ================= Battle screen ================= -->
@@ -339,6 +337,7 @@
   <script src="js/improve_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
   <script src="js/quests_screen.js?v=__BUILD__"></script>
+  <script src="js/shop_screen.js?v=__BUILD__"></script>
   <script src="js/summon_screen.js?v=__BUILD__"></script>
   <script src="js/onboarding.js?v=__BUILD__"></script>
   <script src="js/main.js?v=__BUILD__"></script>

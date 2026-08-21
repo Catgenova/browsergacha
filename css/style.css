@@ -2634,16 +2634,40 @@ html.is-mobile .sub-compare { font-size: 13px; }
 /* Auto star up: a spender, so the armed (confirm) state looks like one. */
 #imp-auto { white-space: nowrap; font-size: 12px; }
 #storage-btn { white-space: nowrap; }
-.cap-expand { font-size: 10px; padding: 3px 8px; white-space: nowrap; }
-#summon-exchange {
+/* ==== Shop screen ==== */
+#shop-top h2 { margin-bottom: 6px; }
+#shop-body { max-width: 640px; }
+#shop-balance {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #e8e4d8;
+}
+#shop-balance b { color: #8ecbff; }
+.shop-hint { font-size: 11px; color: #9a92b8; }
+#shop-msg { margin-bottom: 10px; color: #8ae8a8; font-size: 12.5px; }
+.shop-section {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #9a92b8;
+}
+.shop-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 8px;
-  font-size: 13px;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #1c1926;
+  border: 1px solid #34304a;
+  border-radius: 8px;
+  margin-bottom: 6px;
 }
-#exchange-balance { color: #8ecbff; }
+.shop-icon { font-size: 22px; }
+.shop-text { flex: 1; min-width: 0; }
+.shop-name { font-weight: bold; color: #e8e4d8; font-size: 13px; }
+.shop-detail { font-size: 11px; color: #9a92b8; margin-top: 2px; }
+.shop-note { font-size: 10.5px; color: #ff9a8a; }
+.shop-row .panel-btn { white-space: nowrap; }
 #storage-btn.storage-open { border-color: #8ecbff; color: #8ecbff; }
 .imp-tag-dim { opacity: 0.5; }
 .imp-team-tag {

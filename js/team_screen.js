@@ -42,21 +42,6 @@ class TeamScreen {
         this.buildRoster();
       });
     }
-    // Diamond expansions: ten more roster or vault slots per purchase.
-    const expand = (btn, fn, what) => {
-      if (!btn) return;
-      btn.addEventListener('click', () => {
-        const cap = fn();
-        this.rosterMsg = cap
-          ? `${what} expanded to ${cap}.`
-          : 'Not enough Diamonds (or already at the ceiling).';
-        this.buildRoster();
-      });
-    };
-    expand(document.getElementById('roster-expand'),
-      () => GameState.expandRoster(), 'Roster');
-    expand(document.getElementById('storage-expand'),
-      () => GameState.expandStorage(), 'Storage');
     this.reportEl = document.getElementById('roster-report');
     const reportBtn = document.getElementById('roster-report-btn');
     if (reportBtn) {
@@ -283,24 +268,6 @@ class TeamScreen {
         ? '← Back to roster'
         : `🏛 Storage ${GameState.storageCount()} / ${GameState.MAX_STORAGE}`;
       this.storageBtn.classList.toggle('storage-open', this.storageView);
-    }
-    const rExp = document.getElementById('roster-expand');
-    if (rExp) {
-      const capped = GameState.MAX_ROSTER >= GameState.ROSTER_CAP_MAX;
-      rExp.textContent = capped ? 'Max' : `+${GameState.CAP_STEP} (${GameState.ROSTER_STEP_COST} 💎)`;
-      rExp.disabled = capped || GameState.diamonds < GameState.ROSTER_STEP_COST;
-      rExp.title = capped
-        ? `The roster tops out at ${GameState.ROSTER_CAP_MAX} heroes.`
-        : `Buy ${GameState.CAP_STEP} more roster slots for ${GameState.ROSTER_STEP_COST} Diamonds (cap ${GameState.ROSTER_CAP_MAX}).`;
-    }
-    const sExp = document.getElementById('storage-expand');
-    if (sExp) {
-      const capped = GameState.MAX_STORAGE >= GameState.STORAGE_CAP_MAX;
-      sExp.textContent = capped ? 'Max' : `+${GameState.CAP_STEP} (${GameState.STORAGE_STEP_COST} 💎)`;
-      sExp.disabled = capped || GameState.diamonds < GameState.STORAGE_STEP_COST;
-      sExp.title = capped
-        ? `The vault tops out at ${GameState.STORAGE_CAP_MAX} heroes.`
-        : `Buy ${GameState.CAP_STEP} more vault slots for ${GameState.STORAGE_STEP_COST} Diamonds (cap ${GameState.STORAGE_CAP_MAX}).`;
     }
     if (this.storageView) { this.buildStorage(); return; }
     const team = GameState.getTeam();
