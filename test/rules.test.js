@@ -526,14 +526,20 @@ test('team presets round-trip and survive a hero going missing', () => {
   GameState.savePreset('Hunt');
   assert(GameState.presets().length === n, 'a second entry appeared for one name');
 
-  // A preset naming a hero the player no longer owns places the rest
-  // rather than a slot pointing at nothing.
-  const saved = JSON.parse(localStorage.getItem('browsergacha_save_v1'));
-  saved.presets.find((p) => p.name === 'Hunt').team['5'] = 'a_hero_that_is_gone';
-  localStorage.setItem('browsergacha_save_v1', JSON.stringify(saved));
-  // loadPreset reads live state, so poke the same hole there.
-  const live = GameState.presets().find((p) => p.name === 'Hunt');
-  assert(live, 'the preset vanished');
+  // A preset naming a hero the player does not own places the rest
+  // rather than a slot pointing at nothing. setTeamSlot does not check
+  // ownership, so a snapshot taken with a bogus id is the same shape as
+  // a save whose hero was removed from the roster later.
+  GameState.setTeamSlot(5, 'a_hero_that_is_gone');
+  GameState.savePreset('Ghost');
+  GameState.clearTeam();
+  const ghost = GameState.loadPreset('Ghost');
+  assert(ghost.missing === 1,
+    `expected 1 missing hero, got ${JSON.stringify(ghost)}`);
+  assert(ghost.placed === ids.length, `placed ${ghost.placed} of ${ids.length}`);
+  assert(!Object.values(GameState.getTeam()).includes('a_hero_that_is_gone'),
+    'the missing hero was placed anyway');
+  GameState.deletePreset('Ghost');
 
   assert(GameState.loadPreset('nope') === null, 'an unknown preset loaded something');
   assert(GameState.deletePreset('Hunt') === true, 'delete failed');
