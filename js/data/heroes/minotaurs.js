@@ -1042,10 +1042,10 @@ Object.assign(HEROES, {
       {
         id: 'inscribe_ward', name: 'Inscribe Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Cut a ward into an ally\'s hide: heals 50% of ATK and they take 15% less damage for 2 turns.',
+        description: 'Cut a ward into an ally\'s hide: heals 101.4% of ATK and they take 15% less damage for 2 turns.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.5 },
+          { type: 'heal', mult: 1.014 },
           { type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 2 },
         ],
       },
@@ -1894,11 +1894,11 @@ Object.assign(HEROES, {
       {
         id: 'minotaur_aegishorn_ward', name: 'Aegishorn\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 6% less damage for 2 turns and heal 66% of ATK.',
+        description: 'Raise the aegis over an ally: they take 6% less damage for 2 turns and heal 198% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.93, turns: 2 },
-          { type: 'heal', mult: 0.66 },
+          { type: 'heal', mult: 1.98 },
         ],
       },
       {

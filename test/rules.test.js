@@ -171,6 +171,51 @@ test('the damage meter credits the right side and separates its scopes', () => {
   assert(Meter.rows('damage', 'session').total === sessionTotal, 'session scope was cleared');
 });
 
+test('a ward credits its mitigation to the support who cast it', () => {
+  const battle = makeBattle();
+  // A protector whose kit reduces an ally's damageTaken.
+  const wardDef = Object.values(HEROES).find((h) => h.abilities.some((a) =>
+    (a.effects || []).some((e) => e.type === 'buff' && e.stat === 'damageTaken')));
+  assert(wardDef, 'no damageTaken ward anywhere in the roster');
+  const ward = place(battle, wardDef, TEAM.PLAYER, 4);
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const foe = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  const wardAb = wardDef.abilities.find((a) =>
+    (a.effects || []).some((e) => e.type === 'buff' && e.stat === 'damageTaken'));
+
+  // Unwarded first: everything prevented belongs to the target.
+  Meter.resetSession();
+  mate.hookSources = () => [];      // silence the ally's own guards
+  mate.statusEffects = [];
+  Abilities.execute(foe.abilities[0].def, foe, mate, battle);
+  const solo = Meter.rows('mitigated', 'battle');
+  assert(!solo.list.some((r) => r.id === wardDef.id),
+    'the ward was credited before it was even cast');
+
+  // Warded: the support takes a share of what it prevented.
+  Meter.resetSession();
+  mate.hp = mate.maxHp;
+  Abilities.execute(wardAb, ward, mate, battle);
+  const shielded = mate.statusEffects.some((fx) =>
+    fx.stat === 'damageTaken' && fx.source === ward);
+  assert(shielded, 'the ward did not land, or carries no source');
+  for (let i = 0; i < 6; i++) {
+    Abilities.execute(foe.abilities[0].def, foe, mate, battle);
+  }
+  const rows = Meter.rows('mitigated', 'battle');
+  const wardRow = rows.list.find((r) => r.id === wardDef.id);
+  assert(wardRow && wardRow.value > 0,
+    `the ward earned no mitigation: ${JSON.stringify(rows.list)}`);
+
+  // And a ward a hero puts on itself stays its own.
+  Meter.resetSession();
+  ward.statusEffects = [];
+  ward.addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.5, turns: 9, source: ward });
+  const own = ward.damageTakenBreakdown();
+  assert(own.contributors.length === 0,
+    'a self-cast ward should not be credited as somebody else\'s work');
+});
+
 test('healing is credited to the healer, once, however it lands', () => {
   const battle = makeBattle();
   // A cleric with a direct heal and a regen (hot) on its kit.

@@ -405,10 +405,10 @@ Object.assign(HEROES, {
       {
         id: 'long_nap', name: 'Long Nap',
         icon: 'assets/icons/fc1112.png',
-        description: 'Doze off mid-battle: recovers 30% max HP and +15% DEF for 1 turn.',
+        description: 'Doze off mid-battle: recovers 59.2% max HP and +15% DEF for 1 turn.',
         cooldown: 6, targeting: 'self', animation: 'attack',
         effects: [
-          { type: 'healHpPct', pct: 0.30 },
+          { type: 'healHpPct', pct: 0.592 },
           { type: 'buff', stat: 'def', mult: 1.15, turns: 1 },
         ],
       },
@@ -1885,11 +1885,11 @@ Object.assign(HEROES, {
       {
         id: 'boar_aegisback_ward', name: 'Aegisback\'s Ward',
         icon: 'assets/icons/fc855.png',
-        description: 'Raise the aegis over an ally: they take 14% less damage for 2 turns and heal 96% of ATK.',
+        description: 'Raise the aegis over an ally: they take 14% less damage for 2 turns and heal 184.6% of ATK.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'damageTaken', mult: 0.86, turns: 2 },
-          { type: 'heal', mult: 0.96 },
+          { type: 'heal', mult: 1.846 },
         ],
       },
       {
@@ -2374,20 +2374,20 @@ Object.assign(HEROES, {
       {
         id: 'boar_mistbristle_blessing', name: 'Mistbristle\'s Blessing',
         icon: 'assets/icons/fc800.png',
-        description: 'Mend an ally: 17% of max HP plus 2.5% regen for 2 turns.',
+        description: 'Mend an ally: 17% of max HP plus 2.1% regen for 2 turns.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.17 },
-          { type: 'hot', pct: 0.025, turns: 2 },
+          { type: 'hot', pct: 0.021, turns: 2 },
         ],
       },
       {
         id: 'boar_mistbristle_renewal', name: 'Mistbristle\'s Renewal',
         icon: 'assets/icons/fc869.png',
-        description: 'The circle holds: ALL allies heal 48% of ATK, are cleansed, and gain +6% DEF for 2 turns.',
+        description: 'The circle holds: ALL allies heal 41% of ATK, are cleansed, and gain +6% DEF for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 0.48 },
+          { type: 'heal', mult: 0.41 },
           { type: 'cleanse' },
           { type: 'buff', stat: 'def', mult: 1.06, turns: 2 },
         ],

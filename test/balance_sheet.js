@@ -45,6 +45,7 @@ const COLUMNS = [
   { key: 'mit/s', label: 'mit/s', dp: 1 },
   { key: 'taken/s', label: 'taken/s', dp: 1 },
   { key: 'mit%', label: 'mit %', dp: 1 },
+  { key: 'saved/s', label: 'saved/s', dp: 1 },
   { key: 'ehp', label: 'ehp', dp: 0 },
 ];
 
@@ -262,6 +263,12 @@ footer code { background:var(--panel-2); border:1px solid var(--line); border-ra
       hits a row or the whole field is worth nothing against a half-empty board, so a smaller
       squad quietly undervalues every hero whose kit scales with target count. Runs are seeded,
       so a difference between two heroes is a difference in the heroes.</p>
+    <p><b>Reading the support buckets.</b> A support is ranked on <b>saved/s</b> &mdash;
+      healing plus mitigation &mdash; because a ward that prevents damage and a heal that
+      restores it are the same currency. Ranking on healing alone put every protector at
+      the bottom of its bucket for doing its job well. A hero whose kit is pure offensive
+      buffing (attack, speed, turn meter) says "no kit for it": that work is real, but its
+      value is extra damage the ALLY deals, which nothing here measures.</p>
     <p><b>Reading poison.</b> Poison used to skip the DEF curve entirely, which made
       it worth about 9&#xd7; ordinary damage at this max-level premise and put a DoT carry
       at the top of every bucket. It now goes through the same pipeline as everything

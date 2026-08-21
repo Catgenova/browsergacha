@@ -253,15 +253,67 @@ class Unit {
   // Incoming damage multiplier from vulnerability marks ('damageTaken'
   // status effects) and defensive passives.
   damageTakenMult() {
-    let m = this.synergyTakenMult || 1;
+    return this.damageTakenBreakdown().total;
+  }
+
+  // The same multiplier, plus who is responsible for it.
+  //
+  // A ward cast by a support and a guard passive of the target's own are
+  // both just numbers here, but they belong to different heroes. Without
+  // the split, every point of damage a protector prevents is credited to
+  // the ally who was not hit, and the protector's whole contribution is
+  // invisible — on the meter and on the balance bench alike.
+  //
+  // `contributors` lists sourced reductions as { source, mult }; anything
+  // the unit does for itself is left out and falls to the unit.
+  damageTakenBreakdown() {
+    let total = this.synergyTakenMult || 1;
+    const contributors = [];
     for (const fx of this.statusEffects) {
-      if (fx.stat === 'damageTaken' && fx.mult) m *= fx.mult;
+      if (fx.stat === 'damageTaken' && fx.mult) {
+        total *= fx.mult;
+        // A ward the unit put on itself is its own business.
+        if (fx.source && fx.source !== this) {
+          contributors.push({ source: fx.source, mult: fx.mult });
+        }
+      }
     }
     for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.damageTakenMult;
-      if (hook) m *= hook(this) || 1;
+      if (hook) total *= hook(this) || 1;
     }
-    return m;
+    return { total, contributors };
+  }
+
+  // Apply this unit's defences to an incoming figure and book who
+  // prevented what. Returns the damage that still gets through.
+  //
+  // `selfCredit: false` books only the wards other heroes cast, not what
+  // this unit did for itself — for damage that is a harness construct
+  // rather than a real hit, where crediting the unit would inflate its
+  // own numbers with something no enemy ever dealt.
+  blunt(raw, opts = {}) {
+    const { total, contributors } = this.damageTakenBreakdown();
+    const through = Math.round(raw * total);
+    const prevented = raw - through;
+    if (prevented <= 0 || typeof Meter === 'undefined') return through;
+    // Shares in proportion to how much each factor reduced: a 13% ward
+    // beside a 10% guard passive splits the credit 13 to 10.
+    const wardShare = contributors
+      .reduce((sum, c) => sum + Math.max(0, 1 - c.mult), 0);
+    const ownShare = Math.max(0, Math.max(0, 1 - total) - wardShare);
+    const totalShare = wardShare + ownShare;
+    if (totalShare > 0 && wardShare > 0) {
+      for (const c of contributors) {
+        Meter.mitigated(c.source, prevented * (Math.max(0, 1 - c.mult) / totalShare));
+      }
+      if (opts.selfCredit !== false) {
+        Meter.mitigated(this, prevented * (ownShare / totalShare));
+      }
+    } else if (opts.selfCredit !== false) {
+      Meter.mitigated(this, prevented);
+    }
+    return through;
   }
 
   // ---- Health ------------------------------------------------------------
