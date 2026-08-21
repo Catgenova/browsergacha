@@ -64,6 +64,20 @@ class BattleScreen {
       this.setSpeed(this.speed === 1 ? 3 : 1);
     });
 
+    // Idle-state buttons. "Fight again" reuses the banner's own retry, so
+    // repeating a fight is one code path rather than two.
+    const idleAgain = document.getElementById('idle-again');
+    if (idleAgain) {
+      idleAgain.addEventListener('click', () => {
+        this.showIdle(false);
+        if (this.ui.onRetry) this.ui.onRetry();
+      });
+    }
+    const idleTeam = document.getElementById('idle-team');
+    if (idleTeam) idleTeam.addEventListener('click', () => app.showScreen('team'));
+    const idleCampaign = document.getElementById('idle-campaign');
+    if (idleCampaign) idleCampaign.addEventListener('click', () => app.showScreen('campaign'));
+
     // Auto-battle tactics: three decisions the AI used to make for the
     // player. Changes apply to the fight in progress, not just the next
     // one — the point is being able to react to a fight going badly.
@@ -352,12 +366,44 @@ class BattleScreen {
     // Coming back to a finished fight clears the "battle over" marker.
     this.finishedUnseen = false;
     this.drawMeter();
-    if (this.pendingMode || !this.battle ||
-        (this.battle.state === BattleState.ENDED && this.chainCountdown == null)) {
-      const mode = this.pendingMode || 'wave';
+
+    // Only a fight somebody actually asked for. Opening this tab used to
+    // roll a fresh hunt whenever nothing was running, so navigating here
+    // -- or coming back to read the result of the fight you just won --
+    // spent your team on a battle nobody chose.
+    if (this.pendingMode) {
+      const mode = this.pendingMode;
       this.pendingMode = null;
+      this.showIdle(false);
       await this.startNewBattle(mode);
+      return;
     }
+    this.showIdle(!this.isFighting());
+  }
+
+  // The empty state. `on` false puts the board back.
+  showIdle(on) {
+    const el = document.getElementById('battle-idle');
+    if (!el) return;
+    el.classList.toggle('hidden', !on);
+    if (!on) return;
+
+    // The end-of-battle banner and the idle notice are two answers to the
+    // same question, so only one is ever up.
+    this.ui.hideBanner();
+    this.ui.hideAbilityBar();
+    this.armRetreat(false);
+
+    const r = this.lastResult;
+    const sub = document.getElementById('idle-sub');
+    if (sub) {
+      sub.textContent = r
+        ? `Last fight: ${r.what} \u2014 ${r.won ? 'won' : 'lost'}. The result is below.`
+        : 'Send a team from the Team screen, or take the next campaign mission.';
+    }
+    // "Again" only when there is something to repeat.
+    const again = document.getElementById('idle-again');
+    if (again) again.classList.toggle('hidden', !r);
   }
 
   // Leaving the tab no longer stops the fight — battles (and their
@@ -387,6 +433,7 @@ class BattleScreen {
 
   async startNewBattle(mode = 'wave') {
     const team = GameState.getTeam();
+    this.showIdle(false);
     this.armRetreat(false);
     Meter.resetBattle(); // the session tally keeps running
     const battle = new Battle();

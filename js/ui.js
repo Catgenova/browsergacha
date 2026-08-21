@@ -137,6 +137,12 @@ class UI {
     this.abilityBar.classList.remove('hidden');
   }
 
+  // The banner is dismissed by its own buttons; this lets the screen
+  // take it down too, when it replaces the banner with something else.
+  hideBanner() {
+    if (this.bannerEl) this.bannerEl.classList.add('hidden');
+  }
+
   hideAbilityBar() {
     this.abilityBar.classList.add('hidden');
     this.renderer.targetingMode = null;
