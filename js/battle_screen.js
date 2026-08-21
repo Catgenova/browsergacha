@@ -126,6 +126,19 @@ class BattleScreen {
     // Retreat: abandon the fight. Forfeiting a long battle by mis-click
     // would be miserable, so the first press arms it and the second
     // confirms; it disarms itself after a few seconds.
+    // "Stop after this fight": let the current battle finish and pay
+    // out normally, but end the repeat chain there. Only shown while a
+    // chain would actually continue.
+    this.stopChainBtn = document.getElementById('stop-chain-btn');
+    if (this.stopChainBtn) {
+      this.stopChainBtn.addEventListener('click', () => {
+        this.cancelChain();
+        if (this.battle && this.battle.state !== BattleState.ENDED) {
+          this.battle.log('The chain ends after this fight.', 'log-system');
+        }
+        this.refreshStopChain();
+      });
+    }
     this.retreatBtn = document.getElementById('retreat-btn');
     this.retreatArmed = false;
     if (this.retreatBtn) {
@@ -326,6 +339,16 @@ class BattleScreen {
     this.chainMode = 'campaign';
   }
 
+  // The stop button earns its place only while a chain would continue:
+  // more rounds queued, a between-rounds countdown, or an auto tower
+  // climb (which chains as long as auto keeps winning).
+  refreshStopChain() {
+    if (!this.stopChainBtn) return;
+    const chaining = this.chainRemaining > 0 || this.chainCountdown != null ||
+      (this.chainMode === 'tower' && this.auto && this.isFighting());
+    this.stopChainBtn.classList.toggle('hidden', !chaining);
+  }
+
   cancelChain() {
     this.chainRemaining = 0;
     this.chainCountdown = null;
@@ -404,6 +427,11 @@ class BattleScreen {
     el.classList.toggle('hidden', !on);
     if (!on) return;
 
+    // The fight pickers live in this panel now; the team screen still
+    // owns their wiring, so ask it to bring the options up to date
+    // (stage unlocks, tower floor, disabled states).
+    if (this.app.screens.team) this.app.screens.team.updateButtons();
+
     // The end-of-battle banner and the idle notice are two answers to the
     // same question, so only one is ever up.
     this.ui.hideBanner();
@@ -415,7 +443,7 @@ class BattleScreen {
     if (sub) {
       sub.textContent = r
         ? `Last fight: ${r.what} \u2014 ${r.won ? 'won' : 'lost'}. The result is below.`
-        : 'Send a team from the Team screen, or take the next campaign mission.';
+        : 'Pick a fight below, or take the next campaign mission.';
     }
     // "Again" only when there is something to repeat.
     const again = document.getElementById('idle-again');
@@ -837,6 +865,7 @@ class BattleScreen {
   }
 
   update(dt) {
+    this.refreshStopChain();
     if (this.battle) this.battle.update(dt);
     // The armed retreat lapses if it isn't confirmed.
     if (this.retreatTimer != null) {

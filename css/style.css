@@ -2356,7 +2356,9 @@ html.is-mobile .sub-compare { font-size: 13px; }
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(460px, 90%);
+  width: min(560px, 94%);
+  max-height: 92%;
+  overflow-y: auto;
   padding: 22px 26px;
   text-align: center;
   background: rgba(20, 18, 30, 0.94);
@@ -2385,6 +2387,24 @@ html.is-mobile .sub-compare { font-size: 13px; }
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* The fight pickers, at home on the battle screen now. Rows keep their
+   own #wave-controls/#boss-controls/... styling; this box frames them. */
+#battle-select {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #34304a;
+  text-align: left;
+}
+#battle-select-head {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #9a92b8;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#battle-select > div + div { margin-top: 6px; }
 
 @media (max-width: 899px) {
   /* In flow with the rest of the stack, like the banner and the panels. */

@@ -57,10 +57,11 @@ const Onboarding = (() => {
         'rare — spend them whenever you like, there is nothing to save up for.',
     },
     {
-      el: '#fight-btn',
+      el: '.nav-tab[data-screen="battle"]',
       title: 'Now send them in',
-      body: 'Pick a hunt and fight. Battles run themselves if you want them to ' +
-        '(Auto in the battle screen), and they keep running while you are off ' +
+      body: 'Every fight starts on the Battle tab — hunts, bosses, elemental ' +
+        'bosses and the tower each have a picker there. Battles run themselves ' +
+        'if you want them to (Auto), and they keep running while you are off ' +
         'summoning or reading the compendium.',
     },
   ];
