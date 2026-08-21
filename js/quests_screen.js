@@ -6,6 +6,9 @@ class QuestsScreen {
     this.app = app;
     this.el = document.getElementById('screen-quests');
     this.boardsEl = document.getElementById('quest-boards');
+    // Achievement groups fold shut unless they hold something claimable
+    // or the player opened them; overrides live here for the session.
+    this.groupOpen = new Map();
   }
 
   enter() {
@@ -18,7 +21,7 @@ class QuestsScreen {
 
   refresh() {
     // Assembled in independent pieces. Every card here is generated from
-    // data -- 28 quests and 52 achievements, each running its own
+    // data -- 28 quests and 150-odd achievements, each running its own
     // progress function -- and one bad entry used to take the whole
     // screen down to nothing, with no clue on the page as to why. Now a
     // failure costs its own section and says what broke.
@@ -41,6 +44,19 @@ class QuestsScreen {
         this.refresh();
       });
     });
+
+    // Accordion headers: click to open or close an achievement group.
+    this.boardsEl.querySelectorAll('.quest-board[data-group] .quest-board-header')
+      .forEach((hdr) => {
+        hdr.addEventListener('click', () => {
+          const board = hdr.closest('.quest-board');
+          const group = board.dataset.group;
+          const nowOpen = board.classList.toggle('quest-collapsed') === false;
+          this.groupOpen.set(group, nowOpen);
+          const caret = hdr.querySelector('.ach-caret');
+          if (caret) caret.textContent = nowOpen ? '▾' : '▸';
+        });
+      });
   }
 
   // Run one section's builder; on a throw, return a visible panel naming
@@ -143,13 +159,26 @@ class QuestsScreen {
             </button>
           </div>`;
       }).join('');
+      // Folded by default: these boards are the long game, and with a
+      // hundred-plus rows they would bury the daily boards. A group
+      // stays open when something in it is ready to claim, or when the
+      // player opened it themselves this session.
+      const claimable = list.filter((a) => {
+        const st = states.get(a);
+        return st.done && !st.claimed;
+      }).length;
+      const open = this.groupOpen.has(group)
+        ? this.groupOpen.get(group)
+        : claimable > 0;
       return `
-        <div class="quest-board">
-          <div class="quest-board-header">
-            <h3>${group} Achievements</h3>
-            <span class="quest-reset">${done}/${list.length} complete · never resets</span>
+        <div class="quest-board ${open ? '' : 'quest-collapsed'}" data-group="${group}">
+          <div class="quest-board-header ach-toggle" title="${open ? 'Collapse' : 'Expand'} ${group}">
+            <h3><span class="ach-caret">${open ? '▾' : '▸'}</span>${group} Achievements</h3>
+            <span class="quest-reset">${claimable
+              ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}${
+              done}/${list.length} complete · never resets</span>
           </div>
-          ${rows}
+          <div class="quest-rows">${rows}</div>
         </div>`;
     }).join('');
   }

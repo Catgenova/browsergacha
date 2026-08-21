@@ -316,6 +316,232 @@ const ACHIEVEMENTS = (() => {
     reward: { rare: 10 },
   });
 
+  // ---- The long ladders --------------------------------------------------
+  // One hundred more lifetime goals, generated as ladders so every
+  // counter the game tracks has a full arc from first steps to absurd
+  // devotion. Each rung is its own achievement with its own name.
+  const ladder = (group, idBase, have, detail, rungs) => {
+    for (const r of rungs) {
+      add({
+        id: `${idBase}_${r.n}`, group, name: r.name,
+        detail: detail(r.n),
+        progress: () => ({ have: Math.min(r.n, have()), need: r.n }),
+        reward: r.reward,
+      });
+    }
+  };
+  const stat = (k) => () => GameState.stat(k);
+  const fmt = (n) => n.toLocaleString('en-US');
+
+  // Command: what the player has done, at every scale. (58)
+  ladder('Command', 'cmd_wins', stat('wins'), (n) => `Win ${fmt(n)} battles.`, [
+    { n: 250, name: 'Steel Habit', reward: { whetstones: 500 } },
+    { n: 500, name: 'Half a Thousand', reward: { rare: 3 } },
+    { n: 2500, name: 'Warpath', reward: { temporal: 3 } },
+    { n: 5000, name: 'Living Legend', reward: { temporal: 5 } },
+    { n: 10000, name: 'Myth in Motion', reward: { temporal: 10 } },
+  ]);
+  ladder('Command', 'cmd_hunts', stat('huntWins'), (n) => `Win ${fmt(n)} hunts.`, [
+    { n: 100, name: 'Field Day', reward: { whetstones: 400 } },
+    { n: 250, name: 'Open Season', reward: { rare: 3 } },
+    { n: 500, name: 'Master of the Wilds', reward: { arcana: 600 } },
+    { n: 1000, name: 'Apex Predator', reward: { temporal: 3 } },
+    { n: 2500, name: 'The Land Provides', reward: { temporal: 6 } },
+  ]);
+  ladder('Command', 'cmd_boss', stat('bossWins'), (n) => `Clear ${fmt(n)} boss stages.`, [
+    { n: 50, name: 'Crownbreaker', reward: { rare: 2 } },
+    { n: 100, name: 'Regicide Routine', reward: { arcana: 400 } },
+    { n: 250, name: 'Throne After Throne', reward: { rare: 6 } },
+    { n: 500, name: 'No King Stands', reward: { temporal: 4 } },
+    { n: 1000, name: "Dynasty's End", reward: { temporal: 8 } },
+  ]);
+  ladder('Command', 'cmd_camp', stat('campaignWins'), (n) => `Clear ${fmt(n)} campaign nodes.`, [
+    { n: 100, name: 'Pathfinder', reward: { whetstones: 600 } },
+    { n: 250, name: 'Cartographer', reward: { rare: 4 } },
+    { n: 500, name: 'Roadmaster', reward: { temporal: 3 } },
+    { n: 1000, name: 'World Walker', reward: { temporal: 6 } },
+  ]);
+  ladder('Command', 'cmd_tower', stat('towerFloors'), (n) => `Climb ${fmt(n)} tower floors in total.`, [
+    { n: 100, name: 'Stairborne', reward: { whetstones: 500 } },
+    { n: 250, name: 'Skyward', reward: { rare: 3 } },
+    { n: 500, name: 'Past the Birds', reward: { arcana: 700 } },
+    { n: 1000, name: 'Vertigo Proof', reward: { temporal: 3 } },
+    { n: 2500, name: 'Where Air Runs Thin', reward: { temporal: 8 } },
+  ]);
+  ladder('Command', 'cmd_summons', stat('summons'), (n) => `Summon ${fmt(n)} heroes.`, [
+    { n: 50, name: 'Fresh Faces', reward: { common: 5 } },
+    { n: 100, name: 'Open Door', reward: { rare: 2 } },
+    { n: 250, name: 'Gathering Storm', reward: { rare: 4 } },
+    { n: 1000, name: 'Grand Muster', reward: { temporal: 3 } },
+    { n: 2500, name: 'Endless Ranks', reward: { temporal: 8 } },
+  ]);
+  ladder('Command', 'cmd_flawless', stat('flawless'), (n) => `Win ${fmt(n)} battles without losing a hero.`, [
+    { n: 25, name: 'Clean Sweep', reward: { whetstones: 300 } },
+    { n: 250, name: 'Untouchable', reward: { rare: 6 } },
+    { n: 500, name: 'Immaculate Record', reward: { temporal: 3 } },
+    { n: 1000, name: 'Perfection as Policy', reward: { temporal: 6 } },
+  ]);
+  ladder('Command', 'cmd_starups', stat('starUps'), (n) => `Star up ${fmt(n)} heroes.`, [
+    { n: 10, name: 'Rising Stars', reward: { common: 6 } },
+    { n: 25, name: 'Constellation', reward: { rare: 3 } },
+    { n: 100, name: 'Star Factory', reward: { temporal: 2 } },
+    { n: 250, name: 'Galaxy Forge', reward: { temporal: 5 } },
+  ]);
+  ladder('Command', 'cmd_sacrifices', stat('sacrifices'), (n) => `Sacrifice ${fmt(n)} heroes.`, [
+    { n: 25, name: 'Necessary Losses', reward: { whetstones: 300 } },
+    { n: 100, name: 'The Greater Good', reward: { rare: 3 } },
+    { n: 250, name: 'Grim Arithmetic', reward: { arcana: 600 } },
+    { n: 500, name: 'Ash and Ascent', reward: { temporal: 3 } },
+    { n: 1000, name: 'A Thousand Farewells', reward: { temporal: 6 } },
+  ]);
+  ladder('Command', 'cmd_polish', stat('polishes'), (n) => `Polish items ${fmt(n)} times.`, [
+    { n: 100, name: 'Elbow Grease', reward: { whetstones: 400 } },
+    { n: 250, name: 'Mirror Finish', reward: { arcana: 400 } },
+    { n: 500, name: 'Grindstone Devotee', reward: { rare: 5 } },
+    { n: 1000, name: 'Polished to Ruin', reward: { temporal: 4 } },
+  ]);
+  ladder('Command', 'cmd_enchant', stat('enchants'), (n) => `Attempt ${fmt(n)} enchants.`, [
+    { n: 100, name: 'Dabbling in Sparks', reward: { whetstones: 400 } },
+    { n: 250, name: 'Rune Habit', reward: { arcana: 500 } },
+    { n: 500, name: "Enchanter's Trance", reward: { rare: 5 } },
+    { n: 1000, name: 'Glow Addict', reward: { temporal: 4 } },
+  ]);
+  ladder('Command', 'craft_salvage', stat('salvages'), (n) => `Salvage ${fmt(n)} items.`, [
+    { n: 50, name: 'Waste Not', reward: { whetstones: 300 } },
+    { n: 100, name: "Breaker's Yard", reward: { arcana: 300 } },
+    { n: 500, name: 'Industrial Recycling', reward: { rare: 6 } },
+    { n: 1000, name: 'Nothing Wasted', reward: { temporal: 4 } },
+  ]);
+  ladder('Command', 'craft_reroll', stat('rerolls'), (n) => `Keep ${fmt(n)} rerolled substat lines.`, [
+    { n: 50, name: 'Second Opinions', reward: { arcana: 400 } },
+    { n: 250, name: 'Dice Whisperer', reward: { rare: 5 } },
+    { n: 500, name: "Fate's Editor", reward: { temporal: 3 } },
+    { n: 1000, name: 'Probability Bender', reward: { temporal: 6 } },
+  ]);
+
+  // Collection: shelves upon shelves. (12)
+  ladder('Collection', 'collect', () => owned().length, (n) => `Own ${n} different heroes.`, [
+    { n: 25, name: 'First Shelf', reward: { common: 5 } },
+    { n: 75, name: 'Wing of Portraits', reward: { rare: 3 } },
+    { n: 100, name: 'Hundred Hall', reward: { rare: 5 } },
+    { n: 200, name: 'Gallery of Legends', reward: { temporal: 3 } },
+    { n: 300, name: 'Near Completion', reward: { temporal: 6 } },
+  ]);
+  const fiveStars = () => owned().filter((id) => HEROES[id].rarity === 5).length;
+  ladder('Collection', 'five_star', fiveStars, (n) => `Own ${n} different 5-star heroes.`, [
+    { n: 3, name: 'Triple Crown Jewels', reward: { rare: 4 } },
+    { n: 5, name: 'Vault of Wonders', reward: { rare: 6 } },
+    { n: 20, name: 'Museum Piece', reward: { temporal: 4 } },
+    { n: 30, name: 'Myth Collector', reward: { temporal: 8 } },
+  ]);
+  const fourPlus = () => owned().filter((id) => HEROES[id].rarity >= 4).length;
+  ladder('Collection', 'four_plus', fourPlus, (n) => `Own ${n} different heroes of 4 stars or rarer.`, [
+    { n: 10, name: 'Silver Shelf', reward: { common: 8 } },
+    { n: 25, name: 'Gilded Rows', reward: { rare: 4 } },
+    { n: 50, name: 'Prestige Collection', reward: { temporal: 3 } },
+  ]);
+
+  // Mastery: depth, not breadth. (14)
+  ladder('Mastery', 'at_cap', atCap, (n) => `Take ${n} heroes to their level cap.`, [
+    { n: 3, name: 'Three at the Top', reward: { whetstones: 600 } },
+    { n: 15, name: 'Fifteen Ceilings', reward: { rare: 6 } },
+    { n: 25, name: 'Roof Over Everyone', reward: { temporal: 4 } },
+  ]);
+  ladder('Mastery', 'skillful', maxedSkills, (n) => `Max every skill on ${n} heroes.`, [
+    { n: 10, name: 'Faculty of War', reward: { temporal: 3 } },
+    { n: 25, name: "Grandmaster's Row", reward: { temporal: 6 } },
+  ]);
+  ladder('Mastery', 'best_stars', bestStars, (n) => `Take a hero to ${n}★.`, [
+    { n: 4, name: 'Fourth Point', reward: { common: 6 } },
+    { n: 6, name: 'Past the Old Limit', reward: { rare: 4 } },
+    { n: 8, name: 'Eight-Pointed', reward: { rare: 8 } },
+    { n: 9, name: 'One Shy of Legend', reward: { temporal: 3 } },
+  ]);
+  const bestAttune = () => Math.max(0, ...heroes().map((uid) => GameState.attunementOf(uid)), 0);
+  const attunedCount = () => heroes().filter((uid) => GameState.attunementOf(uid) > 0).length;
+  const totalAttune = () => heroes().reduce((n, uid) => n + GameState.attunementOf(uid), 0);
+  add({
+    id: 'attune_first', group: 'Mastery', name: 'First Attunement',
+    detail: "Attune a hero to their element once.",
+    progress: () => ({ have: Math.min(1, bestAttune()), need: 1 }),
+    reward: { whetstones: 300 },
+  });
+  add({
+    id: 'attune_half', group: 'Mastery', name: 'Half Lit',
+    detail: 'Take one hero to 5 attunements.',
+    progress: () => ({ have: Math.min(5, bestAttune()), need: 5 }),
+    reward: { rare: 5 },
+  });
+  add({
+    id: 'attune_full', group: 'Mastery', name: 'Fully Lit',
+    detail: `Take one hero to ${Attune.MAX} attunements — every star burning.`,
+    progress: () => ({ have: Math.min(Attune.MAX, bestAttune()), need: Attune.MAX }),
+    reward: { temporal: 6 },
+  });
+  add({
+    id: 'attune_choir', group: 'Mastery', name: 'Choir of Elements',
+    detail: 'Attune 10 different heroes at least once.',
+    progress: () => ({ have: Math.min(10, attunedCount()), need: 10 }),
+    reward: { rare: 8 },
+  });
+  add({
+    id: 'attune_prismatic', group: 'Mastery', name: 'Prismatic Age',
+    detail: 'Hold 50 attunements across the roster.',
+    progress: () => ({ have: Math.min(50, totalAttune()), need: 50 }),
+    reward: { temporal: 5 },
+  });
+
+  // Conquest: further up every ladder the game owns. (10)
+  ladder('Conquest', 'boss_all', bossesCleared, (n) => `Clear stage ${n} of every boss.`, [
+    { n: 5, name: 'Firm Grip', reward: { arcana: 300 } },
+    { n: 15, name: 'Iron Grip', reward: { temporal: 6 } },
+    { n: 20, name: 'Total Dominion', reward: { temporal: 8 } },
+  ]);
+  ladder('Conquest', 'tower', () => GameState.towerBest, (n) => `Reach floor ${n} of the Endless Tower.`, [
+    { n: 50, name: 'Fifty Flights', reward: { rare: 4 } },
+    { n: 150, name: 'Halfway to Nowhere', reward: { temporal: 4 } },
+    { n: 200, name: 'Cloudbreaker', reward: { temporal: 6 } },
+    { n: 500, name: "The Top That Isn't", reward: { temporal: 25 } },
+  ]);
+  const EL_BOSS_KEYS = Object.keys(ELEMENTAL_BOSSES);
+  const elBossesCleared = (stage) =>
+    EL_BOSS_KEYS.filter((el) => GameState.attuneStageCleared(el) >= stage).length;
+  add({
+    id: 'elboss_all_1', group: 'Conquest', name: 'Five Storms Weathered',
+    detail: 'Clear stage 1 of every elemental boss.',
+    progress: () => ({ have: elBossesCleared(1), need: EL_BOSS_KEYS.length }),
+    reward: { arcana: 250 },
+  });
+  add({
+    id: 'elboss_all_10', group: 'Conquest', name: 'Elements Bowed',
+    detail: 'Clear stage 10 of every elemental boss.',
+    progress: () => ({ have: elBossesCleared(10), need: EL_BOSS_KEYS.length }),
+    reward: { temporal: 5 },
+  });
+  add({
+    id: 'elboss_all_20', group: 'Conquest', name: 'Primal Silence',
+    detail: 'Clear stage 20 of every elemental boss.',
+    progress: () => ({ have: elBossesCleared(20), need: EL_BOSS_KEYS.length }),
+    reward: { temporal: 12 },
+  });
+
+  // Craft: the armoury itself. (6)
+  ladder('Craft', 'armoury', () => gear().length, (n) => `Hold ${n} pieces of gear at once.`, [
+    { n: 50, name: 'Quartermaster', reward: { whetstones: 400 } },
+    { n: 150, name: 'Deep Armoury', reward: { arcana: 500 } },
+    { n: 300, name: 'Overflowing Racks', reward: { rare: 6 } },
+  ]);
+  ladder('Craft', 'legendary', () => rarityCount('legendary'), (n) => `Hold ${n} legendary pieces of gear.`, [
+    { n: 5, name: 'Legendary Taste', reward: { arcana: 600 } },
+    { n: 10, name: 'Hall of Relics', reward: { temporal: 4 } },
+  ]);
+  add({
+    id: 'craft_plus_12', group: 'Craft', name: 'Twelve Folds',
+    detail: 'Enchant a piece of gear to +12.',
+    progress: () => ({ have: Math.min(12, bestPlus()), need: 12 }),
+    reward: { rare: 4 },
+  });
+
   function state(a) {
     const { have, need } = a.progress();
     const claimed = GameState.achievementClaimed(a.id);
