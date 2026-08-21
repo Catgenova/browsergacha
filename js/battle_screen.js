@@ -436,14 +436,18 @@ class BattleScreen {
         bgPin = def.background || bgPin;
         battle.placeUnit(new Unit(def, TEAM.ENEMY, {
           level, stars: def.rarity, statScale: Campaign.holderScaleFor(ch, tierId),
+          gear: Campaign.gearFor(campNode, tierId, def),
         }), 0);
         this.introLog = `${ch.title}${banner} — ${campNode.name}: ` +
           `the ${def.name} holds the way! (Lv ${level})`;
       } else {
         const scale = Campaign.enemyScale(tierId);
-        for (const { def, slotIndex } of Campaign.encounter(campNode, battle.enemySlots)) {
-          battle.placeUnit(new Unit(def, TEAM.ENEMY,
-            { level, stars: def.rarity, statScale: scale }), slotIndex);
+        for (const { def, slotIndex } of
+             Campaign.encounter(campNode, battle.enemySlots, tierId)) {
+          battle.placeUnit(new Unit(def, TEAM.ENEMY, {
+            level, stars: def.rarity, statScale: scale,
+            gear: Campaign.gearFor(campNode, tierId, def),
+          }), slotIndex);
         }
         this.introLog = `${ch.title}${banner} — ${campNode.name} (Lv ${level}).`;
       }

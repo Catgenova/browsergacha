@@ -218,7 +218,7 @@ class CampaignScreen {
       lineup = `<div class="camp-foe camp-foe-boss">${boss ? boss.name : ch.boss}
         <span class="camp-foe-lv">Lv ${level}</span></div>`;
     } else {
-      lineup = Campaign.encounter(n).map(({ def }) =>
+      lineup = Campaign.encounter(n, null, tierId).map(({ def }) =>
         `<div class="camp-foe">${Elements.badge(def.element)} ${def.name}
           <span class="camp-foe-lv">Lv ${level}</span></div>`).join('');
     }
@@ -245,7 +245,7 @@ class CampaignScreen {
           ${n.type === 'boss' ? 'Chapter holder'
             : n.type === 'elite' ? 'Elite' : 'Skirmish'} · Lv ${level}${
             tierId === 'normal' ? ''
-              : ` · ${tier.label} (enemies ${tier.scale}\u00d7)`}
+              : ` · ${tier.label} (${Campaign.tierNote(n, tierId)})`}
         </div>
       </div>
       ${open ? `

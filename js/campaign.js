@@ -37,17 +37,24 @@ const Campaign = (() => {
   // the content, and a second pass at them is worth more than a second
   // set of them.
   //
-  // Enemies are hardened with a stat scale rather than only levels. Level
-  // is a blunt lever here — heroes cap at 100, and a wave stops caring
-  // about levels long before that — so the levels move a little and the
-  // statline does the work.
+  // Normal is hardened with a stat scale rather than levels, because its
+  // own ladder has to stay readable next to the hunts.
+  //
+  // Hard and Expert do not follow that ladder at all. They field a FULL
+  // seven-hex formation, on a level band of their own that climbs across
+  // the chapters, wearing a complete set of gear at their own level —
+  // the same three things that make a player's team strong. The stat
+  // scale stays on top of that: these tiers are the endgame re-run, and
+  // the point of clearing a chapter is not to be handed an easier one.
   const TIERS = [
     { id: 'normal', label: 'Normal', scale: 1, reward: 1, levels: 0,
       blurb: 'The campaign as written.' },
     { id: 'hard', label: 'Hard', scale: 1.6, reward: 2, levels: 5,
-      blurb: 'Every fight again, with enemies at 1.6x and double rewards.' },
+      band: [50, 80], full: true,
+      blurb: 'Full formations, geared, Lv 50 rising to Lv 80. Double rewards.' },
     { id: 'expert', label: 'Expert', scale: 2.4, reward: 3, levels: 10,
-      blurb: 'Every fight again, with enemies at 2.4x and triple rewards.' },
+      band: [80, 100], full: true,
+      blurb: 'Full formations, geared, Lv 80 rising to Lv 100. Triple rewards.' },
   ];
   const TIER_IDS = TIERS.map((t) => t.id);
   function tier(tierId) {
@@ -98,8 +105,25 @@ const Campaign = (() => {
     // Dragon (a starred team around Lv 80).
     return 14 + Math.round(index * 8.875);
   }
+  // Where a tier with a level band puts a given chapter: the first
+  // chapter sits at the bottom of the band, the last at the top, evenly
+  // spaced between. Holders sit on the same rung as their chapter's
+  // waves — a chapter's boss is not a level check, it is a wall of stats.
+  function bandLevel(ch, tierId) {
+    const band = tier(tierId).band;
+    if (!band) return null;
+    const last = Math.max(1, CAMPAIGN.CHAPTERS.length - 1);
+    const t = CHAPTER_INDEX.get(ch.id) / last;
+    return Math.round(band[0] + (band[1] - band[0]) * t);
+  }
+
   function levelFor(nodeObj, tierId = 'normal') {
     const ch = chapterFor(nodeObj.id);
+    const banded = bandLevel(ch, tierId);
+    if (banded !== null) {
+      // Elites are the one thing that still moves inside a chapter.
+      return nodeObj.type === 'elite' ? banded + 2 : banded;
+    }
     const top = holderLevel(CHAPTER_INDEX.get(ch.id));
     const bump = tier(tierId).levels;
     if (nodeObj.type === 'boss') return top + bump;
@@ -118,8 +142,12 @@ const Campaign = (() => {
   // How many enemies a node fields. Wave levels flatten out as a
   // difficulty knob — a mid-game team beats a Lv-100 wave of five — so
   // later chapters bring more bodies rather than only bigger numbers.
-  function sizeFor(nodeObj) {
+  function sizeFor(nodeObj, tierId = 'normal') {
     if (nodeObj.type === 'boss') return 1;
+    // Hard and Expert fill every hex. A half-empty board is the single
+    // biggest thing making a fight easy: row abilities hit fewer targets
+    // and the line has gaps in it.
+    if (tier(tierId).full) return 7;
     const ch = chapterFor(nodeObj.id);
     const base = 3 + Math.floor(CHAPTER_INDEX.get(ch.id) / 3); // 3, 4, then 5
     if (nodeObj.type === 'elite') return Math.min(7, base + 3);
@@ -148,18 +176,29 @@ const Campaign = (() => {
   // `enemies` on the node pins the roster by id when a fight is worth
   // hand-building; otherwise it is drawn from the pool by role.
   // `slots` lets a caller deploy into a live battle's own formation.
-  function encounter(nodeObj, slots = null) {
+  function encounter(nodeObj, slots = null, tierId = 'normal') {
     const ch = chapterFor(nodeObj.id);
     if (nodeObj.type === 'boss') return [];
     const into = slots || formation();
     const pool = poolFor(ch);
     if (nodeObj.enemies) {
       const defs = nodeObj.enemies.map((id) => ENEMIES[id]).filter(Boolean);
+      // A pinned roster is the fight as written, but on a full tier the
+      // remaining hexes still get filled from the chapter's own pool --
+      // the named enemies are the point, not the empty space beside them.
+      const want = sizeFor(nodeObj, tierId);
+      if (defs.length < want) {
+        const rand = rng(seedOf(`${nodeObj.id}:fill`));
+        const pool = poolFor(ch).filter((d) => !defs.includes(d));
+        while (defs.length < want && pool.length) {
+          defs.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+        }
+      }
       return Waves.deploy(
         defs.map((def) => ({ def, role: Waves.roleOf(def) })), into);
     }
     const rand = rng(seedOf(nodeObj.id));
-    const count = sizeFor(nodeObj);
+    const count = sizeFor(nodeObj, tierId);
     // Elites are led by the pool's rarest members; ordinary fights draw
     // from the whole cohort.
     const elite = nodeObj.type === 'elite';
@@ -180,6 +219,61 @@ const Campaign = (() => {
     }
     return Waves.deploy(
       picked.map((def) => ({ def, role: Waves.roleOf(def) })), into);
+  }
+
+  // ---- Enemy gear -------------------------------------------------------
+  //
+  // On Hard and Expert the enemies wear a full six-piece set at their own
+  // level, which is the third thing that makes a player's team strong and
+  // the one the campaign never gave the other side.
+  //
+  // The rarity is the plainest one that can actually hold the level: gear
+  // rarity caps item level in this game (normal stops at 30, rare at 60,
+  // legendary at 90), so "level 50 gear" cannot be a normal piece. It
+  // picks the lowest rarity that can carry the number rather than
+  // handing out legendaries.
+  //
+  // Deterministic from the node id, like everything else here: the fight
+  // you lost to is the fight you come back to, gear included.
+  function gearRarityFor(level) {
+    for (const id of Gear.RARITY_ORDER) {
+      if (Gear.RARITIES[id].maxLevel >= level) return id;
+    }
+    return Gear.RARITY_ORDER[Gear.RARITY_ORDER.length - 1];
+  }
+
+  function gearFor(nodeObj, tierId, def) {
+    if (!tier(tierId).full || typeof Gear === 'undefined') return [];
+    const level = levelFor(nodeObj, tierId);
+    const rarity = gearRarityFor(level);
+    const capped = Math.min(level, Gear.RARITIES[rarity].maxLevel);
+    const ch = chapterFor(nodeObj.id);
+    // The chapter's own set where it names one, so a chapter's enemies
+    // carry a bonus that reads as theirs.
+    const setId = ch.gearSet || (RACES.of(def) && Gear.SETS[RACES.of(def)] ? RACES.of(def) : 'dragon');
+    const rand = rng(seedOf(`${nodeObj.id}:${def.id}:${tierId}`));
+    return Gear.SLOTS.map((slot) => {
+      const piece = { set: setId, slot, rarity, level: capped, plus: 0, subs: [] };
+      for (let i = 0; i < Gear.RARITIES[rarity].maxSubs - 1; i++) {
+        Gear.rollSub(piece, rand);
+      }
+      return piece;
+    });
+  }
+
+  // What a tier is actually doing to this node, for the detail panel. A
+  // player looking at a Lv-50 skirmish deserves to know the enemies are
+  // also seven strong, geared, and on a stat multiplier.
+  function tierNote(nodeObj, tierId) {
+    const t = tier(tierId);
+    const bits = [`enemies ${t.scale}\u00d7`];
+    if (t.full && nodeObj.type !== 'boss') bits.push('full formation');
+    const worn = t.full ? gearRarityFor(levelFor(nodeObj, tierId)) : null;
+    if (worn) {
+      const level = Math.min(levelFor(nodeObj, tierId), Gear.RARITIES[worn].maxLevel);
+      bits.push(`${Gear.RARITIES[worn].name.toLowerCase()} Lv ${level} gear`);
+    }
+    return bits.join(' \u00b7 ');
   }
 
   // ---- Unlocking --------------------------------------------------------
@@ -346,6 +440,7 @@ const Campaign = (() => {
     TIERS, TIER_IDS, tier, tierIndex, tierUnlocked, highestTier, clearKey,
     enemyScale, holderScaleFor,
     chapter, node, chapterFor, bossNode, levelFor, sizeFor, encounter, holderScale,
+    gearFor, gearRarityFor, tierNote,
     chapterUnlocked, nodeUnlocked, nodeCleared, chapterProgress,
     currentChapter, payout, firstClearBonus, nextMission,
     locationUnlocked, bossUnlocked, unlockedLocations,
