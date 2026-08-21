@@ -78,7 +78,11 @@ const Abilities = (() => {
         reflectAmount: bounced };
     }
     const dealt = target.takeDamage(dmg, caster);
-    Meter.damage(caster, dealt);
+    // A hit is rarely one hero's work: an ATK buff, a crit buff, a shove
+    // up the action bar or an armour break on the target all bought part
+    // of it. bookDamage splits the credit and books the remainder here.
+    if (opts.assist === false) Meter.damage(caster, dealt);
+    else caster.bookDamage(target, dealt, crit);
     return { kind: 'damage', target, amount: dealt, crit };
   }
 
@@ -168,8 +172,15 @@ const Abilities = (() => {
       }
       case 'turnMeter': {
         // Push the target's action bar by a fraction of max (negative cuts).
+        const before = target.turnMeter;
         target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
           target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX));
+        // Remember who paid for the push, so the turn it buys can credit
+        // its damage back (see Unit.outgoingAssists).
+        const gained = target.turnMeter - before;
+        if (gained > 0 && target !== caster && target.meterGifts) {
+          target.meterGifts.push({ source: caster, amount: gained });
+        }
         return { kind: 'meter', target, amount: effect.amount };
       }
       case 'dot': {

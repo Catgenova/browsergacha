@@ -238,7 +238,7 @@ const Sprites = (() => {
     });
   }
 
-  async function load(spriteDef, tint) {
+  async function load(spriteDef, def) {
     // Strip-per-animation format.
     if (spriteDef && spriteDef.strips) {
       const animations = {};
@@ -297,7 +297,7 @@ const Sprites = (() => {
       }
     }
 
-    return makePlaceholderSheet(tint);
+    return makePlaceholderSheet(def);
   }
 
   // Measure the transparent padding above and below the character in the
@@ -356,98 +356,23 @@ const Sprites = (() => {
   }
 
   // ---- Placeholder generation -------------------------------------------
-  // Draws a tiny 16x16 knight-ish figure into an offscreen spritesheet:
-  //   row 0: idle (4 frames, gentle bob)
-  //   row 1: attack (5 frames, lunge + swing)
+  // Definitions with no art get a character generated from their race,
+  // kit, element and rarity (see js/placeholder_art.js): row 0 idle,
+  // row 1 attack.
 
-  const PLACEHOLDER = {
-    frameW: 16,
-    frameH: 16,
-    animations: {
-      idle:   { row: 0, frames: 4, fps: 5,  loop: true  },
-      attack: { row: 1, frames: 5, fps: 12, loop: false },
-    },
-  };
-
-  // 16x16 pixel map. Keys: . transparent, O outline, B body, H helm,
-  // S skin, W weapon, X shield.
-  const BASE_FRAME = [
-    '................',
-    '.....OOOO.......',
-    '....OHHHHO......',
-    '....OHHHHO......',
-    '....OSSSSO......',
-    '.....OSSO.......',
-    '....OBBBBO..W...',
-    '...OBBBBBBO.W...',
-    '..XOBBBBBBOW....',
-    '..XOBBBBBBO.....',
-    '..XOBBBBBBO.....',
-    '....OBBBBO......',
-    '....OB..BO......',
-    '....OB..BO......',
-    '...OOB..BOO.....',
-    '................',
-  ];
-
-  function paletteFor(tint) {
-    return {
-      O: '#1a1622',
-      B: tint.body || '#4a6fd4',
-      H: tint.helm || '#8d9bb8',
-      S: tint.skin || '#e8b88a',
-      W: tint.weapon || '#d8d8e0',
-      X: tint.shield || '#b8862e',
-    };
-  }
-
-  function drawFrame(ctx, ox, oy, palette, shiftX, shiftY, weaponForward) {
-    for (let y = 0; y < 16; y++) {
-      for (let x = 0; x < 16; x++) {
-        const ch = BASE_FRAME[y][x];
-        if (ch === '.') continue;
-        let px = x + shiftX;
-        // On attack frames, thrust the weapon column forward.
-        if (weaponForward && ch === 'W') px += weaponForward;
-        if (px < 0 || px > 15) continue;
-        ctx.fillStyle = palette[ch];
-        ctx.fillRect(ox + px, oy + y + shiftY, 1, 1);
-      }
-    }
-  }
-
-  function makePlaceholderSheet(tint = {}) {
-    const { frameW, frameH } = PLACEHOLDER;
-    const canvas = document.createElement('canvas');
-    canvas.width = frameW * 5;   // widest row (attack has 5 frames)
-    canvas.height = frameH * 2;  // 2 animation rows
-    const ctx = canvas.getContext('2d');
-    const palette = paletteFor(tint);
-
-    // Row 0 — idle: subtle vertical bob.
-    const idleBob = [0, 0, 1, 0];
-    idleBob.forEach((bob, i) => drawFrame(ctx, i * frameW, 0, palette, 0, bob, 0));
-
-    // Row 1 — attack: wind-up back, then lunge forward with weapon thrust.
-    const attackMotion = [
-      { x: -1, w: 0 },
-      { x: -2, w: 0 },
-      { x: 2,  w: 2 },
-      { x: 3,  w: 3 },
-      { x: 1,  w: 1 },
-    ];
-    attackMotion.forEach((m, i) =>
-      drawFrame(ctx, i * frameW, frameH, palette, m.x, 0, m.w)
-    );
-
-    const animations = {};
-    for (const [name, a] of Object.entries(PLACEHOLDER.animations)) {
-      animations[name] = {
-        image: canvas, row: a.row, frames: a.frames, fps: a.fps, loop: !!a.loop,
-        frameW, frameH,
-      };
-    }
-    return new SpriteSheet(animations, frameH * CONFIG.SPRITE_SCALE);
+  function makePlaceholderSheet(def) {
+    const art = PlaceholderArt.sheetCanvas(def);
+    const mk = (row, frames, fps, loop) => ({
+      image: art.canvas, row, frames, fps, loop,
+      frameW: art.frameW, frameH: art.frameH,
+    });
+    const sheet = new SpriteSheet({
+      idle: mk(0, art.idle, 5, true),
+      attack: mk(1, art.attack, 12, false),
+    }, art.frameH * CONFIG.SPRITE_SCALE);
+    sheet.shadowOffsetX = 0;
+    measureContentBounds(sheet);
+    return sheet;
   }
 
   // Cache: one sheet promise per definition id, shared by battle units,
@@ -456,7 +381,7 @@ const Sprites = (() => {
 
   function getSheet(def) {
     if (!sheetCache.has(def.id)) {
-      sheetCache.set(def.id, load(def.sprite, def.tint || {}));
+      sheetCache.set(def.id, load(def.sprite, def));
     }
     return sheetCache.get(def.id);
   }
@@ -468,7 +393,7 @@ const Sprites = (() => {
     const key = `${def.id}:mirrors`;
     if (!sheetCache.has(key)) {
       sheetCache.set(key, Promise.all(
-        def.mirrorSprites.map((s) => load(s, def.tint || {}))));
+        def.mirrorSprites.map((s) => load(s, def))));
     }
     return sheetCache.get(key);
   }
