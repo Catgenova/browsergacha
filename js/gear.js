@@ -309,6 +309,40 @@ const Gear = (() => {
   // (Lv1 ~6, Lv30 ~137, Lv60 ~377, Lv89 ~677 whetstones).
   function polishCost(level) { return 5 + Math.ceil(Math.pow(level, 1.5) * 0.8); }
 
+  // ---- Rerolling (Arcana) ----
+  // The one gear verb that was missing: polish raises an item's level and
+  // enchanting raises its plus, but a piece that dropped with poor
+  // substat VALUES could never be improved. Rerolling rolls those values
+  // again — the stats themselves stay, so a crit-damage piece stays a
+  // crit-damage piece.
+  //
+  // The roll is offered, not applied. A blind reroll that can quietly
+  // destroy a good item is the version of this mechanic nobody enjoys;
+  // the player sees both sides and decides.
+  function rerollCost(piece) {
+    return 6 + RARITY_ORDER.indexOf(piece.rarity) * 6 + (piece.subs || []).length * 3;
+  }
+
+  // A fresh set of values for the same stats. Pure: nothing is mutated.
+  function rollSubValues(piece) {
+    return (piece.subs || []).map((sub) => ({
+      stat: sub.stat,
+      value: rollValue(SUB_POOL[sub.stat]),
+    }));
+  }
+
+  // Is the offered set better? Only advisory — the player chooses. Each
+  // stat is scored against its own roll range so a 20 ATK and a 5% crit
+  // are comparable.
+  function subsScore(subs) {
+    return (subs || []).reduce((sum, sub) => {
+      const t = SUB_POOL[sub.stat];
+      if (!t) return sum;
+      const [lo, hi] = t.roll;
+      return sum + (hi > lo ? (sub.value - lo) / (hi - lo) : 1);
+    }, 0);
+  }
+
   // ---- Enchanting (Arcana) ----
   const MAX_PLUS = 15;
   function arcanaCost(plus) { return 3 + plus; }
@@ -343,7 +377,12 @@ const Gear = (() => {
     const t = SUB_POOL[stat] || {};
     const label = t.label ||
       { atkFlat: 'ATK', defFlat: 'DEF', hpFlat: 'HP', spdFlat: 'SPD', atkPct: 'ATK', hpPct: 'HP' }[stat] || stat;
-    const pct = stat.endsWith('Pct') || stat === 'critChance' || stat === 'critDamage';
+    // The pool already says which stats are fractions; ask it rather than
+    // guessing from the name. Guessing printed accuracy and resistance as
+    // "+0.06" while crit, which is the same kind of number, read "+5%".
+    const pct = t.pct !== undefined
+      ? t.pct
+      : (stat.endsWith('Pct') || stat === 'critChance' || stat === 'critDamage');
     return pct ? `+${Math.round(value * 100)}% ${label}` : `+${value} ${label}`;
   }
 
@@ -452,6 +491,7 @@ const Gear = (() => {
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
     baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
+    rerollCost, rollSubValues, subsScore,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,
   };
 })();
