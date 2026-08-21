@@ -670,4 +670,31 @@ test('lifetime stats survive a quest period rolling over', () => {
     'the lifetime total reset along with the quest board');
 });
 
+
+test('nothing looks a boss up by its id', () => {
+  // BOSSES is keyed by short name ("carrion_king") while each entry's
+  // `id` is prefixed ("boss_carrion_king") -- the id is the save key for
+  // stage progress, never an index into the table. A lookup by id is
+  // silently undefined, and reading `.name` off it throws mid-victory,
+  // which froze the board with the boss at 0 HP. Same shape for the
+  // elemental bosses, whose `attuneId` *is* the key.
+  for (const [key, def] of Object.entries(BOSSES)) {
+    assert(def.id !== key, `${key}: boss id matches its key, so this test is moot`);
+    assert(!BOSSES[def.id], `${key}: BOSSES is indexable by id`);
+    assert(def.name, `${key}: no display name to carry`);
+  }
+  const dir = path.join(ROOT, 'js');
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+    (e.isDirectory() ? walk(path.join(d, e.name))
+      : e.name.endsWith('.js') ? [path.join(d, e.name)] : []));
+  for (const abs of walk(dir)) {
+    const rel = path.relative(ROOT, abs);
+    const src = fs.readFileSync(abs, 'utf8');
+    const bad = [...src.matchAll(/\bBOSSES\[([^\]]*)\]/g)]
+      .filter((m) => /\bid\b/.test(m[1]));
+    assert(bad.length === 0,
+      `${rel}: indexes BOSSES by an id (${bad.map((m) => m[0]).join(', ')})`);
+  }
+});
+
 report();
