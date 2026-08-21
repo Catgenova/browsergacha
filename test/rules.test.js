@@ -1248,4 +1248,38 @@ test('race packs pay the gear set to the whole party and stack with gear', () =>
     `worn gear and the pack should stack, got ${rats[0].gearDodge}`);
 });
 
+test('hero storage: gear comes off on deposit, play resumes on withdraw', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === 1);
+  const uid = G.addHero(cheap.id).uid;
+  // Dress the hero so the strip is observable.
+  const gid = G.addGear(w.Gear.drop('rat', 1));
+  assert(G.equipGear(uid, gid), 'gear did not equip');
+  assert(G.equippedPieces(uid).length === 1, 'equipment empty');
+
+  const fielded = G.addHero(cheap.id).uid;
+  G.setTeamSlot(0, fielded);
+  assert(G.deposit(fielded) === null, 'a fielded hero was stored');
+
+  const before = G.rosterCount();
+  const r = G.deposit(uid);
+  assert(r && r.gearFreed === 1, `deposit report ${JSON.stringify(r)}`);
+  assert(G.rosterCount() === before - 1, 'roster did not shrink');
+  assert(G.storageCount() === 1, 'vault did not grow');
+  assert(G.progressOf(uid) === null || G.defOf(uid) === null, 'stored hero still in play');
+  const stored = G.storedEntry(uid);
+  assert(stored && Object.keys(stored.equipment || {}).length === 0, 'gear went into the vault');
+  assert(G.unequippedGear().some((p) => p.uid === gid), 'the stripped piece is not back in the inventory');
+
+  const r2 = G.withdraw(uid);
+  assert(r2, 'withdraw failed with roster space open');
+  assert(G.storageCount() === 0 && G.progressOf(uid), 'withdraw did not restore the hero');
+
+  // The cap: a full roster refuses withdrawals.
+  G.deposit(uid);
+  while (!G.rosterFull()) G.addHero(cheap.id);
+  assert(G.withdraw(uid) === null, 'withdrew into a full roster');
+});
+
 report();

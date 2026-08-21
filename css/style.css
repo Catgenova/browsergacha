@@ -2549,6 +2549,8 @@ html.is-mobile .sub-compare { font-size: 13px; }
 #imp-count { font-size: 13px; color: #9a92b8; }
 /* Auto star up: a spender, so the armed (confirm) state looks like one. */
 #imp-auto { white-space: nowrap; font-size: 12px; }
+#imp-storage-btn { white-space: nowrap; font-size: 12px; }
+#imp-storage-btn.armed { border-color: #8ecbff; color: #8ecbff; }
 #imp-auto.armed {
   background: #4d4530;
   border-color: #ffd76a;

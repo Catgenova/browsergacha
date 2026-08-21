@@ -24,6 +24,7 @@ class ImproveScreen {
     this.selected = null;      // roster uid being improved
     this.chosen = new Set();   // roster uids marked for sacrifice
     this.message = '';
+    this.view = 'roster';      // 'roster' | 'storage' -- what the list shows
     if (this.searchEl) {
       this.searchEl.addEventListener('input', () => this.renderList());
     }
@@ -47,6 +48,14 @@ class ImproveScreen {
           `${r.spent} hero${r.spent === 1 ? '' : 'es'} spent` +
           (r.skills ? `, ${r.skills} skill level${r.skills === 1 ? '' : 's'} gained` : '') + '.';
         if (typeof Sound !== 'undefined') Sound.play('levelup');
+        this.refresh();
+      });
+    }
+    this.storageBtn = document.getElementById('imp-storage-btn');
+    if (this.storageBtn) {
+      this.storageBtn.addEventListener('click', () => {
+        this.view = this.view === 'storage' ? 'roster' : 'storage';
+        this.message = '';
         this.refresh();
       });
     }
@@ -98,10 +107,17 @@ class ImproveScreen {
     this.countEl.innerHTML = `<b>${n}</b> / ${max} heroes` +
       (n >= max ? ' <span class="imp-full">roster full</span>' : '');
     this.countEl.classList.toggle('imp-at-cap', n >= max);
+    if (this.storageBtn) {
+      this.storageBtn.textContent = this.view === 'storage'
+        ? '← Back to roster'
+        : `Storage ${GameState.storageCount()} / ${GameState.MAX_STORAGE}`;
+      this.storageBtn.classList.toggle('armed', this.view === 'storage');
+    }
   }
 
   // Everyone you could pick to improve, best first.
   renderList() {
+    if (this.view === 'storage') { this.renderStorageList(); return; }
     const q = (this.searchEl ? this.searchEl.value : '').trim().toLowerCase();
     const rows = GameState.ownedHeroIds()
       .map((uid) => ({ uid, def: GameState.defOf(uid), pr: GameState.progressOf(uid) }))
@@ -137,7 +153,62 @@ class ImproveScreen {
     });
   }
 
+  // The vault's contents. Clicking a row withdraws the hero (roster
+  // room permitting) -- parking is one click on the detail panel, so
+  // unparking is one click here.
+  renderStorageList() {
+    const q = (this.searchEl ? this.searchEl.value : '').trim().toLowerCase();
+    const rows = GameState.storedHeroIds()
+      .map((uid) => ({ uid, e: GameState.storedEntry(uid) }))
+      .filter((r) => r.e && HEROES[r.e.heroId])
+      .map((r) => ({ ...r, def: HEROES[r.e.heroId] }))
+      .filter((r) => !q || r.def.name.toLowerCase().includes(q) ||
+        (r.def.element || '').toLowerCase().includes(q))
+      .sort((a, b) => (b.e.stars - a.e.stars) || (b.e.level - a.e.level) ||
+        a.def.name.localeCompare(b.def.name));
+
+    this.listEl.innerHTML = rows.map((r) => `
+      <div class="imp-row imp-stored" data-uid="${r.uid}">
+        <canvas class="imp-portrait" width="40" height="40"></canvas>
+        <div class="imp-row-text">
+          <div class="imp-row-name">${Elements.badge(r.def.element)} ${r.def.name}</div>
+          <div class="imp-row-sub">Lv ${r.e.level} · ${
+            Attune.starsHtml(r.e.stars, r.e.attune, r.def.element)}</div>
+        </div>
+        <span class="imp-tag">WITHDRAW</span>
+      </div>`).join('') ||
+      `<div class="imp-empty">The vault is empty. Deposit heroes from the
+        roster view to make room without losing them.</div>`;
+
+    this.listEl.querySelectorAll('.imp-row').forEach((row) => {
+      Sprites.paintPortrait(row.querySelector('canvas'), HEROES[GameState.storedEntry(row.dataset.uid).heroId]);
+      row.addEventListener('click', () => {
+        if (GameState.rosterFull()) {
+          this.message = 'The roster is full — make room before withdrawing.';
+          this.refresh();
+          return;
+        }
+        const r = GameState.withdraw(row.dataset.uid);
+        if (r) this.message = 'Withdrawn to the roster.';
+        this.refresh();
+      });
+    });
+  }
+
   renderDetail() {
+    if (this.view === 'storage') {
+      this.detailEl.innerHTML = `<div class="imp-hint">
+        <b>Hero storage.</b>
+        <p>Up to ${GameState.MAX_STORAGE} heroes can wait here, beyond the
+        ${GameState.MAX_ROSTER}-hero roster. Stored heroes keep their levels,
+        stars, skills and attunements, but they are out of play: no team,
+        no sacrifices, no improving.</p>
+        <p class="imp-note">Depositing removes a hero's gear (returned to
+        the inventory). Click a stored hero to withdraw them.</p>
+        ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}
+      </div>`;
+      return;
+    }
     if (!this.selected) {
       this.detailEl.innerHTML = `<div class="imp-hint">
         <b>Pick a hero to improve.</b>
@@ -228,6 +299,14 @@ class ImproveScreen {
             `${willStar ? ' and star up' : ''}`
           : 'Choose sacrifices'}
       </button>
+      <button id="imp-deposit" class="panel-btn"
+        ${GameState.teamSlotOf(uid) !== null || GameState.storageFull() ? 'disabled' : ''}
+        title="${GameState.teamSlotOf(uid) !== null
+          ? 'Fielded heroes cannot be stored — remove them from the team first.'
+          : GameState.storageFull() ? 'The vault is full.'
+          : 'Park this hero in the vault. Their gear is removed and returned to the inventory.'}">
+        Send to storage (${GameState.storageCount()}/${GameState.MAX_STORAGE})
+      </button>
       ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}`;
 
     this.detailEl.querySelectorAll('.imp-opt').forEach((row) => {
@@ -245,6 +324,19 @@ class ImproveScreen {
     const go = document.getElementById('imp-go');
     if (go && !go.disabled) {
       go.addEventListener('click', () => this.commit(uid));
+    }
+
+    const dep = document.getElementById('imp-deposit');
+    if (dep && !dep.disabled) {
+      dep.addEventListener('click', () => {
+        const r = GameState.deposit(uid);
+        if (!r) { this.message = 'Could not store this hero.'; this.refresh(); return; }
+        this.select(null);
+        this.message = `${def.name} sent to storage` +
+          (r.gearFreed ? ` — ${r.gearFreed} piece${r.gearFreed > 1 ? 's' : ''} of gear returned.` : '.');
+        if (typeof Sound !== 'undefined') Sound.play('click');
+        this.refresh();
+      });
     }
 
     const att = document.getElementById('imp-attune');
