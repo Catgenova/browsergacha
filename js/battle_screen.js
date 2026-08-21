@@ -427,10 +427,10 @@ class BattleScreen {
     el.classList.toggle('hidden', !on);
     if (!on) return;
 
-    // The fight pickers live in this panel now; the team screen still
-    // owns their wiring, so ask it to bring the options up to date
-    // (stage unlocks, tower floor, disabled states).
-    if (this.app.screens.team) this.app.screens.team.updateButtons();
+    // The fight picker owns this panel's lower half; re-render so
+    // stage unlocks, the tower floor and team size are current.
+    if (!this.selectUi) this.selectUi = new BattleSelect(this.app);
+    this.selectUi.render();
 
     // The end-of-battle banner and the idle notice are two answers to the
     // same question, so only one is ever up.
