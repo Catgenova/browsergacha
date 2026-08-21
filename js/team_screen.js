@@ -439,6 +439,13 @@ class TeamScreen {
       msgEl.textContent = this.rosterMsg || '';
       msgEl.classList.toggle('hidden', !this.rosterMsg);
     }
+    // Roster capacity, on the bar everyone actually looks at.
+    const capEl = document.getElementById('roster-cap');
+    if (capEl) {
+      const n = GameState.rosterCount();
+      capEl.textContent = `${n} / ${GameState.MAX_ROSTER}`;
+      capEl.classList.toggle('roster-cap-full', n >= GameState.MAX_ROSTER);
+    }
     const team = GameState.getTeam();
     const inTeam = new Set(Object.values(team));
     // Card reuse: rebuilding 385 cards (and 385 portrait canvases) on
