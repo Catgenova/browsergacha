@@ -338,7 +338,21 @@ class TeamScreen {
       };
       for (const [race, count] of Object.entries(RACES.counts(defs))) {
         if (count < 2) continue;
-        row(`${RACES.NAMES[race]} pack`, null, count, RACES.BONUSES[race] || []);
+        const tiers = RACES.BONUSES[race] || [];
+        if (!tiers.length) continue; // humans: sects, not a pack
+        row(`${RACES.NAMES[race]} pack`, null, count, tiers);
+      }
+      // Human sects: shown as soon as a member is fielded. No bonuses
+      // yet -- the rows say who stands together and how many the sect
+      // will want (its number).
+      for (const sect of Object.values(RACES.SECTS)) {
+        const fielded = defs.filter((d) => RACES.sectOf(d) === sect).length;
+        if (fielded < 1) continue;
+        rows.push(`<div class="syn-row">
+          <span class="syn-name">${sect.name} sect &times;${fielded}</span>
+          <span class="syn-tier">No. ${sect.number}</span>
+          <span class="syn-tier">${fielded}/${sect.members.length} known members</span>
+          <span class="syn-tier">bonuses to come</span></div>`);
       }
       for (const [el, count] of Object.entries(RACES.elementCounts(defs))) {
         if (count < 2) continue;
@@ -872,6 +886,7 @@ class TeamScreen {
     this.detailsEl.innerHTML = `
       <div class="detail-name rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name} <span class="detail-title">${def.title || ''}</span></div>
       ${def.element && Elements.info(def.element) ? `<div class="detail-element" style="color:${Elements.info(def.element).color}">${Elements.info(def.element).name} element</div>` : ''}
+      ${RACES.sectOf(def) ? `<div class="detail-element detail-sect">${RACES.sectOf(def).name} Sect &middot; No. ${RACES.sectOf(def).number}</div>` : ''}
       <div class="card-stars rarity-${def.rarity}">${starsText}</div>
       <div class="detail-level">
         Lv ${progress.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}

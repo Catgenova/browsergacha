@@ -348,7 +348,14 @@ class CompendiumScreen {
 
     // Party synergies this hero counts toward.
     const synergyRows = [];
-    if (race && RACES.BONUSES[race]) {
+    const sect = RACES.sectOf(def);
+    if (sect) {
+      const names = sect.members.map((id) =>
+        HEROES[id] ? HEROES[id].name : id.charAt(0).toUpperCase() + id.slice(1));
+      synergyRows.push(`<div class="comp-syn"><b>${sect.name} Sect (No. ${sect.number})</b>` +
+        `<span>${names.join(', ')}</span><span>Sect bonuses to come.</span></div>`);
+    }
+    if (race && RACES.BONUSES[race] && RACES.BONUSES[race].length) {
       synergyRows.push(`<div class="comp-syn"><b>${RACES.NAMES[race]} pack</b>` +
         RACES.BONUSES[race].map((t) => `<span>${t.label}</span>`).join('') + '</div>');
     }
