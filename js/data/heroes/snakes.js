@@ -20,21 +20,21 @@ Object.assign(HEROES, {
       {
         id: 'fang_slash', name: 'Fang Slash',
         icon: 'assets/icons/fc726.png',
-        description: 'Slash for 95% ATK with a lick of venom: 15% ATK for 1 turn.',
+        description: 'Slash for 95% ATK with a lick of venom: 30% ATK for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.95 },
-          { type: 'dot', pct: 0.15, turns: 1 },
+          { type: 'dot', pct: 0.3, turns: 1 },
         ],
       },
       {
         id: 'venom_cut', name: 'Venom Cut',
         icon: 'assets/icons/fc722.png',
-        description: 'Deals 120% ATK and poisons for 30% ATK per turn (2 turns).',
+        description: 'Deals 120% ATK and poisons for 60% ATK per turn (2 turns).',
         cooldown: 3, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.2 },
-          { type: 'dot', pct: 0.3, turns: 2 },
+          { type: 'dot', pct: 0.6, turns: 2 },
         ],
       },
       {
@@ -93,21 +93,21 @@ Object.assign(HEROES, {
       {
         id: 'venom_arrow', name: 'Venom Arrow',
         icon: 'assets/icons/fc1516.png',
-        description: 'Deals 115% ATK and poisons for 30% ATK per turn (2 turns).',
+        description: 'Deals 115% ATK and poisons for 60% ATK per turn (2 turns).',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.15 },
-          { type: 'dot', pct: 0.3, turns: 2 },
+          { type: 'dot', pct: 0.6, turns: 2 },
         ],
       },
       {
         id: 'arrow_hiss', name: 'Arrow Hiss',
         icon: 'assets/icons/fc807.png',
-        description: 'A venom-tipped volley: 60% ATK to ALL enemies plus a 10% ATK poison for 1 turn.',
+        description: 'A venom-tipped volley: 60% ATK to ALL enemies plus a 20% ATK poison for 1 turn.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.6 },
-          { type: 'dot', pct: 0.10, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
     ],
@@ -142,21 +142,21 @@ Object.assign(HEROES, {
       {
         id: 'viper_stab', name: 'Viper Stab',
         icon: 'assets/icons/fc1444.png',
-        description: 'A lightning stab: 100% ATK plus 20% ATK venom for 1 turn.',
+        description: 'A lightning stab: 100% ATK plus 40% ATK venom for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'dot', pct: 0.20, turns: 1 },
+          { type: 'dot', pct: 0.4, turns: 1 },
         ],
       },
       {
         id: 'envenom', name: 'Envenom',
         icon: 'assets/icons/fc825.png',
-        description: 'Deals 130% ATK and poisons for 40% ATK per turn (3 turns).',
+        description: 'Deals 130% ATK and poisons for 80% ATK per turn (3 turns).',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.3 },
-          { type: 'dot', pct: 0.4, turns: 3 },
+          { type: 'dot', pct: 0.8, turns: 3 },
         ],
       },
       {
@@ -200,11 +200,11 @@ Object.assign(HEROES, {
       {
         id: 'venom_bolt', name: 'Venom Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'A gob of venom: 80% ATK plus an 18% ATK poison for 2 turns.',
+        description: 'A gob of venom: 80% ATK plus an 36% ATK poison for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
-          { type: 'dot', pct: 0.18, turns: 2 },
+          { type: 'dot', pct: 0.36, turns: 2 },
         ],
       },
       {
@@ -220,11 +220,11 @@ Object.assign(HEROES, {
       {
         id: 'toxic_nova', name: 'Toxic Nova',
         icon: 'assets/icons/fc1067.png',
-        description: 'Deals 75% ATK to ALL enemies and poisons for 25% ATK per turn (2 turns).',
+        description: 'Deals 75% ATK to ALL enemies and poisons for 50% ATK per turn (2 turns).',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.75 },
-          { type: 'dot', pct: 0.25, turns: 2 },
+          { type: 'dot', pct: 0.5, turns: 2 },
         ],
       },
     ],
@@ -330,11 +330,11 @@ Object.assign(HEROES, {
       {
         id: 'miasma', name: 'Miasma',
         icon: 'assets/icons/fc1068.png',
-        description: 'Deals 50% ATK to ALL enemies and poisons for 35% ATK per turn (3 turns).',
+        description: 'Deals 50% ATK to ALL enemies and poisons for 70% ATK per turn (3 turns).',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.5 },
-          { type: 'dot', pct: 0.35, turns: 3 },
+          { type: 'dot', pct: 0.7, turns: 3 },
         ],
       },
     ],
@@ -486,11 +486,11 @@ Object.assign(HEROES, {
       {
         id: 'venom_spit', name: 'Venom Spit',
         icon: 'assets/icons/fc981.png',
-        description: 'A gob of spit: 75% ATK plus 22% ATK venom for 1 turn.',
+        description: 'A gob of spit: 75% ATK plus 44% ATK venom for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.75 },
-          { type: 'dot', pct: 0.22, turns: 1 },
+          { type: 'dot', pct: 0.44, turns: 1 },
         ],
       },
       {
@@ -740,11 +740,11 @@ Object.assign(HEROES, {
       {
         id: 'flame_gulp', name: 'Flame Gulp',
         icon: 'assets/icons/fc981.png',
-        description: 'Spit stolen fire: 100% ATK plus a 12% ATK burn for 1 turn.',
+        description: 'Spit stolen fire: 100% ATK plus a 24% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'dot', pct: 0.12, turns: 1 },
+          { type: 'dot', pct: 0.24, turns: 1 },
         ],
       },
       {
@@ -1000,11 +1000,11 @@ Object.assign(HEROES, {
       {
         id: 'hex_of_rot', name: 'Hex of Rot',
         icon: 'assets/icons/fc1052.png',
-        description: 'A rotting hex: 110% ATK plus 30% ATK decay for 3 turns.',
+        description: 'A rotting hex: 110% ATK plus 60% ATK decay for 3 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.1 },
-          { type: 'dot', pct: 0.3, turns: 3 },
+          { type: 'dot', pct: 0.6, turns: 3 },
         ],
       },
     ],
@@ -1098,11 +1098,11 @@ Object.assign(HEROES, {
       {
         id: 'toxin_dart', name: 'Toxin Dart',
         icon: 'assets/icons/fc981.png',
-        description: 'A coated dart: 70% ATK plus 28% ATK venom for 1 turn.',
+        description: 'A coated dart: 70% ATK plus 56% ATK venom for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.7 },
-          { type: 'dot', pct: 0.28, turns: 1 },
+          { type: 'dot', pct: 0.56, turns: 1 },
         ],
       },
       {
@@ -1395,19 +1395,19 @@ Object.assign(HEROES, {
       {
         id: 'plague_touch', name: 'Plague Touch',
         icon: 'assets/icons/fc1093.png',
-        description: 'A mere touch: 20% ATK sickness per turn for 2 turns.',
+        description: 'A mere touch: 40% ATK sickness per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'dot', pct: 0.2, turns: 2 },
+          { type: 'dot', pct: 0.4, turns: 2 },
         ],
       },
       {
         id: 'spreading_sickness', name: 'Spreading Sickness',
         icon: 'assets/icons/fc1084.png',
-        description: 'The plague leaps: ALL enemies sicken for 15% ATK per turn for 2 turns.',
+        description: 'The plague leaps: ALL enemies sicken for 30% ATK per turn for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'dot', pct: 0.15, turns: 2 },
+          { type: 'dot', pct: 0.3, turns: 2 },
         ],
       },
       {

@@ -356,4 +356,32 @@ test('every hero classifies into exactly one of the six archetypes', () => {
     `${total} heroes classified out of ${Object.keys(HEROES).length}`);
 });
 
+test('poison descriptions quote the poison the ability actually applies', () => {
+  const { HEROES, BOSSES, ENEMIES } = g;
+  // Rescaling DoT once already left 82 descriptions quoting the old
+  // numbers, so the text and the effect are checked against each other.
+  const pct = (x) => String(Math.round(x * 1000) / 10);
+  const problems = [];
+  const pools = [HEROES, BOSSES, ENEMIES];
+  for (const pool of pools) {
+    for (const def of Object.values(pool)) {
+      for (const ab of def.abilities || []) {
+        const dot = (ab.effects || []).find((e) => e.type === 'dot');
+        if (!dot || !ab.description) continue;
+        // The number may be written 60 or 60.0; accept either, and allow
+        // a description that deliberately gives no figure at all.
+        const quoted = [...ab.description.matchAll(/(\d+(?:\.\d+)?)%/g)]
+          .map((m) => m[1].replace(/\.0$/, ''));
+        if (quoted.length === 0) continue;
+        if (!quoted.includes(pct(dot.pct))) {
+          problems.push(`${def.id}/${ab.id}: applies ${pct(dot.pct)}% but says ` +
+            `"${ab.description.slice(0, 60)}"`);
+        }
+      }
+    }
+  }
+  assert(problems.length === 0,
+    `${problems.length} stale: ` + problems.slice(0, 4).join(' | '));
+});
+
 report();

@@ -668,21 +668,21 @@ Object.assign(HEROES, {
       {
         id: 'meat_hook', name: 'Meat Hook',
         icon: 'assets/icons/fc1444.png',
-        description: 'A dragging hook: 93% ATK that opens a 10% ATK bleed for 1 turn.',
+        description: 'A dragging hook: 93% ATK that opens a 20% ATK bleed for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.93 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
       {
         id: 'carve', name: 'Carve',
         icon: 'assets/icons/fc1447.png',
-        description: 'A carving stroke: 125% ATK plus a 25% ATK bleed for 2 turns.',
+        description: 'A carving stroke: 125% ATK plus a 50% ATK bleed for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.25 },
-          { type: 'dot', pct: 0.25, turns: 2 },
+          { type: 'dot', pct: 0.5, turns: 2 },
         ],
       },
       {
@@ -1458,21 +1458,21 @@ Object.assign(HEROES, {
       {
         id: 'brand_slash', name: 'Brand Slash',
         icon: 'assets/icons/fc981.png',
-        description: 'A burning stroke: 105% ATK plus an 8% ATK burn for 2 turns.',
+        description: 'A burning stroke: 105% ATK plus an 16% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.05 },
-          { type: 'dot', pct: 0.08, turns: 2 },
+          { type: 'dot', pct: 0.16, turns: 2 },
         ],
       },
       {
         id: 'searing_brand', name: 'Searing Brand',
         icon: 'assets/icons/fc1052.png',
-        description: 'Press the brand in: the target takes +25% damage and burns for 20% ATK, both for 2 turns.',
+        description: 'Press the brand in: the target takes +25% damage and burns for 40% ATK, both for 2 turns.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'debuff', stat: 'damageTaken', mult: 1.25, turns: 2 },
-          { type: 'dot', pct: 0.2, turns: 2 },
+          { type: 'dot', pct: 0.4, turns: 2 },
         ],
       },
       {

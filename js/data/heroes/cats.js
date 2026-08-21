@@ -139,21 +139,21 @@ Object.assign(HEROES, {
       {
         id: 'warm_swat', name: 'Warm Swat',
         icon: 'assets/icons/fc663.png',
-        description: 'A toasty swat: 100% ATK plus a 6% ATK singe for 1 turn.',
+        description: 'A toasty swat: 100% ATK plus a 12% ATK singe for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'punch',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'dot', pct: 0.06, turns: 1 },
+          { type: 'dot', pct: 0.12, turns: 1 },
         ],
       },
       {
         id: 'coal_flick', name: 'Coal Flick',
         icon: 'assets/icons/fc981.png',
-        description: 'Flick a live coal: 121% ATK plus a 15% ATK burn for 1 turn.',
+        description: 'Flick a live coal: 121% ATK plus a 30% ATK burn for 1 turn.',
         cooldown: 3, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.21 },
-          { type: 'dot', pct: 0.15, turns: 1 },
+          { type: 'dot', pct: 0.3, turns: 1 },
         ],
       },
       {
@@ -444,11 +444,11 @@ Object.assign(HEROES, {
       {
         id: 'spark_swat', name: 'Spark Swat',
         icon: 'assets/icons/fc981.png',
-        description: 'Bat a live spark: 97% ATK plus a 9% ATK singe for 1 turn.',
+        description: 'Bat a live spark: 97% ATK plus a 18% ATK singe for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.97 },
-          { type: 'dot', pct: 0.09, turns: 1 },
+          { type: 'dot', pct: 0.18, turns: 1 },
         ],
       },
       {
@@ -466,11 +466,11 @@ Object.assign(HEROES, {
       {
         id: 'spark_shower', name: 'Spark Shower',
         icon: 'assets/icons/fc1044.png',
-        description: 'Scatter the fire: 57% ATK to ALL enemies plus a 7% ATK singe for 1 turn.',
+        description: 'Scatter the fire: 57% ATK to ALL enemies plus a 14% ATK singe for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.57 },
-          { type: 'dot', pct: 0.07, turns: 1 },
+          { type: 'dot', pct: 0.14, turns: 1 },
         ],
       },
     ],
@@ -764,11 +764,11 @@ Object.assign(HEROES, {
       {
         id: 'night_execution', name: 'Night Execution',
         icon: 'assets/icons/fc734.png',
-        description: 'The quiet ending: 178% ATK plus an 18% ATK bleed for 1 turn.',
+        description: 'The quiet ending: 178% ATK plus an 36% ATK bleed for 1 turn.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.78 },
-          { type: 'dot', pct: 0.18, turns: 1 },
+          { type: 'dot', pct: 0.36, turns: 1 },
         ],
       },
     ],
@@ -1168,11 +1168,11 @@ Object.assign(HEROES, {
       {
         id: 'burning_stripes', name: 'Burning Stripes',
         icon: 'assets/icons/fc744.png',
-        description: 'Stripes in the tall grass: 162% ATK plus a 14% ATK bleed for 1 turn.',
+        description: 'Stripes in the tall grass: 162% ATK plus a 28% ATK bleed for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.62 },
-          { type: 'dot', pct: 0.14, turns: 1 },
+          { type: 'dot', pct: 0.28, turns: 1 },
         ],
       },
       {

@@ -167,11 +167,11 @@ Object.assign(HEROES, {
       {
         id: 'hive_toss', name: 'Hive Toss',
         icon: 'assets/icons/fc807.png',
-        description: 'Throw the whole hive: 60% ATK to ALL enemies plus a 9% ATK sting for 1 turn.',
+        description: 'Throw the whole hive: 60% ATK to ALL enemies plus a 18% ATK sting for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.6 },
-          { type: 'dot', pct: 0.09, turns: 1 },
+          { type: 'dot', pct: 0.18, turns: 1 },
         ],
       },
     ],
@@ -380,11 +380,11 @@ Object.assign(HEROES, {
       {
         id: 'bramble_swat', name: 'Bramble Swat',
         icon: 'assets/icons/fc981.png',
-        description: 'A thorny swat: 94% ATK plus a 6% ATK scratch for 1 turn.',
+        description: 'A thorny swat: 94% ATK plus a 12% ATK scratch for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.94 },
-          { type: 'dot', pct: 0.06, turns: 1 },
+          { type: 'dot', pct: 0.12, turns: 1 },
         ],
       },
       {
@@ -695,21 +695,21 @@ Object.assign(HEROES, {
       {
         id: 'smolder_swipe', name: 'Smolder Swipe',
         icon: 'assets/icons/fc981.png',
-        description: 'A smoking swipe: 96% ATK plus an 11% ATK burn for 2 turns.',
+        description: 'A smoking swipe: 96% ATK plus an 22% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.96 },
-          { type: 'dot', pct: 0.11, turns: 2 },
+          { type: 'dot', pct: 0.22, turns: 2 },
         ],
       },
       {
         id: 'pelt_flare', name: 'Pelt Flare',
         icon: 'assets/icons/fc1050.png',
-        description: 'The pelt catches: 131% ATK plus an 18% ATK burn for 1 turn.',
+        description: 'The pelt catches: 131% ATK plus an 36% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.31 },
-          { type: 'dot', pct: 0.18, turns: 1 },
+          { type: 'dot', pct: 0.36, turns: 1 },
         ],
       },
       {
@@ -1424,21 +1424,21 @@ Object.assign(HEROES, {
       {
         id: 'coalbite', name: 'Coalbite',
         icon: 'assets/icons/fc981.png',
-        description: 'A glowing bite: 110% ATK plus a 9% ATK burn for 2 turns.',
+        description: 'A glowing bite: 110% ATK plus a 18% ATK burn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.1 },
-          { type: 'dot', pct: 0.09, turns: 2 },
+          { type: 'dot', pct: 0.18, turns: 2 },
         ],
       },
       {
         id: 'swallow_the_bonfire', name: 'Swallow the Bonfire',
         icon: 'assets/icons/fc1050.png',
-        description: 'Down in one: heals himself 14% max HP and his next breath scorches: 128% ATK plus a 22% ATK burn for 1 turn.',
+        description: 'Down in one: heals himself 14% max HP and his next breath scorches: 128% ATK plus a 44% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.28 },
-          { type: 'dot', pct: 0.22, turns: 1 },
+          { type: 'dot', pct: 0.44, turns: 1 },
         ],
         selfEffects: [
           { type: 'healHpPct', pct: 0.14 },
@@ -1447,11 +1447,11 @@ Object.assign(HEROES, {
       {
         id: 'mawfire', name: 'Mawfire',
         icon: 'assets/icons/fc1044.png',
-        description: 'Open the furnace: 72% ATK to ALL enemies plus a 14% ATK burn for 2 turns.',
+        description: 'Open the furnace: 72% ATK to ALL enemies plus a 28% ATK burn for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.72 },
-          { type: 'dot', pct: 0.14, turns: 2 },
+          { type: 'dot', pct: 0.28, turns: 2 },
         ],
       },
     ],

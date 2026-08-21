@@ -374,11 +374,11 @@ Object.assign(HEROES, {
       {
         id: 'darkfang', name: 'Darkfang',
         icon: 'assets/icons/fc1444.png',
-        description: 'A bite from the black: 105% ATK plus a 10% ATK bleed for 1 turn.',
+        description: 'A bite from the black: 105% ATK plus a 20% ATK bleed for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.05 },
-          { type: 'dot', pct: 0.1, turns: 1 },
+          { type: 'dot', pct: 0.2, turns: 1 },
         ],
       },
       {
@@ -435,11 +435,11 @@ Object.assign(HEROES, {
       {
         id: 'cinder_snap', name: 'Cinder Snap',
         icon: 'assets/icons/fc981.png',
-        description: 'A smoldering snap: 90% ATK plus a 14% ATK burn for 1 turn.',
+        description: 'A smoldering snap: 90% ATK plus a 28% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.9 },
-          { type: 'dot', pct: 0.14, turns: 1 },
+          { type: 'dot', pct: 0.28, turns: 1 },
         ],
       },
       {
@@ -457,11 +457,11 @@ Object.assign(HEROES, {
       {
         id: 'wildfire_ring', name: 'Wildfire Ring',
         icon: 'assets/icons/fc1044.png',
-        description: 'Circle them in flame: 50% ATK to ALL enemies plus an 18% ATK burn for 1 turn.',
+        description: 'Circle them in flame: 50% ATK to ALL enemies plus an 36% ATK burn for 1 turn.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.5 },
-          { type: 'dot', pct: 0.18, turns: 1 },
+          { type: 'dot', pct: 0.36, turns: 1 },
         ],
       },
     ],
@@ -1328,31 +1328,31 @@ Object.assign(HEROES, {
       {
         id: 'hellhound_bite', name: 'Hellhound Bite',
         icon: 'assets/icons/fc981.png',
-        description: 'A smoldering bite: 108% ATK plus an 11% ATK burn for 1 turn.',
+        description: 'A smoldering bite: 108% ATK plus an 13% ATK burn for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.08 },
-          { type: 'dot', pct: 0.11, turns: 1 },
+          { type: 'dot', pct: 0.13, turns: 1 },
         ],
       },
       {
         id: 'infernal_rush', name: 'Infernal Rush',
         icon: 'assets/icons/fc744.png',
-        description: 'A burning charge: 155% ATK plus a 30% ATK burn for 1 turn.',
+        description: 'A burning charge: 155% ATK plus a 36% ATK burn for 1 turn.',
         cooldown: 4, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.55 },
-          { type: 'dot', pct: 0.3, turns: 1 },
+          { type: 'dot', pct: 0.36, turns: 1 },
         ],
       },
       {
         id: 'immolation_howl', name: 'Immolation Howl',
         icon: 'assets/icons/fc1044.png',
-        description: 'A howl of open flame: 65% ATK to ALL enemies plus a 22% ATK burn for 2 turns.',
+        description: 'A howl of open flame: 65% ATK to ALL enemies plus a 26% ATK burn for 2 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.65 },
-          { type: 'dot', pct: 0.22, turns: 2 },
+          { type: 'dot', pct: 0.26, turns: 2 },
         ],
       },
     ],
