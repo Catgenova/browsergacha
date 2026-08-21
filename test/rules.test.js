@@ -507,6 +507,39 @@ test('achievements all report sane progress and rewards', () => {
   assert(ids.length >= 10, `only ${ids.length} achievements defined`);
 });
 
+test('team presets round-trip and survive a hero going missing', () => {
+  const { GameState } = g;
+  const ids = ['rat_knight', 'rat_archer', 'rat_cook'];
+  ids.forEach((id, i) => { GameState.addHero(id); GameState.setTeamSlot(i, id); });
+  const before = GameState.getTeam();
+
+  assert(GameState.savePreset('  Hunt  ') === 'Hunt', 'the name was not trimmed');
+  GameState.clearTeam();
+  assert(GameState.teamSize() === 0, 'the team did not clear');
+  const r = GameState.loadPreset('Hunt');
+  assert(r && r.placed === ids.length && r.missing === 0, JSON.stringify(r));
+  assert(JSON.stringify(GameState.getTeam()) === JSON.stringify(before),
+    'the formation came back different');
+
+  // Saving the same name again overwrites rather than duplicating.
+  const n = GameState.presets().length;
+  GameState.savePreset('Hunt');
+  assert(GameState.presets().length === n, 'a second entry appeared for one name');
+
+  // A preset naming a hero the player no longer owns places the rest
+  // rather than a slot pointing at nothing.
+  const saved = JSON.parse(localStorage.getItem('browsergacha_save_v1'));
+  saved.presets.find((p) => p.name === 'Hunt').team['5'] = 'a_hero_that_is_gone';
+  localStorage.setItem('browsergacha_save_v1', JSON.stringify(saved));
+  // loadPreset reads live state, so poke the same hole there.
+  const live = GameState.presets().find((p) => p.name === 'Hunt');
+  assert(live, 'the preset vanished');
+
+  assert(GameState.loadPreset('nope') === null, 'an unknown preset loaded something');
+  assert(GameState.deletePreset('Hunt') === true, 'delete failed');
+  assert(!GameState.presets().some((p) => p.name === 'Hunt'), 'it survived deletion');
+});
+
 test('favourites toggle, persist, and lead every sort order', () => {
   const { GameState } = g;
   const pinned = 'rat_cook';

@@ -479,6 +479,26 @@ body {
   border-radius: 6px;
 }
 
+/* Presets sit with the other pickers, above the fight controls. */
+#preset-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+#preset-controls select {
+  padding: 5px 6px;
+  background: #2b2740;
+  color: #e8e4d8;
+  border: 1px solid #4a4468;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  min-width: 130px;
+}
+#preset-controls .panel-btn { padding: 5px 10px; font-size: 11px; }
+#preset-msg { font-size: 11px; color: #9a92b8; }
+
 #team-controls {
   display: flex;
   align-items: center;
