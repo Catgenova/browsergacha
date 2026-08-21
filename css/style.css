@@ -39,7 +39,12 @@ body {
 #topbar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  /* Wrapping, because the row does not fit 960px: logo, seven tabs, two
+     currency readouts and two buttons overflowed nowrap, which squeezed
+     the scroll counts into a vertical stack and pushed the materials
+     readout clean outside the panel. */
+  flex-wrap: wrap;
+  gap: 12px 20px;
   padding: 10px 16px;
   margin-bottom: 12px;
   background: #1c1926;
@@ -70,8 +75,10 @@ body {
 
 #nav-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .nav-tab {
@@ -422,6 +429,8 @@ body {
 
 #battle-banner {
   position: absolute;
+  /* Above #battle-controls-row, which carries a z-index of its own. */
+  z-index: 6;
   top: 170px;
   left: 50%;
   transform: translateX(-50%);
@@ -1560,7 +1569,7 @@ body {
   background: rgba(20, 18, 30, 0.96);
   border: 2px solid #5a5078;
   border-radius: 8px;
-  z-index: 5;
+  z-index: 6;
 }
 .legend-head {
   display: flex;
@@ -1671,7 +1680,6 @@ body {
   .meter-tab, .meter-scope, .log-filter, .comp-cat { padding: 7px 10px; font-size: 11px; }
   #comp-top select, #roster-sort, #comp-search, #roster-search { padding: 8px; font-size: 12px; }
   .roster-card { min-width: 92px; }
-  #status-legend { width: 92%; }
 }
 
 /* Very narrow: let the nav wrap instead of squeezing the currency rows. */
@@ -1948,8 +1956,21 @@ body {
     padding: 8px 10px;
   }
   html.is-mobile #logo { font-size: 15px; }
+  /* Explicit order, because five items wrapping by whatever happens to
+     fit put the tab strip on the same line as the currencies and clipped
+     the last tab in half. */
+  html.is-mobile #logo { order: 0; }
+  html.is-mobile #scroll-display { order: 1; }
+  html.is-mobile #mat-display { order: 2; }
+  html.is-mobile #mute-btn { order: 3; }
+  html.is-mobile #help-btn { order: 4; }
+  html.is-mobile #mute-btn,
+  html.is-mobile #help-btn { min-height: 44px; min-width: 44px; }
   html.is-mobile #nav-tabs {
-    order: 3;
+    order: 5;
+    /* flex-basis, not width: a flex item with width:100% still shrinks to
+       share a line, which is exactly what it was doing. */
+    flex: 0 0 100%;
     width: 100%;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -1978,27 +1999,55 @@ body {
   html.is-mobile #battle-canvas { width: 100%; height: auto; }
   html.is-mobile #hero-details { max-height: none; }
 
-  /* ---- Battle: lift the controls off the canvas ----
-     At 390px the canvas is ~220px tall. Buttons floating over it and an
-     ability bar pinned inside it would cover the fight, so both become
-     ordinary blocks underneath. The banner and legend stay overlaid —
-     they are modal by nature. */
+  /* ---- Battle: lift everything off the canvas ----
+     At 390px the canvas is ~220px tall, so nothing overlaid on it stays
+     on it. The controls and ability bar became ordinary blocks
+     underneath; the banner, the legend and the tactics panel were left
+     overlaid on the theory that they are modal by nature, and they are
+     not — the end-of-battle banner grew past the canvas and sat on top
+     of the controls and the battle log. Everything in this column is in
+     flow now, ordered under the fight it belongs to. */
   html.is-mobile #battle-wrap {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
   html.is-mobile #battle-canvas { order: 1; }
-  html.is-mobile #battle-controls-row {
+  /* The panels that used to float over the board: banner, legend,
+     tactics. Same order, so they stack in DOM order between the canvas
+     and the controls. */
+  html.is-mobile #battle-banner,
+  html.is-mobile #status-legend,
+  html.is-mobile #tactics-panel {
     order: 2;
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    z-index: auto;
+  }
+  html.is-mobile #battle-banner { padding: 16px 12px; }
+  html.is-mobile #banner-actions { width: 100%; }
+  html.is-mobile #banner-actions .panel-btn {
+    flex: 1 1 140px;
+    min-height: 44px;
+  }
+  /* The advance button names its destination ("Next: The Grain Sheds"),
+     which does not fit half a phone's width without an ellipsis. */
+  html.is-mobile #banner-advance { max-width: none; flex: 1 1 100%; }
+  html.is-mobile #battle-controls-row {
+    order: 3;
     position: static;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     pointer-events: auto;
+    /* A flex item paints by its z-index even when it is static, so the
+       bar drew on top of the banner until this cleared. */
+    z-index: auto;
   }
   html.is-mobile #ability-bar {
-    order: 3;
+    order: 4;
     position: static;
     transform: none;
     width: 100%;
@@ -2014,6 +2063,14 @@ body {
   }
   /* Stacked in flow on a phone: no auto-margin gap, just an even row. */
   html.is-mobile #retreat-btn { margin-right: 0; }
+  /* The preset row is four controls and a message on one line; at 320px
+     the delete button hung off the edge and took the page with it. */
+  html.is-mobile #preset-controls,
+  html.is-mobile #team-controls,
+  html.is-mobile #wave-controls,
+  html.is-mobile #boss-controls { flex-wrap: wrap; }
+  html.is-mobile #preset-controls select { min-width: 0; flex: 1 1 120px; }
+
   html.is-mobile #ability-buttons { width: 100%; gap: 8px; }
   html.is-mobile .ability-btn {
     flex: 1 1 0;
@@ -2223,7 +2280,7 @@ html.is-mobile .sub-compare { font-size: 13px; }
   background: rgba(20, 18, 30, 0.96);
   border: 2px solid #5a5078;
   border-radius: 8px;
-  z-index: 5;
+  z-index: 6;
 }
 
 .tactic-row { margin-bottom: 12px; }
@@ -2254,7 +2311,6 @@ html.is-mobile .sub-compare { font-size: 13px; }
 }
 
 @media (max-width: 899px) {
-  html.is-mobile #tactics-panel { width: 92%; }
   html.is-mobile .tactic-row select { min-height: 40px; font-size: 14px; }
   html.is-mobile .tactic-hint { font-size: 13px; }
 }
