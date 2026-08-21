@@ -486,6 +486,7 @@ class BattleScreen {
           const before = GameState.progressOf(heroId);
           const r = GameState.addXp(heroId, this.rewardXp);
           if (r && r.levelsGained > 0 && before) {
+            if (typeof Sound !== 'undefined') Sound.play('levelup');
             levelUps.push(`${HEROES[heroId].name} Lv ${r.level}!`);
           }
         }

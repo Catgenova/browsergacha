@@ -65,7 +65,12 @@ class SummonScreen {
       this.resultsEl.appendChild(card);
       // Staggered flip reveal; 5★ cards land last-feeling via slight extra delay.
       const delay = 250 + i * 220 + (res.rarity === 5 ? 150 : 0);
-      setTimeout(() => card.classList.add('revealed'), delay);
+      setTimeout(() => {
+        card.classList.add('revealed');
+        // The run climbs with rarity, so the ear knows what turned up
+        // before the card finishes flipping.
+        if (typeof Sound !== 'undefined') Sound.play('summon', res.rarity);
+      }, delay);
     });
 
     const totalDelay = 250 + results.length * 220 + 600;

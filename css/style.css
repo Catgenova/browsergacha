@@ -2143,3 +2143,14 @@ body {
   html.is-mobile .nav-tab { padding: 10px 12px; font-size: 13px; }
   html.is-mobile #logo { font-size: 14px; }
 }
+
+/* Mute toggle: quiet in the top bar until you look for it. */
+#mute-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 1;
+  background: #2b2740;
+  border: 1px solid #4a4468;
+}
+#mute-btn.muted { opacity: 0.55; }
+html.is-mobile #mute-btn { min-height: 44px; min-width: 44px; font-size: 18px; }

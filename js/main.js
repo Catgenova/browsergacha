@@ -208,6 +208,23 @@ const App = {
     campaignBadge.classList.toggle('hidden', !open);
   };
 
+  // Mute: the label is the state, and the choice sticks between visits.
+  const muteBtn = document.getElementById('mute-btn');
+  if (muteBtn) {
+    const paint = () => {
+      const off = Sound.isMuted();
+      muteBtn.textContent = off ? '🔇' : '🔊';
+      muteBtn.classList.toggle('muted', off);
+      muteBtn.title = off ? 'Sound off — click to unmute' : 'Sound on — click to mute';
+    };
+    muteBtn.addEventListener('click', () => {
+      Sound.toggle();
+      paint();
+      Sound.play('click'); // silent when muting, audible when unmuting
+    });
+    paint();
+  }
+
   // Quest badge: a dot on the tab whenever rewards are claimable.
   const questBadge = document.getElementById('quest-badge');
   const updateQuestBadge = () => {
