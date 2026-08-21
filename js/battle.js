@@ -97,6 +97,24 @@ class Battle {
     for (const fx of this.effectSprites) fx.player.update(dt);
     this.effectSprites = this.effectSprites.filter((fx) => !fx.done);
 
+    // Stall watchdog: an action that never completes (its animation
+    // callback lost, however that happened) would freeze the battle in
+    // ACTING forever. Ten sim-seconds is longer than any animation; at
+    // that point the turn is force-finished.
+    if (this.state === BattleState.ACTING && this.acting) {
+      this.acting.t += dt;
+      if (this.acting.t > 10) {
+        const { caster, abilityState } = this.acting;
+        this.log(`${caster.name}'s action never resolved — pressing on.`, 'log-system');
+        if (caster.animator) {
+          caster.animator.onComplete = null;
+          caster.animator.fallbackTimer = null;
+        }
+        caster.motionState = null;
+        this.afterAction(caster, abilityState);
+      }
+    }
+
     // Pending AI action (simulation-clock replacement for setTimeout).
     if (this.pendingAuto) {
       this.pendingAuto.wait -= dt;
@@ -232,6 +250,10 @@ class Battle {
   // caster across the field, tracking the selected target.
   performAbility(caster, abilityState, target) {
     this.state = BattleState.ACTING;
+    // Watchdog context: if the action's completion callback is ever
+    // lost, update() force-finishes the turn instead of stalling the
+    // battle forever.
+    this.acting = { caster, abilityState, t: 0 };
     const ability = abilityState.def;
     const strip = caster.animator && ability.animation
       ? caster.animator.sheet.animations[ability.animation]
@@ -527,6 +549,7 @@ class Battle {
   }
 
   afterAction(caster, abilityState) {
+    this.acting = null;
     caster.useAbility(abilityState);
     this.activeUnit = null;
     // Back to plain idle if the turn ended without an action animation.
