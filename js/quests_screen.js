@@ -25,10 +25,17 @@ class QuestsScreen {
     // progress function -- and one bad entry used to take the whole
     // screen down to nothing, with no clue on the page as to why. Now a
     // failure costs its own section and says what broke.
-    const parts = [];
-    parts.push(this.guarded('Quests', () => this.boardsHtml()));
-    parts.push(this.guarded('Achievements', () => this.achievementsHtml()));
-    this.boardsEl.innerHTML = parts.join('');
+    // Every board -- the timed quest boards AND the achievement groups
+    // -- competes for the top of the page: anything holding a claimable
+    // reward rises above everything that does not, dailies included.
+    // Ties keep their natural order (daily, weekly, monthly, then the
+    // achievement groups).
+    const boards = [
+      ...this.guardedBoards('Quests', () => this.questBoards()),
+      ...this.guardedBoards('Achievements', () => this.achievementBoards()),
+    ].map((b, i) => ({ ...b, i }));
+    boards.sort((a, b) => ((b.claimable > 0) - (a.claimable > 0)) || (a.i - b.i));
+    this.boardsEl.innerHTML = boards.map((b) => b.html).join('');
 
     this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -59,24 +66,25 @@ class QuestsScreen {
       });
   }
 
-  // Run one section's builder; on a throw, return a visible panel naming
-  // the section and the error instead of losing the page.
-  guarded(label, build) {
+  // Run one section's builder (which returns [{claimable, html}]); on a
+  // throw, return a visible panel naming the section and the error
+  // instead of losing the page.
+  guardedBoards(label, build) {
     try {
       return build();
     } catch (e) {
       console.error(`${label} failed to render`, e);
       const msg = String((e && e.message) || e).replace(/[&<>]/g,
         (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-      return `<div class="quest-board">
+      return [{ claimable: 0, html: `<div class="quest-board">
         <div class="quest-board-header"><h3>${label}</h3>
           <span class="quest-reset">failed to render</span></div>
         <div class="quest-error">${msg}</div>
-      </div>`;
+      </div>` }];
     }
   }
 
-  boardsHtml() {
+  questBoards() {
     const boards = [
       { type: 'daily', title: 'Daily Quests' },
       { type: 'weekly', title: 'Weekly Quests' },
@@ -112,21 +120,24 @@ class QuestsScreen {
           </div>`;
       }).join('');
       const countdown = Quests.formatCountdown(Quests.timeToReset(type));
-      return `
+      const claimable = Quests.DEFS[type].filter((def) =>
+        (q.counters[def.counter] || 0) >= def.goal && !q.claimed[def.id]).length;
+      return { claimable, html: `
         <div class="quest-board">
           <div class="quest-board-header">
             <h3>${title}</h3>
-            <span class="quest-reset">Resets in ${countdown}</span>
+            <span class="quest-reset">${claimable
+              ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}Resets in ${countdown}</span>
           </div>
           ${rows}
-        </div>`;
-    }).join('');
+        </div>` };
+    });
   }
 
   // Achievements: one-time goals, grouped, that never reset. These are
   // the long arc — filling out a race, pushing every boss, mastering a
   // hero — as opposed to the daily counters above.
-  achievementsHtml() {
+  achievementBoards() {
     const groups = {};
     for (const a of ACHIEVEMENTS.LIST) (groups[a.group] ||= []).push(a);
     // One guarded read per achievement, shared by the header count and
@@ -148,7 +159,8 @@ class QuestsScreen {
       }).length;
       return { group, list, states, claimable };
     });
-    // Groups holding rewards rise to the top of the page.
+    // Relative order among the groups: claimables first (the page-level
+    // sort in refresh() interleaves them with the quest boards).
     entries.sort((a, b) => (b.claimable > 0) - (a.claimable > 0));
     return entries.map(({ group, list, states, claimable }) => {
       const done = list.filter((a) => states.get(a).done).length;
@@ -186,7 +198,7 @@ class QuestsScreen {
       const open = this.groupOpen.has(group)
         ? this.groupOpen.get(group)
         : claimable > 0;
-      return `
+      return { claimable, html: `
         <div class="quest-board ${open ? '' : 'quest-collapsed'}" data-group="${group}">
           <div class="quest-board-header ach-toggle" title="${open ? 'Collapse' : 'Expand'} ${group}">
             <h3><span class="ach-caret">${open ? '▾' : '▸'}</span>${group} Achievements</h3>
@@ -195,7 +207,7 @@ class QuestsScreen {
               done}/${list.length} complete · never resets</span>
           </div>
           <div class="quest-rows">${rows}</div>
-        </div>`;
-    }).join('');
+        </div>` };
+    });
   }
 }
