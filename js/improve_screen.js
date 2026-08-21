@@ -245,8 +245,10 @@ class ImproveScreen {
         ? `<span class="imp-note">${picked.length} chosen</span>` : ''}</div>
       ${options.length
         ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
-        : `<div class="imp-line imp-note">Nobody is free to sacrifice --
-           every other hero is favourited or on the team.</div>`}`;
+        : `<div class="imp-line imp-note">Nothing eligible: you need another
+           ${def.name} for a skill level, or a spare hero at
+           ${pr.stars}&#9733; for a star up. Favourited and fielded heroes
+           are never offered.</div>`}`;
 
     this.detailEl.scrollTop = panelScroll;
     const optsEl2 = this.detailEl.querySelector('.imp-opts');

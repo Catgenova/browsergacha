@@ -609,11 +609,11 @@ const GameState = (() => {
       return this.teamSlotOf(uid) === null;
     },
 
-    // Everyone who can be spent when improving `targetUid`. The
-    // contributors lead -- same character (skill up), then heroes at
-    // the required star rating (star-up fodder) -- but the rest of the
-    // bench is offered too: a hero is sacrificeable whatever their
-    // level or stars, as long as they are not favourited or fielded.
+    // What is offered when improving `targetUid`: heroes that would
+    // actually contribute -- the same character (skill up) or heroes at
+    // the target's CURRENT star rating (star-up fodder). Level never
+    // matters. Anything that can do neither is left off the list
+    // entirely rather than shown greyed out.
     sacrificeOptions(targetUid) {
       const target = state.roster[targetUid];
       if (!target) return [];
@@ -621,8 +621,10 @@ const GameState = (() => {
       for (const uid of Object.keys(state.roster)) {
         if (!this.canSacrifice(uid, targetUid)) continue;
         const e = state.roster[uid];
-        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level,
-          skill: e.heroId === target.heroId, star: e.stars === target.stars });
+        const skill = e.heroId === target.heroId;
+        const star = e.stars === target.stars;
+        if (!skill && !star) continue;
+        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level, skill, star });
       }
       out.sort((a, b) => (b.skill - a.skill) || (b.star - a.star) ||
         (b.stars - a.stars) || (b.level - a.level));
