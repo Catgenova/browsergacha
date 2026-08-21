@@ -1872,20 +1872,20 @@ Object.assign(HEROES, {
       {
         id: 'bear_lightpaw_grace', name: 'Lightpaw\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 165% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 92.6% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.65 },
+          { type: 'heal', mult: 0.926 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'bear_lightpaw_communion', name: 'Lightpaw\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 114% of ATK plus 1.7% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 64.5% of ATK plus 1.7% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.15 },
+          { type: 'heal', mult: 0.645 },
           { type: 'hot', pct: 0.017, turns: 2 },
         ],
       },
@@ -2224,30 +2224,30 @@ Object.assign(HEROES, {
       {
         id: 'bear_runefur_bolt', name: 'Runefur\'s Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Twin arcane bolts: 84% then 49% ATK.',
+        description: 'Twin arcane bolts: 45.6% then 26.6% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.84 },
-          { type: 'damage', mult: 0.49 },
+          { type: 'damage', mult: 0.456 },
+          { type: 'damage', mult: 0.266 },
         ],
       },
       {
         id: 'bear_runefur_torrent', name: 'Runefur\'s Torrent',
         icon: 'assets/icons/fc1084.png',
-        description: 'A torrent of power: 137% ATK to ALL enemies and -6% SPD for 2 turns.',
+        description: 'A torrent of power: 74.4% ATK to ALL enemies and -6% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.37 },
+          { type: 'damage', mult: 0.744 },
           { type: 'debuff', stat: 'speed', mult: 0.94, turns: 2 },
         ],
       },
       {
         id: 'bear_runefur_cataclysm', name: 'Runefur\'s Cataclysm',
         icon: 'assets/icons/fc1044.png',
-        description: 'The big one: 153% ATK to ALL enemies and -7% ATK for 2 turns.',
+        description: 'The big one: 83.1% ATK to ALL enemies and -7% ATK for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.53 },
+          { type: 'damage', mult: 0.831 },
           { type: 'debuff', stat: 'atk', mult: 0.93, turns: 2 },
         ],
       },

@@ -1862,20 +1862,20 @@ Object.assign(HEROES, {
       {
         id: 'drake_lightscale_grace', name: 'Lightscale\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 185% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 102.5% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.85 },
+          { type: 'heal', mult: 1.025 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'drake_lightscale_communion', name: 'Lightscale\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 135% of ATK plus 1.9% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 74.8% of ATK plus 1.9% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.35 },
+          { type: 'heal', mult: 0.748 },
           { type: 'hot', pct: 0.018, turns: 2 },
         ],
       },

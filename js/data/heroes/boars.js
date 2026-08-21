@@ -1830,20 +1830,20 @@ Object.assign(HEROES, {
       {
         id: 'boar_lightsnout_grace', name: 'Lightsnout\'s Grace',
         icon: 'assets/icons/fc1112.png',
-        description: 'Pour in the light: heals an ally 155% of ATK and cleanses their debuffs.',
+        description: 'Pour in the light: heals an ally 99.4% of ATK and cleanses their debuffs.',
         cooldown: 3, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.55 },
+          { type: 'heal', mult: 0.994 },
           { type: 'cleanse' },
         ],
       },
       {
         id: 'boar_lightsnout_communion', name: 'Lightsnout\'s Communion',
         icon: 'assets/icons/fc800.png',
-        description: 'Shared light: ALL allies heal 105% of ATK plus 1.6% of max HP regen for 2 turns.',
+        description: 'Shared light: ALL allies heal 67.3% of ATK plus 1.6% of max HP regen for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'attack',
         effects: [
-          { type: 'heal', mult: 1.05 },
+          { type: 'heal', mult: 0.673 },
           { type: 'hot', pct: 0.015, turns: 2 },
         ],
       },
@@ -2182,30 +2182,30 @@ Object.assign(HEROES, {
       {
         id: 'boar_runesnout_bolt', name: 'Runesnout\'s Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Twin arcane bolts: 77% then 49% ATK.',
+        description: 'Twin arcane bolts: 72.5% then 46.1% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 0.77 },
-          { type: 'damage', mult: 0.49 },
+          { type: 'damage', mult: 0.725 },
+          { type: 'damage', mult: 0.461 },
         ],
       },
       {
         id: 'boar_runesnout_torrent', name: 'Runesnout\'s Torrent',
         icon: 'assets/icons/fc1084.png',
-        description: 'A torrent of power: 130% ATK to ALL enemies and -5% SPD for 2 turns.',
+        description: 'A torrent of power: 122.3% ATK to ALL enemies and -5% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.3 },
+          { type: 'damage', mult: 1.223 },
           { type: 'debuff', stat: 'speed', mult: 0.95, turns: 2 },
         ],
       },
       {
         id: 'boar_runesnout_cataclysm', name: 'Runesnout\'s Cataclysm',
         icon: 'assets/icons/fc1044.png',
-        description: 'The big one: 146% ATK to ALL enemies and -9% ATK for 2 turns.',
+        description: 'The big one: 137.4% ATK to ALL enemies and -9% ATK for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
-          { type: 'damage', mult: 1.46 },
+          { type: 'damage', mult: 1.374 },
           { type: 'debuff', stat: 'atk', mult: 0.91, turns: 2 },
         ],
       },
