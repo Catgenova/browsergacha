@@ -192,6 +192,30 @@ test('human sects hold real humans, once each, with their numbers', () => {
   assert(RACES.sectOf(HEROES.florence) === null, 'Florence has no sect yet');
 });
 
+test('every hero resolves a full tag line', () => {
+  const w = loadGame();
+  const T = w.Tags;
+  for (const h of heroes) {
+    const tags = T.of(h);
+    const kinds = tags.map((t) => t.kind);
+    assert(kinds[0] === 'role', `${h.id}: first tag is ${kinds[0]}`);
+    assert(/^(Front Line|Center|Back Line) (DPS|Tank|Support)$/.test(tags[0].text),
+      `${h.id}: role tag "${tags[0].text}"`);
+    assert(kinds.includes('race'), `${h.id}: no race/sect tag`);
+    assert(kinds.includes('element'), `${h.id}: no element tag`);
+    assert(T.html(h).includes('hero-tag'), `${h.id}: html renders nothing`);
+  }
+  // Spot checks: the labels the tags exist to communicate.
+  const text = (id) => T.of(w.HEROES[id]).map((t) => t.text).join(' | ');
+  assert(/Support/.test(text('emily')) && /Healer/.test(text('emily')),
+    `Emily should read as a healing support: ${text('emily')}`);
+  assert(/Front Line DPS/.test(text('javarious')) && /Shielder/.test(text('javarious')),
+    `Javarious should read front-line DPS shielder: ${text('javarious')}`);
+  assert(/Reverence Sect/.test(text('toll')), `Toll should carry his sect: ${text('toll')}`);
+  assert(/Debuffer/.test(text('vex')) && /Hedge Sect/.test(text('vex')),
+    `Vex should read debuffer of the Hedge: ${text('vex')}`);
+});
+
 test('elements are real, and Dark/Light are always 3-star or better', () => {
   const known = new Set([...Elements.BASIC, ...Elements.TEMPORAL]);
   for (const h of heroes) {

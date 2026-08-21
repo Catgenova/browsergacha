@@ -384,6 +384,7 @@ class CompendiumScreen {
             <span class="comp-badge">${def.rarity}★</span>
             ${owned ? '<span class="comp-badge owned">Owned</span>' : ''}
           </div>
+          ${Tags.html(def)}
           <div class="comp-stats">${statsHtml}</div>
           ${ownedHtml}
         </div>

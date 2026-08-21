@@ -197,6 +197,7 @@ class ImproveScreen {
       <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}</div>
       <div class="imp-sub">Lv ${pr.level} / ${cap} &middot; ${
         Attune.starsHtml(pr.stars, pr.attune, def.element)} &middot; ${pr.stars}&#9733;</div>
+      ${Tags.html(def)}
 
       <div class="imp-section">Star up</div>
       <div class="imp-line">${canStar}</div>

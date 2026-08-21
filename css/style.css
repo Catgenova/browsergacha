@@ -567,6 +567,33 @@ body {
   white-space: nowrap;
 }
 .detail-sect { color: #d7a8ff; }
+
+/* Hero tag chips: role first (solid), then kit/race/element outlines.
+   Element chips carry their element's colour inline. */
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 5px 0 2px;
+}
+.hero-tag {
+  padding: 1px 7px;
+  border: 1px solid #4a4468;
+  border-radius: 9px;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  color: #b8b2cc;
+  background: #211d2e;
+  white-space: nowrap;
+}
+.hero-tag.tag-role {
+  color: #1a1724;
+  background: #ffd76a;
+  border-color: #ffd76a;
+  font-weight: bold;
+}
+.hero-tag.tag-kit { color: #a8e0c8; border-color: #3a5a4a; }
+.hero-tag.tag-race { color: #d7a8ff; border-color: #5a4a7a; }
 .syn-tier.live {
   color: #d8f0c8;
   border-color: #4a6a3a;
