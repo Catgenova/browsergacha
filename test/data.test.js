@@ -141,13 +141,18 @@ test('every race pack mirrors its gear set, tier for tier', () => {
   for (const r of races) {
     assert(RACES.NAMES[r], `race ${r} has no display name`);
     const tiers = RACES.BONUSES[r] || [];
+    if (r === 'human') {
+      assert(tiers.length === 0, 'humans should have sects, not a race pack');
+      continue;
+    }
     assert(tiers.length >= 3, `race ${r} lacks tiers`);
     for (const t of tiers) {
       assert([3, 5, 7].includes(t.count), `${r}: tier at odd count ${t.count}`);
       assert(t.label && Object.keys(t.mods).length, `${r}: empty tier`);
     }
-    // Humans have no gear set and keep a bespoke pack; every other race's
-    // 3/5/7 tiers must be its set's 2/4/6-piece bonuses exactly.
+    // Humans have no gear set and no pack (they group into sects
+    // instead); every other race's 3/5/7 tiers must be its set's
+    // 2/4/6-piece bonuses exactly.
     if (r === 'human') continue;
     const set = Gear.SETS[r === 'drake' ? 'dragon' : r];
     assert(set, `race ${r} has no gear set to mirror`);
@@ -160,6 +165,31 @@ test('every race pack mirrors its gear set, tier for tier', () => {
         `${r}: tier ${i} ${b.stat} ${tiers[i].mods[b.stat]} != set ${b.add}`);
     });
   }
+});
+
+test('human sects hold real humans, once each, with their numbers', () => {
+  const expected = {
+    cryst: { number: 1, members: ['echo'] },
+    hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
+    reverence: { number: 4, members: ['catherine', 'toll', 'javarious'] },
+  };
+  assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
+    `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
+  const seen = new Set();
+  for (const [id, want] of Object.entries(expected)) {
+    const sect = RACES.SECTS[id];
+    assert(sect.number === want.number, `${id}: number ${sect.number}`);
+    assert(sect.members.join() === want.members.join(),
+      `${id}: members ${sect.members.join(', ')}`);
+    for (const m of sect.members) {
+      assert(HEROES[m], `${id}: unknown hero ${m}`);
+      assert(RACES.of(HEROES[m]) === 'human', `${id}: ${m} is not human`);
+      assert(!seen.has(m), `${m} stands in two sects`);
+      seen.add(m);
+      assert(RACES.sectOf(HEROES[m]) === sect, `sectOf(${m}) misses`);
+    }
+  }
+  assert(RACES.sectOf(HEROES.florence) === null, 'Florence has no sect yet');
 });
 
 test('elements are real, and Dark/Light are always 3-star or better', () => {

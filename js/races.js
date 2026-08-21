@@ -47,18 +47,36 @@ const RACES = (() => {
   // are the set's 2/4/6-piece bonuses, applied to the whole party, and
   // they stack with worn gear. Derived from Gear.SETS on first use (gear
   // loads after this file), so the two tables can never drift apart.
-  // Drakes wear the Dragon set; Humans have no set, so they keep a
-  // bespoke pack.
+  // Drakes wear the Dragon set. Humans have no set and no pack: the
+  // named heroes group into SECTS instead (below).
   const SET_OF_RACE = { drake: 'dragon' };
-  const HUMAN_PACK = [
-    { count: 3, mods: { atkPct: 0.06, defPct: 0.06 }, label: '3: +6% ATK and +6% DEF' },
-    { count: 5, mods: { hpPct: 0.08 }, label: '5: +8% HP' },
-    { count: 7, mods: { critDamage: 0.20 }, label: '7: +20% Crit Damage' },
-  ];
+
+  // Human sects: the named heroes belong to orders, each with an
+  // assigned number (the sect's size once its bonuses land -- Reverence
+  // is numbered 4 with three known members, so its roster is not yet
+  // complete). Members are hero ids; 'echo' is Aniani. Florence stands
+  // outside the sects for now.
+  const SECTS = {
+    cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
+                 members: ['echo'] },
+    hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
+                 members: ['vex', 'vivian', 'coral', 'emily'] },
+    reverence: { id: 'reverence', name: 'Reverence', number: 4,
+                 members: ['catherine', 'toll', 'javarious'] },
+  };
+  function sectOf(defOrId) {
+    const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
+    if (!id) return null;
+    for (const sect of Object.values(SECTS)) {
+      if (sect.members.includes(id)) return sect;
+    }
+    return null;
+  }
+
   let bonusCache = null;
   function buildBonuses() {
     if (bonusCache) return bonusCache;
-    const out = { human: HUMAN_PACK };
+    const out = {};
     // Load-order guard: races.js is evaluated before gear.js, so the
     // table only materialises (and caches) once Gear exists.
     if (typeof Gear === 'undefined') return out;
@@ -203,7 +221,7 @@ const RACES = (() => {
   }
 
   return {
-    of, NAMES, counts, activeTiers,
+    of, NAMES, counts, activeTiers, SECTS, sectOf,
     get BONUSES() { return buildBonuses(); },
     ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
     applyParty,
