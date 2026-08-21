@@ -130,7 +130,7 @@ html = r'''<title>Catherine, White Paladin</title>
   .sig-copy { flex: 1 1 360px; }
   .sig-copy ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
   .sig-copy li { padding-left: 22px; position: relative; color: var(--ink); }
-  .sig-copy li::before { content: '✦'; position: absolute; left: 0; color: var(--halo); font-size: 12px; top: 4px; }
+  .sig-copy li::before { content: '\2726'; position: absolute; left: 0; color: var(--halo); font-size: 12px; top: 4px; }
   .sig-copy li b { color: var(--halo); font-weight: 500; }
   .sig-copy li .dim { color: var(--muted); }
   .sig-box {
