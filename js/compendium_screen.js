@@ -64,6 +64,20 @@ class CompendiumScreen {
     this.previewH = 260;
   }
 
+  // Deep link: land on one hero's page regardless of what the screen
+  // showed last (the summon cards use this). enter() picks the id up.
+  openHero(heroId) {
+    if (this.category === 'bosses') {
+      this.category = 'heroes';
+      if (this.catEl) {
+        this.catEl.querySelectorAll('.comp-cat').forEach((b) =>
+          b.classList.toggle('active', b.dataset.cat === 'heroes'));
+        document.getElementById('comp-top').classList.remove('bosses-mode');
+      }
+    }
+    this.selectedId = heroId;
+  }
+
   async enter() {
     this.buildList();
     if (!this.selectedId) {
