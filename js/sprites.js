@@ -238,12 +238,28 @@ const Sprites = (() => {
     });
   }
 
+  // A strip that exists on the server must never silently become
+  // placeholder art because one fetch hiccuped (mid-deploy, flaky
+  // mobile). One quick retry rides out the blip; a real 404 still
+  // resolves null quickly.
+  async function loadImageRetry(src) {
+    const first = await loadImage(src);
+    if (first) return first;
+    await new Promise((r) => setTimeout(r, 700));
+    return loadImage(src);
+  }
+
   async function load(spriteDef, def) {
-    // Strip-per-animation format.
+    // Strip-per-animation format. The idle strip is probed first: if it
+    // is not there, none of the others will be either, so a hero whose
+    // art has not been delivered costs one request, not nine.
     if (spriteDef && spriteDef.strips) {
       const animations = {};
-      for (const [name, strip] of Object.entries(spriteDef.strips)) {
-        const img = await loadImage(strip.src);
+      const strips = Object.entries(spriteDef.strips);
+      strips.sort(([a], [b]) => (a === 'idle' ? -1 : b === 'idle' ? 1 : 0));
+      for (const [name, strip] of strips) {
+        if (name !== 'idle' && !animations.idle) break;
+        const img = await loadImageRetry(strip.src);
         if (!img) continue; // strip not delivered yet — skip it
         animations[name] = {
           image: img,
@@ -278,7 +294,7 @@ const Sprites = (() => {
 
     // Single-sheet format.
     if (spriteDef && spriteDef.src) {
-      const img = await loadImage(spriteDef.src);
+      const img = await loadImageRetry(spriteDef.src);
       if (img) {
         const animations = {};
         for (const [name, a] of Object.entries(spriteDef.animations)) {
@@ -297,7 +313,12 @@ const Sprites = (() => {
       }
     }
 
-    return makePlaceholderSheet(def);
+    const sheet = makePlaceholderSheet(def);
+    // Authored art that failed to arrive is a fetch problem, not a
+    // missing-art hero: flag it so the caches do not pin the placeholder
+    // for the rest of the session.
+    sheet.isFallback = !!(spriteDef && (spriteDef.strips || spriteDef.src));
+    return sheet;
   }
 
   // Measure the transparent padding above and below the character in the
@@ -379,9 +400,23 @@ const Sprites = (() => {
   // team-builder previews, and roster/summon portraits.
   const sheetCache = new Map();
 
+  const fallbackTries = new Map();
+
   function getSheet(def) {
     if (!sheetCache.has(def.id)) {
-      sheetCache.set(def.id, load(def.sprite, def));
+      const p = load(def.sprite, def).then((sheet) => {
+        if (sheet.isFallback) {
+          // Evict so the next request tries the network again — a unit
+          // already animating keeps this sheet, but the next screen
+          // paint recovers the real art. Bounded so a genuinely absent
+          // file stops costing requests after a few tries.
+          const n = (fallbackTries.get(def.id) || 0) + 1;
+          fallbackTries.set(def.id, n);
+          if (n <= 3) sheetCache.delete(def.id);
+        }
+        return sheet;
+      });
+      sheetCache.set(def.id, p);
     }
     return sheetCache.get(def.id);
   }
@@ -509,6 +544,7 @@ const Sprites = (() => {
     const key = `${def.id}:${size}`;
     if (portraitCache.has(key)) return portraitCache.get(key);
     const promise = getSheet(def).then((sheet) => {
+      if (sheet.isFallback) portraitCache.delete(key);
       const anim = sheet.animations.idle;
       const c = document.createElement('canvas');
       c.width = size * 3;      // 3x backing, matching drawPortrait
@@ -523,6 +559,7 @@ const Sprites = (() => {
       if (facesLeft(def)) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
       ctx.drawImage(anim.image, 0, anim.row * anim.frameH, anim.frameW, anim.frameH,
         (c.width - w) / 2, (c.height - h) / 2, w, h);
+      c._fallback = !!sheet.isFallback;
       return c;
     });
     portraitCache.set(key, promise);
@@ -531,7 +568,11 @@ const Sprites = (() => {
 
   // Paint a cached portrait into an <img>-like element cheaply.
   async function paintPortrait(canvasEl, def) {
-    const size = canvasEl.width || 64;
+    // The first paint swells the canvas to its 3x backing store, so the
+    // logical size must be remembered -- reading .width on a repaint
+    // would treat the backing resolution as the display size and paint
+    // a portrait three times too large.
+    const size = canvasEl._logicalSize || (canvasEl._logicalSize = canvasEl.width || 64);
     const bmp = await portraitBitmap(def, size);
     canvasEl.style.width = `${size}px`;
     canvasEl.style.height = `${size}px`;
@@ -542,6 +583,9 @@ const Sprites = (() => {
     const ctx = canvasEl.getContext('2d');
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     ctx.drawImage(bmp, 0, 0);
+    // False when this painted stand-in art for a hero that ships real
+    // art -- the caller should try again later rather than keep it.
+    return !bmp._fallback;
   }
 
   // Draw a hero's idle frame 0 into a portrait canvas element.
