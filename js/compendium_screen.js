@@ -305,7 +305,7 @@ class CompendiumScreen {
     let ownedHtml = '<div class="comp-note">Not yet summoned — stats shown are the level 1 base.</div>';
     if (progress) {
       const scaled = Progression.scaledStats(def, progress.level, progress.stars);
-      const pStars = progress.stars <= 5 ? '★'.repeat(progress.stars) : `${progress.stars}★`;
+      const pStars = Attune.starsHtml(progress.stars, progress.attune, def.element);
       ownedHtml = `
         <div class="comp-owned-row">
           <b>Yours</b> — Lv ${progress.level} · ${pStars}${mine.length > 1 ? ` · ${mine.length} in roster` : ''}

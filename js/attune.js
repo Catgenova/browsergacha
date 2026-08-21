@@ -105,16 +105,16 @@ const Attune = (() => {
   function starsHtml(stars, attune = 0, element = null) {
     const info = (typeof Elements !== 'undefined' && element)
       ? Elements.info(element) : null;
-    if (stars > 6) {
-      // Too many to draw: one star, the count, and the attuned tally.
-      const lit = attune > 0 && info ? ` style="color:${info.color}"` : '';
-      return `<span${lit}>&#9733;</span>${stars}` +
-        (attune > 0 ? `<span class="star-attuned"${lit}> +${attune}</span>` : '');
-    }
-    return Array.from({ length: stars }, (_, i) =>
-      (i < attune && info)
-        ? `<span class="star-attuned" style="color:${info.color}">&#9733;</span>`
-        : '&#9733;').join('');
+    // Every star is drawn individually so the attuned ones read at a
+    // glance; past five they wrap onto a second row (max is 10, so two
+    // rows always fit) rather than collapsing into a "6★" count.
+    const star = (i) => (i < attune && info)
+      ? `<span class="star-attuned" style="color:${info.color}">&#9733;</span>`
+      : '&#9733;';
+    const all = Array.from({ length: stars }, (_, i) => star(i));
+    if (stars <= 5) return all.join('');
+    return `<span class="star-stack"><span class="star-row">${all.slice(0, 5).join('')}</span>` +
+      `<span class="star-row">${all.slice(5).join('')}</span></span>`;
   }
 
   return { SIZES, SIZE_LABEL, MAX, STAT_PER, COST, costFor, statMult, starsHtml,
