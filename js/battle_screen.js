@@ -586,6 +586,12 @@ class BattleScreen {
         GameState.addWhetstones(this.rewardWhetstones);
         GameState.addArcana(this.rewardArcana);
         GameState.questBump('wins');
+        // A win with the whole party still standing. Cheap to check here
+        // and the only counter that says anything about HOW a fight went.
+        if (battle.livingUnits(TEAM.PLAYER).length ===
+            battle.units.filter((u) => u.team === TEAM.PLAYER).length) {
+          GameState.questBump('flawless');
+        }
         // Campaign nodes bump their own counter below, by node type.
         if (!this.campaignFight) {
           const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);
@@ -674,6 +680,7 @@ class BattleScreen {
             }
           }
           GameState.questBump(node.type === 'boss' ? 'bossWins' : 'huntWins');
+          GameState.questBump('campaignWins');
         }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);

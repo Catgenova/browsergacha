@@ -4,6 +4,16 @@
 // monthlies on the 1st. Rewards are claimed on the Quests screen.
 
 const Quests = (() => {
+  // Counters are bumped by GameState.questBump, which also keeps a
+  // lifetime total behind each one for the achievements to read.
+  //
+  //   wins          any battle won            huntWins   hunt won
+  //   bossWins      boss stage / campaign holder cleared
+  //   campaignWins  campaign node cleared     towerFloors tower floor climbed
+  //   summons       heroes summoned           starUps    hero starred up
+  //   polishes      item levelled             enchants   enchant attempted
+  //   salvages      item salvaged             rerolls    substats rerolled
+  //   flawless      battle won with nobody down
   const DEFS = {
     daily: [
       { id: 'd_hunts', name: 'Win 5 hunts', counter: 'huntWins', goal: 5,
@@ -12,10 +22,16 @@ const Quests = (() => {
         reward: { scrollsRare: 1 } },
       { id: 'd_wins', name: 'Win 10 battles', counter: 'wins', goal: 10,
         reward: { whetstones: 150 } },
+      { id: 'd_flawless', name: 'Win 3 battles without losing a hero',
+        counter: 'flawless', goal: 3, reward: { whetstones: 200 } },
+      { id: 'd_campaign', name: 'Clear a campaign node', counter: 'campaignWins',
+        goal: 1, reward: { scrollsCommon: 2 } },
       { id: 'd_summon', name: 'Summon a hero', counter: 'summons', goal: 1,
         reward: { arcana: 25 } },
       { id: 'd_polish', name: 'Polish items 5 times', counter: 'polishes', goal: 5,
         reward: { whetstones: 100 } },
+      { id: 'd_tower', name: 'Climb 3 tower floors', counter: 'towerFloors', goal: 3,
+        reward: { arcana: 40 } },
     ],
     weekly: [
       { id: 'w_wins', name: 'Win 40 battles', counter: 'wins', goal: 40,
@@ -24,10 +40,18 @@ const Quests = (() => {
         reward: { whetstones: 400 } },
       { id: 'w_boss', name: 'Clear 7 boss stages', counter: 'bossWins', goal: 7,
         reward: { arcana: 150 } },
+      { id: 'w_campaign', name: 'Clear 10 campaign nodes', counter: 'campaignWins',
+        goal: 10, reward: { scrollsRare: 2 } },
+      { id: 'w_flawless', name: 'Win 15 battles without losing a hero',
+        counter: 'flawless', goal: 15, reward: { arcana: 200 } },
       { id: 'w_summons', name: 'Summon 10 heroes', counter: 'summons', goal: 10,
         reward: { scrollsCommon: 5 } },
       { id: 'w_salvage', name: 'Salvage 10 items', counter: 'salvages', goal: 10,
         reward: { whetstones: 500 } },
+      { id: 'w_tower', name: 'Climb 15 tower floors', counter: 'towerFloors', goal: 15,
+        reward: { tomes: 1 } },
+      { id: 'w_starup', name: 'Star up 3 heroes', counter: 'starUps', goal: 3,
+        reward: { scrollsCommon: 8 } },
     ],
     monthly: [
       { id: 'm_wins', name: 'Win 150 battles', counter: 'wins', goal: 150,
@@ -36,12 +60,22 @@ const Quests = (() => {
         reward: { scrollsTemporal: 1 } },
       { id: 'm_boss', name: 'Clear 25 boss stages', counter: 'bossWins', goal: 25,
         reward: { scrollsTemporal: 1 } },
+      { id: 'm_campaign', name: 'Clear 40 campaign nodes', counter: 'campaignWins',
+        goal: 40, reward: { scrollsTemporal: 1 } },
+      { id: 'm_flawless', name: 'Win 60 battles without losing a hero',
+        counter: 'flawless', goal: 60, reward: { scrollsRare: 4 } },
       { id: 'm_summons', name: 'Summon 30 heroes', counter: 'summons', goal: 30,
         reward: { scrollsRare: 3 } },
       { id: 'm_enchant', name: 'Attempt 50 enchants', counter: 'enchants', goal: 50,
         reward: { arcana: 400 } },
       { id: 'm_salvage', name: 'Salvage 25 items', counter: 'salvages', goal: 25,
         reward: { whetstones: 1500 } },
+      { id: 'm_reroll', name: 'Reroll 20 sets of substats', counter: 'rerolls',
+        goal: 20, reward: { arcana: 600 } },
+      { id: 'm_tower', name: 'Climb 50 tower floors', counter: 'towerFloors', goal: 50,
+        reward: { tomes: 5 } },
+      { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,
+        reward: { scrollsRare: 4 } },
     ],
   };
 
