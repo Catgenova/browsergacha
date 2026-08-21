@@ -31,21 +31,6 @@ class TeamScreen {
       try { localStorage.setItem('bg_hideMaxed', this.hideMaxed.checked ? '1' : '0'); } catch (e) {}
       this.buildRoster();
     });
-    // Star up everything that's ready, in one click. With hundreds of
-    // heroes, hunting for the ★⬆ badges one card at a time is the most
-    // tedious thing left on this screen.
-    this.starUpAllBtn = document.getElementById('star-up-all-btn');
-    if (this.starUpAllBtn) {
-      this.starUpAllBtn.addEventListener('click', () => {
-        const done = GameState.starUpAll();
-        if (done.length === 0) return;
-        const names = done.slice(0, 4).map((d) => `${d.name} ${d.to}★`).join(', ');
-        this.rosterMsg = `Starred up ${done.length} hero${done.length > 1 ? 'es' : ''}: ` +
-          `${names}${done.length > 4 ? `, +${done.length - 4} more` : ''}.`;
-        this.refresh();
-      });
-    }
-
     this.reportEl = document.getElementById('roster-report');
     const reportBtn = document.getElementById('roster-report-btn');
     if (reportBtn) {
@@ -275,9 +260,9 @@ class TeamScreen {
   // sheet lands.
   async ensureAnimators() {
     const wanted = Object.values(GameState.getTeam())
-      .filter((id) => HEROES[id] && !this.animators.has(id));
+      .filter((uid) => GameState.defOf(uid) && !this.animators.has(uid));
     await Promise.all(wanted.map(async (heroId) => {
-      const sheet = await Sprites.getSheet(HEROES[heroId]);
+      const sheet = await Sprites.getSheet(GameState.defOf(heroId));
       const player = new AnimationPlayer(sheet);
       player.play('idle');
       player.elapsed = Math.random() * 0.5;
@@ -295,15 +280,6 @@ class TeamScreen {
   }
 
   updateButtons() {
-    // Star-up-all: say how many are waiting, and grey out when none are.
-    if (this.starUpAllBtn) {
-      const ready = GameState.starUpReadyCount();
-      this.starUpAllBtn.textContent = ready > 0
-        ? `★⬆ Star up all (${ready})` : '★⬆ Star up all';
-      this.starUpAllBtn.disabled = ready === 0;
-      this.starUpAllBtn.classList.toggle('gold', ready > 0);
-    }
-
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
 
@@ -312,7 +288,7 @@ class TeamScreen {
     const raceEl = document.getElementById('race-bonuses');
     if (raceEl) {
       const defs = Object.values(GameState.getTeam())
-        .map((id) => HEROES[id]).filter(Boolean);
+        .map((id) => GameState.defOf(id)).filter(Boolean);
       const parts = [];
       for (const [race, count] of Object.entries(RACES.counts(defs))) {
         if (count < 2) continue;
@@ -402,11 +378,11 @@ class TeamScreen {
     const p = (id) => GameState.progressOf(id);
     const byLevel = (a, b) =>
       p(b).level - p(a).level || p(b).stars - p(a).stars ||
-      HEROES[b].rarity - HEROES[a].rarity || a.localeCompare(b);
+      GameState.defOf(b).rarity - GameState.defOf(a).rarity || a.localeCompare(b);
     const powerOf = (id) => {
       const pr = p(id);
       return Progression.power(Gear.applyToStats(
-        Progression.scaledStats(HEROES[id], pr.level, pr.stars),
+        Progression.scaledStats(GameState.defOf(id), pr.level, pr.stars),
         GameState.equippedPieces(id)));
     };
     // Favourites lead every sort order. They are not exempt from the
@@ -419,16 +395,16 @@ class TeamScreen {
       power: (a, b) => powerOf(b) - powerOf(a) || byLevel(a, b),
       level: byLevel,
       stars: (a, b) => p(b).stars - p(a).stars || byLevel(a, b),
-      rarity: (a, b) => HEROES[b].rarity - HEROES[a].rarity || byLevel(a, b),
-      name: (a, b) => HEROES[a].name.localeCompare(HEROES[b].name),
+      rarity: (a, b) => GameState.defOf(b).rarity - GameState.defOf(a).rarity || byLevel(a, b),
+      name: (a, b) => GameState.defOf(a).name.localeCompare(GameState.defOf(b).name),
       element: (a, b) =>
-        (HEROES[a].element || '').localeCompare(HEROES[b].element || '') || byLevel(a, b),
+        (GameState.defOf(a).element || '').localeCompare(GameState.defOf(b).element || '') || byLevel(a, b),
     };
     const ids = GameState.ownedHeroIds()
-      .filter((id) => HEROES[id])
+      .filter((id) => GameState.defOf(id))
       .filter((id) => {
         if (!query) return true;
-        const h = HEROES[id];
+        const h = GameState.defOf(id);
         return h.name.toLowerCase().includes(query) ||
           (h.element || '').toLowerCase().includes(query);
       })
@@ -457,7 +433,7 @@ class TeamScreen {
   watchPortrait(card) {
     if (typeof IntersectionObserver === 'undefined') {
       card._painted = true;
-      Sprites.paintPortrait(card._portrait, HEROES[card.dataset.heroId]);
+      Sprites.paintPortrait(card._portrait, GameState.defOf(card.dataset.heroId));
       return;
     }
     if (!this._portraitObs) {
@@ -467,7 +443,7 @@ class TeamScreen {
           obs.unobserve(e.target);
           if (e.target._painted) continue;
           e.target._painted = true;
-          Sprites.paintPortrait(e.target._portrait, HEROES[e.target.dataset.heroId]);
+          Sprites.paintPortrait(e.target._portrait, GameState.defOf(e.target.dataset.heroId));
         }
       }, { rootMargin: '600px' }); // a couple of screens of headroom while scrolling
     }
@@ -476,7 +452,7 @@ class TeamScreen {
 
   // One roster card, built once and refreshed in place afterwards.
   rosterCard(heroId, inTeam) {
-    const def = HEROES[heroId];
+    const def = GameState.defOf(heroId);
     const progress = GameState.progressOf(heroId);
     let card = this.cardCache.get(heroId);
     if (!card) {
@@ -540,10 +516,12 @@ class TeamScreen {
     level.textContent = `Lv ${progress.level}${capped ? ' (MAX)' : ''}`;
     level.classList.toggle('card-level-max', capped);
     badge.classList.toggle('hidden', !inTeam.has(heroId));
-    const copies = GameState.copiesOf(heroId);
-    dupes.textContent = `×${copies}`;
-    dupes.classList.toggle('hidden', copies <= 1);
-    up.classList.toggle('hidden', !GameState.canStarUp(heroId));
+    // How many of this CHARACTER stand in the roster -- each card is one
+    // hero, so the count is context rather than a currency.
+    const same = GameState.countOf(GameState.defIdOf(heroId));
+    dupes.textContent = `×${same}`;
+    dupes.classList.toggle('hidden', same <= 1);
+    up.classList.toggle('hidden', !GameState.starUpReady(heroId));
     return card;
   }
 
@@ -553,7 +531,7 @@ class TeamScreen {
   // is what team-building actually asks), and flags the fielded team's
   // weakest link.
   renderReport() {
-    const ids = GameState.ownedHeroIds().filter((id) => HEROES[id]);
+    const ids = GameState.ownedHeroIds().filter((id) => GameState.defOf(id));
     if (ids.length === 0) {
       this.reportEl.innerHTML = '<div class="details-empty">No heroes yet.</div>';
       return;
@@ -561,15 +539,15 @@ class TeamScreen {
     const rows = ids.map((id) => {
       const pr = GameState.progressOf(id);
       const stats = Gear.applyToStats(
-        Progression.scaledStats(HEROES[id], pr.level, pr.stars),
+        Progression.scaledStats(GameState.defOf(id), pr.level, pr.stars),
         GameState.equippedPieces(id));
       const gearCount = Object.keys(GameState.equipmentOf(id)).length;
       return {
-        id, def: HEROES[id], pr, stats, gearCount,
+        id, def: GameState.defOf(id), pr, stats, gearCount,
         power: Progression.power(stats),
         // Ceiling if fully invested at this star tier: shows headroom.
         potential: Progression.power(
-          Progression.scaledStats(HEROES[id], Progression.maxLevel(pr.stars), pr.stars)),
+          Progression.scaledStats(GameState.defOf(id), Progression.maxLevel(pr.stars), pr.stars)),
       };
     }).sort((a, b) => b.power - a.power);
 
@@ -591,7 +569,7 @@ class TeamScreen {
     };
 
     // Where the deployed team is thin.
-    const team = Object.values(GameState.getTeam()).filter((id) => HEROES[id]);
+    const team = Object.values(GameState.getTeam()).filter((id) => GameState.defOf(id));
     const teamRows = rows.filter((r) => team.includes(r.id))
       .sort((a, b) => a.power - b.power);
     const bench = rows.filter((r) => !team.includes(r.id));
@@ -712,36 +690,32 @@ class TeamScreen {
       return;
     }
 
-    const def = HEROES[this.selection.heroId];
-    const slotIndex = GameState.teamSlotOf(def.id);
+    const uid = this.selection.heroId;   // a roster uid, not a character id
+    const def = GameState.defOf(uid);
+    const slotIndex = GameState.teamSlotOf(uid);
     const placedSlot = slotIndex !== null ? this.slots[slotIndex] : null;
     const bonusLive = placedSlot && placedSlot.position === def.positional.position;
 
     // Abilities with skill levels: each level past 1 adds +10% power.
-    // Skill Tomes come only from Endless Tower milestone chests.
+    // Raised only by sacrificing another copy of the same character, over
+    // in Improve -- there is no currency for it any more.
     const abilitiesHtml = def.abilities.map((a, i) => {
       const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
       const icon = a.icon
         ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
-      const lv = GameState.skillLevel(def.id, i);
+      const lv = GameState.skillLevel(uid, i);
       const maxed = lv >= Progression.MAX_SKILL_LEVEL;
       const bonus = Math.round((Progression.skillPower(lv) - 1) * 100);
       const powerText = bonus > 0 ? ` · +${bonus}% power` : '';
-      const upBtn = maxed
-        ? '<span class="skill-max">MAX</span>'
-        : `<button class="skill-up-btn" data-idx="${i}"
-             title="Spend Skill Tomes (Endless Tower drops) for +10% power"
-             ${GameState.tomes >= Progression.skillUpCost(lv) ? '' : 'disabled'}>
-             ▲ ${Progression.skillUpCost(lv)} 📖</button>`;
       return `<div class="detail-ability">${icon}<b>${a.name}</b>
         <span class="cd">Lv ${lv}/${Progression.MAX_SKILL_LEVEL} · ${cd}${powerText}</span>
-        ${upBtn}<br>${a.description}</div>`;
+        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
     }).join('');
 
     // Progression: scaled stats (gear included), level/XP bar, star-up.
-    const progress = GameState.progressOf(def.id);
-    const equipped = GameState.equippedPieces(def.id);
+    const progress = GameState.progressOf(uid);
+    const equipped = GameState.equippedPieces(uid);
     const stats = Gear.applyToStats(
       Progression.scaledStats(def, progress.level, progress.stars), equipped);
     const cap = Progression.maxLevel(progress.stars);
@@ -753,8 +727,8 @@ class TeamScreen {
     // Gear: one row per slot with an equip picker, plus a focused-piece
     // panel (level/polish + enchant) and set bonuses. A hero currently
     // fighting has their loadout frozen.
-    const gearLocked = this.app.heroInBattle(def.id);
-    const equipment = GameState.equipmentOf(def.id);
+    const gearLocked = this.app.heroInBattle(uid);
+    const equipment = GameState.equipmentOf(uid);
     if (!this.gearFocus || !equipment[this.gearFocus]) {
       this.gearFocus = Gear.SLOTS.find((s) => equipment[s]) || null;
     }
@@ -831,16 +805,16 @@ class TeamScreen {
     let starUpHtml = '';
     if (progress.stars < Progression.MAX_STARS) {
       const cost = Progression.starUpCost(progress.stars);
-      const spare = progress.copies - 1;
-      const can = GameState.canStarUp(def.id);
+      const ready = GameState.starUpReady(uid);
       starUpHtml = `
         <div class="detail-section">Star up</div>
         <div class="detail-ability">
-          ${progress.stars}★ → ${progress.stars + 1}★: needs Lv ${cap} and ${cost} duplicate${cost > 1 ? 's' : ''}
-          (have ${spare}). Boosts base stats +25%, resets level to 1.
+          ${progress.stars}★ → ${progress.stars + 1}★: needs Lv ${cap}, then
+          ${cost} hero${cost > 1 ? 'es' : ''} at ${progress.stars}★ sacrificed.
+          Boosts base stats +25%, resets level to 1.
         </div>
-        <button id="star-up-btn" class="panel-btn gold" ${can ? '' : 'disabled'}>
-          Star up ${can ? '' : atCap ? '(need duplicates)' : `(need Lv ${cap})`}
+        <button id="star-up-btn" class="panel-btn gold">
+          ${ready ? 'Improve this hero' : `Improve (needs Lv ${cap})`}
         </button>`;
     } else {
       starUpHtml = `
@@ -867,7 +841,7 @@ class TeamScreen {
       ${this.gearMsg ? `<div class="gear-auto-msg">${this.gearMsg}</div>` : ''}
       ${gearDetailHtml}
       ${setBonusHtml}
-      <div class="detail-section">Abilities <span class="cd">(📖 ${GameState.tomes} tomes)</span></div>
+      <div class="detail-section">Abilities <span class="cd">(raised in Improve)</span></div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
       <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
@@ -883,7 +857,7 @@ class TeamScreen {
     const autoBtn = document.getElementById('auto-equip-btn');
     if (autoBtn) {
       autoBtn.addEventListener('click', () => {
-        const n = GameState.autoEquip(def.id);
+        const n = GameState.autoEquip(uid);
         this.gearMsg = n > 0
           ? `Auto-equip: ${n} slot${n > 1 ? 's' : ''} upgraded.`
           : 'Auto-equip: already wearing the best available.';
@@ -900,23 +874,18 @@ class TeamScreen {
       });
     }
 
-    this.detailsEl.querySelectorAll('.skill-up-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (GameState.upgradeSkill(def.id, Number(btn.dataset.idx))) this.refresh();
-      });
-    });
-
     const starUpBtn = document.getElementById('star-up-btn');
-    if (starUpBtn && !starUpBtn.disabled) {
+    if (starUpBtn) {
       starUpBtn.addEventListener('click', () => {
-        if (GameState.starUp(def.id)) this.refresh();
+        this.app.screens.improve.select(uid);
+        this.app.showScreen('improve');
       });
     }
 
     this.detailsEl.querySelectorAll('.gear-select').forEach((sel) => {
       sel.addEventListener('change', () => {
-        if (sel.value) GameState.equipGear(def.id, sel.value);
-        else GameState.unequipGear(def.id, sel.dataset.slot);
+        if (sel.value) GameState.equipGear(uid, sel.value);
+        else GameState.unequipGear(uid, sel.dataset.slot);
         this.gearFocus = sel.dataset.slot;
         this.refresh();
       });
@@ -961,7 +930,7 @@ class TeamScreen {
     ctx.fillRect(0, 0, this.logicalW, this.logicalH);
 
     const team = GameState.getTeam();
-    const selDef = this.selection ? HEROES[this.selection.heroId] : null;
+    const selDef = this.selection ? GameState.defOf(this.selection.heroId) : null;
 
     for (const slot of this.slots) {
       const pts = Hex.corners(slot.x, slot.y, 53);
@@ -988,11 +957,11 @@ class TeamScreen {
 
     // Placed heroes, back-to-front by row so front rows overlap correctly.
     const placed = this.slots
-      .filter((slot) => team[slot.index] && HEROES[team[slot.index]])
+      .filter((slot) => team[slot.index] && GameState.defOf(team[slot.index]))
       .sort((a, b) => a.y - b.y);
     for (const slot of placed) {
       const heroId = team[slot.index];
-      const def = HEROES[heroId];
+      const def = GameState.defOf(heroId);
       const animator = this.animators.get(heroId);
       const sheet = animator && animator.sheet;
       const dh = sheet ? sheet.displayH : 48;
@@ -1034,8 +1003,8 @@ class TeamScreen {
       ctx.textAlign = 'center';
       ctx.fillText(
         this.selection.from === 'roster'
-          ? `Placing ${HEROES[this.selection.heroId].name} — click a hex`
-          : `Moving ${HEROES[this.selection.heroId].name} — click a destination hex`,
+          ? `Placing ${GameState.defOf(this.selection.heroId).name} — click a hex`
+          : `Moving ${GameState.defOf(this.selection.heroId).name} — click a destination hex`,
         this.logicalW / 2, 24
       );
     }

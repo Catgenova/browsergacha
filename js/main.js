@@ -25,7 +25,6 @@ const App = {
     document.getElementById('scroll-temporal-count').textContent = GameState.scrollsTemporal.toLocaleString();
     document.getElementById('whetstone-count').textContent = GameState.whetstones.toLocaleString();
     document.getElementById('arcana-count').textContent = GameState.arcana.toLocaleString();
-    document.getElementById('tome-count').textContent = GameState.tomes.toLocaleString();
   },
 
   // Is this hero committed to a fight that's currently running? Gear
@@ -175,6 +174,7 @@ const App = {
 
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
+  App.screens.improve = new ImproveScreen(App);
   App.screens.blacksmith = new BlacksmithScreen(App);
   App.screens.quests = new QuestsScreen(App);
   App.screens.campaign = new CampaignScreen(App);

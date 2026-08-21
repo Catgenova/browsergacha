@@ -172,10 +172,52 @@ test('a brand-new save yields complete roster entries', () => {
   const src = require('fs').readFileSync(
     require('path').join(__dirname, '..', 'js/state.js'), 'utf8');
   const guard = src.slice(src.indexOf('Shape guards'));
-  for (const field of ['copies', 'level', 'xp', 'stars', 'equipment', 'skills']) {
+  for (const field of ['level', 'xp', 'stars', 'equipment', 'skills']) {
     assert(guard.includes(`entry.${field}`),
       `load() never guarantees roster entry.${field}`);
   }
+  // ...and the starters actually turn up as heroes.
+  for (const uid of GameState.ownedHeroIds()) {
+    const e = GameState.progressOf(uid);
+    assert(e.heroId && GameState.defOf(uid), `roster ${uid} names no character`);
+    assert(Number.isFinite(e.level) && Number.isFinite(e.stars),
+      `roster ${uid} loaded without a level or star rating`);
+  }
+});
+
+test('an old save survives the move from copies to heroes', () => {
+  // Schema 6 and earlier kept one entry per CHARACTER with a duplicate
+  // counter. Migration 7 turns each of those counters into real heroes,
+  // and the team has to follow its hero to its new id.
+  const old = loadGame({ save: {
+    schemaVersion: 6,
+    roster: {
+      florence: { copies: 3, level: 20, stars: 4, equipment: {}, skills: { 0: 3 } },
+      rat_archer: { copies: 1, level: 5, stars: 1 },
+    },
+    team: { 1: 'florence' },
+    presets: [{ name: 'Old', team: { 1: 'florence' } }],
+    tomes: 12,
+  } });
+  const S = old.GameState;
+  assert(S.countOf('florence') === 3,
+    `three Florences expected, got ${S.countOf('florence')}`);
+  assert(S.countOf('rat_archer') === 1, 'the single hero was duplicated');
+
+  // The one that was levelled is still the levelled one.
+  const florences = S.uidsOf('florence').map((uid) => S.progressOf(uid));
+  const best = florences.find((p) => p.level === 20);
+  assert(best && best.stars === 4, 'the levelled Florence lost her progress');
+  assert(florences.filter((p) => p.level === 1).length === 2,
+    'the spare copies did not come back as fresh heroes');
+
+  // The team pointed at a character id; it points at that hero now.
+  const teamUid = S.getTeam()[1];
+  assert(teamUid && S.defIdOf(teamUid) === 'florence',
+    `the team lost its hero: ${JSON.stringify(S.getTeam())}`);
+  assert(S.progressOf(teamUid).level === 20, 'the team got handed a fresh copy');
+  assert(S.presets()[0].team[1] === teamUid, 'the preset was not repointed');
+  assert(S.tomes === undefined, 'skill tomes survived the migration');
 });
 
 

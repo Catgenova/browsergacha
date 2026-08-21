@@ -110,7 +110,8 @@ class BlacksmithScreen {
       String(a.uid).localeCompare(String(b.uid));
     const wearerName = (p) => {
       const id = GameState.wearerOf(p.uid);
-      return id && HEROES[id] ? HEROES[id].name : '';
+      const def = id && GameState.defOf(id);
+      return def ? def.name : '';
     };
     const SORTS = {
       rarity: byQuality,
@@ -146,7 +147,7 @@ class BlacksmithScreen {
               ${iconSrc ? `<img class="detail-icon" src="${Sprites.assetUrl(iconSrc)}" alt="">` : ''}
               <span class="bs-row-name" style="color:${color}">${p.locked ? '🔒 ' : ''}${Gear.pieceName(p)}</span>
               <span class="bs-row-info">Lv ${p.level} · ${Gear.statText(Gear.baseStat(p).stat, Gear.baseStat(p).value)}</span>
-              ${wearer && HEROES[wearer] ? `<span class="bs-row-wearer">${HEROES[wearer].name}</span>` : ''}
+              ${wearer && GameState.defOf(wearer) ? `<span class="bs-row-wearer">${GameState.defOf(wearer).name}</span>` : ''}
             </div>`;
         }).join('');
     this.listEl.querySelectorAll('.bs-row').forEach((row) => {
@@ -200,7 +201,7 @@ class BlacksmithScreen {
       <div class="detail-name" style="color:${rar.color}">${Gear.pieceName(piece)}</div>
       <div class="detail-stats">
         ${rar.name} · Lv ${piece.level}/${capLevel} · ${Gear.statText(base.stat, base.value)}
-        ${wearer && HEROES[wearer] ? `<br>Equipped by ${HEROES[wearer].name}` : '<br>Unequipped'}
+        ${wearer && GameState.defOf(wearer) ? `<br>Equipped by ${GameState.defOf(wearer).name}` : '<br>Unequipped'}
       </div>
       <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs})</div>
       ${subsHtml}

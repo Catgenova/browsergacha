@@ -92,12 +92,22 @@ const Gacha = (() => {
     if (kind === 'rare') {
       GameState.setPity(def.rarity === 5 ? 0 : GameState.pity + 1);
     }
-    const { isNew, copies } = GameState.addHero(def.id);
-    return { def, rarity: def.rarity, isNew, copies };
+    const added = GameState.addHero(def.id);
+    return { def, rarity: def.rarity, uid: added ? added.uid : null,
+      isNew: !!added && added.isNew, copies: GameState.countOf(def.id) };
   }
 
   // Spend `count` scrolls of `kind` for that many summons.
+  //
+  // A pull that would not fit is refused outright rather than part-filled:
+  // a summon now hands over a whole hero, and dropping some of them on
+  // the floor because the roster is full is not something to do quietly.
+  // Returns { error, space } instead of results when there is no room.
   function pull(kind, count) {
+    if (GameState.rosterSpace() < count) {
+      return { error: 'roster-full', space: GameState.rosterSpace(),
+        need: count, max: GameState.MAX_ROSTER };
+    }
     if (!GameState.spendScrolls(kind, count)) return null;
     const results = [];
     for (let i = 0; i < count; i++) results.push(resolvePull(kind));

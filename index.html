@@ -14,6 +14,7 @@
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
+        <button class="nav-tab" data-screen="improve">Improve</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="campaign">Campaign<span id="campaign-badge" class="hidden">•</span></button>
@@ -23,7 +24,7 @@
       <div id="scroll-display" title="Common · Rare · Temporal summon scrolls">📜 <span id="scroll-common-count">0</span> · ✨ <span id="scroll-rare-count">0</span> · 🌀 <span id="scroll-temporal-count">0</span></div>
       <button id="mute-btn" class="panel-btn" title="Mute or unmute the game">🔊</button>
       <button id="help-btn" class="panel-btn" title="Replay the first-run tour">?</button>
-      <div id="mat-display" title="Whetstones (item leveling) · Arcana (enchanting) · Skill Tomes (skill leveling, Endless Tower only)">🪨 <span id="whetstone-count">0</span> · ✦ <span id="arcana-count">0</span> · 📖 <span id="tome-count">0</span></div>
+      <div id="mat-display" title="Whetstones (item leveling) · Arcana (enchanting)">🪨 <span id="whetstone-count">0</span> · ✦ <span id="arcana-count">0</span></div>
     </header>
 
     <!-- ================= Summon screen ================= -->
@@ -80,7 +81,7 @@
           <div id="tower-controls">
             <span class="wave-label">Tower:</span>
             <span id="tower-status"></span>
-            <button id="tower-btn" class="panel-btn gold" title="Climb the Endless Tower — every floor drops a Common Scroll, every 5th a Rare, every 20th Skill Tomes, every 50th a Temporal Scroll">Climb!</button>
+            <button id="tower-btn" class="panel-btn gold" title="Climb the Endless Tower — every floor drops a Common Scroll, every 5th a Rare, every 50th a Temporal Scroll">Climb!</button>
           </div>
           <div id="preset-controls">
             <span class="wave-label">Presets:</span>
@@ -107,7 +108,6 @@
           <label id="hide-maxed-label" title="Hide heroes already at their level cap">
             <input id="hide-maxed" type="checkbox"> Hide maxed
           </label>
-          <button id="star-up-all-btn" class="panel-btn gold" title="Star up every hero that is at their level cap with enough duplicates">★⬆ Star up all</button>
           <button id="roster-report-btn" class="panel-btn" title="Who is worth investing in?">📊 Report</button>
           <select id="roster-sort" title="Sort the roster">
             <option value="power">Sort: Power</option>
@@ -124,6 +124,17 @@
     </section>
 
     <!-- ================= Blacksmith screen ================= -->
+    <section id="screen-improve" class="screen hidden">
+      <div id="imp-top">
+        <span id="imp-count"></span>
+        <input id="imp-search" type="search" placeholder="Search name or element…">
+      </div>
+      <div id="imp-body">
+        <div id="imp-list"></div>
+        <aside id="imp-detail"></aside>
+      </div>
+    </section>
+
     <section id="screen-blacksmith" class="screen hidden">
       <div id="bs-toolbar">
         <div id="bs-filters"></div>
@@ -335,6 +346,7 @@
   <script src="js/campaign_screen.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
+  <script src="js/improve_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
   <script src="js/quests_screen.js?v=__BUILD__"></script>
   <script src="js/summon_screen.js?v=__BUILD__"></script>
