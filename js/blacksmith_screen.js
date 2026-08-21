@@ -175,9 +175,26 @@ class BlacksmithScreen {
     const enchCost = atMaxPlus ? 0 : Gear.arcanaCost(piece.plus);
     const nextMilestone = atMaxPlus ? null : Math.ceil((piece.plus + 1) / 3) * 3;
     const wearer = GameState.wearerOf(piece.uid);
+    const pending = piece.pendingSubs || null;
     const subsHtml = piece.subs.length
-      ? piece.subs.map((s) => `<div class="set-bonus">${Gear.subLabel(s)}</div>`).join('')
+      ? piece.subs.map((s, i) => {
+        if (!pending || !pending[i]) {
+          return `<div class="set-bonus">${Gear.subLabel(s)}</div>`;
+        }
+        // Side by side, with the direction marked, so the choice does
+        // not require reading two numbers and doing the sum.
+        const up = pending[i].value > s.value;
+        const same = pending[i].value === s.value;
+        return `<div class="sub-compare">
+          <span class="sub-old">${Gear.subLabel(s)}</span>
+          <span class="sub-arrow ${same ? '' : up ? 'up' : 'down'}">
+            ${same ? '=' : up ? '\u25b2' : '\u25bc'}</span>
+          <span class="sub-new ${same ? '' : up ? 'up' : 'down'}">${Gear.subLabel(pending[i])}</span>
+        </div>`;
+      }).join('')
       : '<div class="set-bonus">No substats yet</div>';
+    const rerollCost = Gear.rerollCost(piece);
+    const better = pending ? Gear.subsScore(pending) - Gear.subsScore(piece.subs) : 0;
 
     this.detailEl.innerHTML = `
       <div class="detail-name" style="color:${rar.color}">${Gear.pieceName(piece)}</div>
@@ -206,6 +223,22 @@ class BlacksmithScreen {
         <button id="bs-auto-enchant" class="panel-btn" title="Keep attempting enchants until +15 or arcana runs out"
           ${atMaxPlus || GameState.arcana < enchCost ? 'disabled' : ''}>Auto ✦</button>
       </div>
+      ${piece.subs.length ? `
+      <div class="detail-section">Reroll</div>
+      <div class="gear-actions">
+        ${pending ? `
+          <button id="bs-reroll-keep" class="panel-btn gold">Keep ${better > 0 ? '\u25b2' : better < 0 ? '\u25bc' : ''}</button>
+          <button id="bs-reroll-drop" class="panel-btn danger">Discard</button>
+          <span class="set-bonus">${better > 0 ? 'The new roll is stronger overall.'
+            : better < 0 ? 'The new roll is weaker overall.' : 'Much of a muchness.'}</span>
+        ` : `
+          <button id="bs-reroll" class="panel-btn"
+            ${GameState.arcana < rerollCost ? 'disabled' : ''}
+            title="Roll new VALUES for this item's substats. You see the result before deciding.">
+            Reroll substats (${rerollCost} \u2726)
+          </button>
+        `}
+      </div>` : ''}
       <div class="detail-section">Maintenance</div>
       <div class="gear-actions">
         <button id="bs-lock" class="panel-btn" title="Locked gear is safe from Salvage all and stays where you put it">${piece.locked ? '🔒 Locked' : '🔓 Lock'}</button>
@@ -219,6 +252,30 @@ class BlacksmithScreen {
       if (el) el.textContent = text;
     };
 
+    const rerollBtn = document.getElementById('bs-reroll');
+    if (rerollBtn && !rerollBtn.disabled) {
+      rerollBtn.addEventListener('click', () => {
+        const r = GameState.rerollGear(piece.uid);
+        this.refresh();
+        if (r) msg(`Rolled for ${r.cost} \u2726 — keep it or discard it.`);
+      });
+    }
+    const keepBtn = document.getElementById('bs-reroll-keep');
+    if (keepBtn) {
+      keepBtn.addEventListener('click', () => {
+        GameState.keepReroll(piece.uid);
+        this.refresh();
+        msg('New substats kept.');
+      });
+    }
+    const dropBtn = document.getElementById('bs-reroll-drop');
+    if (dropBtn) {
+      dropBtn.addEventListener('click', () => {
+        GameState.discardReroll(piece.uid);
+        this.refresh();
+        msg('Roll discarded — the original substats stand.');
+      });
+    }
     const polishBtn = document.getElementById('bs-polish');
     if (polishBtn && !polishBtn.disabled) {
       polishBtn.addEventListener('click', () => {

@@ -507,6 +507,24 @@ test('achievements all report sane progress and rewards', () => {
   assert(ids.length >= 10, `only ${ids.length} achievements defined`);
 });
 
+test('every substat prints as the kind of number it is', () => {
+  // accuracy and resistance are fractions like crit is, and were being
+  // printed raw ("+0.06 Accuracy") because the formatter guessed from
+  // the stat name instead of asking the pool.
+  const bad = [];
+  for (let i = 0; i < 60; i += 1) {
+    const piece = Gear.drop('dragon', 14);
+    for (const sub of piece.subs) {
+      const text = Gear.subLabel(sub);
+      // A fractional value must never be printed as a bare decimal.
+      if (sub.value < 1 && !text.includes('%')) {
+        bad.push(`${sub.stat} ${sub.value} -> "${text}"`);
+      }
+    }
+  }
+  assert(bad.length === 0, [...new Set(bad)].slice(0, 4).join(' | '));
+});
+
 test('team presets round-trip and survive a hero going missing', () => {
   const { GameState } = g;
   const ids = ['rat_knight', 'rat_archer', 'rat_cook'];
