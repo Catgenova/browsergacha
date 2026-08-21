@@ -31,6 +31,17 @@ class TeamScreen {
       try { localStorage.setItem('bg_hideMaxed', this.hideMaxed.checked ? '1' : '0'); } catch (e) {}
       this.buildRoster();
     });
+    // Storage: the roster grid doubles as the vault view. Clicking a
+    // stored hero withdraws them; depositing lives on the hero detail.
+    this.storageView = false;
+    this.storageBtn = document.getElementById('storage-btn');
+    if (this.storageBtn) {
+      this.storageBtn.addEventListener('click', () => {
+        this.storageView = !this.storageView;
+        this.rosterMsg = null;
+        this.buildRoster();
+      });
+    }
     this.reportEl = document.getElementById('roster-report');
     const reportBtn = document.getElementById('roster-report-btn');
     if (reportBtn) {
@@ -446,6 +457,13 @@ class TeamScreen {
       capEl.textContent = `${n} / ${GameState.MAX_ROSTER}`;
       capEl.classList.toggle('roster-cap-full', n >= GameState.MAX_ROSTER);
     }
+    if (this.storageBtn) {
+      this.storageBtn.textContent = this.storageView
+        ? '← Back to roster'
+        : `🏛 Storage ${GameState.storageCount()} / ${GameState.MAX_STORAGE}`;
+      this.storageBtn.classList.toggle('storage-open', this.storageView);
+    }
+    if (this.storageView) { this.buildStorage(); return; }
     const team = GameState.getTeam();
     const inTeam = new Set(Object.values(team));
     // Card reuse: rebuilding 385 cards (and 385 portrait canvases) on
@@ -501,6 +519,73 @@ class TeamScreen {
     const frag = document.createDocumentFragment();
     for (const heroId of ids) {
       frag.appendChild(this.rosterCard(heroId, inTeam));
+    }
+    this.rosterEl.replaceChildren(frag);
+  }
+
+  // The vault, drawn in the roster's grid. Cards are built fresh each
+  // time (no cache): the vault is visited rarely and its cards carry a
+  // withdraw action instead of selection.
+  buildStorage() {
+    const msgEl = document.getElementById('roster-msg');
+    if (msgEl) {
+      msgEl.textContent = this.rosterMsg ||
+        `Stored heroes are out of play and hold no gear. Click one to withdraw it ` +
+        `(needs roster room). To deposit, select a benched hero and use ` +
+        `"Send to storage".`;
+      msgEl.classList.remove('hidden');
+    }
+    const query = this.rosterSearch.value.trim().toLowerCase();
+    const uids = GameState.storedHeroIds()
+      .map((uid) => ({ uid, e: GameState.storedEntry(uid) }))
+      .filter((r) => r.e && HEROES[r.e.heroId])
+      .map((r) => ({ ...r, def: HEROES[r.e.heroId] }))
+      .filter((r) => !query || r.def.name.toLowerCase().includes(query) ||
+        (r.def.element || '').toLowerCase().includes(query))
+      .sort((a, b) => (b.e.stars - a.e.stars) || (b.e.level - a.e.level) ||
+        a.def.name.localeCompare(b.def.name));
+
+    const frag = document.createDocumentFragment();
+    for (const r of uids) {
+      const card = document.createElement('div');
+      card.className = 'roster-card stored-card';
+      card.title = `Withdraw ${r.def.name} to the roster`;
+      const portrait = document.createElement('canvas');
+      portrait.width = 64; portrait.height = 64;
+      portrait.className = 'portrait';
+      Sprites.paintPortrait(portrait, r.def);
+      const name = document.createElement('div');
+      name.className = 'card-name';
+      name.textContent = `${Elements.badge(r.def.element)} ${r.def.name}`.trim();
+      const stars = document.createElement('div');
+      stars.className = `card-stars rarity-${r.def.rarity}`;
+      stars.innerHTML = Attune.starsHtml(r.e.stars, r.e.attune, r.def.element);
+      const level = document.createElement('div');
+      level.className = 'card-level';
+      level.textContent = `Lv ${r.e.level}`;
+      const out = document.createElement('div');
+      out.className = 'card-badge stored-badge';
+      out.textContent = 'WITHDRAW';
+      card.append(portrait, name, stars, level, out);
+      card.addEventListener('click', () => {
+        if (GameState.rosterFull()) {
+          this.rosterMsg = 'The roster is full — make room before withdrawing.';
+          this.buildRoster();
+          return;
+        }
+        const res = GameState.withdraw(r.uid);
+        this.rosterMsg = res ? `${r.def.name} returned to the roster.` : 'Could not withdraw.';
+        this.buildRoster();
+      });
+      frag.appendChild(card);
+    }
+    if (!uids.length) {
+      const empty = document.createElement('div');
+      empty.className = 'storage-empty';
+      empty.textContent = query
+        ? 'Nothing in storage matches.'
+        : 'The vault is empty. Select a hero and use "Send to storage" to park them here.';
+      frag.appendChild(empty);
     }
     this.rosterEl.replaceChildren(frag);
   }
@@ -921,6 +1006,15 @@ class TeamScreen {
         ${bonusLive ? '<br><b>★ Active in current slot</b>' : ''}
       </div>
       ${slotIndex !== null ? '<button id="remove-hero-btn" class="panel-btn danger">Remove from team</button>' : ''}
+      <div class="detail-section">Storage</div>
+      <button id="deposit-btn" class="panel-btn"
+        ${slotIndex !== null || GameState.storageFull() ? 'disabled' : ''}
+        title="${slotIndex !== null
+          ? 'Fielded heroes cannot be stored — remove them from the team first.'
+          : GameState.storageFull() ? 'The vault is full.'
+          : 'Park this hero in the vault (' + GameState.storageCount() + '/' + GameState.MAX_STORAGE + '). Their gear is removed and returned to the inventory.'}">
+        Send to storage
+      </button>
     `;
 
     const autoBtn = document.getElementById('auto-equip-btn');
@@ -930,6 +1024,19 @@ class TeamScreen {
         this.gearMsg = n > 0
           ? `Auto-equip: ${n} slot${n > 1 ? 's' : ''} upgraded.`
           : 'Auto-equip: already wearing the best available.';
+        this.refresh();
+      });
+    }
+
+    const depositBtn = document.getElementById('deposit-btn');
+    if (depositBtn && !depositBtn.disabled) {
+      depositBtn.addEventListener('click', () => {
+        const r = GameState.deposit(uid);
+        if (!r) { this.gearMsg = 'Could not store this hero.'; this.refresh(); return; }
+        this.selection = null;
+        this.rosterMsg = `${def.name} sent to storage` +
+          (r.gearFreed ? ` — ${r.gearFreed} piece${r.gearFreed > 1 ? 's' : ''} of gear returned.` : '.');
+        if (typeof Sound !== 'undefined') Sound.play('click');
         this.refresh();
       });
     }
