@@ -95,17 +95,30 @@ class CompendiumScreen {
 
   // The roster currently being browsed.
   roster() {
-    return this.category === 'bosses' ? BOSSES : HEROES;
+    return this.category === 'bosses' ? this.bossRoster() : HEROES;
+  }
+
+  // Gear bosses and elemental bosses, one book. Elemental entries get
+  // an 'el_' key prefix so the two tables can never collide.
+  bossRoster() {
+    if (!this._bossRoster) {
+      const out = { ...BOSSES };
+      for (const [key, b] of Object.entries(ELEMENTAL_BOSSES)) out[`el_${key}`] = b;
+      this._bossRoster = out;
+    }
+    return this._bossRoster;
   }
 
   filteredIds() {
     const q = (this.searchEl.value || '').trim().toLowerCase();
     if (this.category === 'bosses') {
       // Bosses are keyed by short name ('dragon') but carry a prefixed
-      // id ('boss_dragon'), so address them by key.
-      return Object.entries(BOSSES)
+      // id ('boss_dragon'), so address them by key. Elemental bosses
+      // ride along under their 'el_' keys, after the gear bosses.
+      return Object.entries(this.bossRoster())
         .filter(([, b]) => !q || b.name.toLowerCase().includes(q) ||
-          (b.title || '').toLowerCase().includes(q))
+          (b.title || '').toLowerCase().includes(q) ||
+          (b.element || '').toLowerCase().includes(q))
         .map(([key]) => key);
     }
     const rarity = this.rarityEl.value;
@@ -443,7 +456,9 @@ class CompendiumScreen {
   // passives, and a gear set that only they drop.
   renderBossDetail(def, sheet) {
     const elInfo = def.element ? Elements.info(def.element) : null;
-    const cleared = GameState.bossStageCleared(def.id);
+    const cleared = def.isElemental
+      ? GameState.attuneStageCleared(def.attuneId)
+      : GameState.bossStageCleared(def.id);
     const maxStage = Progression.BOSS_MAX_STAGE;
     // bossScaledStats takes the def and a level, not a stage.
     const animBtns = this.animationNames(sheet).map((n) =>
@@ -486,8 +501,14 @@ class CompendiumScreen {
         <div class="comp-ability-desc">${p.description}</div>
       </div>`).join('');
 
-    const set = typeof Gear !== 'undefined' && Gear.SETS[def.gearSet];
-    const dropHtml = set ? `
+    const set = !def.isElemental && typeof Gear !== 'undefined' && Gear.SETS[def.gearSet];
+    const dropHtml = def.isElemental
+      ? `<div class="comp-drop"><b>${elInfo ? elInfo.name : def.element} Elements</b>
+          — the only source of the Elements that attune ${elInfo ? elInfo.name : ''}
+          heroes. Stages 1–8 pay Small, 9–15 Medium, 16–20 Large.</div>
+        ${[1, 5, 10, 15, 20].map((st) =>
+          `<div class="comp-syn"><span>Stage ${st}: ${Attune.payoutText(st)}</span></div>`).join('')}`
+      : set ? `
       <div class="comp-drop"><b>${set.name} set</b> — every stage drops a piece;
         higher stages roll rarer.</div>
       ${set.bonuses.map((b) => `<div class="comp-syn"><span>${b.label}</span></div>`).join('')}
@@ -505,6 +526,7 @@ class CompendiumScreen {
           <div class="comp-badges">
             ${elInfo ? `<span class="comp-badge" style="border-color:${elInfo.color};color:${elInfo.color}">${Elements.badge(def.element)} ${elInfo.name}</span>` : ''}
             <span class="comp-badge">Spans every hex</span>
+            ${def.isElemental ? '<span class="comp-badge">Elemental boss</span>' : ''}
             <span class="comp-badge">${passives.length} passives</span>
             ${cleared > 0 ? `<span class="comp-badge owned">Stage ${cleared} cleared</span>` : ''}
           </div>
@@ -567,8 +589,8 @@ class CompendiumScreen {
     ctx.fill();
     ctx.restore();
     const size = this.animator.size();
-    const def = (typeof HEROES !== 'undefined' && HEROES[this.selectedId]) ||
-      (typeof BOSSES !== 'undefined' && BOSSES[this.selectedId]) || null;
+    const def = this.roster()[this.selectedId] ||
+      (typeof HEROES !== 'undefined' && HEROES[this.selectedId]) || null;
     this.animator.draw(ctx, c.width / 2, baseY - size.h / 2 + 8, Sprites.facesLeft(def));
   }
 }
