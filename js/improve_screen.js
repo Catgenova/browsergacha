@@ -57,6 +57,11 @@ class ImproveScreen {
     this.selected = uid;
     this.chosen.clear();
     this.message = '';
+    // A fresh target (or a target whose stars just changed) gets a
+    // fresh view: scroll to the top so the fodder that matches the
+    // CURRENT star rating leads, instead of whatever region the last
+    // pick left in view.
+    this.resetScroll = true;
   }
 
   enter() { this.autoArmed = false; this.refresh(); }
@@ -151,10 +156,14 @@ class ImproveScreen {
     }
 
     // Toggling a sacrifice re-renders this whole panel; without saving
-    // the scroll, every pick snapped the list back to the top.
-    const panelScroll = this.detailEl.scrollTop;
+    // the scroll, every pick snapped the list back to the top. But a
+    // NEW context -- fresh target, or a completed star-up -- resets to
+    // the top instead, so the list reads for the current star rating.
+    const keepScroll = !this.resetScroll;
+    this.resetScroll = false;
+    const panelScroll = keepScroll ? this.detailEl.scrollTop : 0;
     const optsEl = this.detailEl.querySelector('.imp-opts');
-    const optsScroll = optsEl ? optsEl.scrollTop : 0;
+    const optsScroll = keepScroll && optsEl ? optsEl.scrollTop : 0;
 
     const uid = this.selected;
     const def = GameState.defOf(uid);
@@ -314,6 +323,9 @@ class ImproveScreen {
     const def = GameState.defOf(uid);
     const report = GameState.sacrifice(uid, [...this.chosen]);
     this.chosen.clear();
+    // A star-up changes what counts as at-rank fodder: rebuild the view
+    // from the top so the list reads for the NEW star rating.
+    if (report && report.starred) this.resetScroll = true;
     if (!report) { this.message = 'Nothing was spent.'; this.refresh(); return; }
 
     const bits = [`Spent ${report.spent} hero${report.spent > 1 ? 'es' : ''}.`];
