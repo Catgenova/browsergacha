@@ -143,6 +143,10 @@ body {
   gap: 14px;
 }
 
+.quest-board-header.ach-toggle { cursor: pointer; user-select: none; }
+.ach-caret { margin-right: 7px; color: #9a92b8; font-size: 11px; }
+.quest-board.quest-collapsed .quest-rows { display: none; }
+.ach-claimable { color: #ffd76a; font-weight: bold; }
 .quest-board {
   padding: 12px 14px;
   background: #1c1926;
