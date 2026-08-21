@@ -27,6 +27,29 @@ class ImproveScreen {
     if (this.searchEl) {
       this.searchEl.addEventListener('input', () => this.renderList());
     }
+    // Auto star up: everything at 1-2 stars is forged up to 3. It
+    // spends heroes, so the first press shows the price and the second
+    // one pays it.
+    this.autoBtn = document.getElementById('imp-auto');
+    this.autoArmed = false;
+    if (this.autoBtn) {
+      this.autoBtn.addEventListener('click', () => {
+        const plan = GameState.planAutoStarUp();
+        if (!plan.length) return;
+        if (!this.autoArmed) {
+          this.autoArmed = true;
+          this.renderAuto();
+          return;
+        }
+        this.autoArmed = false;
+        const r = GameState.autoStarUp();
+        this.message = `Auto star up: ${r.starUps} star up${r.starUps === 1 ? '' : 's'}, ` +
+          `${r.spent} hero${r.spent === 1 ? '' : 'es'} spent` +
+          (r.skills ? `, ${r.skills} skill level${r.skills === 1 ? '' : 's'} gained` : '') + '.';
+        if (typeof Sound !== 'undefined') Sound.play('levelup');
+        this.refresh();
+      });
+    }
   }
 
   // Open the screen on a particular hero (the team screen links here).
@@ -36,7 +59,7 @@ class ImproveScreen {
     this.message = '';
   }
 
-  enter() { this.refresh(); }
+  enter() { this.autoArmed = false; this.refresh(); }
   exit() {}
   update() {}
   draw() {}
@@ -48,8 +71,24 @@ class ImproveScreen {
       if (!GameState.defOf(uid)) this.chosen.delete(uid);
     }
     this.renderCount();
+    this.renderAuto();
     this.renderList();
     this.renderDetail();
+  }
+
+  // The auto button always says what it would do right now; disabled
+  // when the shelf has nothing to forge.
+  renderAuto() {
+    if (!this.autoBtn) return;
+    const plan = GameState.planAutoStarUp();
+    const spend = plan.reduce((n, st) => n + st.fodder.length, 0);
+    this.autoBtn.disabled = !plan.length;
+    this.autoBtn.classList.toggle('armed', this.autoArmed && !!plan.length);
+    this.autoBtn.innerHTML = !plan.length
+      ? 'Auto star up to 3&#9733;'
+      : this.autoArmed
+        ? `Spend ${spend} hero${spend === 1 ? '' : 'es'} for ${plan.length} star up${plan.length === 1 ? '' : 's'}?`
+        : `Auto star up to 3&#9733; (${plan.length})`;
   }
 
   renderCount() {
