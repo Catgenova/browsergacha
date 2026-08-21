@@ -745,6 +745,13 @@ body {
 }
 
 #roster-header h3 { flex: 1; }
+#roster-cap {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: normal;
+  color: #9a92b8;
+}
+#roster-cap.roster-cap-full { color: #ff9a8a; }
 
 #hide-maxed-label {
   display: flex;
