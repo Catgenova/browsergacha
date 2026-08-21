@@ -2088,11 +2088,8 @@ body {
   html.is-mobile #battle-idle,
   html.is-mobile #tactics-panel {
     order: 2;
-    position: static;
-    transform: none;
     width: 100%;
     max-width: 100%;
-    z-index: auto;
   }
   html.is-mobile #battle-banner { padding: 16px 12px; }
   html.is-mobile #banner-actions { width: 100%; }
@@ -2343,20 +2340,18 @@ html.is-mobile .sub-compare { font-size: 13px; }
 /* ==== Battle: the empty state ==== */
 /* Shown when nothing is running. The tab used to roll a fresh hunt in
    this situation, so this is the screen that replaced that. */
+/* Idle mode: the picker IS the battle screen. The arena, controls,
+   log and meter all step aside until a fight starts. */
+#screen-battle.idle-mode #battle-wrap,
+#screen-battle.idle-mode #battle-bottom { display: none; }
 #battle-idle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(560px, 94%);
-  max-height: 92%;
-  overflow-y: auto;
+  width: min(980px, 100%);
+  margin: 0 auto 12px;
   padding: 22px 26px;
   text-align: center;
-  background: rgba(20, 18, 30, 0.94);
+  background: #14121e;
   border: 2px solid #4a4468;
   border-radius: 10px;
-  z-index: 6;
 }
 
 #idle-title {
@@ -2388,8 +2383,8 @@ html.is-mobile .sub-compare { font-size: 13px; }
   border-top: 1px solid #34304a;
   text-align: left;
   display: grid;
-  grid-template-columns: 108px 148px 1fr;
-  gap: 10px;
+  grid-template-columns: 140px 180px 1fr;
+  gap: 12px;
   align-items: start;
 }
 #bs-modes { display: flex; flex-direction: column; gap: 6px; }
@@ -2408,7 +2403,7 @@ html.is-mobile .sub-compare { font-size: 13px; }
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 300px;
+  max-height: 380px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -2473,14 +2468,7 @@ html.is-mobile .sub-compare { font-size: 13px; }
 }
 
 @media (max-width: 899px) {
-  /* In flow with the rest of the stack, like the banner and the panels. */
-  html.is-mobile #battle-idle {
-    order: 2;
-    position: static;
-    transform: none;
-    width: 100%;
-    z-index: auto;
-  }
+  html.is-mobile #battle-idle { width: 100%; }
   html.is-mobile #idle-actions .panel-btn { flex: 1 1 140px; min-height: 44px; }
 }
 

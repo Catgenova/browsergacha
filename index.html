@@ -191,6 +191,18 @@
 
     <!-- ================= Battle screen ================= -->
     <section id="screen-battle" class="screen hidden">
+      <!-- Nothing running: the picker replaces the whole battle UI -->
+      <div id="battle-idle" class="hidden">
+        <div id="idle-title">No battle active</div>
+        <div id="idle-sub"></div>
+        <div id="idle-actions">
+          <button id="idle-again" class="panel-btn hidden">Fight again</button>
+          <button id="idle-team" class="panel-btn">Team</button>
+          <button id="idle-campaign" class="panel-btn">Campaign</button>
+        </div>
+        <div id="battle-select"></div>
+      </div>
+
       <div id="battle-wrap">
         <canvas id="battle-canvas" width="960" height="540"></canvas>
 
@@ -209,17 +221,6 @@
           <div id="target-hint" class="hidden">Select a target…</div>
         </div>
 
-        <!-- Nothing running: the tab no longer starts a fight by itself -->
-        <div id="battle-idle" class="hidden">
-          <div id="idle-title">No battle active</div>
-          <div id="idle-sub"></div>
-          <div id="idle-actions">
-            <button id="idle-again" class="panel-btn hidden">Fight again</button>
-            <button id="idle-team" class="panel-btn">Team</button>
-            <button id="idle-campaign" class="panel-btn">Campaign</button>
-          </div>
-          <div id="battle-select"></div>
-        </div>
 
         <!-- Auto-battle tactics: how the party picks abilities and targets -->
         <div id="tactics-panel" class="hidden">

@@ -425,6 +425,10 @@ class BattleScreen {
     const el = document.getElementById('battle-idle');
     if (!el) return;
     el.classList.toggle('hidden', !on);
+    // The picker REPLACES the battle UI: idle mode hides the arena, the
+    // control row, the log and the meter, leaving the picker (and the
+    // last-battle summary) as the whole page.
+    this.el.classList.toggle('idle-mode', on);
     if (!on) return;
 
     // The fight picker owns this panel's lower half; re-render so
