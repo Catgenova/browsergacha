@@ -185,7 +185,7 @@ class ImproveScreen {
       const info = Elements.info(fodder.element);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
-      if (o.star) tags.push(`<span class="imp-tag">${o.stars}&#9733;</span>`);
+      tags.push(`<span class="imp-tag${o.star ? '' : ' imp-tag-dim'}">${o.stars}&#9733;</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
         <canvas class="imp-portrait" width="34" height="34"></canvas>
         <div class="imp-row-text">
@@ -232,9 +232,8 @@ class ImproveScreen {
         ? `<span class="imp-note">${picked.length} chosen</span>` : ''}</div>
       ${options.length
         ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
-        : `<div class="imp-line imp-note">Nothing in the roster can improve
-           ${def.name} right now. You need another ${def.name} for a skill
-           level, or a spare hero at ${pr.stars}&#9733; for a star up.</div>`}`;
+        : `<div class="imp-line imp-note">Nobody is free to sacrifice --
+           every other hero is favourited or on the team.</div>`}`;
 
     this.detailEl.scrollTop = panelScroll;
     const optsEl2 = this.detailEl.querySelector('.imp-opts');

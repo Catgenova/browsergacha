@@ -2635,6 +2635,7 @@ html.is-mobile .sub-compare { font-size: 13px; }
 #imp-auto { white-space: nowrap; font-size: 12px; }
 #storage-btn { white-space: nowrap; }
 #storage-btn.storage-open { border-color: #8ecbff; color: #8ecbff; }
+.imp-tag-dim { opacity: 0.5; }
 .stored-card { cursor: pointer; }
 /* The storage arrow: ▼ on roster cards (deposit), ▲ on vault cards
    (withdraw). Sits in the card's free bottom-right corner. */
