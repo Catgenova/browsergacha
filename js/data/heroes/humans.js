@@ -459,9 +459,11 @@ Object.assign(HEROES, {
       displayH: 90,
       strips: {
         idle:  { src: 'assets/heroes/Silas/silasidle.png', frames: 9, fps: 5, loop: true },
-        // Timed fidgets while he idles.
+        // Timed fidgets while he idles. The first is a little spring off
+        // the ground — the art tucks his feet on 6-8, and the hop arc
+        // lifts him to match.
         idle2: { src: 'assets/heroes/Silas/silasidle1.png', frames: 9, fps: 6, loop: false,
-                 variantOf: 'idle', every: [8, 15] },
+                 variantOf: 'idle', every: [8, 15], hop: { frames: [5, 9], height: 30 } },
         idle3: { src: 'assets/heroes/Silas/silasidle2.png', frames: 9, fps: 6, loop: false,
                  variantOf: 'idle', every: [8, 15] },
         // Boltshot: the release snaps on frame 6.

@@ -294,6 +294,7 @@ const Sprites = (() => {
           holds: strip.holds || null,
           hitFrame: strip.hitFrame || null, // effects land on this frame
           motion: strip.motion || null,     // movement phases (see battle.js)
+          hop: strip.hop || null,           // in-place jump arc (see battle.js hopHeight)
           frameEffects: strip.frameEffects || null, // spawned effects per frame
           freeze: !!strip.freeze,           // hold last frame at completion
         };

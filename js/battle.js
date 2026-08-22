@@ -388,11 +388,24 @@ class Battle {
   // Ground point directly beneath a unit and its current height above it
   // (0 when standing). Air anchors map to their ground equivalents and
   // arcs are ignored, so jumps report real altitude for shadow shrink.
+  // A small in-place jump some animation strips carry (Silas's idle
+  // fidget springs off the ground): a sine arc over the strip's hop
+  // frames. Zero whenever the current animation has none.
+  hopHeight(unit) {
+    if (!unit.animator) return 0;
+    const anim = unit.animator.sheet.animations[unit.animator.current];
+    if (!anim || !anim.hop) return 0;
+    const [a, b] = anim.hop.frames;
+    const f = unit.animator.frame + 1;
+    if (f < a || f > b) return 0;
+    return Math.sin(Math.PI * ((f - a) / Math.max(1, b - a))) * anim.hop.height;
+  }
+
   motionGround(unit) {
     const pos = this.motionPos(unit);
     const ms = unit.motionState;
     if (!ms || !unit.animator || unit.animator.current !== ms.anim) {
-      return { x: pos.x, groundY: unit.slot.y, height: 0 };
+      return { x: pos.x, groundY: unit.slot.y, height: this.hopHeight(unit) };
     }
     const f = unit.animator.frame + 1;
     let phase = ms.phases[ms.phases.length - 1];
@@ -412,7 +425,7 @@ class Battle {
   motionPos(unit) {
     const ms = unit.motionState;
     if (!ms || !unit.animator || unit.animator.current !== ms.anim) {
-      return { x: unit.slot.x, y: unit.slot.y };
+      return { x: unit.slot.x, y: unit.slot.y - this.hopHeight(unit) };
     }
     const f = unit.animator.frame + 1;
     let phase = ms.phases[ms.phases.length - 1];
