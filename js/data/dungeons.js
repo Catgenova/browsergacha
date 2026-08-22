@@ -1,16 +1,19 @@
-// Dungeon bosses: two twenty-floor gauntlets farmed for MATERIALS, not
-// gear. Floors follow the boss-ladder rule — clearing one opens the
-// next, cleared floors stay repeatable — and the payout scales with the
-// floor number:
+// Dungeon bosses: three twenty-floor gauntlets farmed for what heroes
+// need — materials and levels, never gear. Floors follow the
+// boss-ladder rule — clearing one opens the next, cleared floors stay
+// repeatable — and the payout scales with the floor:
 //
-//   Forgefather      The Grindhouse     100 Whetstones × floor
-//   Arcane Warden    The Arcanum Vault   25 Arcana     × floor
+//   Forgefather      The Grindhouse       100 Whetstones × floor
+//   Arcane Warden    The Arcanum Vault     25 Arcana     × floor
+//   Grandmaster      The Proving Grounds   25× enemy XP (a normal boss
+//                                          pays 6×) — ~4 boss fights of
+//                                          XP for the whole team
 //
 // They fight like the gear bosses — alone, spanning the whole enemy
 // formation, interpolating between stats5 and stats100 — but drop no
-// gear: these fights exist to pay for the Blacksmith's polish (🪨) and
-// enchant (✦) bills. `whetstonesPer`/`arcanaPer` are the per-floor
-// rates the battle builder multiplies by the floor being fought.
+// gear. `whetstonesPer`/`arcanaPer` are per-floor rates the battle
+// builder multiplies by the floor being fought; `xpMult` replaces the
+// standard boss ×6 on the XP the fight's enemy level is worth.
 
 const DUNGEON_BOSSES = {
   whetstone: {
@@ -177,6 +180,94 @@ const DUNGEON_BOSSES = {
         icon: 'assets/icons/fc882.png',
         description: 'Has a 15% chance to dodge any attack.',
         hooks: { dodgeAdd: 0.15 },
+      },
+    ],
+    positional: null,
+  },
+
+  xp: {
+    id: 'dungeon_xp',
+    element: 'light',
+    name: 'Grandmaster',
+    title: 'Headmaster of the Proving Grounds',
+    dungeonName: 'The Proving Grounds',
+    whetstonesPer: 0,
+    arcanaPer: 0,
+    xpMult: 25, // a normal boss fight pays 6x its enemy level's XP
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_meadow.png',
+    tint: { body: '#c8b880', helm: '#f0e0a8', weapon: '#f8f0c8', skin: '#e0d0a0' },
+    stats: { hp: 15000, atk: 480, def: 310, speed: 132 }, // lv5 reference
+    stats5: { hp: 15000, atk: 480, def: 310, speed: 132 },
+    stats100: { hp: 100000, atk: 11800, def: 2100, speed: 132 },
+    sprite: { displayH: 230, strips: {} }, // procedural art until drawn
+    abilities: [
+      {
+        id: 'first_lesson', name: 'First Lesson',
+        icon: 'assets/icons/fc746.png',
+        description: 'A measured strike for 130% ATK — the Grandmaster ' +
+          'studies the answer: +8% ATK for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.3 }],
+        selfEffects: [{ type: 'buff', stat: 'atk', mult: 1.08, turns: 2 }],
+      },
+      {
+        id: 'pop_quiz', name: 'Pop Quiz',
+        icon: 'assets/icons/fc999.png',
+        description: 'Test ALL heroes at once: 75% ATK and -10% ATK for ' +
+          '2 turns (resistible) for the unprepared.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'debuff', stat: 'atk', mult: 0.9, turns: 2 },
+        ],
+      },
+      {
+        id: 'final_exam', name: 'Final Exam',
+        icon: 'assets/icons/fc730.png',
+        description: 'The front line sits the exam: 160% ATK — heroes ' +
+          'carrying any debuff fail it for 50% more.',
+        cooldown: 6, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.6, bonusVs: { kind: 'debuff', mult: 1.5 } },
+        ],
+      },
+    ],
+    passives: [
+      {
+        name: 'Hard Lessons',
+        icon: 'assets/icons/fc853.png',
+        description: 'Takes 20% less damage from all sources.',
+        hooks: {
+          damageTakenMult() { return 0.8; },
+        },
+      },
+      {
+        name: 'Grading Curve',
+        icon: 'assets/icons/fc863.png',
+        description: 'Deals 25% extra damage to heroes at full HP.',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
+          },
+        },
+      },
+      {
+        name: 'Tenure',
+        icon: 'assets/icons/fc713.png',
+        description: 'Regenerates 4% max HP at the start of each turn.',
+        hooks: {
+          onTurnStart(unit) {
+            const healed = unit.heal(Math.round(unit.maxHp * 0.04));
+            if (healed <= 0) return null;
+            return {
+              label: 'Tenure',
+              message: `The ${unit.name} corrects his stance (+${healed} HP).`,
+              floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
+            };
+          },
+        },
       },
     ],
     positional: null,
