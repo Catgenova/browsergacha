@@ -502,7 +502,22 @@ class CompendiumScreen {
         <div class="comp-ability-desc">${p.description}</div>
       </div>`).join('');
 
-    const isDungeon = (def.whetstonesPer || 0) > 0 || (def.arcanaPer || 0) > 0;
+    const isDungeon = !!def.dungeonName;
+    const dungeonPay = (st) => def.whetstonesPer > 0
+      ? `${(def.whetstonesPer * st).toLocaleString()} 🪨`
+      : def.arcanaPer > 0
+        ? `${(def.arcanaPer * st).toLocaleString()} ✦`
+        : `${(Progression.enemyXp(Progression.bossLevel(st)) * (def.xpMult || 6))
+            .toLocaleString()} XP ⭐ each`;
+    const dungeonHeadline = def.whetstonesPer > 0
+      ? `${def.whetstonesPer} Whetstones 🪨 per floor — every clear of floor N
+          pays N times that`
+      : def.arcanaPer > 0
+        ? `${def.arcanaPer} Arcana ✦ per floor — every clear of floor N pays
+            N times that`
+        : `${def.xpMult || 6}× enemy XP ⭐ for the whole team — about
+            ${Math.round((def.xpMult || 6) / 6)}× what a boss fight of the
+            same level pays, every clear`;
     const set = !def.isElemental && typeof Gear !== 'undefined' && Gear.SETS[def.gearSet];
     const dropHtml = def.isElemental
       ? `<div class="comp-drop"><b>${elInfo ? elInfo.name : def.element} Elements</b>
@@ -511,14 +526,10 @@ class CompendiumScreen {
         ${[1, 5, 10, 15, 20].map((st) =>
           `<div class="comp-syn"><span>Stage ${st}: ${Attune.payoutText(st)}</span></div>`).join('')}`
       : isDungeon
-        ? `<div class="comp-drop"><b>${def.whetstonesPer > 0
-            ? `${def.whetstonesPer} Whetstones 🪨` : `${def.arcanaPer} Arcana ✦`}
-            per floor</b> — every clear of floor N pays N times that. No gear
-            drops in ${def.dungeonName}; it exists to bankroll the Blacksmith.</div>
+        ? `<div class="comp-drop"><b>${dungeonHeadline}</b>. No gear drops in
+            ${def.dungeonName}.</div>
           ${[1, 5, 10, 15, 20].map((st) =>
-            `<div class="comp-syn"><span>Floor ${st}: ${def.whetstonesPer > 0
-              ? `${(def.whetstonesPer * st).toLocaleString()} 🪨`
-              : `${(def.arcanaPer * st).toLocaleString()} ✦`}</span></div>`).join('')}`
+            `<div class="comp-syn"><span>Floor ${st}: ${dungeonPay(st)}</span></div>`).join('')}`
       : set ? `
       <div class="comp-drop"><b>${set.name} set</b> — every stage drops a piece;
         higher stages roll rarer.</div>

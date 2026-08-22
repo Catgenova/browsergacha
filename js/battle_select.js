@@ -219,7 +219,7 @@ class BattleSelect {
       }).join('');
     } else if (this.mode === 'dungeon') {
       btns = Object.entries(DUNGEON_BOSSES).map(([key, b]) => {
-        const icon = b.whetstonesPer > 0 ? '🪨' : '✦';
+        const icon = b.whetstonesPer > 0 ? '🪨' : b.arcanaPer > 0 ? '✦' : '⭐';
         return `<button class="bs-variant${key === cur.boss ? ' active' : ''}"
           data-act="variant" data-v="${key}"
           title="${b.dungeonName} — ${b.title || ''}">${icon} ${b.dungeonName}</button>`;
@@ -263,8 +263,13 @@ class BattleSelect {
           ? (def.whetstonesPer > 0
             ? `<b>${def.whetstonesPer * cur.stage}</b> Whetstones 🪨 every clear
               (${def.whetstonesPer} × floor). No gear here — pure polishing money.`
-            : `<b>${def.arcanaPer * cur.stage}</b> Arcana ✦ every clear
-              (${def.arcanaPer} × floor). No gear here — pure enchanting money.`)
+            : def.arcanaPer > 0
+              ? `<b>${def.arcanaPer * cur.stage}</b> Arcana ✦ every clear
+                (${def.arcanaPer} × floor). No gear here — pure enchanting money.`
+              : `<b>${(Progression.enemyXp(lv) * (def.xpMult || 6)).toLocaleString()}</b>
+                XP ⭐ for every team member, every clear — about
+                ${Math.round((def.xpMult || 6) / 6)}× what a boss fight of this
+                level pays. No gear here — pure schooling.`)
         : `${Attune.payoutText(cur.stage)} ${elInfo ? elInfo.name : ''} Elements.`;
       const word = this.mode === 'dungeon' ? 'Floor' : 'Stage';
       return `

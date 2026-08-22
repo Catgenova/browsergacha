@@ -630,7 +630,8 @@ class BattleScreen {
       const stage = Math.min(Math.max(1, ds.stage), maxPick);
       const level = Progression.bossLevel(stage);
       this.dungeonFight = { bossId: def.id, name: def.name, stage };
-      this.rewardXp = Progression.enemyXp(level) * 6;
+      // The Proving Grounds overrides the standard boss x6 on XP.
+      this.rewardXp = Progression.enemyXp(level) * (def.xpMult || 6);
       this.rewardWhetstones = def.whetstonesPer * stage;
       this.rewardArcana = def.arcanaPer * stage;
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);

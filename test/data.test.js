@@ -270,16 +270,19 @@ test('bosses declare scaling anchors, a gear set and passives', () => {
   }
 });
 
-test('dungeon bosses pay one material, scaled by floor', () => {
+test('dungeon bosses each pay exactly one thing, scaled by floor', () => {
   const { DUNGEON_BOSSES } = g;
   const keys = Object.keys(DUNGEON_BOSSES);
-  assert(keys.length === 2, `expected two dungeons, found ${keys.length}`);
+  assert(keys.length === 3, `expected three dungeons, found ${keys.length}`);
   const w = DUNGEON_BOSSES.whetstone;
   const a = DUNGEON_BOSSES.arcana;
-  assert(w && w.whetstonesPer > 0 && !w.arcanaPer,
+  const x = DUNGEON_BOSSES.xp;
+  assert(w && w.whetstonesPer > 0 && !w.arcanaPer && !w.xpMult,
     'the Grindhouse must pay whetstones and nothing else');
-  assert(a && a.arcanaPer > 0 && !a.whetstonesPer,
+  assert(a && a.arcanaPer > 0 && !a.whetstonesPer && !a.xpMult,
     'the Arcanum Vault must pay arcana and nothing else');
+  assert(x && x.xpMult > 6 && !x.whetstonesPer && !x.arcanaPer,
+    'the Proving Grounds must out-pay the standard boss x6 XP and nothing else');
   for (const b of Object.values(DUNGEON_BOSSES)) {
     assert(b.stats5 && b.stats100, `${b.id}: missing stage anchors`);
     assert(b.isBoss && !b.gearSet, `${b.id}: dungeons drop materials, not gear`);
