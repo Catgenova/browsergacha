@@ -267,14 +267,12 @@ Object.assign(HEROES, {
         effects: [{ type: 'heal', mult: 0.3 }],
       },
       {
-        id: 'ascendant_creed', name: 'Ascendant Creed',
+        id: 'reverent_sweep', name: 'Reverent Sweep',
         icon: 'assets/icons/fc940.png',
-        description: 'Rise into the light: the front line gains +30% ATK and +30% DEF for 3 turns.',
-        cooldown: 5, targeting: 'front-allies', animation: 'skill3',
-        effects: [
-          { type: 'buff', stat: 'atk', mult: 1.3, turns: 3 },
-          { type: 'buff', stat: 'def', mult: 1.3, turns: 3 },
-        ],
+        description: 'Sweep the flail through the enemy front line for 150% ATK.',
+        cooldown: 5, targeting: 'front-enemies', animation: 'skill3',
+        impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.5 }],
       },
     ],
     passive: {
