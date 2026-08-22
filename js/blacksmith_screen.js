@@ -197,6 +197,20 @@ class BlacksmithScreen {
     const rerollCost = Gear.rerollCost(piece);
     const better = pending ? Gear.subsScore(pending) - Gear.subsScore(piece.subs) : 0;
 
+    // The piece's set bonuses, with the tiers its wearer has actually
+    // switched on lit up — an unequipped piece (or a bench hero short of
+    // the count) shows them dimmed, so what a full set buys is always
+    // one glance away.
+    const set = Gear.SETS[piece.set];
+    const wornCount = wearer
+      ? GameState.equippedPieces(wearer).filter((p) => p.set === piece.set).length
+      : 0;
+    const setHtml = set ? `
+      <div class="detail-section">${set.name} Set${wearer ? ` (${wornCount}/6 equipped)` : ''}</div>
+      ${set.bonuses.map((b) => wornCount >= b.pieces
+        ? `<div class="set-bonus set-bonus-live">✓ ${b.label}</div>`
+        : `<div class="set-bonus">${b.label}</div>`).join('')}` : '';
+
     this.detailEl.innerHTML = `
       <div class="detail-name" style="color:${rar.color}">${Gear.pieceName(piece)}</div>
       <div class="detail-stats">
@@ -206,6 +220,7 @@ class BlacksmithScreen {
       <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs})</div>
       ${subsHtml}
       ${nextMilestone ? `<div class="set-bonus">Next substat roll/boost at +${nextMilestone}</div>` : ''}
+      ${setHtml}
       <div class="detail-section">Upgrade</div>
       <div class="gear-actions">
         <button id="bs-polish" class="panel-btn"
