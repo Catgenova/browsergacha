@@ -670,12 +670,11 @@ Object.assign(HEROES, {
       displayH: 88,
       strips: {
         idle:   { src: 'assets/heroes/emily/emilyidle.png',  frames: 9,  fps: 4, loop: true },
-        // Timed fidget variations.
-        idle2:  { src: 'assets/heroes/emily/emilyidle1.png', frames: 16, fps: 6, loop: false,
+        // Timed fidget variations (no ready stance — she holds her idle).
+        idle2:  { src: 'assets/heroes/emily/emilyidle1.png', frames: 9,  fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14] },
         idle3:  { src: 'assets/heroes/emily/emilyidle2.png', frames: 9,  fps: 6, loop: false,
                   variantOf: 'idle', every: [7, 14] },
-        ready:  { src: 'assets/heroes/emily/emilyready.png', frames: 9, fps: 6, loop: true },
         // Single-target blessing.
         cast:   { src: 'assets/heroes/emily/emilyskill1.png', frames: 9, fps: 10, loop: false,
                   hitFrame: 6 },
@@ -685,7 +684,8 @@ Object.assign(HEROES, {
         // Radiant halo — the revival lands as the light peaks.
         revive: { src: 'assets/heroes/emily/emilyskill3.png', frames: 9, fps: 10, loop: false,
                   hitFrame: 8 },
-        death:  { src: 'assets/heroes/emily/emilydeath.png', frames: 9, fps: 6, loop: false,
+        // The long fall: seventeen frames, frozen on the last.
+        death:  { src: 'assets/heroes/emily/emilydeath.png', frames: 17, fps: 8, loop: false,
                   freeze: true },
       },
     },
