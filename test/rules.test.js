@@ -1564,6 +1564,41 @@ test("Silas's Aiming Stance gates, doubles, spends, and breaks correctly", () =>
   assert(inStance(), 'a dodged hit must not break the stance');
 });
 
+test('prismatic accord and motley company pay the party', () => {
+  const battle = makeBattle();
+  // One hero of every element, each from a different race/sect group.
+  const picks = [];
+  const used = new Set();
+  for (const el of Object.keys(RACES.ELEMENT_NAMES)) {
+    const def = Object.values(HEROES).find((h) => h.element === el &&
+      RACES.groupOf(h) && !used.has(RACES.groupOf(h)));
+    assert(def, `no hero found for element ${el}`);
+    used.add(RACES.groupOf(def));
+    picks.push(def);
+  }
+  const units = picks.map((d, i) => place(battle, d, TEAM.PLAYER, i));
+  const before = units.map((u) => ({ crit: u.baseCritChance, dodge: u.gearDodge,
+    spd: u.speed, acc: u.gearAccuracy, res: u.gearResistance, taken: u.synergyTakenMult }));
+  const titles = RACES.applyParty(units).map((s) => s.title);
+  assert(titles.includes('Prismatic accord'), 'the rainbow did not light');
+  assert(titles.includes('Motley company'), 'the motley bonus did not fire');
+  units.forEach((u, i) => {
+    assert(Math.abs(u.baseCritChance - before[i].crit - 0.15) < 1e-9, 'crit not paid');
+    assert(Math.abs(u.gearDodge - before[i].dodge - 0.10) < 1e-9, 'dodge not paid');
+    assert(u.speed === Math.round(before[i].spd * 1.15), 'speed not paid');
+    assert(Math.abs(u.gearAccuracy - before[i].acc - 0.30) < 1e-9, 'accuracy not paid');
+    assert(Math.abs(u.gearResistance - before[i].res - 0.40) < 1e-9, 'resistance not paid');
+    assert(u.synergyTakenMult === before[i].taken,
+      'five groups must not grant the seven-group tier');
+  });
+  // Sect grouping: two Reverence members are ONE motley group; a
+  // Reverence hero beside a Hedge hero are two.
+  assert(RACES.diversityCount([HEROES.catherine, HEROES.toll]) === 1, 'sect-mates split');
+  assert(RACES.diversityCount([HEROES.catherine, HEROES.vex]) === 2, 'sects merged');
+  // A party missing an element lights no rainbow.
+  assert(!RACES.prismActive([HEROES.catherine, HEROES.toll]), 'rainbow from one color');
+});
+
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;
