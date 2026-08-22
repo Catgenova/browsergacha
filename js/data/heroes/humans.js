@@ -323,9 +323,9 @@ Object.assign(HEROES, {
       {
         id: 'processional', name: 'Processional',
         icon: 'assets/icons/fc885.png',
-        description: 'The herald sets the pace: ALL allies gain +30% SPD for 2 turns.',
+        description: 'The herald sets the pace: ALL allies gain +25% SPD for 2 turns.',
         cooldown: 0, targeting: 'all-allies', animation: 'skill1',
-        effects: [{ type: 'buff', stat: 'speed', mult: 1.3, turns: 2 }],
+        effects: [{ type: 'buff', stat: 'speed', mult: 1.25, turns: 2 }],
       },
       {
         id: 'call_to_arms', name: 'Call to Arms',
@@ -925,17 +925,17 @@ Object.assign(HEROES, {
       {
         id: 'lightmend', name: 'Lightmend',
         icon: 'assets/icons/fc1041.png',
-        description: 'Bathe one ally in light, healing 35% of Emily\'s max HP.',
+        description: 'Bathe one ally in light, healing 30% of Emily\'s max HP.',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_gold',
-        effects: [{ type: 'healHpPct', pct: 0.35 }],
+        effects: [{ type: 'healHpPct', pct: 0.30 }],
       },
       {
         id: 'purifying_chorus', name: 'Purifying Chorus',
         icon: 'assets/icons/fc1046.png',
-        description: 'Heal ALL allies for 25% of Emily\'s max HP and cleanse their debuffs.',
+        description: 'Heal ALL allies for 20% of Emily\'s max HP and cleanse their debuffs.',
         cooldown: 5, targeting: 'all-allies', animation: 'cast2', impact: 'heal_gold',
         effects: [
-          { type: 'healHpPct', pct: 0.25 },
+          { type: 'healHpPct', pct: 0.20 },
           { type: 'cleanse' },
         ],
       },
