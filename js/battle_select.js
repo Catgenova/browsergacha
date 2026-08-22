@@ -32,6 +32,7 @@ class BattleSelect {
         if (this.mode === 'hunt') GameState.setWaveSettings({ repeat: v });
         if (this.mode === 'boss') GameState.setBossSettings({ repeat: v });
         if (this.mode === 'rift') GameState.setAttuneSettings({ repeat: v });
+        if (this.mode === 'dungeon') GameState.setDungeonSettings({ repeat: v });
       });
     }
   }
@@ -42,6 +43,7 @@ class BattleSelect {
       if (this.mode === 'hunt') GameState.setWaveSettings({ location: Number(d.v) });
       if (this.mode === 'boss') GameState.setBossSettings({ boss: d.v });
       if (this.mode === 'rift') GameState.setAttuneSettings({ boss: d.v });
+      if (this.mode === 'dungeon') GameState.setDungeonSettings({ boss: d.v });
       this.render();
       return;
     }
@@ -50,6 +52,7 @@ class BattleSelect {
       if (this.mode === 'hunt') GameState.setWaveSettings({ stage: st });
       if (this.mode === 'boss') GameState.setBossSettings({ stage: st });
       if (this.mode === 'rift') GameState.setAttuneSettings({ stage: st });
+      if (this.mode === 'dungeon') GameState.setDungeonSettings({ stage: st });
       this.render();
       return;
     }
@@ -58,7 +61,9 @@ class BattleSelect {
       // A boss whose chapter is uncleared shows in the picker but takes
       // no challengers -- same rule the old picker enforced.
       if (this.mode === 'boss' && !Campaign.bossUnlocked(GameState.bossSettings.boss)) return;
-      const battleMode = { hunt: 'wave', boss: 'boss', rift: 'attune', tower: 'tower' }[this.mode];
+      const battleMode = {
+        hunt: 'wave', boss: 'boss', rift: 'attune', dungeon: 'dungeon', tower: 'tower',
+      }[this.mode];
       this.app.screens.battle.requestBattle(battleMode);
       this.app.showScreen('battle');
     }
@@ -101,6 +106,17 @@ class BattleSelect {
       }
       return { ...GameState.attuneSettings, def, cleared, maxPick };
     }
+    if (this.mode === 'dungeon') {
+      const ds = GameState.dungeonSettings;
+      if (!(ds.boss in DUNGEON_BOSSES)) GameState.setDungeonSettings({ boss: 'whetstone' });
+      const def = DUNGEON_BOSSES[GameState.dungeonSettings.boss];
+      const cleared = GameState.bossStageCleared(def.id);
+      const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      if ((GameState.dungeonSettings.stage || 1) > maxPick) {
+        GameState.setDungeonSettings({ stage: maxPick });
+      }
+      return { ...GameState.dungeonSettings, def, cleared, maxPick };
+    }
     return { next: GameState.towerBest + 1 };
   }
 
@@ -127,6 +143,7 @@ class BattleSelect {
       { id: 'hunt', label: 'Hunt' },
       { id: 'boss', label: 'Boss' },
       { id: 'rift', label: 'Elemental Rift' },
+      { id: 'dungeon', label: 'Dungeon' },
       { id: 'tower', label: 'Tower' },
     ];
     return modes.map((m) =>
@@ -143,7 +160,10 @@ class BattleSelect {
           data-act="stage" data-v="${st}">${st === 0 ? 'Training' : `Stage ${st}`}
           <span class="bs-lv">Lv ${lv}</span></button>`);
       }
-    } else if (this.mode === 'boss' || this.mode === 'rift') {
+    } else if (this.mode === 'boss' || this.mode === 'rift' || this.mode === 'dungeon') {
+      // The same twenty-rung ladder everywhere it applies: clear a rung
+      // to open the next. Dungeons call theirs floors.
+      const word = this.mode === 'dungeon' ? 'Floor' : 'Stage';
       for (let st = 1; st <= Progression.BOSS_MAX_STAGE; st++) {
         const locked = st > cur.maxPick;
         const state = st === cur.stage ? ' selected'
@@ -151,7 +171,7 @@ class BattleSelect {
           : st === cur.maxPick ? ' next' : '';
         rows.push(`<button class="bs-stage${state}${locked ? ' locked' : ''}"
           data-act="stage" data-v="${st}" ${locked ? 'disabled' : ''}>
-          Stage ${st} <span class="bs-lv">Lv ${Progression.bossLevel(st)}</span>
+          ${word} ${st} <span class="bs-lv">Lv ${Progression.bossLevel(st)}</span>
           ${st <= cur.cleared ? '<span class="bs-mark">✓</span>'
             : locked ? '<span class="bs-mark">🔒</span>' : ''}</button>`);
       }
@@ -197,6 +217,13 @@ class BattleSelect {
           ${info ? `style="color:${key === cur.boss ? '' : info.color}"` : ''}
           title="${b.name} — ${b.title || ''}">${info ? info.emoji : ''} ${info ? info.name : key}</button>`;
       }).join('');
+    } else if (this.mode === 'dungeon') {
+      btns = Object.entries(DUNGEON_BOSSES).map(([key, b]) => {
+        const icon = b.whetstonesPer > 0 ? '🪨' : '✦';
+        return `<button class="bs-variant${key === cur.boss ? ' active' : ''}"
+          data-act="variant" data-v="${key}"
+          title="${b.dungeonName} — ${b.title || ''}">${icon} ${b.dungeonName}</button>`;
+      }).join('');
     } else {
       return '';
     }
@@ -223,7 +250,7 @@ class BattleSelect {
         <div class="bs-line">XP and Whetstones scaled to enemy levels, a
           trickle of Arcana${cur.stage === 0 ? '. The training ground stays at level 1.' : '.'}</div>`;
     }
-    if (this.mode === 'boss' || this.mode === 'rift') {
+    if (this.mode === 'boss' || this.mode === 'rift' || this.mode === 'dungeon') {
       const def = cur.def;
       const lv = Progression.bossLevel(cur.stage);
       const s = Progression.bossScaledStats(def, lv);
@@ -232,10 +259,17 @@ class BattleSelect {
       const drops = this.mode === 'boss'
         ? (Gear.SETS[def.gearSet] ? `${Gear.SETS[def.gearSet].name} set gear —
             higher stages roll rarer.` : '—')
+        : this.mode === 'dungeon'
+          ? (def.whetstonesPer > 0
+            ? `<b>${def.whetstonesPer * cur.stage}</b> Whetstones 🪨 every clear
+              (${def.whetstonesPer} × floor). No gear here — pure polishing money.`
+            : `<b>${def.arcanaPer * cur.stage}</b> Arcana ✦ every clear
+              (${def.arcanaPer} × floor). No gear here — pure enchanting money.`)
         : `${Attune.payoutText(cur.stage)} ${elInfo ? elInfo.name : ''} Elements.`;
+      const word = this.mode === 'dungeon' ? 'Floor' : 'Stage';
       return `
         <div class="bs-title">${Elements.badge(def.element)} ${def.name}
-          <span class="bs-stagechip">Stage ${cur.stage} · Lv ${lv}
+          <span class="bs-stagechip">${word} ${cur.stage} · Lv ${lv}
           ${cleared ? '· ✓ cleared' : cur.stage === cur.maxPick ? '· open' : ''}</span></div>
         <div class="bs-line">${def.title || ''}</div>
         <div class="bs-stats">
@@ -268,13 +302,14 @@ class BattleSelect {
   launchHtml(cur) {
     const size = GameState.teamSize();
     const bossLocked = this.mode === 'boss' && !Campaign.bossUnlocked(cur.boss);
-    const labels = { hunt: 'Fight!', boss: 'Boss!', rift: 'Attune!', tower: 'Climb!' };
+    const labels = { hunt: 'Fight!', boss: 'Boss!', rift: 'Attune!', dungeon: 'Delve!', tower: 'Climb!' };
     // Repeats only for cleared content; the tower chains on its own.
     let repeat = '';
     if (this.mode !== 'tower') {
       const uncleared = (this.mode !== 'hunt') && cur.stage > cur.cleared;
       const val = this.mode === 'hunt' ? GameState.waveSettings.repeat
         : this.mode === 'boss' ? GameState.bossSettings.repeat
+        : this.mode === 'dungeon' ? GameState.dungeonSettings.repeat
         : GameState.attuneSettings.repeat;
       const opts = ['1', '3', '5', '10'].concat(this.mode === 'rift' ? [] : ['inf']);
       repeat = `<select id="bs-repeat" title="${uncleared

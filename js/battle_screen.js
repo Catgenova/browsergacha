@@ -22,6 +22,9 @@ class BattleScreen {
       } else if (this.attuneFight) {
         this.requestBattle('attune');
         this.enter();
+      } else if (this.dungeonFight) {
+        this.requestBattle('dungeon');
+        this.enter();
       } else {
         this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
       }
@@ -46,6 +49,10 @@ class BattleScreen {
       } else if (this.attuneFight) {
         GameState.setAttuneSettings({ stage: this.attuneFight.stage + 1 });
         this.requestBattle('attune');
+        this.enter();
+      } else if (this.dungeonFight) {
+        GameState.setDungeonSettings({ stage: this.dungeonFight.stage + 1 });
+        this.requestBattle('dungeon');
         this.enter();
       } else {
         this.launchBossStage((this.bossFight ? this.bossFight.stage : 0) + 1);
@@ -230,6 +237,8 @@ class BattleScreen {
       })()
       : this.attuneFight
         ? `${this.attuneFight.name}, stage ${this.attuneFight.stage}`
+        : this.dungeonFight
+          ? `${this.dungeonFight.name}, floor ${this.dungeonFight.stage}`
         : this.bossFight
           ? `${this.bossFight.name}, stage ${this.bossFight.stage}`
         : this.towerFight
@@ -322,6 +331,13 @@ class BattleScreen {
         const r = as.repeat;
         this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
       }
+    } else if (mode === 'dungeon') {
+      const ds = GameState.dungeonSettings;
+      const def = DUNGEON_BOSSES[ds.boss] || DUNGEON_BOSSES.whetstone;
+      if (ds.stage <= GameState.bossStageCleared(def.id)) {
+        const r = ds.repeat;
+        this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+      }
     } else if (mode === 'tower') {
       // The climb chains upward as long as auto keeps winning.
       this.chainRemaining = Infinity;
@@ -380,6 +396,15 @@ class BattleScreen {
     }
     if (this.towerFight) {
       return { retry: true, next: true, nextLabel: 'Next Floor' };
+    }
+    if (this.dungeonFight) {
+      const cleared = GameState.bossStageCleared(this.dungeonFight.bossId);
+      const next = this.dungeonFight.stage + 1;
+      return {
+        retry: true,
+        next: next <= Math.min(Progression.BOSS_MAX_STAGE, cleared + 1),
+        nextLabel: 'Next Floor',
+      };
     }
     if (!this.bossFight) return {};
     const cleared = GameState.bossStageCleared(this.bossFight.bossId);
@@ -504,6 +529,9 @@ class BattleScreen {
     const campNode = mode === 'campaign' ? Campaign.node(this.campaignNodeId) : null;
     if (mode === 'campaign' && !campNode) mode = 'wave';
 
+    // Cleared once for every mode; only the dungeon branch sets it.
+    this.dungeonFight = null;
+
     let bgPin = null;
     if (mode === 'campaign') {
       // A campaign node: a fixed line-up at a fixed level, or the
@@ -587,6 +615,27 @@ class BattleScreen {
       battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
       bgPin = def.background || null;
       this.introLog = `Stage ${stage}: the ${def.name} rises! (Lv ${level})`;
+    } else if (mode === 'dungeon') {
+      // Material dungeon: a twenty-floor boss ladder that pays the
+      // Blacksmith's bills — Whetstones in the Grindhouse, Arcana in the
+      // Arcanum Vault — scaled by the floor. No gear drops here.
+      this.campaignFight = null;
+      this.bossFight = null;
+      this.attuneFight = null;
+      this.towerFight = null;
+      const ds = GameState.dungeonSettings;
+      const def = DUNGEON_BOSSES[ds.boss] || DUNGEON_BOSSES.whetstone;
+      const cleared = GameState.bossStageCleared(def.id);
+      const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
+      const stage = Math.min(Math.max(1, ds.stage), maxPick);
+      const level = Progression.bossLevel(stage);
+      this.dungeonFight = { bossId: def.id, name: def.name, stage };
+      this.rewardXp = Progression.enemyXp(level) * 6;
+      this.rewardWhetstones = def.whetstonesPer * stage;
+      this.rewardArcana = def.arcanaPer * stage;
+      battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+      bgPin = def.background || null;
+      this.introLog = `${def.dungeonName}, floor ${stage}: the ${def.name} awaits! (Lv ${level})`;
     } else if (mode === 'tower') {
       // Endless Tower: always fight the floor above your best. Enemy
       // levels climb ~1.5 per floor forever; every 10th floor a random
@@ -732,11 +781,16 @@ class BattleScreen {
         }
         // Campaign nodes bump their own counter below, by node type.
         if (!this.campaignFight) {
-          const asBoss = this.bossFight || (this.towerFight && this.towerFight.isBossFloor);
+          const asBoss = this.bossFight || this.dungeonFight ||
+            (this.towerFight && this.towerFight.isBossFloor);
           GameState.questBump(asBoss ? 'bossWins' : 'huntWins');
         }
+        // A dungeon pays only its own currency; zero lines say nothing.
         const sub = [
-          `+${this.rewardXp} XP each · +${this.rewardWhetstones} 🪨 · +${this.rewardArcana} ✦`,
+          [`+${this.rewardXp} XP each`,
+            this.rewardWhetstones > 0 ? `+${this.rewardWhetstones} 🪨` : '',
+            this.rewardArcana > 0 ? `+${this.rewardArcana} ✦` : '',
+          ].filter(Boolean).join(' · '),
           ...levelUps,
         ];
         // A lucky glint: every battle won, of any kind, has a 1% chance
@@ -758,8 +812,9 @@ class BattleScreen {
             sub.push('A RARE Summon Scroll drops! ✨');
           }
           // Normal hunts can also shed a Temporal Scroll (1%); bosses
-          // keep their own stage-15+ roll below.
-          if (!this.bossFight && Math.random() < 0.01) {
+          // keep their own stage-15+ roll below, and dungeons pay
+          // materials only.
+          if (!this.bossFight && !this.dungeonFight && Math.random() < 0.01) {
             GameState.addScrolls('temporal', 1);
             sub.push('A TEMPORAL Scroll shimmers into being! 🌀');
           }
@@ -844,6 +899,10 @@ class BattleScreen {
             .map((size) => `${drops[size]} ${Attune.SIZE_LABEL[size]}`);
           sub.unshift(`Stage ${stage} cleared!`);
           sub.push(`${info ? info.emoji : ''} ${bits.join(' · ')} ${info ? info.name : element} Elements!`);
+        }
+        if (this.dungeonFight) {
+          GameState.recordBossClear(this.dungeonFight.bossId, this.dungeonFight.stage);
+          sub.unshift(`Floor ${this.dungeonFight.stage} cleared!`);
         }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);

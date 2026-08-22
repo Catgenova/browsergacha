@@ -23,7 +23,7 @@ const FILES = [
   'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',
   'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
   'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/balance.js', 'js/data/enemies.js',
-  'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/quests.js', 'js/state.js',
+  'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
 
@@ -78,7 +78,7 @@ function loadGame(opts = {}) {
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState',
     'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
-    'Attune', 'ELEMENTAL_BOSSES', 'ELEMENTS', 'Unit'];
+    'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
