@@ -211,8 +211,8 @@ html = r'''<title>Emily, Dawn Cleric</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1300</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">190</div><div class="sub">scales her heals</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1300</div><div class="sub">scales her heals</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">190</div></div>
     <div class="stat"><div class="k">DEF</div><div class="v">115</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">105</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
@@ -243,14 +243,15 @@ html = r'''<title>Emily, Dawn Cleric</title>
     <div class="ability">
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Lightmend</h3>
-      <div class="meta">Single ally &middot; <b>100.6% ATK</b> healing</div>
-      <p>Bathes one ally in light. Her bread and butter &#x2014; nearly her whole
-      ATK stat returned as HP, every turn, forever.</p>
+      <div class="meta">Single ally &middot; heals <b>35% of her max HP</b></div>
+      <p>Bathes one ally in light. Her bread and butter &#x2014; a third of her
+      own life total handed over as healing, every turn, forever. Build
+      her HP and every mend grows with it.</p>
     </div>
     <div class="ability">
       <div class="slot">Skill 2 &middot; 5-turn cooldown</div>
       <h3>Purifying Chorus</h3>
-      <div class="meta">All allies &middot; <b>61.9% ATK</b> each + cleanse</div>
+      <div class="meta">All allies &middot; heals <b>25% of her max HP</b> each + cleanse</div>
       <p>Heals <b>every ally at once</b> and strips their debuffs &#x2014; poisons
       included. The answer to a bad turn the whole party took together.</p>
     </div>
@@ -283,8 +284,8 @@ html = r'''<title>Emily, Dawn Cleric</title>
           <th>Lv 1</th><th>Lv 2</th><th>Lv 3</th><th>Lv 4</th><th>Lv 5</th></tr>
       </thead>
       <tbody>
-        <tr><th>Lightmend, % ATK healed</th><td>100.6</td><td>110.7</td><td>120.7</td><td>130.8</td><td class="max">140.8</td></tr>
-        <tr><th>Purifying Chorus, % ATK each</th><td>61.9</td><td>68.1</td><td>74.3</td><td>80.5</td><td class="max">86.7</td></tr>
+        <tr><th>Lightmend, % of her max HP</th><td>35</td><td>38.5</td><td>42</td><td>45.5</td><td class="max">49</td></tr>
+        <tr><th>Purifying Chorus, % of her max HP each</th><td>25</td><td>27.5</td><td>30</td><td>32.5</td><td class="max">35</td></tr>
         <tr><th>Second Dawn, % max HP restored</th><td>40</td><td>40</td><td>40</td><td>40</td><td class="max">40</td></tr>
       </tbody>
     </table>

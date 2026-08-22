@@ -693,17 +693,17 @@ Object.assign(HEROES, {
       {
         id: 'lightmend', name: 'Lightmend',
         icon: 'assets/icons/fc1041.png',
-        description: 'Bathe one ally in light, healing 100.6% ATK.',
+        description: 'Bathe one ally in light, healing 35% of Emily\'s max HP.',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_gold',
-        effects: [{ type: 'heal', mult: 1.006 }],
+        effects: [{ type: 'healHpPct', pct: 0.35 }],
       },
       {
         id: 'purifying_chorus', name: 'Purifying Chorus',
         icon: 'assets/icons/fc1046.png',
-        description: 'Heal ALL allies for 61.9% ATK and cleanse their debuffs.',
+        description: 'Heal ALL allies for 25% of Emily\'s max HP and cleanse their debuffs.',
         cooldown: 5, targeting: 'all-allies', animation: 'cast2', impact: 'heal_gold',
         effects: [
-          { type: 'heal', mult: 0.619 },
+          { type: 'healHpPct', pct: 0.25 },
           { type: 'cleanse' },
         ],
       },
