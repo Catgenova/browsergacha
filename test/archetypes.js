@@ -154,10 +154,10 @@ function kitCan(def, headline) {
   return (def.abilities || []).some((a) =>
     (a.effects || []).some((e) => {
       if (!need.includes(e.type)) return false;
-      // Only a damage-reduction ward counts toward HP saved. An ATK or
-      // speed buff is real support work, but its value is extra damage
-      // the ALLY deals — nothing this bench measures. Better to say so
-      // than to rank a buffer bottom of a table it cannot compete in.
+      // Only a damage-reduction ward counts toward HP saved directly.
+      // ATK and speed buffs are credited too, but as a share of the
+      // damage and healing the buffed ALLY produces (js/hero.js assist
+      // books) — that lands in dps/heal/worth, not in saved/s.
       if (e.type === 'buff') return e.stat === 'damageTaken';
       return true;
     }));
@@ -202,9 +202,36 @@ function runOne(def, cast, seedValue) {
   let bleeding = false;
   const takeDamage = hero.takeDamage.bind(hero);
   hero.takeDamage = (amount, source) => {
-    const dealt = takeDamage(amount, source);
+    defending = true;
+    let dealt;
+    try { dealt = takeDamage(amount, source); } finally { defending = false; }
     if (!bleeding) taken += dealt;
     return dealt;
+  };
+  // Mitigation of hits aimed at THIS hero, kept apart from the meter's
+  // total: the meter also credits the hero for wards and DEF walls that
+  // saved ALLIES, and ehp built on that read a team protector as
+  // personally unkillable. Own-incoming prevention is booked to the hero
+  // while it is the one dodging, reflecting, or blunting (`defending`);
+  // everything else it earns is team credit and belongs in mit/s.
+  let selfMit = 0;
+  let defending = false;
+  const realBlunt = hero.blunt.bind(hero);
+  hero.blunt = (raw, opts) => {
+    defending = true;
+    try { return realBlunt(raw, opts); } finally { defending = false; }
+  };
+  const realBookDodge = hero.bookDodge.bind(hero);
+  hero.bookDodge = (prevented) => { selfMit += prevented; return realBookDodge(prevented); };
+  const realBookReflect = hero.bookReflect.bind(hero);
+  hero.bookReflect = (prevented, bounced) => {
+    selfMit += prevented;
+    return realBookReflect(prevented, bounced);
+  };
+  const realMeterMit = Meter.mitigated;
+  Meter.mitigated = (unit, amount) => {
+    if (unit === hero && defending) selfMit += amount;
+    return realMeterMit(unit, amount);
   };
   // Poison is the only damage in the game that skips the DEF curve, so a
   // single dps number hides which heroes are winning on their kit and
@@ -247,6 +274,7 @@ function runOne(def, cast, seedValue) {
   const unpatch = () => {
     Unit.prototype.startTurn = realStartTurn;
     Meter.damage = realMeterDamage;
+    Meter.mitigated = realMeterMit;
   };
 
   const bleed = () => {
@@ -283,7 +311,6 @@ function runOne(def, cast, seedValue) {
     const row = Meter.rows(kind, 'battle').list.find((r) => r.id === def.id);
     return row ? row.value : 0;
   };
-  const mitigated = mine('mitigated');
   return {
     seconds,
     stalled: !winner,
@@ -292,11 +319,12 @@ function runOne(def, cast, seedValue) {
     poison: dotDealt,
     assist: assistDealt,
     healing: mine('healing'),
-    mitigated,
+    mitigated: mine('mitigated'), // team-wide: wards, walls, own guards
     taken,
     maxHp: hero.maxHp,
-    // Share of everything aimed at this hero that never landed.
-    mitRatio: mitigated + taken > 0 ? mitigated / (mitigated + taken) : 0,
+    // Share of everything aimed at this hero that never landed — own
+    // prevention only, so ehp stays personal survivability.
+    mitRatio: selfMit + taken > 0 ? selfMit / (selfMit + taken) : 0,
   };
 }
 

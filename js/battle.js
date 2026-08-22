@@ -127,9 +127,13 @@ class Battle {
 
     if (this.state !== BattleState.TICKING) return;
 
-    // Advance turn meters (speed buffs/debuffs apply here).
+    // Advance turn meters (speed buffs/debuffs apply here). The share
+    // of the fill a sourced speed buff supplied is banked as a meter
+    // gift, so the turn it buys credits the buffer (Unit.bankSpeedGifts).
     for (const u of this.livingUnits()) {
-      u.turnMeter += u.effectiveStat('speed') * CONFIG.TICK_SPEED_SCALE * dt * 10;
+      const fill = u.effectiveStat('speed') * CONFIG.TICK_SPEED_SCALE * dt * 10;
+      u.turnMeter += fill;
+      u.bankSpeedGifts(fill);
     }
 
     // Highest overfilled meter acts first.

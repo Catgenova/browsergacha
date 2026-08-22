@@ -76,7 +76,7 @@ const Abilities = (() => {
     }
     if (dodged) {
       // Credit the dodger with the hit that never landed.
-      Meter.mitigated(target, dmg);
+      target.bookDodge(dmg);
       return { kind: 'damage', target, amount: 0, dodged: true };
     }
     // Defensive multipliers (guard passives, wards, resonance) blunt the
@@ -89,12 +89,14 @@ const Abilities = (() => {
     if (opts.reflect !== false &&
         target.reflectChance && Math.random() < target.reflectChance()) {
       const bounced = caster.takeDamage(dmg, target);
-      Meter.mitigated(target, dmg);   // bounced away entirely
-      Meter.damage(target, bounced);  // and dealt back
+      target.bookReflect(dmg, bounced);
       return { kind: 'damage', target, amount: 0, reflected: true,
         reflectAmount: bounced };
     }
     const dealt = target.takeDamage(dmg, caster);
+    // DEF buffs pushed the target up the mitigation curve; the slice the
+    // curve turned away because of them is the buffers' mitigation.
+    if (target.defGuardCredit) target.defGuardCredit(dmg);
     // A hit is rarely one hero's work: an ATK buff, a crit buff, a shove
     // up the action bar or an armour break on the target all bought part
     // of it. bookDamage splits the credit and books the remainder here.
@@ -137,7 +139,9 @@ const Abilities = (() => {
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
-        const healed = target.heal(amount, caster);
+        // ATK-scaled, so an attack buff on the healer multiplied this
+        // mend and its granter takes that share of the credit.
+        const healed = target.heal(amount, caster, { assists: caster.healAssists(true) });
         return { kind: 'heal', target, amount: healed };
       }
       case 'healHpPct': {
@@ -146,7 +150,8 @@ const Abilities = (() => {
         const front = target.slot && target.slot.position === POSITION.FRONT;
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost), caster);
+        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost), caster,
+          { assists: caster.healAssists(false) }); // max-HP scaled: gifts only
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {

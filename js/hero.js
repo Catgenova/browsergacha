@@ -371,8 +371,15 @@ class Unit {
         if (part > 0 && part < 1) out.push({ source: fx.source, mult: 1 / (1 - part) });
       }
     }
-    // Action-bar pushes: if half the meter that produced this turn was a
-    // gift, half of what the turn does belongs to whoever gave it.
+    return out.concat(this.giftAssists());
+  }
+
+  // Action-bar pushes: if half the meter that produced this turn was a
+  // gift, half of what the turn does belongs to whoever gave it. Shared
+  // between the damage and healing books — a bought turn is a bought
+  // turn whatever the unit spends it on.
+  giftAssists() {
+    const out = [];
     const gifts = (this.turnGifts || []).filter((g) => g.source && g.source !== this);
     const given = gifts.reduce((sum, g) => sum + g.amount, 0);
     if (given > 0) {
@@ -385,6 +392,50 @@ class Unit {
       }
     }
     return out;
+  }
+
+  // A speed buff buys turn meter the way a meter push does, just spread
+  // over time: each tick, the share of the fill that sourced speed buffs
+  // supplied is banked as a meter gift from those heroes, and the turn
+  // it eventually buys pays them back through the same books as any
+  // push. Without this a speed-anthem hero's whole kit metered as zero.
+  // Only multiplier buffs count — that is what every speed kit applies,
+  // and it matches how effectiveStat composes them.
+  bankSpeedGifts(fill) {
+    let product = 1;
+    let parts = null;
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'buff' || fx.stat !== 'speed') continue;
+      if (!fx.source || fx.source === this || !(fx.mult > 1)) continue;
+      product *= fx.mult;
+      (parts ||= []).push(fx);
+    }
+    if (!parts) return;
+    const bought = fill * (1 - 1 / product);
+    const weight = parts.reduce((sum, fx) => sum + (fx.mult - 1), 0);
+    for (const fx of parts) {
+      const amount = bought * ((fx.mult - 1) / weight);
+      // Merged per source: this runs every tick, and a gift list growing
+      // by twenty entries a second is a leak, not a ledger.
+      const gift = this.meterGifts.find((g) => g.source === fx.source);
+      if (gift) gift.amount += amount;
+      else this.meterGifts.push({ source: fx.source, amount });
+    }
+  }
+
+  // The healing mirror of outgoingAssists: who multiplied the mend this
+  // unit is casting. Turn gifts always apply — the turn itself was
+  // partly bought — but ATK buffs only when the heal actually scales off
+  // ATK; a percent-of-max-HP mend owes an attack buff nothing.
+  healAssists(atkScaled) {
+    const out = [];
+    if (atkScaled) {
+      for (const fx of this.statusEffects) {
+        if (!fx.source || fx.source === this) continue;
+        if (fx.stat === 'atk' && fx.mult > 1) out.push({ source: fx.source, mult: fx.mult });
+      }
+    }
+    return out.concat(this.giftAssists());
   }
 
   // Armour breaks on THIS unit (the target), expressed as how much more
@@ -412,30 +463,93 @@ class Unit {
     }));
   }
 
+  // Dodges and reflects are prevention the defender owns outright.
+  // Methods rather than inline Meter calls so tooling (the archetype
+  // bench) can see whose incoming hit was avoided.
+  bookDodge(prevented) {
+    if (typeof Meter !== 'undefined') Meter.mitigated(this, prevented);
+  }
+
+  bookReflect(prevented, bounced) {
+    if (typeof Meter === 'undefined') return;
+    Meter.mitigated(this, prevented); // bounced away entirely
+    Meter.damage(this, bounced);      // and dealt back
+  }
+
+  // Damage-taken marks on THIS unit (the target): the offensive twin of
+  // the armour break. The extra slice of every hit an amplify causes
+  // belongs to whoever branded the target with it.
+  amplifyAssists() {
+    const out = [];
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'debuff' || fx.stat !== 'damageTaken' || !fx.source) continue;
+      if (fx.mult > 1) out.push({ source: fx.source, mult: fx.mult });
+    }
+    return out;
+  }
+
+  // The defensive mirror of defBreakAssists: sourced DEF buffs push
+  // this unit up the mitigation curve, and the damage the curve turned
+  // away because of them is those heroes' mitigation — the same claim a
+  // ward has on the hits it blunts. `through` is the hit that landed.
+  defGuardCredit(through) {
+    if (through <= 0 || typeof Meter === 'undefined') return;
+    let product = 1;
+    let parts = null;
+    for (const fx of this.statusEffects) {
+      if (fx.kind !== 'buff' || fx.stat !== 'def') continue;
+      if (!fx.source || fx.source === this || !(fx.mult > 1)) continue;
+      product *= fx.mult;
+      (parts ||= []).push(fx);
+    }
+    if (!parts) return;
+    const now = this.effectiveStat('def');
+    const base = now / product;
+    const ratio = (now + 300) / (base + 300); // damageFormula's curve
+    if (!(ratio > 1)) return;
+    const prevented = through * (ratio - 1);
+    const weight = parts.reduce((sum, fx) => sum + (fx.mult - 1), 0);
+    for (const fx of parts) {
+      Meter.mitigated(fx.source, prevented * ((fx.mult - 1) / weight));
+    }
+  }
+
   // Book a landed hit, splitting off the share owed to whoever set it up.
   bookDamage(target, dealt, crit) {
     if (typeof Meter === 'undefined' || dealt <= 0) return;
     const assists = this.outgoingAssists(crit)
       .concat(target.defBreakAssists ? target.defBreakAssists() : [])
+      .concat(target.amplifyAssists ? target.amplifyAssists() : [])
       // Never hand credit across the line: an enemy's own debuff on an
       // enemy is not an assist to this attack.
       .filter((a) => a.mult > 1 && a.source.team === this.team);
     if (!assists.length) { Meter.damage(this, dealt); return; }
-    const total = assists.reduce((m, a) => m * a.mult, 1);
-    const assisted = dealt * (1 - 1 / total);
-    const weight = assists.reduce((sum, a) => sum + (a.mult - 1), 0);
+    const { assisted, shares } = Unit.assistShares(dealt, assists);
     // Flagged while the assist share is booked, so tooling can tell a
     // setup hero's share of somebody else's swing from damage they dealt
     // themselves (test/archetypes.js reads this).
     Unit.assisting = true;
     try {
-      for (const a of assists) {
-        Meter.damage(a.source, assisted * ((a.mult - 1) / weight));
-      }
+      for (const s of shares) Meter.damage(s.source, s.amount);
     } finally {
       Unit.assisting = false;
     }
     Meter.damage(this, dealt - assisted);
+  }
+
+  // Split a booked total between its owner and the assists that
+  // multiplied it: the assisted slice is what the multipliers added, and
+  // each assist takes a cut proportional to its own contribution.
+  static assistShares(total, assists) {
+    const product = assists.reduce((m, a) => m * a.mult, 1);
+    const assisted = total * (1 - 1 / product);
+    const weight = assists.reduce((sum, a) => sum + (a.mult - 1), 0);
+    return {
+      assisted,
+      shares: assists.map((a) => ({
+        source: a.source, amount: assisted * ((a.mult - 1) / weight),
+      })),
+    };
   }
 
   // ---- Health ------------------------------------------------------------
@@ -625,11 +739,25 @@ class Unit {
 
   // `source` is whoever caused the healing, for the damage meter; it
   // defaults to the unit healing itself (regeneration, self-mending).
-  heal(amount, source = null) {
+  // `opts.assists` ({ source, mult } entries, see healAssists) splits
+  // the booked healing with the heroes whose buffs multiplied it, the
+  // same way bookDamage splits a hit.
+  heal(amount, source = null, opts = {}) {
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
     const healed = this.hp - before;
-    if (healed > 0 && typeof Meter !== 'undefined') Meter.healing(source || this, healed);
+    if (healed > 0 && typeof Meter !== 'undefined') {
+      const by = source || this;
+      const assists = (opts.assists || []).filter((a) =>
+        a.mult > 1 && a.source !== by && a.source.team === by.team);
+      if (!assists.length) {
+        Meter.healing(by, healed);
+      } else {
+        const { assisted, shares } = Unit.assistShares(healed, assists);
+        for (const s of shares) Meter.healing(s.source, s.amount);
+        Meter.healing(by, healed - assisted);
+      }
+    }
     // Heal event bus: lets passives react to any ally being healed.
     if (healed > 0 && typeof Battle !== 'undefined' && Battle.active) {
       Battle.active.onUnitHealed(this, healed);
