@@ -1458,6 +1458,58 @@ test('diamonds buy room and scrolls, within the ceilings', () => {
   assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 100, 'bonus not persisted');
 });
 
+test("Oak's rites chain into each other and his dodge can riposte", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Hex: X, Meter: M } = w;
+  const mk = () => {
+    const battle = {
+      units: [],
+      livingUnits(team = null) {
+        return battle.units.filter((u) => u.alive && (team === null || u.team === team));
+      },
+      addFloatingText() {}, log() {}, onUnitHealed() {},
+      playerSlots: X.buildFormation(T.PLAYER, 200, 200, 56),
+      enemySlots: X.buildFormation(T.ENEMY, 600, 200, 56),
+    };
+    return battle;
+  };
+  const battle = mk();
+  const oak = new U(H.oak, T.PLAYER, { level: 30, stars: 4 });
+  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  foe.hookSources = () => [];
+  foe.dodgeChance = () => 0;
+  battle.units.push(oak, foe);
+
+  // Chain forced ON: one cast of Confession lands all three rites.
+  w.seed(1); // deterministic, then force the chain rolls
+  const rolls = [0.0]; // every Math.random -> 0 => chains always fire, no crit... 0 < critChance though!
+  // Zero makes crits fire too, which is fine — amounts only need to be 3 hits.
+  w.unseed();
+  const Math2 = w.Math;
+  Math2.random = () => 0.0;
+  foe.hp = foe.maxHp = 10 ** 9; // survive the full cycle
+  let res = A.execute(oak.abilities[0].def, oak, foe, battle);
+  let hits = res.filter((r) => r.kind === 'damage' && r.amount > 0).length;
+  assert(hits >= 3, `forced chains should land at least 3 hits, saw ${hits}`);
+
+  // Chain forced OFF: exactly one hit.
+  Math2.random = () => 0.99;
+  res = A.execute(oak.abilities[0].def, oak, foe, battle);
+  hits = res.filter((r) => r.kind === 'damage').length;
+  assert(hits === 1, `with cold dice one cast is one hit, saw ${hits}`);
+
+  // The riposte: guarantee the dodge and the 50% roll, then let the foe
+  // swing at Oak — he should deal damage back inside the foe's action.
+  oak.dodgeChance = () => 1;
+  Math2.random = () => 0.0;
+  w.Battle.active = battle; // dodged() reads the active battle
+  const hpBefore = foe.hp;
+  A.execute(foe.abilities[0].def, foe, oak, battle);
+  w.Battle.active = null;
+  assert(foe.hp < hpBefore, 'a guaranteed dodge with a hot roll should riposte');
+  delete Math2.random;
+});
+
 test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
   const w = loadGame();
   const G = w.Gear;

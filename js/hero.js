@@ -703,6 +703,27 @@ class Unit {
     }
   }
 
+  // The slip-side of struck(): hooks that answer a hit that never landed
+  // (Oak ripostes out of a dodge). Same retaliation guard, so two
+  // dodge-happy units can never ping-pong forever.
+  dodged(attacker) {
+    if (Unit.retaliating) return;
+    const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (!battle) return;
+    Unit.retaliating = true;
+    const prevOwner = Unit.hookOwner;
+    Unit.hookOwner = this;
+    try {
+      for (const p of this.hookSources()) {
+        const hook = p.hooks && p.hooks.onDodge;
+        if (hook) hook(this, { attacker, battle });
+      }
+    } finally {
+      Unit.retaliating = false;
+      Unit.hookOwner = prevOwner;
+    }
+  }
+
   // Gain (or lose) crystal mirrors, clamped to 0..max. Returns the actual
   // change; swaps the sprite sheet to the matching mirror-count variant.
   addMirrors(n) {
