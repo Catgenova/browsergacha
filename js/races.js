@@ -23,7 +23,7 @@ const RACES = (() => {
   // and future one-off ids never fall into the race by accident.
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
-    'toll', 'javarious', 'leonardo', 'oak',
+    'toll', 'javarious', 'leonardo', 'oak', 'silas',
   ]);
 
   const NAMES = {
@@ -61,7 +61,7 @@ const RACES = (() => {
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
-                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak'] },
+                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

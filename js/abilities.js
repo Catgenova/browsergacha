@@ -423,6 +423,31 @@ const Abilities = (() => {
         results.push({ kind: 'debuff', target: chosenTarget, stat: 'stun', resisted: true });
       }
     }
+    // Aiming stances (Silas). Two rules, both generic to the stat:
+    // a stance is SPENT by the damaging cast it empowered — after the
+    // whole volley, so every target of a row shot pays double — and a
+    // LANDED single-target hit breaks the victim's stance (a volley
+    // doesn't, and neither does an arrow they dodged).
+    const dealsDamage = ability.effects.some((e) =>
+      e.type === 'damage' || e.type === 'damageDef' || e.type === 'damageHpPct');
+    if (dealsDamage) {
+      const spent = caster.statusEffects.findIndex((fx) => fx.stat === 'aiming');
+      if (spent !== -1) caster.statusEffects.splice(spent, 1);
+    }
+    if (ability.targeting === 'enemy' && chosenTarget && dealsDamage &&
+        results.some((r) => r.kind === 'damage' && r.amount > 0 &&
+          r.target === chosenTarget && !r.dodged && !r.reflected)) {
+      const broke = chosenTarget.statusEffects.findIndex((fx) => fx.stat === 'aiming');
+      if (broke !== -1) {
+        chosenTarget.statusEffects.splice(broke, 1);
+        if (battle && battle.addFloatingText) {
+          battle.addFloatingText(chosenTarget, 'AIM BROKEN', '#ff9a5a');
+        }
+        if (battle && battle.log) {
+          battle.log(`The blow knocks ${chosenTarget.name} out of their stance!`, 'log-system');
+        }
+      }
+    }
     // Chain casts: an ability can name a chance to immediately cast
     // another of the caster's abilities as part of the same action — a
     // free cast that touches no cooldown and rides the same animation

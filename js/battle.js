@@ -542,6 +542,11 @@ class Battle {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
+        } else if (res.stat === 'aiming') {
+          // Silas's stance: held until spent by a shot or broken by a
+          // landed single-target hit — not a timed buff.
+          this.addFloatingText(res.target, '🎯 AIMING', '#ffe8a8');
+          this.log(`${res.target.name} settles into Aiming Stance — the next shot strikes double.`, cls);
         } else {
           const label = statLabel[res.stat] || res.stat.toUpperCase();
           const arrow = res.kind === 'buff' ? '▲' : '▼';

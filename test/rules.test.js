@@ -1510,6 +1510,60 @@ test("Oak's rites chain into each other and his dodge can riposte", () => {
   delete Math2.random;
 });
 
+test("Silas's Aiming Stance gates, doubles, spends, and breaks correctly", () => {
+  const battle = makeBattle();
+  const silas = place(battle, HEROES.silas, TEAM.PLAYER, 4);
+  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, HEROES.rat_knight, TEAM.ENEMY, 2);
+  foeA.dodgeChance = () => 0; foeB.dodgeChance = () => 0;
+  silas.dodgeChance = () => 0;
+  foeA.hookSources = () => []; foeB.hookSources = () => [];
+  const inStance = () => silas.statusEffects.some((fx) => fx.stat === 'aiming');
+  const arrow = silas.abilities.find((a) => a.def.id === 'silas_lumen_arrow');
+  const stance = silas.abilities.find((a) => a.def.id === 'silas_aiming_stance');
+  const bolt = silas.abilities.find((a) => a.def.id === 'silas_boltshot');
+
+  // Gated: Lumen Arrow is not ready without the stance.
+  assert(!silas.readyAbilities().includes(arrow), 'the arrow fired without a stance');
+  Abilities.execute(stance.def, silas, silas, battle);
+  assert(inStance(), 'Aiming Stance did not stick');
+  assert(silas.readyAbilities().includes(arrow), 'the stance did not unlock the arrow');
+
+  // The stance doubles the shot, then is spent by it.
+  foeA.hp = foeA.maxHp = 10 ** 9; foeB.hp = foeB.maxHp = 10 ** 9;
+  silas.baseCritChance = 0; // crits off for clean doubling
+  Abilities.execute(bolt.def, silas, foeA, battle); // spends the gating stance
+  Abilities.execute(stance.def, silas, silas, battle);
+  assert(inStance(), 'could not re-enter the stance');
+  const aimed = Abilities.execute(bolt.def, silas, foeA, battle)
+    .find((r) => r.kind === 'damage').amount;
+  assert(!inStance(), 'the shot did not spend the stance');
+  const bare = Abilities.execute(bolt.def, silas, foeA, battle)
+    .find((r) => r.kind === 'damage').amount;
+  assert(Math.abs(aimed - bare * 2) <= 2,
+    `an aimed shot should double: aimed ${aimed} vs bare ${bare}`);
+
+  // A landed single-target hit breaks it; a row volley does not.
+  Abilities.execute(stance.def, silas, silas, battle);
+  Abilities.execute({ id: 't_aoe', name: 'AoE', cooldown: 0, targeting: 'all-enemies',
+    effects: [{ type: 'damage', mult: 0.5 }] }, foeA, silas, battle);
+  assert(inStance(), 'an AoE hit should NOT break the stance');
+  Abilities.execute({ id: 't_st', name: 'Jab', cooldown: 0, targeting: 'enemy',
+    effects: [{ type: 'damage', mult: 0.5 }] }, foeA, silas, battle);
+  assert(!inStance(), 'a landed direct hit should break the stance');
+
+  // A dodged direct hit reveals nothing: stance holds, and the passive
+  // supplies the dodge while aiming.
+  Abilities.execute(stance.def, silas, silas, battle);
+  delete silas.dodgeChance; // restore the real one (passive +25%)
+  assert(silas.dodgeChance() === 0.25, `stance dodge is ${silas.dodgeChance()}`);
+  silas.dodgeChance = () => 1;
+  Abilities.execute(stance.def, silas, silas, battle);
+  Abilities.execute({ id: 't_st3', name: 'Jab3', cooldown: 0, targeting: 'enemy',
+    effects: [{ type: 'damage', mult: 0.5 }] }, foeA, silas, battle);
+  assert(inStance(), 'a dodged hit must not break the stance');
+});
+
 test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
   const w = loadGame();
   const G = w.Gear;

@@ -447,6 +447,79 @@ Object.assign(HEROES, {
     positional: POSITIONALS.ghost_step,
   },
 
+  silas: {
+    id: 'silas',
+    element: 'light',
+    name: 'Silas',
+    title: 'Boltcaster of Reverence',
+    rarity: 3,
+    stats: { hp: 1150, atk: 250, def: 95, speed: 104 },
+    tint: { body: '#c8bca0', helm: '#e8dcb8', weapon: '#f8f0c8', skin: '#d8b898' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Silas/silasidle.png', frames: 9, fps: 5, loop: true },
+        // Timed fidgets while he idles.
+        idle2: { src: 'assets/heroes/Silas/silasidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Silas/silasidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // Boltshot: the release snaps on frame 6.
+        attack: { src: 'assets/heroes/Silas/silasskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        // Lumen Arrow: the empowered line shot, loosed on frame 5.
+        skill2: { src: 'assets/heroes/Silas/silasskill2.png', frames: 8, fps: 11,
+                  loop: false, hitFrame: 5 },
+        // Aiming Stance: he settles, draws, and holds.
+        skill3: { src: 'assets/heroes/Silas/silasskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 7 },
+        death: { src: 'assets/heroes/Silas/silasdeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'silas_boltshot', name: 'Boltshot',
+        icon: 'assets/icons/fc746.png',
+        description: 'A snapped shot at one enemy for 115% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.15 }],
+      },
+      {
+        id: 'silas_lumen_arrow', name: 'Lumen Arrow',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Loose a holy arrow through an enemy row for 200% ATK. ' +
+          'Can only be fired from Aiming Stance.',
+        cooldown: 3, targeting: 'enemy-row', animation: 'skill2', impact: 'slash',
+        requires: 'aiming',
+        effects: [{ type: 'damage', mult: 2.0 }],
+      },
+      {
+        id: 'silas_aiming_stance', name: 'Aiming Stance',
+        icon: 'assets/icons/fc882.png',
+        description: 'Settle and draw: his next shot deals 100% extra damage. ' +
+          'The stance holds until he shoots — or a direct hit lands on him.',
+        cooldown: 2, targeting: 'self', animation: 'skill3',
+        effects: [{ type: 'buff', stat: 'aiming', mult: 1, turns: 99 }],
+      },
+    ],
+    passive: {
+      name: 'Stillness of the Marksman',
+      icon: 'assets/icons/fc793.png',
+      description: 'While in Aiming Stance, Silas has a +25% chance to dodge ' +
+        'attacks — and the stance doubles the shot it feeds.',
+      hooks: {
+        dodgeAdd(unit) {
+          return unit.statusEffects.some((fx) => fx.stat === 'aiming') ? 0.25 : 0;
+        },
+        damageDealtMult(unit) {
+          return unit.statusEffects.some((fx) => fx.stat === 'aiming') ? 2 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.dawn_piercer,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
