@@ -270,6 +270,30 @@ test('bosses declare scaling anchors, a gear set and passives', () => {
   }
 });
 
+test('dungeon bosses pay one material, scaled by floor', () => {
+  const { DUNGEON_BOSSES } = g;
+  const keys = Object.keys(DUNGEON_BOSSES);
+  assert(keys.length === 2, `expected two dungeons, found ${keys.length}`);
+  const w = DUNGEON_BOSSES.whetstone;
+  const a = DUNGEON_BOSSES.arcana;
+  assert(w && w.whetstonesPer > 0 && !w.arcanaPer,
+    'the Grindhouse must pay whetstones and nothing else');
+  assert(a && a.arcanaPer > 0 && !a.whetstonesPer,
+    'the Arcanum Vault must pay arcana and nothing else');
+  for (const b of Object.values(DUNGEON_BOSSES)) {
+    assert(b.stats5 && b.stats100, `${b.id}: missing stage anchors`);
+    assert(b.isBoss && !b.gearSet, `${b.id}: dungeons drop materials, not gear`);
+    assert((b.abilities || []).length >= 3, `${b.id}: thin kit`);
+    assert((b.passives || []).length >= 3, `${b.id}: no passives`);
+    assert(b.dungeonName, `${b.id}: no dungeon name`);
+    // Ids live in the shared bossStages ledger; keep them out of the
+    // gear bosses' namespace.
+    assert(b.id.startsWith('dungeon_'), `${b.id}: id must be dungeon-prefixed`);
+    assert(!Object.values(BOSSES).some((gb) => gb.id === b.id),
+      `${b.id}: collides with a gear boss`);
+  }
+});
+
 test('a brand-new save yields complete roster entries', () => {
   // Fresh saves stamp the current schema and run no migrations, so the
   // defaults themselves have to be complete — a hero that loads without

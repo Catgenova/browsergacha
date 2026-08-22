@@ -231,6 +231,9 @@ const GameState = (() => {
     elements: {},
     attuneStages: {},                    // element -> highest stage cleared
     attuneSettings: { boss: 'fire', stage: 1, repeat: 1 },
+    // Material dungeons: floors cleared live in bossStages under the
+    // dungeon def's id, so only the picker's choice needs its own slot.
+    dungeonSettings: { boss: 'whetstone', stage: 1, repeat: 1 },
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -400,6 +403,8 @@ const GameState = (() => {
     if (!loaded.campaign.chapter) loaded.campaign.chapter = 'ch1';
     if (!loaded.bossSettings) loaded.bossSettings = { boss: 'dragon', stage: 1, repeat: 1 };
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
+    if (!loaded.dungeonSettings) loaded.dungeonSettings = { boss: 'whetstone', stage: 1, repeat: 1 };
+    if (!loaded.dungeonSettings.boss) loaded.dungeonSettings.boss = 'whetstone';
 
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
@@ -1317,6 +1322,13 @@ const GameState = (() => {
     get bossSettings() { return { ...state.bossSettings }; },
     setBossSettings(patch) {
       Object.assign(state.bossSettings, patch);
+      save();
+    },
+    // Material dungeons share the boss-stage ledger (keyed by the
+    // dungeon def's id); only the picker's choice lives here.
+    get dungeonSettings() { return { ...state.dungeonSettings }; },
+    setDungeonSettings(patch) {
+      Object.assign(state.dungeonSettings, patch);
       save();
     },
 

@@ -98,12 +98,13 @@ class CompendiumScreen {
     return this.category === 'bosses' ? this.bossRoster() : HEROES;
   }
 
-  // Gear bosses and elemental bosses, one book. Elemental entries get
-  // an 'el_' key prefix so the two tables can never collide.
+  // Gear, elemental, and dungeon bosses, one book. Prefixed keys
+  // ('el_', 'dg_') so the tables can never collide.
   bossRoster() {
     if (!this._bossRoster) {
       const out = { ...BOSSES };
       for (const [key, b] of Object.entries(ELEMENTAL_BOSSES)) out[`el_${key}`] = b;
+      for (const [key, b] of Object.entries(DUNGEON_BOSSES)) out[`dg_${key}`] = b;
       this._bossRoster = out;
     }
     return this._bossRoster;
@@ -501,6 +502,7 @@ class CompendiumScreen {
         <div class="comp-ability-desc">${p.description}</div>
       </div>`).join('');
 
+    const isDungeon = (def.whetstonesPer || 0) > 0 || (def.arcanaPer || 0) > 0;
     const set = !def.isElemental && typeof Gear !== 'undefined' && Gear.SETS[def.gearSet];
     const dropHtml = def.isElemental
       ? `<div class="comp-drop"><b>${elInfo ? elInfo.name : def.element} Elements</b>
@@ -508,6 +510,15 @@ class CompendiumScreen {
           heroes. Stages 1–8 pay Small, 9–15 Medium, 16–20 Large.</div>
         ${[1, 5, 10, 15, 20].map((st) =>
           `<div class="comp-syn"><span>Stage ${st}: ${Attune.payoutText(st)}</span></div>`).join('')}`
+      : isDungeon
+        ? `<div class="comp-drop"><b>${def.whetstonesPer > 0
+            ? `${def.whetstonesPer} Whetstones 🪨` : `${def.arcanaPer} Arcana ✦`}
+            per floor</b> — every clear of floor N pays N times that. No gear
+            drops in ${def.dungeonName}; it exists to bankroll the Blacksmith.</div>
+          ${[1, 5, 10, 15, 20].map((st) =>
+            `<div class="comp-syn"><span>Floor ${st}: ${def.whetstonesPer > 0
+              ? `${(def.whetstonesPer * st).toLocaleString()} 🪨`
+              : `${(def.arcanaPer * st).toLocaleString()} ✦`}</span></div>`).join('')}`
       : set ? `
       <div class="comp-drop"><b>${set.name} set</b> — every stage drops a piece;
         higher stages roll rarer.</div>
@@ -527,6 +538,7 @@ class CompendiumScreen {
             ${elInfo ? `<span class="comp-badge" style="border-color:${elInfo.color};color:${elInfo.color}">${Elements.badge(def.element)} ${elInfo.name}</span>` : ''}
             <span class="comp-badge">Spans every hex</span>
             ${def.isElemental ? '<span class="comp-badge">Elemental boss</span>' : ''}
+            ${def.dungeonName ? `<span class="comp-badge">${def.dungeonName}</span>` : ''}
             <span class="comp-badge">${passives.length} passives</span>
             ${cleared > 0 ? `<span class="comp-badge owned">Stage ${cleared} cleared</span>` : ''}
           </div>
