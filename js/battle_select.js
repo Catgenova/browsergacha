@@ -115,7 +115,10 @@ class BattleSelect {
       if ((GameState.dungeonSettings.stage || 1) > maxPick) {
         GameState.setDungeonSettings({ stage: maxPick });
       }
-      return { ...GameState.dungeonSettings, def, cleared, maxPick };
+      return {
+        ...GameState.dungeonSettings, def, cleared, maxPick,
+        runsLeft: GameState.dungeonRunsLeft(def.id),
+      };
     }
     return { next: GameState.towerBest + 1 };
   }
@@ -288,7 +291,13 @@ class BattleSelect {
         <div class="bs-sub">Skills</div>
         <div class="bs-line">${(def.abilities || []).map((a) => a.name).join(' · ')}</div>
         <div class="bs-sub">Drops</div>
-        <div class="bs-line">${drops}</div>`;
+        <div class="bs-line">${drops}</div>
+        ${this.mode === 'dungeon' ? `
+        <div class="bs-sub">Daily attempts</div>
+        <div class="bs-line">${cur.runsLeft > 0
+          ? `<b>${cur.runsLeft}</b> of ${GameState.DUNGEON_RUNS_PER_DAY} challenges left today.`
+          : `<b>All ${GameState.DUNGEON_RUNS_PER_DAY} spent</b> — the gate reopens in
+            ${Quests.formatCountdown(Quests.timeToReset('daily'))}.`}</div>` : ''}`;
     }
     const next = cur.next;
     const lv = Math.max(2, Math.ceil(next * 1.5));
@@ -307,6 +316,7 @@ class BattleSelect {
   launchHtml(cur) {
     const size = GameState.teamSize();
     const bossLocked = this.mode === 'boss' && !Campaign.bossUnlocked(cur.boss);
+    const spent = this.mode === 'dungeon' && cur.runsLeft <= 0;
     const labels = { hunt: 'Fight!', boss: 'Boss!', rift: 'Attune!', dungeon: 'Delve!', tower: 'Climb!' };
     // Repeats only for cleared content; the tower chains on its own.
     let repeat = '';
@@ -326,13 +336,15 @@ class BattleSelect {
     }
     return `<div class="bs-launch">
       ${repeat}
-      <button class="panel-btn gold" data-act="launch" ${size === 0 || bossLocked ? 'disabled' : ''}
+      <button class="panel-btn gold" data-act="launch" ${size === 0 || bossLocked || spent ? 'disabled' : ''}
         title="${size === 0 ? 'Place a team on the Team screen first'
           : bossLocked ? "Clear this boss's campaign chapter to challenge it"
+          : spent ? 'All three challenges are spent — the gate reopens at midnight'
           : 'Start the fight'}">
         ${labels[this.mode]}</button>
       ${size === 0 ? '<span class="bs-note">Place a team first</span>'
-        : bossLocked ? '<span class="bs-note">Clear its campaign chapter first</span>' : ''}
+        : bossLocked ? '<span class="bs-note">Clear its campaign chapter first</span>'
+        : spent ? '<span class="bs-note">No challenges left today</span>' : ''}
     </div>`;
   }
 }

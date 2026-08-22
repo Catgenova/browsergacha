@@ -234,6 +234,8 @@ const GameState = (() => {
     // Material dungeons: floors cleared live in bossStages under the
     // dungeon def's id, so only the picker's choice needs its own slot.
     dungeonSettings: { boss: 'whetstone', stage: 1, repeat: 1 },
+    // Daily attempt ledger: each dungeon takes three challenges a day.
+    dungeonRuns: { day: '', counts: {} },   // { day: 'YYYY-MM-DD', counts: { bossId: n } }
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -405,6 +407,8 @@ const GameState = (() => {
     if (!loaded.bossSettings.boss) loaded.bossSettings.boss = 'dragon';
     if (!loaded.dungeonSettings) loaded.dungeonSettings = { boss: 'whetstone', stage: 1, repeat: 1 };
     if (!loaded.dungeonSettings.boss) loaded.dungeonSettings.boss = 'whetstone';
+    if (!loaded.dungeonRuns) loaded.dungeonRuns = { day: '', counts: {} };
+    if (!loaded.dungeonRuns.counts) loaded.dungeonRuns.counts = {};
 
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
@@ -1330,6 +1334,25 @@ const GameState = (() => {
     setDungeonSettings(patch) {
       Object.assign(state.dungeonSettings, patch);
       save();
+    },
+    // Three challenges per dungeon per day, counted the moment a fight
+    // starts and reset when the local date rolls over (same day key the
+    // daily quests use).
+    DUNGEON_RUNS_PER_DAY: 3,
+    dungeonRunsToday(bossId) {
+      if (state.dungeonRuns.day !== Quests.periodKey('daily')) return 0;
+      return state.dungeonRuns.counts[bossId] || 0;
+    },
+    dungeonRunsLeft(bossId) {
+      return Math.max(0, this.DUNGEON_RUNS_PER_DAY - this.dungeonRunsToday(bossId));
+    },
+    useDungeonRun(bossId) {
+      if (this.dungeonRunsLeft(bossId) <= 0) return false;
+      const day = Quests.periodKey('daily');
+      if (state.dungeonRuns.day !== day) state.dungeonRuns = { day, counts: {} };
+      state.dungeonRuns.counts[bossId] = (state.dungeonRuns.counts[bossId] || 0) + 1;
+      save();
+      return true;
     },
 
     // ---- Endless Tower ----
