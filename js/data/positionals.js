@@ -100,6 +100,15 @@ const POSITIONALS = (() => {
     },
   });
 
+  def('dawn_piercer', {
+    position: POSITION.BACK,
+    name: 'Dawn Piercer',
+    description: 'Back hex: +20% damage to Dark-element enemies. The dark is where the bolt burns brightest.',
+    hooks: {
+      damageDealtMult: (u, t) => (t && t.element === 'dark' ? 1.20 : 1),
+    },
+  });
+
   def('ghost_step', {
     position: POSITION.FRONT,
     name: 'Ghost Step',

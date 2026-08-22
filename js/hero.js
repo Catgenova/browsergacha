@@ -808,7 +808,11 @@ class Unit {
   // ---- Turns / cooldowns -------------------------------------------------
 
   readyAbilities() {
-    return this.abilities.filter((a) => a.cooldownRemaining === 0);
+    // `requires` names a status stat the caster must carry (Silas's
+    // Lumen Arrow fires only from Aiming Stance).
+    return this.abilities.filter((a) => a.cooldownRemaining === 0 &&
+      (!a.def.requires ||
+        this.statusEffects.some((fx) => fx.stat === a.def.requires)));
   }
 
   // Returns an array of display results:

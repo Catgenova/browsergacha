@@ -126,10 +126,14 @@ class UI {
       btn.title = `${a.description}\n\nTargets: ${SIDE.label.toLowerCase()}` +
         (Abilities.needsTarget(a.targeting) ? ' \u2014 pick one' : ' \u2014 fires at once');
 
-      // Revives need a fallen ally to exist.
+      // Revives need a fallen ally to exist; stance-gated shots need
+      // the stance up (Silas's Lumen Arrow).
       const needsDead = a.targeting === 'dead-ally' &&
         !this.battle.units.some((u) => !u.alive && u.team === TEAM.PLAYER);
-      btn.disabled = abilityState.cooldownRemaining > 0 || needsDead;
+      const needsStance = a.requires &&
+        !unit.statusEffects.some((fx) => fx.stat === a.requires);
+      if (needsStance) btn.title += '\n\nNeeds Aiming Stance — cast it first.';
+      btn.disabled = abilityState.cooldownRemaining > 0 || needsDead || needsStance;
       btn.addEventListener('click', () => this.selectAbility(abilityState, btn));
       this.buttonsEl.appendChild(btn);
     });
