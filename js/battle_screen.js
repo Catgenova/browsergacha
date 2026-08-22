@@ -336,7 +336,10 @@ class BattleScreen {
       const def = DUNGEON_BOSSES[ds.boss] || DUNGEON_BOSSES.whetstone;
       if (ds.stage <= GameState.bossStageCleared(def.id)) {
         const r = ds.repeat;
-        this.chainRemaining = r === 'inf' ? Infinity : Math.max(0, Number(r) - 1);
+        // A chain can never book more fights than the day has attempts.
+        const cap = Math.max(0, GameState.dungeonRunsLeft(def.id) - 1);
+        this.chainRemaining = Math.min(cap,
+          r === 'inf' ? Infinity : Math.max(0, Number(r) - 1));
       }
     } else if (mode === 'tower') {
       // The climb chains upward as long as auto keeps winning.
@@ -625,6 +628,15 @@ class BattleScreen {
       this.towerFight = null;
       const ds = GameState.dungeonSettings;
       const def = DUNGEON_BOSSES[ds.boss] || DUNGEON_BOSSES.whetstone;
+      // A challenge is spent the moment the fight starts, three per
+      // dungeon per day. Out of attempts (a stale banner button, a
+      // chain that outran the ledger) drops back to the picker, which
+      // shows the count and the reset time.
+      if (!GameState.useDungeonRun(def.id)) {
+        this.cancelChain();
+        this.showIdle(true);
+        return;
+      }
       const cleared = GameState.bossStageCleared(def.id);
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const stage = Math.min(Math.max(1, ds.stage), maxPick);

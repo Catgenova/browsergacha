@@ -1458,4 +1458,25 @@ test('diamonds buy room and scrolls, within the ceilings', () => {
   assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 100, 'bonus not persisted');
 });
 
+test('dungeons take three challenges a day, per dungeon, reset daily', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const id = 'dungeon_whetstone';
+  assert(G.dungeonRunsLeft(id) === 3, 'a fresh day should hold three challenges');
+  assert(G.useDungeonRun(id) && G.useDungeonRun(id), 'early challenges refused');
+  assert(G.dungeonRunsLeft(id) === 1, `expected one left, got ${G.dungeonRunsLeft(id)}`);
+  // Each dungeon keeps its own ledger.
+  assert(G.dungeonRunsLeft('dungeon_xp') === 3, 'spending one gate drained another');
+  assert(G.useDungeonRun(id), 'the third challenge was refused');
+  assert(!G.useDungeonRun(id), 'a fourth challenge slipped through');
+
+  // The ledger survives the save round-trip...
+  const raw = w.savedState();
+  assert(raw.dungeonRuns && raw.dungeonRuns.counts[id] === 3, 'ledger not persisted');
+  // ...and a save from an earlier day starts the count fresh.
+  raw.dungeonRuns.day = '2000-01-01';
+  const G2 = loadGame({ save: raw }).GameState;
+  assert(G2.dungeonRunsLeft(id) === 3, "yesterday's spent challenges carried over");
+});
+
 report();
