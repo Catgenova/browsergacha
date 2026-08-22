@@ -246,6 +246,21 @@ class TeamScreen {
         row(`${Elements.badge(el)} ${RACES.ELEMENT_NAMES[el]} resonance`,
           info && info.color, count, RACES.ELEMENT_BONUSES[el] || []);
       }
+      // Prismatic accord: one hero of every element. Shown from 3
+      // distinct elements up so the goal is visible while assembling.
+      const distinctEls = Object.keys(RACES.elementCounts(defs)).length;
+      if (distinctEls >= 3) {
+        rows.push(`<div class="syn-row">
+          <span class="syn-name">🌈 Prismatic accord &times;${distinctEls}/5</span>
+          <span class="syn-tier${RACES.prismActive(defs) ? ' live' : ''}"
+            title="${RACES.prismActive(defs) ? 'Active' : 'Field one hero of every element'}">${
+            RACES.PRISM_BONUS.label.replace(/^all 5 elements: /, '')}</span></div>`);
+      }
+      // Motley company: distinct races/sects, tiered 3/5/7.
+      const motley = RACES.diversityCount(defs);
+      if (motley >= 2) {
+        row('🎭 Motley company', null, motley, RACES.DIVERSITY_BONUSES);
+      }
       raceEl.innerHTML = rows.length
         ? `<div class="syn-head">Party synergy</div>${rows.join('')}`
         : '';

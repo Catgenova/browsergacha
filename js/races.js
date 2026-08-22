@@ -130,6 +130,42 @@ const RACES = (() => {
     ],
   };
 
+  // Prismatic accord: fielding one hero of EVERY element (all five) pays
+  // the whole party at once — no tiers, the rainbow either shines or it
+  // doesn't.
+  const PRISM_BONUS = {
+    mods: { critChance: 0.15, dodge: 0.10, spdPct: 0.15 },
+    label: 'all 5 elements: +15% Crit Chance, +10% Dodge, +15% SPD',
+  };
+
+  // Motley company: DISTINCT races and sects fielded together, tiered at
+  // 3/5/7 like every other pack. A sect human counts as their sect, any
+  // other hero as their race, so two Reverence members are one group but
+  // a Reverence hero beside a Hedge hero are two.
+  const DIVERSITY_BONUSES = [
+    { count: 3, mods: { accuracy: 0.30 }, label: '3: +30% Accuracy' },
+    { count: 5, mods: { resistance: 0.40 }, label: '5: +40% Resistance' },
+    { count: 7, mods: { takenMult: 0.85 }, label: '7: takes 15% less damage' },
+  ];
+
+  // The identity a hero brings to the motley count.
+  function groupOf(def) {
+    const sect = sectOf(def);
+    if (sect) return `sect:${sect.id}`;
+    const race = of(def);
+    return race ? `race:${race}` : null;
+  }
+
+  function prismActive(defs) {
+    const els = new Set(defs.map((d) => (d.def || d).element).filter(Boolean));
+    return Object.keys(ELEMENT_NAMES).every((el) => els.has(el));
+  }
+
+  function diversityCount(defs) {
+    const groups = new Set(defs.map((d) => groupOf(d.def || d)).filter(Boolean));
+    return groups.size;
+  }
+
   // Race headcount for a list of hero defs (or units).
   function counts(defs) {
     const tally = {};
@@ -216,6 +252,22 @@ const RACES = (() => {
       active.push({ title: `${ELEMENT_NAMES[el]} resonance`, count,
         labels: tiers.map((t) => t.label) });
     }
+    // Prismatic accord: the full rainbow, paid to everyone fielded.
+    if (prismActive(units)) {
+      for (const unit of units) applyModsToUnit(unit, PRISM_BONUS.mods);
+      active.push({ title: 'Prismatic accord', count: 5,
+        labels: [PRISM_BONUS.label] });
+    }
+    // Motley company: distinct races/sects, tiered, paid to everyone.
+    const motley = diversityCount(units);
+    const motleyTiers = DIVERSITY_BONUSES.filter((t) => motley >= t.count);
+    if (motleyTiers.length > 0) {
+      for (const unit of units) {
+        for (const tier of motleyTiers) applyModsToUnit(unit, tier.mods);
+      }
+      active.push({ title: 'Motley company', count: motley,
+        labels: motleyTiers.map((t) => t.label) });
+    }
     return active;
   }
 
@@ -223,6 +275,7 @@ const RACES = (() => {
     of, NAMES, counts, activeTiers, SECTS, sectOf,
     get BONUSES() { return buildBonuses(); },
     ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
+    PRISM_BONUS, DIVERSITY_BONUSES, groupOf, prismActive, diversityCount,
     applyParty,
   };
 })();
