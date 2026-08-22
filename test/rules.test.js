@@ -1564,6 +1564,44 @@ test("Silas's Aiming Stance gates, doubles, spends, and breaks correctly", () =>
   assert(inStance(), 'a dodged hit must not break the stance');
 });
 
+test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;
+  w.seed(7);
+  M.resetBattle();
+  const battle = new B();
+  battle.autoMode = true;
+  const eli = new U(H.eli, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(eli, 5);
+  battle.placeUnit(foe, 1);
+  foe.hp = foe.maxHp = 10 ** 9;
+  foe.hookSources = () => []; foe.dodgeChance = () => 0;
+
+  // Sigil Bolt cuts the victim's meter by 20% of max.
+  foe.turnMeter = 800;
+  A.execute(eli.abilities[0].def, eli, foe, battle);
+  assert(foe.turnMeter === 800 - C.TURN_METER_MAX * 0.2,
+    `expected a 20% meter cut, meter at ${foe.turnMeter}`);
+
+  // Quickening Sigil: buffs land, and afterAction refills his meter for
+  // an immediate second turn instead of rolling the dice.
+  const quick = eli.abilities.find((a) => a.def.id === 'eli_quickening_sigil');
+  battle.activeUnit = eli;
+  A.execute(quick.def, eli, eli, battle);
+  battle.afterAction(eli, quick);
+  assert(eli.turnMeter === C.TURN_METER_MAX,
+    `the sigil should refill the meter outright, at ${eli.turnMeter}`);
+  assert(eli.statusEffects.some((fx) => fx.stat === 'speed' && fx.mult === 1.3) &&
+    eli.statusEffects.some((fx) => fx.stat === 'critChance' && fx.add === 0.25),
+    'the sigil buffs did not land');
+  // An ordinary ability grants no such refill.
+  battle.activeUnit = eli;
+  battle.afterAction(eli, eli.abilities[0]);
+  assert(eli.turnMeter < C.TURN_METER_MAX, 'a plain bolt also refilled the meter');
+  w.unseed();
+});
+
 test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
   const w = loadGame();
   const G = w.Gear;

@@ -522,6 +522,84 @@ Object.assign(HEROES, {
     positional: POSITIONALS.dawn_piercer,
   },
 
+  eli: {
+    id: 'eli',
+    element: 'light',
+    name: 'Eli',
+    title: 'Sigil of Reverence',
+    rarity: 3,
+    stats: { hp: 1150, atk: 245, def: 95, speed: 106 },
+    tint: { body: '#b8ac88', helm: '#e0d4a8', weapon: '#f0e8c0', skin: '#d0a888' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        // (Two filenames carry upstream quirks — the capital-E idle and
+        // the transposed 'ile' fidget — kept exactly as uploaded.)
+        idle:  { src: 'assets/heroes/Eli/Eliidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Eli/ileidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Eli/eliidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The sigils flare as each cast lands.
+        attack: { src: 'assets/heroes/Eli/eliskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Eli/eliskill2.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill3: { src: 'assets/heroes/Eli/eliskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Eli/elideath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'eli_sigil_bolt', name: 'Sigil Bolt',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Brand one enemy for 100% ATK and cut their turn meter by 20%.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'turnMeter', amount: -0.20 },
+        ],
+      },
+      {
+        id: 'eli_sealing_glyph', name: 'Sealing Glyph',
+        icon: 'assets/icons/fc862.png',
+        description: 'Cast a glyph across the enemy BACK row: 90% ATK and ' +
+          '-15% turn meter to each.',
+        cooldown: 3, targeting: 'back-enemies', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+      {
+        id: 'eli_quickening_sigil', name: 'Quickening Sigil',
+        icon: 'assets/icons/fc885.png',
+        description: 'Inscribe himself: +30% SPD and +25% Crit Chance for ' +
+          '3 turns — then take another turn immediately.',
+        cooldown: 5, targeting: 'self', animation: 'skill3', extraTurn: true,
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.3, turns: 3 },
+          { type: 'buff', stat: 'critChance', add: 0.25, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: "Sigil's Judgment",
+      icon: 'assets/icons/fc863.png',
+      description: 'Deals 25% extra damage to enemies below half turn meter — ' +
+        'the ones his sigils have already slowed.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.5
+            ? 1.25 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.windrunner,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
