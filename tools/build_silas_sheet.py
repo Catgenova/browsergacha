@@ -6,6 +6,11 @@ PANEL = (23, 29, 40, 255)   # --panel, so a clip has no visible box around it
 SIZE = 280
 
 # (file, frames, fps, clip name) — mirrors sprite.strips in the hero def.
+# fidget1 carries the in-game hop: the same sine arc battle.js applies
+# (hop frames 5-9, 30px peak), baked into the clip so the sheet shows
+# the spring the game shows.
+HOP = [0, 0, 0, 0, 0, 21, 30, 21, 0]
+
 STRIPS = [
     ('silasidle.png',   9,  5, 'idle'),
     ('silasidle1.png',  9,  6, 'fidget1'),
@@ -16,7 +21,7 @@ STRIPS = [
     ('silasdeath.png',  9,  7, 'death'),
 ]
 
-def clip(fname, frames, fps):
+def clip(fname, frames, fps, lift=None):
     im = Image.open(f'{SRC}/{fname}').convert('RGBA')
     w, h = im.size
     assert w % frames == 0, f'{fname}: {w}px does not divide into {frames} frames'
@@ -25,14 +30,16 @@ def clip(fname, frames, fps):
     for i in range(frames):
         cell = im.crop((i * fw, 0, (i + 1) * fw, h))
         bg = Image.new('RGBA', cell.size, PANEL)
-        bg.alpha_composite(cell)
+        dy = -(lift[i] if lift and i < len(lift) else 0)
+        bg.alpha_composite(cell, (0, dy))
         cells.append(bg.convert('RGB').resize((SIZE, SIZE), Image.NEAREST))
     buf = io.BytesIO()
     cells[0].save(buf, format='GIF', save_all=True, append_images=cells[1:],
                   duration=int(1000 / fps), loop=0, optimize=True)
     return 'data:image/gif;base64,' + base64.b64encode(buf.getvalue()).decode()
 
-IMG = {name: clip(f, n, fps) for f, n, fps, name in STRIPS}
+IMG = {name: clip(f, n, fps, HOP if name == 'fidget1' else None)
+       for f, n, fps, name in STRIPS}
 
 html = r'''<title>Silas, Boltcaster of Reverence</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
@@ -327,7 +334,7 @@ html = r'''<title>Silas, Boltcaster of Reverence</title>
     <div class="clip"><img src="%%lumenarrow%%" alt="Lumen Arrow animation"><div class="cap"><b>Lumen Arrow</b></div><div class="note">8 frames &middot; loosed on frame 5</div></div>
     <div class="clip"><img src="%%stance%%" alt="Aiming Stance animation"><div class="cap"><b>Aiming Stance</b></div><div class="note">9 frames &middot; he settles, draws, and holds</div></div>
     <div class="clip"><img src="%%death%%" alt="Death animation"><div class="cap"><b>Death</b></div><div class="note">9 frames &middot; freezes on the final pose</div></div>
-    <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one"><div class="cap"><b>Idle Fidget I</b></div><div class="note">plays every 8&#x2013;15s of idling</div></div>
+    <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one, a short hop"><div class="cap"><b>Idle Fidget I</b></div><div class="note">a short spring off the ground &#x2014; airborne on frames 6&#x2013;8 &middot; every 8&#x2013;15s</div></div>
     <div class="clip"><img src="%%fidget2%%" alt="Idle fidget two"><div class="cap"><b>Idle Fidget II</b></div><div class="note">plays every 8&#x2013;15s of idling</div></div>
   </div>
 
