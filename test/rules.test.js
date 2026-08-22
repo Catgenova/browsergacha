@@ -1458,6 +1458,53 @@ test('diamonds buy room and scrolls, within the ceilings', () => {
   assert(raw.rosterCapBonus === G.ROSTER_CAP_MAX - 100, 'bonus not persisted');
 });
 
+test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
+  const w = loadGame();
+  const G = w.Gear;
+  w.seed(42);
+  const RANGES = {
+    spdFlat: [4, 7], critChance: [0.04, 0.07],
+    atkFlat: [8, 14], defFlat: [8, 14], hpFlat: [100, 180],
+    atkPct: [0.06, 0.09], defPct: [0.06, 0.09], hpPct: [0.06, 0.09],
+    accuracy: [0.06, 0.09], critDamage: [0.06, 0.09],
+  };
+  const COUNT = { normal: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+  for (let i = 0; i < 300; i++) {
+    const p = G.drop('dragon', 1 + (i % 20));
+    assert(p.subs.length === COUNT[p.rarity],
+      `${p.rarity} dropped ${p.subs.length} base subs`);
+    const seen = new Set();
+    for (const s of p.subs) {
+      assert(!seen.has(s.stat), `${p.rarity}: base rolls duplicated ${s.stat}`);
+      seen.add(s.stat);
+      const r = RANGES[s.stat];
+      assert(r, `rolled a stat off the rulebook: ${s.stat}`);
+      assert(s.value >= r[0] - 1e-9 && s.value <= r[1] + 1e-9,
+        `${s.stat} rolled ${s.value}, range ${r}`);
+      // Whole steps only: integers for flats, whole points for percents.
+      const snapped = r[1] < 1 ? Math.round(s.value * 100) / 100 : Math.round(s.value);
+      assert(Math.abs(snapped - s.value) < 1e-9, `${s.stat} rolled a ragged ${s.value}`);
+    }
+  }
+  // Enchanting: every third level adds one MORE roll from the same
+  // ranges (duplicate stats welcome), so +15 on a Legendary is 5 base
+  // lines plus 5 enchant lines.
+  const p = G.drop('dragon', 20);
+  p.rarity = 'legendary';
+  while (p.subs.length < 5) G.rollSub(p);
+  for (let plus = 1; plus <= 15; plus++) {
+    const msg = G.applyEnchant(p);
+    if (plus % 3 === 0) {
+      assert(msg && p.subs.length === 5 + plus / 3,
+        `milestone +${plus} left ${p.subs.length} lines`);
+    } else {
+      assert(!msg, `+${plus} is no milestone yet it rolled`);
+    }
+  }
+  assert(p.subs.length === 10, `a +15 Legendary should carry 10 lines, has ${p.subs.length}`);
+  w.unseed();
+});
+
 test('dungeons take three challenges a day, per dungeon, reset daily', () => {
   const w = loadGame();
   const G = w.GameState;
