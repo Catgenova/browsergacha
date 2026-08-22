@@ -217,9 +217,9 @@ class BlacksmithScreen {
         ${rar.name} · Lv ${piece.level}/${capLevel} · ${Gear.statText(base.stat, base.value)}
         ${wearer && GameState.defOf(wearer) ? `<br>Equipped by ${GameState.defOf(wearer).name}` : '<br>Unequipped'}
       </div>
-      <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs})</div>
+      <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs + Gear.MAX_PLUS / 3})</div>
       ${subsHtml}
-      ${nextMilestone ? `<div class="set-bonus">Next substat roll/boost at +${nextMilestone}</div>` : ''}
+      ${nextMilestone ? `<div class="set-bonus">Next substat roll at +${nextMilestone}</div>` : ''}
       ${setHtml}
       <div class="detail-section">Upgrade</div>
       <div class="gear-actions">

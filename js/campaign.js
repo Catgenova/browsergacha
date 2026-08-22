@@ -254,7 +254,8 @@ const Campaign = (() => {
     const rand = rng(seedOf(`${nodeObj.id}:${def.id}:${tierId}`));
     return Gear.SLOTS.map((slot) => {
       const piece = { set: setId, slot, rarity, level: capped, plus: 0, subs: [] };
-      for (let i = 0; i < Gear.RARITIES[rarity].maxSubs - 1; i++) {
+      // The full base count, same as a player drop of this rarity.
+      for (let i = 0; i < Gear.RARITIES[rarity].maxSubs; i++) {
         Gear.rollSub(piece, rand);
       }
       return piece;

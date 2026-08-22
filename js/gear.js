@@ -215,49 +215,52 @@ const Gear = (() => {
     };
   }
 
-  // Substat pool. Raw caps are 50% of the matching base-stat max.
+  // Substat pool. Every roll is a whole step: flats land on integers,
+  // percents on whole points. The ranges are the rulebook —
+  //   SPD / Crit Rate           +4..7
+  //   flat ATK / flat DEF       +8..14
+  //   flat HP                   +100..180
+  //   ATK% / DEF% / HP% / Accuracy / Crit DMG   +6..9%
+  // Resistance no longer rolls (legacy pieces that carry it still
+  // display and count).
   const SUB_POOL = {
-    atkFlat:    { roll: [5, 20],       cap: 250,  label: 'ATK' },
-    defFlat:    { roll: [3, 12],       cap: 150,  label: 'DEF' },
-    hpFlat:     { roll: [30, 120],     cap: 1500, label: 'HP' },
-    spdFlat:    { roll: [1, 4],        cap: 25,   label: 'SPD' },
-    atkPct:     { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'ATK' },
-    defPct:     { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'DEF' },
-    hpPct:      { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'HP' },
-    critChance: { roll: [0.02, 0.05],  cap: 0.25, pct: true, label: 'Crit Rate' },
-    critDamage: { roll: [0.03, 0.07],  cap: 0.5,  pct: true, label: 'Crit DMG' },
-    accuracy:   { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'Accuracy' },
-    resistance: { roll: [0.03, 0.08],  cap: 0.5,  pct: true, label: 'Resistance' },
+    atkFlat:    { roll: [8, 14],       label: 'ATK' },
+    defFlat:    { roll: [8, 14],       label: 'DEF' },
+    hpFlat:     { roll: [100, 180],    label: 'HP' },
+    spdFlat:    { roll: [4, 7],        label: 'SPD' },
+    atkPct:     { roll: [0.06, 0.09],  pct: true, label: 'ATK' },
+    defPct:     { roll: [0.06, 0.09],  pct: true, label: 'DEF' },
+    hpPct:      { roll: [0.06, 0.09],  pct: true, label: 'HP' },
+    critChance: { roll: [0.04, 0.07],  pct: true, label: 'Crit Rate' },
+    critDamage: { roll: [0.06, 0.09],  pct: true, label: 'Crit DMG' },
+    accuracy:   { roll: [0.06, 0.09],  pct: true, label: 'Accuracy' },
+    resistance: { roll: [0.06, 0.09],  pct: true, label: 'Resistance', legacy: true },
   };
+  const ROLLABLE = Object.keys(SUB_POOL).filter((k) => !SUB_POOL[k].legacy);
 
   // `rand` lets a caller supply its own source. The campaign builds enemy
   // gear from a hash of the node id, so the fight you lost to is the
-  // fight you come back to -- substats included.
+  // fight you come back to -- substats included. Rolls are uniform over
+  // the whole steps of the range, both ends included.
   function rollValue(t, rand = Math.random) {
-    const v = t.roll[0] + rand() * (t.roll[1] - t.roll[0]);
-    return t.pct ? Math.round(v * 100) / 100 : Math.round(v);
+    if (t.pct) {
+      const lo = Math.round(t.roll[0] * 100);
+      const hi = Math.round(t.roll[1] * 100);
+      return (lo + Math.floor(rand() * (hi - lo + 1))) / 100;
+    }
+    return t.roll[0] + Math.floor(rand() * (t.roll[1] - t.roll[0] + 1));
   }
 
-  // Add a new substat the piece doesn't already have.
-  function rollSub(piece, rand = Math.random) {
+  // Add a substat roll. Base rolls (`allowDup` false) pick a stat the
+  // piece doesn't already carry; enchant rolls take the pool as it
+  // comes, so +12 ATK can land on top of +11 ATK.
+  function rollSub(piece, rand = Math.random, allowDup = false) {
     const taken = new Set(piece.subs.map((s) => s.stat));
-    const open = Object.keys(SUB_POOL).filter((k) => !taken.has(k));
+    const open = allowDup ? ROLLABLE : ROLLABLE.filter((k) => !taken.has(k));
     if (open.length === 0) return null;
     const stat = open[Math.floor(rand() * open.length)];
     const sub = { stat, value: rollValue(SUB_POOL[stat], rand) };
     piece.subs.push(sub);
-    return sub;
-  }
-
-  // Strengthen a random existing substat by 50-100% of a fresh roll.
-  function boostSub(piece) {
-    if (piece.subs.length === 0) return null;
-    const sub = piece.subs[Math.floor(Math.random() * piece.subs.length)];
-    const t = SUB_POOL[sub.stat];
-    const gain = rollValue(t) * (0.5 + Math.random() * 0.5);
-    sub.value = Math.min(t.cap, t.pct
-      ? Math.round((sub.value + gain) * 100) / 100
-      : Math.round(sub.value + gain));
     return sub;
   }
 
@@ -289,8 +292,8 @@ const Gear = (() => {
     return 'normal';
   }
 
-  // A fresh drop: level 1, +0, starting subs = rarity max minus one
-  // (legendary also gets one free bonus boost).
+  // A fresh drop: level 1, +0, and the rarity's full count of base
+  // substats — Normal 1 up to Legendary 5, all distinct stats.
   function drop(setId, stage) {
     const rarity = rollRarity(stage);
     const piece = {
@@ -301,8 +304,7 @@ const Gear = (() => {
       plus: 0,
       subs: [],
     };
-    for (let i = 0; i < RARITIES[rarity].maxSubs - 1; i++) rollSub(piece);
-    if (rarity === 'legendary') boostSub(piece);
+    for (let i = 0; i < RARITIES[rarity].maxSubs; i++) rollSub(piece);
     return piece;
   }
 
@@ -357,17 +359,15 @@ const Gear = (() => {
     return 0.95 - (0.90 * plus) / 14;
   }
 
-  // Advance one enchant level, applying milestone substat rolls/boosts.
-  // Returns a description of what happened at a milestone (or null).
+  // Advance one enchant level. Every third level rolls a whole new
+  // substat from the same ranges the base rolls use — duplicates
+  // welcome, so a piece can stack +12 ATK on +11 ATK. Five milestones
+  // to +15 put a Legendary at ten substat lines fully enchanted.
   function applyEnchant(piece) {
     piece.plus++;
     if (piece.plus % 3 !== 0) return null;
-    if (piece.subs.length < RARITIES[piece.rarity].maxSubs) {
-      const sub = rollSub(piece);
-      return sub ? `New substat: ${subLabel(sub)}` : null;
-    }
-    const sub = boostSub(piece);
-    return sub ? `Boosted: ${subLabel(sub)}` : null;
+    const sub = rollSub(piece, Math.random, true);
+    return sub ? `Enchant roll: ${subLabel(sub)}` : null;
   }
 
   // ---- Display ----
