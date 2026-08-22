@@ -32,14 +32,20 @@ class TeamScreen {
       this.buildRoster();
     });
     // Storage: the roster grid doubles as the vault view. Clicking a
-    // stored hero withdraws them; depositing lives on the hero detail.
+    // stored hero inspects them in the details panel; the ▲ on the card
+    // (or the panel's Withdraw button) returns them to the roster, and
+    // depositing lives on the roster hero's detail.
     this.storageView = false;
     this.storageBtn = document.getElementById('storage-btn');
     if (this.storageBtn) {
       this.storageBtn.addEventListener('click', () => {
         this.storageView = !this.storageView;
         this.rosterMsg = null;
-        this.buildRoster();
+        // A vault inspection has nothing to point at back in the roster.
+        if (!this.storageView && this.selection && this.selection.from === 'storage') {
+          this.selection = null;
+        }
+        this.refresh();
       });
     }
     this.reportEl = document.getElementById('roster-report');
@@ -330,15 +336,16 @@ class TeamScreen {
   }
 
   // The vault, drawn in the roster's grid. Cards are built fresh each
-  // time (no cache): the vault is visited rarely and its cards carry a
-  // withdraw action instead of selection.
+  // time (no cache): the vault is visited rarely. Clicking a card
+  // inspects the hero in the details panel, same as the roster; the ▲
+  // on the card (or the panel's button) withdraws.
   buildStorage() {
     const msgEl = document.getElementById('roster-msg');
     if (msgEl) {
       msgEl.textContent = this.rosterMsg ||
-        `Stored heroes are out of play and hold no gear. Click one to withdraw it ` +
-        `(needs roster room). To deposit, select a benched hero and use ` +
-        `"Send to storage".`;
+        `Stored heroes are out of play and hold no gear. Click one to inspect ` +
+        `it; the ▲ (or the Withdraw button) returns it to the roster. To ` +
+        `deposit, select a benched hero and use "Send to storage".`;
       msgEl.classList.remove('hidden');
     }
     const query = this.rosterSearch.value.trim().toLowerCase();
@@ -355,7 +362,8 @@ class TeamScreen {
     for (const r of uids) {
       const card = document.createElement('div');
       card.className = 'roster-card stored-card';
-      card.title = `Withdraw ${r.def.name} to the roster`;
+      card.title = `Inspect ${r.def.name}`;
+      if (this.selection && this.selection.heroId === r.uid) card.classList.add('selected');
       const portrait = document.createElement('canvas');
       portrait.width = 64; portrait.height = 64;
       portrait.className = 'portrait';
@@ -382,11 +390,18 @@ class TeamScreen {
         }
         const res = GameState.withdraw(r.uid);
         this.rosterMsg = res ? `${r.def.name} returned to the roster.` : 'Could not withdraw.';
-        this.buildRoster();
+        // The uid survives the move, so an inspection in progress follows
+        // the hero back to the roster instead of going stale.
+        if (res && this.selection && this.selection.heroId === r.uid) {
+          this.selection = { heroId: r.uid, from: 'roster' };
+        }
+        this.refresh();
       };
       up.addEventListener('click', (e) => { e.stopPropagation(); withdraw(); });
       card.append(portrait, name, stars, level, up);
-      card.addEventListener('click', withdraw);
+      // Clicking the card inspects, exactly like a roster card; only the
+      // explicit ▲ (or the details panel's button) withdraws.
+      card.addEventListener('click', () => this.selectHero(r.uid, 'storage'));
       frag.appendChild(card);
     }
     if (!uids.length) {
@@ -682,6 +697,7 @@ class TeamScreen {
         'Click a placed hero, then another hex to move or swap.</div>';
       return;
     }
+    if (this.selection.from === 'storage') { this.updateStorageDetails(); return; }
 
     const uid = this.selection.heroId;   // a roster uid, not a character id
     const def = GameState.defOf(uid);
@@ -885,6 +901,82 @@ class TeamScreen {
         this.updateDetails();
       });
     });
+  }
+
+  // A stored hero's dossier: everything the roster view shows minus gear
+  // (the vault strips it), with the one action that applies here —
+  // withdrawing — in place of the roster's buttons.
+  updateStorageDetails() {
+    const uid = this.selection.heroId;
+    const e = GameState.storedEntry(uid);
+    const def = e && HEROES[e.heroId];
+    if (!def) { this.selection = null; this.updateDetails(); return; }
+
+    const stats = Progression.scaledStats(def, e.level, e.stars);
+    const cap = Progression.maxLevel(e.stars);
+    const atCap = e.level >= cap;
+    const xpNeed = atCap ? 0 : Progression.xpToNext(e.level);
+    const xpPct = atCap ? 100 : Math.min(100, Math.round((e.xp / xpNeed) * 100));
+    const abilitiesHtml = def.abilities.map((a, i) => {
+      const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
+      const icon = a.icon
+        ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
+        : '';
+      const lv = (e.skills && e.skills[i]) || 1;
+      const maxed = lv >= Progression.MAX_SKILL_LEVEL;
+      const bonus = Math.round((Progression.skillPower(lv) - 1) * 100);
+      const powerText = bonus > 0 ? ` · +${bonus}% power` : '';
+      return `<div class="detail-ability">${icon}<b>${a.name}</b>
+        <span class="cd">Lv ${lv}/${Progression.MAX_SKILL_LEVEL} · ${cd}${powerText}</span>
+        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
+    }).join('');
+
+    const full = GameState.rosterFull();
+    this.detailsEl.innerHTML = `
+      <div class="detail-name rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name} <span class="detail-title">${def.title || ''}</span></div>
+      ${def.element && Elements.info(def.element) ? `<div class="detail-element" style="color:${Elements.info(def.element).color}">${Elements.info(def.element).name} element</div>` : ''}
+      ${RACES.sectOf(def) ? `<div class="detail-element detail-sect">${RACES.sectOf(def).name} Sect &middot; No. ${RACES.sectOf(def).number}</div>` : ''}
+      ${Tags.html(def)}
+      <div class="card-stars rarity-${def.rarity}">${Attune.starsHtml(e.stars, e.attune, def.element)}</div>
+      <div class="detail-level">
+        Lv ${e.level} / ${cap}${atCap ? ' <span class="card-level-max">(MAX)</span>' : ''}
+        <span class="xp-text">${atCap ? 'Star up to raise the cap' : `XP ${e.xp} / ${xpNeed}`}</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
+      <div class="detail-stats">
+        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
+      </div>
+      <div class="detail-stats">🏛 In storage — out of play, holding no gear.</div>
+      <div class="detail-section">Abilities <span class="cd">(raised in Improve)</span></div>
+      ${abilitiesHtml}
+      <div class="detail-section">Passive</div>
+      <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
+      <div class="detail-section">Positional bonus</div>
+      <div class="detail-ability">
+        ${def.positional.name ? `<b>${def.positional.name}</b><br>` : ''}${def.positional.description}
+      </div>
+      <div class="detail-section">Storage</div>
+      <button id="withdraw-btn" class="panel-btn gold" ${full ? 'disabled' : ''}
+        title="${full
+          ? 'The roster is full — make room before withdrawing.'
+          : 'Return this hero to the roster (' + GameState.rosterCount() + '/' + GameState.MAX_ROSTER + ').'}">
+        Withdraw to roster
+      </button>
+    `;
+
+    const wBtn = document.getElementById('withdraw-btn');
+    if (wBtn && !wBtn.disabled) {
+      wBtn.addEventListener('click', () => {
+        const res = GameState.withdraw(uid);
+        if (!res) { this.rosterMsg = 'Could not withdraw.'; this.refresh(); return; }
+        // Same uid, new home: keep them selected as a roster hero so the
+        // panel flips straight to the full dossier, gear picker and all.
+        this.selection = { heroId: uid, from: 'roster' };
+        this.rosterMsg = `${def.name} returned to the roster.`;
+        if (typeof Sound !== 'undefined') Sound.play('click');
+        this.refresh();
+      });
+    }
   }
 
   // ---- Canvas rendering --------------------------------------------------
