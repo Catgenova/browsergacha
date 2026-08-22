@@ -507,6 +507,8 @@ class CompendiumScreen {
       ? `${(def.whetstonesPer * st).toLocaleString()} 🪨`
       : def.arcanaPer > 0
         ? `${(def.arcanaPer * st).toLocaleString()} ✦`
+      : def.diamondsFor
+        ? `${def.diamondsFor(st).toLocaleString()} 💎`
         : `${(Progression.enemyXp(Progression.bossLevel(st)) * (def.xpMult || 6))
             .toLocaleString()} XP ⭐ each`;
     const dungeonHeadline = def.whetstonesPer > 0
@@ -515,6 +517,9 @@ class CompendiumScreen {
       : def.arcanaPer > 0
         ? `${def.arcanaPer} Arcana ✦ per floor — every clear of floor N pays
             N times that`
+      : def.diamondsFor
+        ? `50 💎 at floor 1 rising to 250 💎 at floor 20 — and only one
+            challenge a day`
         : `${def.xpMult || 6}× enemy XP ⭐ for the whole team — about
             ${Math.round((def.xpMult || 6) / 6)}× what a boss fight of the
             same level pays, every clear`;

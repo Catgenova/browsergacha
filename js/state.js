@@ -1335,16 +1335,22 @@ const GameState = (() => {
       Object.assign(state.dungeonSettings, patch);
       save();
     },
-    // Three challenges per dungeon per day, counted the moment a fight
-    // starts and reset when the local date rolls over (same day key the
-    // daily quests use).
+    // Three challenges per dungeon per day (a def can name its own limit
+    // via runsPerDay — the Glitterhoard takes one), counted the moment a
+    // fight starts and reset when the local date rolls over (same day
+    // key the daily quests use).
     DUNGEON_RUNS_PER_DAY: 3,
+    dungeonRunsPerDay(bossId) {
+      const def = typeof DUNGEON_BOSSES !== 'undefined' &&
+        Object.values(DUNGEON_BOSSES).find((d) => d.id === bossId);
+      return (def && def.runsPerDay) || this.DUNGEON_RUNS_PER_DAY;
+    },
     dungeonRunsToday(bossId) {
       if (state.dungeonRuns.day !== Quests.periodKey('daily')) return 0;
       return state.dungeonRuns.counts[bossId] || 0;
     },
     dungeonRunsLeft(bossId) {
-      return Math.max(0, this.DUNGEON_RUNS_PER_DAY - this.dungeonRunsToday(bossId));
+      return Math.max(0, this.dungeonRunsPerDay(bossId) - this.dungeonRunsToday(bossId));
     },
     useDungeonRun(bossId) {
       if (this.dungeonRunsLeft(bossId) <= 0) return false;
