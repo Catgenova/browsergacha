@@ -13,7 +13,7 @@
 
 (() => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
-    'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas']);
+    'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli']);
   const TARGET = 520; // the pre-balance median across the generics
 
   // Scale HP/ATK/DEF together (speed is identity, not budget) and

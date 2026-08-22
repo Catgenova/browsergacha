@@ -589,9 +589,14 @@ class Battle {
     // Cat set 6pc: every completed turn feeds AP to the prowlers.
     this.grantTurnApGain(caster);
 
-    // Extra turns (Rat set 6pc / boss passives): refill the meter so
-    // this unit acts again as soon as the tick resumes.
-    if (caster.alive && Math.random() < caster.extraTurnChance()) {
+    // Extra turns. An ability can promise one outright (extraTurn: true —
+    // Eli's Quickening Sigil); otherwise the chance-based channels roll
+    // (Rat set 6pc / boss passives). Never both, so one encore per turn.
+    if (caster.alive && abilityState && abilityState.def && abilityState.def.extraTurn) {
+      caster.turnMeter = CONFIG.TURN_METER_MAX;
+      this.addFloatingText(caster, 'EXTRA TURN', '#ffd76a', true);
+      this.log(`${caster.name} moves again at once!`, 'log-system');
+    } else if (caster.alive && Math.random() < caster.extraTurnChance()) {
       caster.turnMeter = CONFIG.TURN_METER_MAX;
       this.addFloatingText(caster, 'EXTRA TURN', '#ffd76a', true);
       this.log(`${caster.name} seizes another turn!`, 'log-system');
