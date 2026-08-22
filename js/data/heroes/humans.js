@@ -291,6 +291,83 @@ Object.assign(HEROES, {
     positional: POSITIONALS.iron_wake,
   },
 
+  leonardo: {
+    id: 'leonardo',
+    element: 'light',
+    name: 'Leonardo',
+    title: 'Herald of Reverence',
+    rarity: 3,
+    stats: { hp: 1450, atk: 160, def: 145, speed: 106 },
+    tint: { body: '#d8d0c0', helm: '#e8d898', weapon: '#f0e0a8', skin: '#e0b898' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Leonardo/leonardoidle.png', frames: 9, fps: 5, loop: true },
+        // Timed fidgets while he idles: two short ceremonial flourishes.
+        idle2: { src: 'assets/heroes/Leonardo/leonardoidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Leonardo/leonardoidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // His three proclamations: each buff lands as the gesture crests.
+        skill1: { src: 'assets/heroes/Leonardo/leonardoskill1.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Leonardo/leonardoskill2.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        skill3: { src: 'assets/heroes/Leonardo/leonardoskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Leonardo/leonardodeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'processional', name: 'Processional',
+        icon: 'assets/icons/fc885.png',
+        description: 'The herald sets the pace: ALL allies gain +30% SPD for 2 turns.',
+        cooldown: 0, targeting: 'all-allies', animation: 'skill1',
+        effects: [{ type: 'buff', stat: 'speed', mult: 1.3, turns: 2 }],
+      },
+      {
+        id: 'call_to_arms', name: 'Call to Arms',
+        icon: 'assets/icons/fc868.png',
+        description: 'A ringing proclamation: ALL allies gain +30% ATK for 2 turns.',
+        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.3, turns: 2 }],
+      },
+      {
+        id: 'rite_of_absolution', name: 'Rite of Absolution',
+        icon: 'assets/icons/fc855.png',
+        description: 'Absolve the party: removes up to 2 debuffs from every ally.',
+        cooldown: 4, targeting: 'all-allies', animation: 'skill3',
+        effects: [{ type: 'cleanse', count: 2 }],
+      },
+    ],
+    passive: {
+      name: 'Exalted Rebuke',
+      icon: 'assets/icons/fc862.png',
+      description: 'Carrying 3 or more buffs at the start of his turn, the ' +
+        'herald rebukes the readiest enemy: -20% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const buffs = unit.statusEffects.filter((fx) => fx.kind === 'buff').length;
+          if (buffs < 3) return null;
+          const foes = battle.livingUnits().filter((u) => u.team !== unit.team);
+          if (!foes.length) return null;
+          const target = foes.sort((a, b) => b.turnMeter - a.turnMeter)[0];
+          target.turnMeter = Math.max(0,
+            target.turnMeter - CONFIG.TURN_METER_MAX * 0.2);
+          return {
+            label: 'Exalted Rebuke',
+            message: `${unit.name}'s rebuke stalls ${target.name} — 20% turn meter lost.`,
+            floats: [{ target, text: 'AP ▼', color: '#f0e0a8' }],
+          };
+        },
+      },
+    },
+    positional: POSITIONALS.warding_circle,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

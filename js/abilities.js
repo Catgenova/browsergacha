@@ -195,11 +195,17 @@ const Abilities = (() => {
         return { kind: 'mirrors', target, amount: gained };
       }
       case 'cleanse': {
-        // Strip all debuffs (poisons included) from the target.
-        const before = target.statusEffects.length;
-        target.statusEffects = target.statusEffects.filter(
-          (fx) => fx.kind !== 'debuff' && fx.kind !== 'dot');
-        return { kind: 'cleanse', target, count: before - target.statusEffects.length };
+        // Strip debuffs (poisons included) from the target — all of
+        // them, or only the oldest `count` when the effect names a
+        // limit (Leonardo lifts two, not everything).
+        let left = effect.count || Infinity;
+        let removed = 0;
+        target.statusEffects = target.statusEffects.filter((fx) => {
+          if ((fx.kind !== 'debuff' && fx.kind !== 'dot') || left <= 0) return true;
+          left--; removed++;
+          return false;
+        });
+        return { kind: 'cleanse', target, count: removed };
       }
       case 'revive': {
         if (target.alive) return null;

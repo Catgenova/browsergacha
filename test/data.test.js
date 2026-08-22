@@ -171,7 +171,7 @@ test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
     cryst: { number: 1, members: ['echo'] },
     hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
-    reverence: { number: 4, members: ['catherine', 'toll', 'javarious'] },
+    reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -234,7 +234,7 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
 
 test('every generic hero shares one base power budget', () => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
-    'catherine', 'vex', 'vivian']);
+    'catherine', 'vex', 'vivian', 'leonardo']);
   for (const h of heroes) {
     if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);

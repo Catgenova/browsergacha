@@ -23,7 +23,7 @@ const RACES = (() => {
   // and future one-off ids never fall into the race by accident.
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
-    'toll', 'javarious',
+    'toll', 'javarious', 'leonardo',
   ]);
 
   const NAMES = {
@@ -52,17 +52,16 @@ const RACES = (() => {
   const SET_OF_RACE = { drake: 'dragon' };
 
   // Human sects: the named heroes belong to orders, each with an
-  // assigned number (the sect's size once its bonuses land -- Reverence
-  // is numbered 4 with three known members, so its roster is not yet
-  // complete). Members are hero ids; 'echo' is Aniani. Florence stands
-  // outside the sects for now.
+  // assigned number (the sect's size once its bonuses land -- Leonardo
+  // completed Reverence's roster of four). Members are hero ids; 'echo'
+  // is Aniani. Florence stands outside the sects for now.
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
                  members: ['echo'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
-                 members: ['catherine', 'toll', 'javarious'] },
+                 members: ['catherine', 'toll', 'javarious', 'leonardo'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

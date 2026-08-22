@@ -329,6 +329,44 @@ test('an attack buff credits the buffer with the damage it bought', () => {
   assert(hit().buffer === 0, 'credit leaked to a unit on the other team');
 });
 
+test("Leonardo's rite lifts two debuffs and his rebuke stalls the readiest foe", () => {
+  const battle = makeBattle();
+  const leo = place(battle, HEROES.leonardo, TEAM.PLAYER, 1);
+  leo.slot = battle.playerSlots.find((s) => s.position === POSITION.CENTER);
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const foeA = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  const foeB = place(battle, HEROES.rat_knight, TEAM.ENEMY, 4);
+
+  // Rite of Absolution: two of three afflictions lifted, oldest first.
+  mate.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.9, turns: 3 });
+  mate.addStatusEffect({ kind: 'dot', amount: 10, turns: 3 });
+  mate.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.9, turns: 3 });
+  const rite = leo.abilities.find((a) => a.def.id === 'rite_of_absolution');
+  Abilities.execute(rite.def, leo, mate, battle);
+  const badLeft = mate.statusEffects.filter((fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+  assert(badLeft.length === 1 && badLeft[0].stat === 'def',
+    `expected only the newest debuff to survive, got ${JSON.stringify(badLeft)}`);
+
+  // Exalted Rebuke: with three buffs up at turn start, the enemy with
+  // the fullest meter loses 20%; the other foe is untouched.
+  for (const stat of ['atk', 'def', 'speed']) {
+    leo.addStatusEffect({ kind: 'buff', stat, mult: 1.1, turns: 5 });
+  }
+  foeA.turnMeter = 800; foeB.turnMeter = 900;
+  leo.startTurn(battle);
+  assert(foeB.turnMeter === 900 - CONFIG.TURN_METER_MAX * 0.2,
+    `readiest foe should lose 20% meter, has ${foeB.turnMeter}`);
+  assert(foeA.turnMeter === 800, 'the rebuke hit the wrong enemy');
+
+  // Two buffs are one short of the vow.
+  leo.statusEffects = [];
+  leo.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+  leo.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 5 });
+  foeB.turnMeter = 900;
+  leo.startTurn(battle);
+  assert(foeB.turnMeter === 900, 'the rebuke fired below three buffs');
+});
+
 test('a speed buff banks meter gifts for the hero who granted it', () => {
   const battle = makeBattle();
   const runner = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
