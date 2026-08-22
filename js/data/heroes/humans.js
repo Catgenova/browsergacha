@@ -229,23 +229,19 @@ Object.assign(HEROES, {
                  variantOf: 'idle', every: [8, 15] },
         idle3: { src: 'assets/heroes/Catherine/catherineidle2.png', frames: 9, fps: 6, loop: false,
                  variantOf: 'idle', every: [8, 15] },
-        ready: { src: 'assets/heroes/Catherine/catherineready.png', frames: 9, fps: 6, loop: true },
-        // Flail swing — the head connects on frame 9.
-        attack: { src: 'assets/heroes/Catherine/catherineskill1.png', frames: 10, fps: 11,
-                  loop: false, hitFrame: 9 },
-        // Consecration: the light crests around frame 9, when the heal lands.
-        heal:  { src: 'assets/heroes/Catherine/catherineskill2.png', frames: 15, fps: 12,
-                 loop: false, hitFrame: 9, holds: { 9: 2 } },
-        // Ascendant war cry: she lifts off after frame 4, hangs in the
-        // light, and settles back down over the last four frames.
-        skill3: { src: 'assets/heroes/Catherine/catherineskill3.png', frames: 15, fps: 12,
-                  loop: false, hitFrame: 9, holds: { 9: 2, 10: 2 },
-                  motion: [
-                    { frames: [1, 4],   from: 'origin',      to: 'origin' },
-                    { frames: [5, 8],   from: 'origin',      to: 'originHover' },
-                    { frames: [9, 11],  from: 'originHover', to: 'originHover' },
-                    { frames: [12, 15], from: 'originHover', to: 'origin' },
-                  ] },
+        // Long flail strike: eight frames of wind-up spin, the head
+        // flies out over 9-13 and connects on 12, then the recovery.
+        attack: { src: 'assets/heroes/Catherine/catherineskill1.png', frames: 17, fps: 13,
+                  loop: false, hitFrame: 12 },
+        // Consecration: the radiance builds from a spark and crests at
+        // frame 7, when the heal lands; the halo burns through 9.
+        heal:  { src: 'assets/heroes/Catherine/catherineskill2.png', frames: 9, fps: 10,
+                 loop: false, hitFrame: 7, holds: { 9: 2 } },
+        // Reverent Sweep: the same spin-up, then the flail whirls into a
+        // radial burst on 11-12 (the sweep lands there) and trails a
+        // long arc through the recovery.
+        skill3: { src: 'assets/heroes/Catherine/catherineskill3.png', frames: 17, fps: 13,
+                  loop: false, hitFrame: 12, holds: { 12: 2 } },
         death: { src: 'assets/heroes/Catherine/catherinedeath.png', frames: 9, fps: 7,
                  loop: false, freeze: true },
       },

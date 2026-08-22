@@ -10,10 +10,9 @@ STRIPS = [
     ('catherineidle.png',   9,  5, 'idle'),
     ('catherineidle1.png',  9,  6, 'fidget1'),
     ('catherineidle2.png',  9,  6, 'fidget2'),
-    ('catherineready.png',  9,  6, 'ready'),
-    ('catherineskill1.png', 10, 11, 'attack'),
-    ('catherineskill2.png', 15, 12, 'heal'),
-    ('catherineskill3.png', 15, 12, 'creed'),
+    ('catherineskill1.png', 17, 13, 'attack'),
+    ('catherineskill2.png', 9,  10, 'heal'),
+    ('catherineskill3.png', 17, 13, 'sweep'),
     ('catherinedeath.png',  9,  7, 'death'),
 ]
 
@@ -217,25 +216,25 @@ html = r'''<title>Catherine, White Paladin</title>
   </div>
   <div class="stats-note">Base values at level 1 — stats scale with level and ★ ascension like every hero.</div>
 
-  <h2><span class="glyph">✦</span> Ascendant Creed</h2>
-  <div class="section-sub">Her signature moment: the war cry she delivers hovering off the ground.</div>
+  <h2><span class="glyph">✦</span> Reverent Sweep</h2>
+  <div class="section-sub">Her signature moment: the flail whirled through the whole enemy front line.</div>
   <div class="sig-grid">
     <div class="sig-copy">
       <ul>
-        <li><b>She leaves the ground.</b> Four frames of gathering, then Catherine lifts into the light — and settles back down across the final four frames.</li>
-        <li><b>The front line gains both.</b> +30% ATK <em>and</em> +30% DEF for 3 turns, to every ally standing in a front hex.</li>
-        <li><b>She blesses herself too.</b> Catherine belongs up front, so her own creed includes her.</li>
-        <li><span class="dim">The engine tracks her real altitude, so her shadow shrinks beneath her as she rises.</span></li>
+        <li><b>Eight frames of wind-up.</b> The flail head spins faster and faster before it ever leaves her side.</li>
+        <li><b>Then the burst.</b> On frames 11–12 the chain whips into a full radial arc — that is when the sweep lands, on <b>every enemy standing in a front hex</b>.</li>
+        <li><b>150% ATK to each of them.</b> One swing, the whole line pays.</li>
+        <li><span class="dim">The recovery trails a long arc of light where the flail passed.</span></li>
       </ul>
     </div>
     <div class="sig-box">
-      <img src="%%creed%%" alt="Catherine rising off the ground in a burst of light" width="280" height="280">
-      <div class="cap">Lift · hang · descend</div>
+      <img src="%%sweep%%" alt="Catherine whirling her flail through the enemy front line" width="280" height="280">
+      <div class="cap">Wind-up · burst · trail</div>
     </div>
   </div>
 
   <h2><span class="glyph">✦</span> Kit</h2>
-  <div class="section-sub">One attack, one triage heal, one front-line blessing — plus a ward that answers every heal in the party.</div>
+  <div class="section-sub">One attack, one triage heal, one front-line sweep — plus a ward that answers every heal in the party.</div>
   <div class="abilities">
     <div class="ability">
       <div class="slot">Skill 1 · no cooldown</div>
@@ -251,9 +250,9 @@ html = r'''<title>Catherine, White Paladin</title>
     </div>
     <div class="ability">
       <div class="slot">Skill 3 · 5-turn cooldown</div>
-      <h3>Ascendant Creed</h3>
-      <div class="meta">Front line · <b>+30% ATK</b> and <b>+30% DEF</b></div>
-      <p>Rises into the light and blesses every front-hex ally for <b>3 turns</b>.</p>
+      <h3>Reverent Sweep</h3>
+      <div class="meta">Enemy front line · <b>150% ATK</b> each</div>
+      <p>Whirls the flail through <b>every enemy in a front hex</b> in one sweeping arc.</p>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -276,19 +275,19 @@ html = r'''<title>Catherine, White Paladin</title>
       <tbody>
         <tr><th>Reverent Strike, % ATK</th><td>120</td><td>132</td><td>144</td><td>156</td><td class="max">168</td></tr>
         <tr><th>Consecrated Mercy, % ATK each</th><td>30</td><td>33</td><td>36</td><td>39</td><td class="max">42</td></tr>
+        <tr><th>Reverent Sweep, % ATK each</th><td>150</td><td>165</td><td>180</td><td>195</td><td class="max">210</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5, upgraded with Skill Tomes from the Endless Tower). Ascendant Creed's buff percentages are fixed.</div>
+    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) — raised in Improve by sacrificing another Catherine.</div>
   </div>
 
   <h2><span class="glyph">✦</span> Animations</h2>
-  <div class="section-sub">Hand-drawn 256px strips — eight in all, including two timed idle fidgets.</div>
+  <div class="section-sub">Hand-drawn 256px strips — seven in all, including two timed idle fidgets.</div>
   <div class="gallery">
     <div class="clip"><img src="%%idle%%" alt="Idle animation"><div class="cap"><b>Idle</b></div><div class="note">9 frames · her resting loop</div></div>
-    <div class="clip"><img src="%%ready%%" alt="Ready stance animation"><div class="cap"><b>Ready</b></div><div class="note">9 frames · loops while it's her turn</div></div>
-    <div class="clip"><img src="%%attack%%" alt="Reverent Strike animation"><div class="cap"><b>Reverent Strike</b></div><div class="note">10 frames · the flail head connects on frame 9</div></div>
-    <div class="clip"><img src="%%heal%%" alt="Consecrated Mercy animation"><div class="cap"><b>Consecrated Mercy</b></div><div class="note">15 frames · light crests as the heal lands</div></div>
-    <div class="clip"><img src="%%creed%%" alt="Ascendant Creed animation"><div class="cap"><b>Ascendant Creed</b></div><div class="note">15 frames · lifts off after frame 4</div></div>
+    <div class="clip"><img src="%%attack%%" alt="Reverent Strike animation"><div class="cap"><b>Reverent Strike</b></div><div class="note">17 frames · the flail head connects on frame 12</div></div>
+    <div class="clip"><img src="%%heal%%" alt="Consecrated Mercy animation"><div class="cap"><b>Consecrated Mercy</b></div><div class="note">9 frames · the radiance crests on frame 7</div></div>
+    <div class="clip"><img src="%%sweep%%" alt="Reverent Sweep animation"><div class="cap"><b>Reverent Sweep</b></div><div class="note">17 frames · the radial burst lands on 12</div></div>
     <div class="clip"><img src="%%death%%" alt="Death animation"><div class="cap"><b>Death</b></div><div class="note">9 frames · freezes on the final pose</div></div>
     <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one"><div class="cap"><b>Idle Fidget I</b></div><div class="note">plays every 8–15s of idling</div></div>
     <div class="clip"><img src="%%fidget2%%" alt="Idle fidget two"><div class="cap"><b>Idle Fidget II</b></div><div class="note">plays every 8–15s of idling</div></div>
