@@ -641,7 +641,10 @@ class BattleScreen {
       const maxPick = Math.min(Progression.BOSS_MAX_STAGE, cleared + 1);
       const stage = Math.min(Math.max(1, ds.stage), maxPick);
       const level = Progression.bossLevel(stage);
-      this.dungeonFight = { bossId: def.id, name: def.name, stage };
+      this.dungeonFight = {
+        bossId: def.id, name: def.name, stage,
+        diamonds: def.diamondsFor ? def.diamondsFor(stage) : 0,
+      };
       // The Proving Grounds overrides the standard boss x6 on XP.
       this.rewardXp = Progression.enemyXp(level) * (def.xpMult || 6);
       this.rewardWhetstones = def.whetstonesPer * stage;
@@ -916,6 +919,10 @@ class BattleScreen {
         if (this.dungeonFight) {
           GameState.recordBossClear(this.dungeonFight.bossId, this.dungeonFight.stage);
           sub.unshift(`Floor ${this.dungeonFight.stage} cleared!`);
+          if (this.dungeonFight.diamonds > 0) {
+            GameState.addDiamonds(this.dungeonFight.diamonds);
+            sub.push(`💎 ${this.dungeonFight.diamonds} Diamonds from the hoard!`);
+          }
         }
         if (this.bossFight) {
           GameState.recordBossClear(this.bossFight.bossId, this.bossFight.stage);

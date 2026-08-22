@@ -273,16 +273,28 @@ test('bosses declare scaling anchors, a gear set and passives', () => {
 test('dungeon bosses each pay exactly one thing, scaled by floor', () => {
   const { DUNGEON_BOSSES } = g;
   const keys = Object.keys(DUNGEON_BOSSES);
-  assert(keys.length === 3, `expected three dungeons, found ${keys.length}`);
+  assert(keys.length === 4, `expected four dungeons, found ${keys.length}`);
   const w = DUNGEON_BOSSES.whetstone;
   const a = DUNGEON_BOSSES.arcana;
   const x = DUNGEON_BOSSES.xp;
-  assert(w && w.whetstonesPer > 0 && !w.arcanaPer && !w.xpMult,
+  const d = DUNGEON_BOSSES.diamond;
+  assert(w && w.whetstonesPer > 0 && !w.arcanaPer && !w.xpMult && !w.diamondsFor,
     'the Grindhouse must pay whetstones and nothing else');
-  assert(a && a.arcanaPer > 0 && !a.whetstonesPer && !a.xpMult,
+  assert(a && a.arcanaPer > 0 && !a.whetstonesPer && !a.xpMult && !a.diamondsFor,
     'the Arcanum Vault must pay arcana and nothing else');
-  assert(x && x.xpMult > 6 && !x.whetstonesPer && !x.arcanaPer,
+  assert(x && x.xpMult > 6 && !x.whetstonesPer && !x.arcanaPer && !x.diamondsFor,
     'the Proving Grounds must out-pay the standard boss x6 XP and nothing else');
+  assert(d && d.diamondsFor && !d.whetstonesPer && !d.arcanaPer && !d.xpMult,
+    'the Glitterhoard must pay Diamonds and nothing else');
+  // The purse runs 50 at floor 1 to 250 at floor 20, in tens, rising.
+  assert(d.diamondsFor(1) === 50 && d.diamondsFor(20) === 250,
+    `diamond anchors off: ${d.diamondsFor(1)} / ${d.diamondsFor(20)}`);
+  for (let f = 1; f <= 20; f++) {
+    assert(d.diamondsFor(f) % 10 === 0, `floor ${f} pays a ragged ${d.diamondsFor(f)}`);
+    if (f > 1) assert(d.diamondsFor(f) >= d.diamondsFor(f - 1),
+      `floor ${f} pays less than floor ${f - 1}`);
+  }
+  assert(d.runsPerDay === 1, 'the Glitterhoard takes one challenge a day');
   for (const b of Object.values(DUNGEON_BOSSES)) {
     assert(b.stats5 && b.stats100, `${b.id}: missing stage anchors`);
     assert(b.isBoss && !b.gearSet, `${b.id}: dungeons drop materials, not gear`);

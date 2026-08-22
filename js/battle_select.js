@@ -222,7 +222,8 @@ class BattleSelect {
       }).join('');
     } else if (this.mode === 'dungeon') {
       btns = Object.entries(DUNGEON_BOSSES).map(([key, b]) => {
-        const icon = b.whetstonesPer > 0 ? '🪨' : b.arcanaPer > 0 ? '✦' : '⭐';
+        const icon = b.whetstonesPer > 0 ? '🪨' : b.arcanaPer > 0 ? '✦'
+          : b.diamondsFor ? '💎' : '⭐';
         return `<button class="bs-variant${key === cur.boss ? ' active' : ''}"
           data-act="variant" data-v="${key}"
           title="${b.dungeonName} — ${b.title || ''}">${icon} ${b.dungeonName}</button>`;
@@ -269,6 +270,10 @@ class BattleSelect {
             : def.arcanaPer > 0
               ? `<b>${def.arcanaPer * cur.stage}</b> Arcana ✦ every clear
                 (${def.arcanaPer} × floor). No gear here — pure enchanting money.`
+            : def.diamondsFor
+              ? `<b>${def.diamondsFor(cur.stage)}</b> Diamonds 💎 every clear —
+                50 💎 at floor 1 rising to 250 💎 at floor 20. The hardest
+                fight in the dungeons, and the richest.`
               : `<b>${(Progression.enemyXp(lv) * (def.xpMult || 6)).toLocaleString()}</b>
                 XP ⭐ for every team member, every clear — about
                 ${Math.round((def.xpMult || 6) / 6)}× what a boss fight of this
@@ -292,12 +297,16 @@ class BattleSelect {
         <div class="bs-line">${(def.abilities || []).map((a) => a.name).join(' · ')}</div>
         <div class="bs-sub">Drops</div>
         <div class="bs-line">${drops}</div>
-        ${this.mode === 'dungeon' ? `
+        ${this.mode === 'dungeon' ? (() => {
+          const limit = GameState.dungeonRunsPerDay(def.id);
+          return `
         <div class="bs-sub">Daily attempts</div>
         <div class="bs-line">${cur.runsLeft > 0
-          ? `<b>${cur.runsLeft}</b> of ${GameState.DUNGEON_RUNS_PER_DAY} challenges left today.`
-          : `<b>All ${GameState.DUNGEON_RUNS_PER_DAY} spent</b> — the gate reopens in
-            ${Quests.formatCountdown(Quests.timeToReset('daily'))}.`}</div>` : ''}`;
+          ? `<b>${cur.runsLeft}</b> of ${limit} challenge${limit > 1 ? 's' : ''} left today.`
+          : `<b>${limit > 1 ? `All ${limit} spent` : "Today's challenge is spent"}</b>
+            — the gate reopens in
+            ${Quests.formatCountdown(Quests.timeToReset('daily'))}.`}</div>`;
+        })() : ''}`;
     }
     const next = cur.next;
     const lv = Math.max(2, Math.ceil(next * 1.5));
@@ -339,7 +348,7 @@ class BattleSelect {
       <button class="panel-btn gold" data-act="launch" ${size === 0 || bossLocked || spent ? 'disabled' : ''}
         title="${size === 0 ? 'Place a team on the Team screen first'
           : bossLocked ? "Clear this boss's campaign chapter to challenge it"
-          : spent ? 'All three challenges are spent — the gate reopens at midnight'
+          : spent ? "The day's challenges are spent — the gate reopens at midnight"
           : 'Start the fight'}">
         ${labels[this.mode]}</button>
       ${size === 0 ? '<span class="bs-note">Place a team first</span>'

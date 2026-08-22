@@ -1,5 +1,5 @@
-// Dungeon bosses: three twenty-floor gauntlets farmed for what heroes
-// need — materials and levels, never gear. Floors follow the
+// Dungeon bosses: four twenty-floor gauntlets farmed for what heroes
+// need — materials, levels and Diamonds, never gear. Floors follow the
 // boss-ladder rule — clearing one opens the next, cleared floors stay
 // repeatable — and the payout scales with the floor:
 //
@@ -8,12 +8,18 @@
 //   Grandmaster      The Proving Grounds   25× enemy XP (a normal boss
 //                                          pays 6×) — ~4 boss fights of
 //                                          XP for the whole team
+//   Adamant Colossus The Glitterhoard      50 💎 at floor 1 rising to
+//                                          250 💎 at floor 20 — and only
+//                                          ONE challenge a day
 //
 // They fight like the gear bosses — alone, spanning the whole enemy
 // formation, interpolating between stats5 and stats100 — but drop no
 // gear. `whetstonesPer`/`arcanaPer` are per-floor rates the battle
 // builder multiplies by the floor being fought; `xpMult` replaces the
-// standard boss ×6 on the XP the fight's enemy level is worth.
+// standard boss ×6 on the XP the fight's enemy level is worth;
+// `diamondsFor(floor)` names a Diamond purse outright. `runsPerDay`
+// overrides the standard three daily challenges (the Glitterhoard
+// takes one).
 
 const DUNGEON_BOSSES = {
   whetstone: {
@@ -266,6 +272,91 @@ const DUNGEON_BOSSES = {
               message: `The ${unit.name} corrects his stance (+${healed} HP).`,
               floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }],
             };
+          },
+        },
+      },
+    ],
+    positional: null,
+  },
+
+  diamond: {
+    id: 'dungeon_diamond',
+    element: 'water',
+    name: 'Adamant Colossus',
+    title: 'Warden of the Glitterhoard',
+    dungeonName: 'The Glitterhoard',
+    whetstonesPer: 0,
+    arcanaPer: 0,
+    runsPerDay: 1,
+    // 50 💎 at floor 1 climbing to 250 💎 at floor 20, in steps of ten.
+    diamondsFor(floor) {
+      return Math.round((50 + (floor - 1) * (200 / 19)) / 10) * 10;
+    },
+    rarity: 5,
+    isBoss: true,
+    background: 'assets/battle_bg_snowfield.png',
+    tint: { body: '#7a92b8', helm: '#b8d0e8', weapon: '#d8ecff', skin: '#98b0d0' },
+    // Extra hard: roughly six ordinary bosses of HP with the punch and
+    // pace to match — the day's one challenge should feel like it.
+    stats: { hp: 90000, atk: 700, def: 420, speed: 150 }, // lv5 reference
+    stats5: { hp: 90000, atk: 700, def: 420, speed: 150 },
+    stats100: { hp: 650000, atk: 16500, def: 3200, speed: 175 },
+    sprite: { displayH: 230, strips: {} }, // procedural art until drawn
+    abilities: [
+      {
+        id: 'adamant_crash', name: 'Adamant Crash',
+        icon: 'assets/icons/fc767.png',
+        description: 'Bring a crystal fist down across the front line for 160% ATK.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack',
+        effects: [{ type: 'damage', mult: 1.6 }],
+      },
+      {
+        id: 'prism_lance', name: 'Prism Lance',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Focus the hoard\'s light through one hero: 220% ATK ' +
+          'with a 30% chance to STUN for 1 turn (resistible).',
+        cooldown: 4, targeting: 'enemy', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 2.2 },
+          { type: 'stun', chance: 0.3, turns: 1 },
+        ],
+      },
+      {
+        id: 'hoardlight_cataclysm', name: 'Hoardlight Cataclysm',
+        icon: 'assets/icons/fc999.png',
+        description: 'Every facet blazes at once: 100% ATK to ALL heroes ' +
+          'and -15% turn meter.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'attack',
+        effects: [
+          { type: 'damage', mult: 1.0 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+    ],
+    passives: [
+      {
+        name: 'Adamant Shell',
+        icon: 'assets/icons/fc853.png',
+        description: 'Takes 30% less damage from all sources.',
+        hooks: {
+          damageTakenMult() { return 0.7; },
+        },
+      },
+      {
+        name: 'Facet Gleam',
+        icon: 'assets/icons/fc882.png',
+        description: 'Has a 20% chance to dodge any attack.',
+        hooks: { dodgeAdd: 0.20 },
+      },
+      {
+        name: 'Compound Interest',
+        icon: 'assets/icons/fc743.png',
+        description: 'The hoard grows: gains +8% ATK for 3 turns at the ' +
+          'start of each turn — it stacks. End him early.',
+        hooks: {
+          onTurnStart(unit) {
+            unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.08, turns: 3 });
+            return null; // silent — the interest simply accrues
           },
         },
       },

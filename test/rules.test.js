@@ -1467,6 +1467,10 @@ test('dungeons take three challenges a day, per dungeon, reset daily', () => {
   assert(G.dungeonRunsLeft(id) === 1, `expected one left, got ${G.dungeonRunsLeft(id)}`);
   // Each dungeon keeps its own ledger.
   assert(G.dungeonRunsLeft('dungeon_xp') === 3, 'spending one gate drained another');
+  // The Glitterhoard opens exactly once a day.
+  assert(G.dungeonRunsLeft('dungeon_diamond') === 1, 'the hoard should offer one challenge');
+  assert(G.useDungeonRun('dungeon_diamond'), "the hoard's one challenge was refused");
+  assert(!G.useDungeonRun('dungeon_diamond'), 'the hoard took a second challenge');
   assert(G.useDungeonRun(id), 'the third challenge was refused');
   assert(!G.useDungeonRun(id), 'a fourth challenge slipped through');
 
