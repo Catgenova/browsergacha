@@ -368,6 +368,85 @@ Object.assign(HEROES, {
     positional: POSITIONALS.warding_circle,
   },
 
+  oak: {
+    id: 'oak',
+    element: 'light',
+    name: 'Oak',
+    title: 'Confessor of Reverence',
+    rarity: 4,
+    stats: { hp: 1450, atk: 230, def: 130, speed: 100 },
+    tint: { body: '#8a7a5a', helm: '#c8b078', weapon: '#e8d8a0', skin: '#d8b090' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Oak/oakidle.png', frames: 9, fps: 5, loop: true },
+        // Timed fidgets while he idles. (The first strip's filename
+        // carries an upstream typo — 'ilde' — kept as uploaded.)
+        idle2: { src: 'assets/heroes/Oak/oakilde1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Oak/oakidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The confession cycle: each rite lands mid-swing.
+        attack: { src: 'assets/heroes/Oak/oakskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Oak/oakskill2.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill3: { src: 'assets/heroes/Oak/oakskill3.png', frames: 7, fps: 10,
+                  loop: false, hitFrame: 5 },
+        death: { src: 'assets/heroes/Oak/oakdeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'oak_confession', name: 'Confession',
+        icon: 'assets/icons/fc746.png',
+        description: 'A measured strike for 110% ATK — 20% chance to chain ' +
+          'straight into Penance.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.1 }],
+        chain: { id: 'oak_penance', chance: 0.2 },
+      },
+      {
+        id: 'oak_penance', name: 'Penance',
+        icon: 'assets/icons/fc767.png',
+        description: 'A punishing blow for 150% ATK — 25% chance to chain ' +
+          'straight into Absolution.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.5 }],
+        chain: { id: 'oak_absolution', chance: 0.25 },
+      },
+      {
+        id: 'oak_absolution', name: 'Absolution',
+        icon: 'assets/icons/fc730.png',
+        description: 'The final rite: 175% ATK — 30% chance to begin the ' +
+          'cycle again with Confession.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [{ type: 'damage', mult: 1.75 }],
+        chain: { id: 'oak_confession', chance: 0.3 },
+      },
+    ],
+    passive: {
+      name: "Confessor's Riposte",
+      icon: 'assets/icons/fc882.png',
+      description: 'When Oak dodges an attack, he has a 50% chance to answer ' +
+        'with Confession on the spot.',
+      hooks: {
+        onDodge(unit, { attacker, battle }) {
+          if (Math.random() >= 0.5) return;
+          const foes = battle.livingUnits().filter((u) => u.team !== unit.team);
+          const foe = attacker && attacker.alive ? attacker
+            : foes[Math.floor(Math.random() * foes.length)];
+          if (!foe) return;
+          battle.log(`${unit.name} slips the blow and answers with Confession!`,
+            unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+          Abilities.execute(unit.def.abilities[0], unit, foe, battle);
+        },
+      },
+    },
+    positional: POSITIONALS.ghost_step,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

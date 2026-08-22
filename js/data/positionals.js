@@ -100,6 +100,13 @@ const POSITIONALS = (() => {
     },
   });
 
+  def('ghost_step', {
+    position: POSITION.FRONT,
+    name: 'Ghost Step',
+    description: 'Front hex: +15% chance to dodge. The line holds because he is never quite where the blow lands.',
+    hooks: { dodgeAdd: 0.15 },
+  });
+
   def('reckless_charge', {
     position: POSITION.FRONT,
     name: 'Reckless Charge',

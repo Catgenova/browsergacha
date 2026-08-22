@@ -75,8 +75,10 @@ const Abilities = (() => {
       if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
     }
     if (dodged) {
-      // Credit the dodger with the hit that never landed.
+      // Credit the dodger with the hit that never landed, then let
+      // dodge-reactive passives answer (Oak's riposte).
       target.bookDodge(dmg);
+      if (target.dodged) target.dodged(caster);
       return { kind: 'damage', target, amount: 0, dodged: true };
     }
     // Defensive multipliers (guard passives, wards, resonance) blunt the
@@ -369,6 +371,11 @@ const Abilities = (() => {
     }
   }
 
+  // Chain-cast depth. A kit can loop (Oak's skill 3 chains back into
+  // skill 1), so a run of hot rolls is cut off rather than trusted to
+  // the dice.
+  let chainDepth = 0;
+
   function execute(ability, caster, chosenTarget, battle) {
     const targets = resolveTargets(ability, caster, chosenTarget, battle);
     // Skill-level power: +10% per level past 1 on this ability's numbers.
@@ -414,6 +421,35 @@ const Abilities = (() => {
         results.push({ kind: 'stun', target: chosenTarget, turns: 1 });
       } else {
         results.push({ kind: 'debuff', target: chosenTarget, stat: 'stun', resisted: true });
+      }
+    }
+    // Chain casts: an ability can name a chance to immediately cast
+    // another of the caster's abilities as part of the same action — a
+    // free cast that touches no cooldown and rides the same animation
+    // beat. It follows the same victim while they stand, else finds
+    // whoever is left; depth is capped at 4 links.
+    if (ability.chain && caster.alive && chainDepth < 4 &&
+        Math.random() < ability.chain.chance) {
+      const next = (caster.def.abilities || []).find((a) => a.id === ability.chain.id);
+      const foes = battle
+        ? battle.livingUnits().filter((u) => u.team !== caster.team) : [];
+      const mark = chosenTarget && chosenTarget.alive
+        ? chosenTarget
+        : foes[Math.floor(Math.random() * foes.length)];
+      if (next && mark) {
+        if (battle && battle.addFloatingText) {
+          battle.addFloatingText(caster, `⛓ ${next.name}!`, '#ffd76a');
+        }
+        if (battle && battle.log) {
+          battle.log(`${caster.name}'s fervor chains into ${next.name}!`,
+            caster.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+        }
+        chainDepth++;
+        try {
+          results.push(...execute(next, caster, mark, battle));
+        } finally {
+          chainDepth--;
+        }
       }
     }
     return results;
