@@ -329,6 +329,108 @@ test('an attack buff credits the buffer with the damage it bought', () => {
   assert(hit().buffer === 0, 'credit leaked to a unit on the other team');
 });
 
+test('a speed buff banks meter gifts for the hero who granted it', () => {
+  const battle = makeBattle();
+  const runner = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+
+  // Doubled speed means half of every tick's fill is the buffer's gift.
+  runner.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 2, turns: 5, source: buffer });
+  runner.bankSpeedGifts(100);
+  runner.bankSpeedGifts(100);
+  assert(runner.meterGifts.length === 1, 'ticks should merge into one gift per source');
+  assert(runner.meterGifts[0].source === buffer, 'gift banked to the wrong hero');
+  assert(Math.abs(runner.meterGifts[0].amount - 100) < 1e-6,
+    `a x2 buff should own half the fill, banked ${runner.meterGifts[0].amount}`);
+
+  // A self-buff and an enemy slow are nobody's gift.
+  runner.statusEffects = [];
+  runner.meterGifts = [];
+  runner.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.3, turns: 5, source: runner });
+  runner.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.5, turns: 5, source: foe });
+  runner.bankSpeedGifts(100);
+  assert(runner.meterGifts.length === 0, 'a self-buff or a slow banked a gift');
+});
+
+test('def walls and damage marks credit their caster', () => {
+  const battle = makeBattle();
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, HEROES.rat_knight, TEAM.PLAYER, 4);
+  const foe = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  mate.hookSources = () => []; foe.hookSources = () => [];
+  mate.dodgeChance = () => 0; foe.dodgeChance = () => 0;
+
+  // A +50% DEF wall: the hit that lands is smaller, and the difference
+  // is mitigation belonging to whoever raised the wall.
+  Meter.resetSession();
+  mate.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.5, turns: 5, source: buffer });
+  Abilities.strike(foe, mate, 1000, { dodge: false, reflect: false });
+  const mit = Meter.rows('mitigated', 'battle');
+  const walled = (mit.list.find((r) => r.id === buffer.def.id) || { value: 0 }).value;
+  assert(walled > 0, 'a DEF wall earned its caster no mitigation');
+  mate.statusEffects = [];
+
+  // An amplify mark on the enemy is the offensive twin: the extra slice
+  // of every hit belongs to whoever branded the target.
+  Meter.resetSession();
+  foe.addStatusEffect({ kind: 'debuff', stat: 'damageTaken', mult: 1.35, turns: 2, source: buffer });
+  Abilities.strike(mate, foe, 1000, { dodge: false, reflect: false });
+  const rows = Meter.rows('damage', 'battle');
+  const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+  assert(by(buffer) > 0, 'an amplify mark earned its caster nothing');
+  assert(Math.abs(by(buffer) + by(mate) - rows.total) <= 1,
+    'amplify split does not reconstruct the hit');
+  // A x1.35 mark owns 1 - 1/1.35 of the hit.
+  assert(Math.abs(by(buffer) / rows.total - (1 - 1 / 1.35)) < 0.02,
+    `mark share off: ${(by(buffer) / rows.total).toFixed(3)}`);
+});
+
+test('a buffed or bought mend credits its enabler', () => {
+  const battle = makeBattle();
+  // Any healer whose mend scales off ATK.
+  const healerDef = Object.values(HEROES).find((h) => (h.abilities || []).some((a) =>
+    Abilities.sideOf(a.targeting) === 'ally' &&
+    (a.effects || []).some((e) => e.type === 'heal')));
+  assert(healerDef, 'no ATK-scaled healer anywhere in the roster');
+  const healer = place(battle, healerDef, TEAM.PLAYER, 4);
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 5);
+  const healAb = healer.abilities.find((a) =>
+    Abilities.sideOf(a.def.targeting) === 'ally' &&
+    (a.def.effects || []).some((e) => e.type === 'heal'));
+
+  const mend = () => {
+    Meter.resetSession();
+    mate.hp = 1; // room for the whole heal, so shares are exact
+    Abilities.execute(healAb.def, healer, mate, battle);
+    const rows = Meter.rows('healing', 'battle');
+    const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+    return { total: rows.total, healer: by(healer), buffer: by(buffer) };
+  };
+
+  assert(mend().buffer === 0, 'an unbuffed mend credited someone who did nothing');
+
+  // An ATK buff multiplies an ATK-scaled heal, so its granter owns the
+  // slice it added — a third, at x1.5 — and the ledger still adds up.
+  healer.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: buffer });
+  const buffed = mend();
+  assert(buffed.buffer > 0, 'the buffer got no credit for a buffed heal');
+  assert(Math.abs(buffed.healer + buffed.buffer - buffed.total) <= 1,
+    `split does not reconstruct the heal: ${JSON.stringify(buffed)}`);
+  assert(Math.abs(buffed.buffer / buffed.total - 1 / 3) < 0.02,
+    `expected a third of the heal, got ${(buffed.buffer / buffed.total).toFixed(3)}`);
+
+  // A turn bought with meter pushes pays its patron the same way:
+  // half the meter given means half the turn's mend (capped at 60%).
+  healer.statusEffects = [];
+  healer.turnGifts = [{ source: buffer, amount: CONFIG.TURN_METER_MAX / 2 }];
+  const bought = mend();
+  assert(Math.abs(bought.buffer / bought.total - 0.5) < 0.02,
+    `a half-bought turn should split the mend evenly, got ${(bought.buffer / bought.total).toFixed(3)}`);
+  healer.turnGifts = [];
+});
+
 test('a ward credits its mitigation to the support who cast it', () => {
   const battle = makeBattle();
   // A protector whose kit reduces an ally's damageTaken.
