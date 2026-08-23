@@ -165,6 +165,20 @@ const Abilities = (() => {
     return { kind: 'freeze', target, turns };
   }
 
+  // Healing past full is information some heroes act on (Cain turns the
+  // overflow into damage). Fired for every direct heal that overshoots,
+  // with the battle resolved the same way freeze resolves it.
+  function notifyOverheal(caster, overflow, target) {
+    if (overflow <= 0) return;
+    const b = currentBattle ||
+      (typeof Battle !== 'undefined' ? Battle.active : null);
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.onOverheal) {
+        p.hooks.onOverheal(caster, { overflow, target, battle: b });
+      }
+    }
+  }
+
   // `power` is the caster's skill-level multiplier for the ability this
   // effect belongs to; it scales damage/heal/poison numbers only.
   function applyEffect(effect, caster, target, power = 1) {
@@ -216,6 +230,7 @@ const Abilities = (() => {
         // ATK-scaled, so an attack buff on the healer multiplied this
         // mend and its granter takes that share of the credit.
         const healed = target.heal(amount, caster, { assists: caster.healAssists(true) });
+        notifyOverheal(caster, amount - healed, target);
         return { kind: 'heal', target, amount: healed };
       }
       case 'healHpPct': {
@@ -224,8 +239,10 @@ const Abilities = (() => {
         const front = target.slot && target.slot.position === POSITION.FRONT;
         const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const healed = target.heal(Math.round(caster.maxHp * pct * power * hpBoost), caster,
+        const amount = Math.round(caster.maxHp * pct * power * hpBoost);
+        const healed = target.heal(amount, caster,
           { assists: caster.healAssists(false) }); // max-HP scaled: gifts only
+        notifyOverheal(caster, amount - healed, target);
         return { kind: 'heal', target, amount: healed };
       }
       case 'hot': {
@@ -411,7 +428,7 @@ const Abilities = (() => {
   const ENEMY_TARGETING = ['enemy', 'enemy-row', 'all-enemies',
     'front-enemies', 'back-enemies'];
   const ALLY_TARGETING = ['ally', 'dead-ally', 'all-allies', 'front-allies',
-    'self-and-wounded-allies'];
+    'self-and-wounded-allies', 'lowest-allies'];
 
   // 'enemy' | 'ally' | 'self'
   function sideOf(targeting) {
@@ -445,6 +462,14 @@ const Abilities = (() => {
         // Every living ally standing in a front-position hex.
         return battle.livingUnits(caster.team)
           .filter((u) => u.slot.position === POSITION.FRONT);
+      case 'lowest-allies': {
+        // The `allyCount` most-wounded living allies, the caster
+        // included on equal terms — pure triage, no self bias (Cain).
+        const n = ability.allyCount || 2;
+        return battle.livingUnits(caster.team)
+          .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)
+          .slice(0, n);
+      }
       case 'self-and-wounded-allies': {
         // The caster plus the `allyCount` most-wounded OTHER allies
         // (lowest HP fraction first) — triage healing.

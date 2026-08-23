@@ -341,6 +341,13 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('spillway', {
+    position: POSITION.BACK,
+    name: 'Spillway',
+    description: 'Back hex: overheal damage is increased 25% — the channel runs deeper from the rear.',
+    hooks: { overhealBoost: 0.25 },
+  });
+
   def('giantslayer', {
     position: POSITION.BACK,
     name: 'Giantslayer',

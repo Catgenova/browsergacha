@@ -1038,6 +1038,100 @@ Object.assign(HEROES, {
     positional: POSITIONALS.giantslayer,
   },
 
+  cain: {
+    id: 'cain',
+    element: 'water',
+    name: 'Cain',
+    title: 'Chaplain of Cryst',
+    rarity: 4,
+    // Every heal in his kit is a share of HIS max HP, so the statline is
+    // nearly all pool: the bigger the chaplain, the bigger the mercy —
+    // and the bigger the overflow when mercy isn't needed.
+    stats: { hp: 2100, atk: 110, def: 150, speed: 96 },
+    tint: { body: '#e8e4d8', helm: '#f0ece2', weapon: '#7ae0e8', skin: '#e0c0a0' },
+    // 256px square frames: 9 across on every strip. Three idles — the
+    // stooped sway and two beard-and-staff fidgets.
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle:  { src: 'assets/heroes/Cain/cainidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Cain/cainidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Cain/cainidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The staff orb charges and bursts mid-strip.
+        attack: { src: 'assets/heroes/Cain/cainskill1.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The waters wind around him before finding their targets.
+        skill2: { src: 'assets/heroes/Cain/cainskill2.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 7 },
+        // The great sweep — the blessing crests on frame 7.
+        skill3: { src: 'assets/heroes/Cain/cainskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 7 },
+        death: { src: 'assets/heroes/Cain/caindeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cain_tidemend', name: 'Tidemend',
+        icon: 'assets/icons/fc1023.png',
+        description: 'Mend one ally for 30% of Cain\'s own max HP.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.30 },
+        ],
+      },
+      {
+        id: 'cain_twin_mercies', name: 'Twin Mercies',
+        icon: 'assets/icons/fc1016.png',
+        description: 'The two most-wounded allies are each restored for ' +
+          '35% of Cain\'s own max HP.',
+        cooldown: 3, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
+        effects: [
+          { type: 'healHpPct', pct: 0.35 },
+        ],
+      },
+      {
+        id: 'cain_quickening_waters', name: 'Quickening Waters',
+        icon: 'assets/icons/fc1024.png',
+        description: 'Pour 50% of Cain\'s own max HP into one ally and ' +
+          'send them onward with +30% SPD for 2 turns.',
+        cooldown: 5, targeting: 'ally', animation: 'skill3',
+        effects: [
+          { type: 'healHpPct', pct: 0.50 },
+          { type: 'buff', stat: 'speed', mult: 1.3, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Is Wasted',
+      icon: 'assets/icons/fc1015.png',
+      description: 'Healing past full does not spill on the ground: the ' +
+        'overflow strikes the healthiest enemy (by HP%) as damage.',
+      hooks: {
+        onOverheal(unit, { overflow, battle }) {
+          if (!battle || overflow <= 0) return;
+          const foes = battle.livingUnits().filter((u) => u.team !== unit.team);
+          if (!foes.length) return;
+          const foe = foes.sort((a, b) => (b.hp / b.maxHp) - (a.hp / a.maxHp))[0];
+          // The Spillway (and any future conduit) widens the channel.
+          let raw = overflow;
+          for (const p of unit.hookSources()) {
+            if (p.hooks && p.hooks.overhealBoost) raw *= 1 + p.hooks.overhealBoost;
+          }
+          const r = Abilities.strike(unit, foe, raw);
+          if (r.amount > 0) {
+            battle.addFloatingText(foe, 'OVERFLOW', '#7ae8d8');
+            battle.log(`${unit.name}'s surplus mercy lashes ${foe.name} for ${r.amount}!`,
+              unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.spillway,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

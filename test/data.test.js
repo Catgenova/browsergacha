@@ -63,7 +63,7 @@ test('no two abilities are mechanically identical', () => {
   // hero is allowed; two GENERICS colliding is still an error.
   const named = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
-    'sawyer', 'polarus', 'andrew', 'angelica', 'ari']);
+    'sawyer', 'polarus', 'andrew', 'angelica', 'ari', 'cain']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
@@ -183,7 +183,7 @@ test('every race pack mirrors its gear set, tier for tier', () => {
 
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
-    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'ari'] },
+    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain'] },
     hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
     shadowflower: { number: 2, members: ['sawyer'] },
@@ -251,7 +251,7 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
 test('every generic hero shares one base power budget', () => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew', 'angelica', 'ari']);
+    'polarus', 'andrew', 'angelica', 'ari', 'cain']);
   for (const h of heroes) {
     if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);
