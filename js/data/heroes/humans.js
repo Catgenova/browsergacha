@@ -882,6 +882,9 @@ Object.assign(HEROES, {
     // idles — the hooded sway and two crystal-flare fidgets.
     sprite: {
       displayH: 90,
+      // Authored facing left; flagged rather than mirrored into the
+      // files — Sprites.facesLeft() flips her right everywhere.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Angelica/angelicaidle.png', frames: 9, fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Angelica/angelicaidle1.png', frames: 9, fps: 6, loop: false,

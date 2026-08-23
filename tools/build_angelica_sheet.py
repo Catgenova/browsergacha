@@ -27,6 +27,9 @@ def clip(fname, frames, fps):
         bg = Image.new('RGBA', cell.size, PANEL)
         bg.alpha_composite(cell)
         cells.append(bg.convert('RGB').resize((SIZE, SIZE), Image.NEAREST))
+    # Authored facing left; the game flips her right (sprite.faceLeft),
+    # so the dossier mirrors every frame to match what players see.
+    cells = [c.transpose(Image.FLIP_LEFT_RIGHT) for c in cells]
     buf = io.BytesIO()
     cells[0].save(buf, format='GIF', save_all=True, append_images=cells[1:],
                   duration=int(1000 / fps), loop=0, optimize=True)
