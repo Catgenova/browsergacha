@@ -2487,7 +2487,7 @@ html.is-mobile .sub-compare { font-size: 13px; }
 
 /* The elective banner summon block below the results. */
 #banner-block {
-  margin: 18px auto 0; max-width: 720px; padding: 16px 18px 18px;
+  margin: 18px 0 0; padding: 16px 18px 18px;
   background: rgba(240, 193, 75, 0.05);
   border: 1px solid rgba(240, 193, 75, 0.4); border-radius: 12px;
   text-align: center;
