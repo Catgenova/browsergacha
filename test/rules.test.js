@@ -1423,6 +1423,33 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
   assert(G.withdraw(uid) === null, 'withdrew into a full roster');
 });
 
+test('the collection is forever: NEW! and the compendium track characters ever held', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === 1);
+  const [a, b] = ones;
+
+  const first = G.addHero(a.id);
+  assert(first.isNew, 'first-ever copy of a character was not NEW!');
+  const second = G.addHero(a.id);
+  assert(!second.isNew, 'a dupe in hand flagged as NEW!');
+  assert(G.everCollected(a.id), 'collection registry missed a summon');
+
+  // Spend every copy of A as star-up fodder for B: gone from the
+  // roster, but not from history.
+  const target = G.addHero(b.id).uid;
+  const r = G.sacrifice(target, [first.uid, second.uid]);
+  assert(r && r.spent === 2, `fodder did not burn: ${JSON.stringify(r)}`);
+  assert(G.countOf(a.id) === 0, 'copies of A survived the sacrifice');
+  assert(G.everCollected(a.id), 'losing the last copy erased the collection mark');
+  assert(G.collectedDefIds().includes(a.id), 'collectedDefIds dropped a spent character');
+
+  // Re-summoning a character you once held is a return, not a discovery.
+  const again = G.addHero(a.id);
+  assert(!again.isNew, 're-collecting a spent character flagged as NEW!');
+  assert(!G.everCollected('nobody_by_this_id'), 'registry invented a character');
+});
+
 test('diamonds buy room and scrolls, within the ceilings', () => {
   const w = loadGame();
   const G = w.GameState;

@@ -126,9 +126,12 @@ class SummonScreen {
     stars.className = `card-stars rarity-${rarity}`;
     stars.textContent = '★'.repeat(rarity);
 
+    // NEW! is first-ever-collected (compendium-new), not new-to-roster:
+    // re-summoning a character you once spent reads as a return visit.
     const status = document.createElement('div');
     status.className = isNew ? 'card-new' : 'card-dupe';
-    status.textContent = isNew ? 'NEW!' : `\u00d7${copies} in roster`;
+    status.textContent = isNew ? 'NEW!'
+      : copies > 1 ? `\u00d7${copies} in roster` : 'Collected before';
 
     front.append(portrait, name, element, stars, status);
     inner.append(back, front);

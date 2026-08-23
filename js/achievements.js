@@ -10,9 +10,10 @@
 
 const ACHIEVEMENTS = (() => {
   // Achievements count CHARACTERS collected, not heroes standing in the
-  // roster: holding three Florences is one Florence for the registry.
-  const owned = () => [...new Set(GameState.ownedHeroIds()
-    .map((uid) => GameState.defIdOf(uid)))].filter((id) => HEROES[id]);
+  // roster: holding three Florences is one Florence for the registry,
+  // and a character once collected stays collected even after its last
+  // copy is spent — the permanent registry is the source of truth.
+  const owned = () => GameState.collectedDefIds().filter((id) => HEROES[id]);
   // ...but mastery is about individual heroes, so those count uids.
   const heroes = () => GameState.ownedHeroIds().filter((uid) => GameState.defOf(uid));
   const raceCount = (race) => Object.values(HEROES).filter((h) => RACES.of(h) === race).length;

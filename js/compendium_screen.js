@@ -146,10 +146,12 @@ class CompendiumScreen {
       .map((h) => h.id);
   }
 
-  // Which CHARACTERS the player holds at least one of. The roster is
-  // keyed by hero instance, and the compendium is a book of characters.
+  // Which CHARACTERS the player has ever collected. The compendium is a
+  // book of discoveries, so it reads the permanent collection registry:
+  // a character stays known even after its last copy is spent on a
+  // star-up. (Currently-held heroes are always in the registry too.)
   ownedDefIds() {
-    return new Set(GameState.ownedHeroIds().map((uid) => GameState.defIdOf(uid)));
+    return new Set(GameState.collectedDefIds().filter((id) => HEROES[id]));
   }
 
   buildList() {
@@ -303,6 +305,8 @@ class CompendiumScreen {
       .map((uid) => GameState.progressOf(uid))
       .sort((a, b) => (b.stars - a.stars) || (b.level - a.level));
     const owned = mine.length > 0;
+    // Collected once is collected forever, even with no copy in hand.
+    const known = owned || GameState.everCollected(def.id);
     const progress = mine[0] || null;
     const stars = def.rarity <= 5 ? '★'.repeat(def.rarity) : `${def.rarity}★`;
     const elInfo = def.element ? Elements.info(def.element) : null;
@@ -330,7 +334,13 @@ class CompendiumScreen {
       <div class="comp-stat"><span class="k">DEF</span><span class="v">${s.def ?? '—'}</span></div>
       <div class="comp-stat"><span class="k">SPD</span><span class="v">${s.speed ?? '—'}</span></div>`;
 
-    let ownedHtml = '<div class="comp-note">Not yet summoned — stats shown are the level 1 base.</div>';
+    const inVault = GameState.storedHeroIds()
+      .some((uid) => (GameState.storedEntry(uid) || {}).heroId === def.id);
+    let ownedHtml = known
+      ? `<div class="comp-note">${inVault
+          ? 'Collected — your copies are parked in storage.'
+          : 'Collected — no copies in the roster right now.'}</div>`
+      : '<div class="comp-note">Not yet summoned — stats shown are the level 1 base.</div>';
     if (progress) {
       const scaled = Progression.scaledStats(def, progress.level, progress.stars);
       const pStars = Attune.starsHtml(progress.stars, progress.attune, def.element);
@@ -410,7 +420,8 @@ class CompendiumScreen {
             ${elInfo ? `<span class="comp-badge" style="border-color:${elInfo.color};color:${elInfo.color}">${Elements.badge(def.element)} ${elInfo.name}</span>` : ''}
             ${race ? `<span class="comp-badge">${RACES.NAMES[race]}</span>` : ''}
             <span class="comp-badge">${def.rarity}★</span>
-            ${owned ? '<span class="comp-badge owned">Owned</span>' : ''}
+            ${owned ? '<span class="comp-badge owned">Owned</span>'
+              : known ? '<span class="comp-badge owned">Collected</span>' : ''}
           </div>
           ${Tags.html(def)}
           <div class="comp-stats">${statsHtml}</div>

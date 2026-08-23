@@ -205,6 +205,12 @@ const GameState = (() => {
     // Keyed by an instance id, not a hero id: the same character can
     // stand in the roster many times over, and each one is its own hero.
     roster: {},
+    // heroId -> true, stamped the first time a character is ever
+    // obtained and never cleared. The roster tracks heroes you HOLD;
+    // this tracks characters you have ever HAD — the compendium and
+    // the summon NEW! banner read this, so feeding your only Florence
+    // to a star-up doesn't un-discover Florence.
+    collected: {},
     diamonds: 0,
     rosterCapBonus: 0,   // purchased roster room, in tens
     storageCapBonus: 0,  // purchased vault room, in tens
@@ -369,6 +375,17 @@ const GameState = (() => {
       if (entry.attune === undefined) entry.attune = 0;
     }
     if (!loaded.storage) loaded.storage = {};
+    // Collection registry invariant: anything currently held has, by
+    // definition, been collected. This also seeds the registry for saves
+    // predating it — heroes spent before then are gone from history, but
+    // everything standing survives.
+    if (!loaded.collected) loaded.collected = {};
+    for (const entry of Object.values(loaded.roster || {})) {
+      if (entry && entry.heroId) loaded.collected[entry.heroId] = true;
+    }
+    for (const entry of Object.values(loaded.storage || {})) {
+      if (entry && entry.heroId) loaded.collected[entry.heroId] = true;
+    }
     if (!loaded.diamonds) loaded.diamonds = 0;
     if (!loaded.rosterCapBonus) loaded.rosterCapBonus = 0;
     if (!loaded.storageCapBonus) loaded.storageCapBonus = 0;
@@ -516,9 +533,18 @@ const GameState = (() => {
       if (this.rosterFull()) return null;
       const uid = String(state.nextHeroUid++);
       state.roster[uid] = freshEntry(heroId);
+      // NEW! means new to the COLLECTION, not to the current roster: a
+      // character once held and since spent is a dupe, not a discovery.
+      const isNew = !state.collected[heroId];
+      state.collected[heroId] = true;
       save();
-      return { uid, heroId, isNew: this.countOf(heroId) === 1 };
+      return { uid, heroId, isNew };
     },
+
+    // The permanent collection: characters ever obtained, whether or not
+    // a copy still stands in the roster. Compendium/achievement fuel.
+    everCollected(heroId) { return !!state.collected[heroId]; },
+    collectedDefIds() { return Object.keys(state.collected); },
 
     // Roster uids, in the order they were taken in.
     ownedHeroIds() { return Object.keys(state.roster); },
