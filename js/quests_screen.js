@@ -99,14 +99,17 @@ class QuestsScreen {
   loginBoard() {
     const info = GameState.loginInfo();
     const claimable = info.claimable ? 1 : 0;
+    const trackDone = info.cycle >= Events.LOGIN_WEEK.length;
     const chips = Events.LOGIN_WEEK.map((r, i) => {
+      const done = i < info.cycle;
       const today = i === info.cycle && info.claimable;
       const next = i === info.cycle && !info.claimable;
-      return `<div class="login-chip${today ? ' login-today' : ''}${next ? ' login-next' : ''}">
+      return `<div class="login-chip${done ? ' login-done-chip' : ''}${today ? ' login-today' : ''}${next ? ' login-next' : ''}">
         <div class="login-chip-day">Day ${i + 1}</div>
         <div class="login-chip-reward">${r.label}</div>
-        ${today ? '<div class="login-chip-tag">TODAY</div>'
-          : next ? '<div class="login-chip-tag">TOMORROW</div>' : ''}
+        ${done ? '<div class="login-chip-tag">✓ CLAIMED</div>'
+          : today ? '<div class="login-chip-tag">TODAY</div>'
+          : next ? '<div class="login-chip-tag">NEXT</div>' : ''}
       </div>`;
     }).join('');
     const nextStamp = info.stamps + (info.claimable ? 1 : 0);
@@ -130,11 +133,14 @@ class QuestsScreen {
     return [{
       claimable,
       html: `<div class="quest-board">
-        <div class="quest-board-header"><h3>📅 Daily Login</h3>
+        <div class="quest-board-header"><h3>📅 First Seven Days</h3>
           <span class="quest-reset">${info.claimable
             ? 'Today\'s bonus is ready!'
             : `Next bonus in ${Quests.formatCountdown(Quests.timeToReset('daily'))}`}</span>
         </div>
+        <div class="login-sub">Your first seven login days — any seven, they
+          need not be consecutive — each bring a hero to the roster.${trackDone
+            ? ' <b>All seven claimed — the court is yours.</b>' : ''}</div>
         <div class="login-track">${chips}</div>
         <div class="login-month">
           <div class="login-month-line">Monthly calendar: <b>${info.stamps}</b> login

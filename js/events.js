@@ -88,9 +88,9 @@ const Events = (() => {
   }
 
   // ---- Login bonuses ----
-  // The 7-day track: one step per calendar day the player claims,
-  // looping forever — and it pays in HEROES. A full lap hands over the
-  // newer half of the roster, dupes feeding star-ups on later laps.
+  // The First Seven Days: a one-time welcome track. Each of the
+  // player's first seven login days (nonconsecutive — any seven) pays
+  // one hero, in order, and then the track is complete for good.
   const LOGIN_WEEK = [
     { hero: 'florence', label: 'Tide — 4★ hero 💧' },
     { hero: 'ari', label: 'Ari — 3★ hero 💧' },

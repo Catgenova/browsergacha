@@ -242,9 +242,9 @@ const GameState = (() => {
     dungeonSettings: { boss: 'whetstone', stage: 1, repeat: 1 },
     // Daily attempt ledger: each dungeon takes three challenges a day.
     dungeonRuns: { day: '', counts: {} },   // { day: 'YYYY-MM-DD', counts: { bossId: n } }
-    // Login bonuses: `day` is the last calendar day claimed, `cycle` the
-    // next step (0-6) on the looping 7-day track, `stamps` the login
-    // days claimed inside `monthKey`'s calendar.
+    // Login bonuses: `day` is the last calendar day claimed, `cycle`
+    // the next step on the one-time First Seven Days track (7 = done),
+    // `stamps` the login days claimed inside `monthKey`'s calendar.
     login: { day: '', cycle: 0, monthKey: '', stamps: 0 },
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
@@ -1001,26 +1001,31 @@ const GameState = (() => {
     },
     claimLogin() {
       if (!this.loginClaimable() || typeof Events === 'undefined') return null;
+      // The welcome track pays only on the FIRST seven login days ever
+      // (nonconsecutive); after that a claim is monthly-calendar only.
+      const week = state.login.cycle < Events.LOGIN_WEEK.length
+        ? Events.LOGIN_WEEK[state.login.cycle] : null;
       // A hero reward needs a roster slot; refuse rather than vanish it.
-      if (Events.LOGIN_WEEK[state.login.cycle].hero && this.rosterFull()) {
+      if (week && week.hero && this.rosterFull()) {
         return { error: 'roster-full' };
       }
-      const apply = (r) => this.grantLoginReward(r);
       const month = Quests.periodKey('monthly');
       if (state.login.monthKey !== month) {
         state.login.monthKey = month;
         state.login.stamps = 0; // a fresh calendar page
       }
-      const week = Events.LOGIN_WEEK[state.login.cycle];
       const day = state.login.cycle + 1;
-      state.login.cycle = (state.login.cycle + 1) % Events.LOGIN_WEEK.length;
+      if (week) {
+        state.login.cycle++;
+        this.grantLoginReward(week);
+      }
       state.login.stamps++;
       const monthReward = Events.monthlyLoginReward(state.login.stamps);
-      apply(week);
-      apply(monthReward);
+      this.grantLoginReward(monthReward);
       state.login.day = Quests.periodKey('daily');
       save();
-      return { week, day, month: monthReward, stamps: state.login.stamps };
+      return { week, day: week ? day : null, month: monthReward,
+        stamps: state.login.stamps };
     },
 
     // ---- Calendar catch-up ----
