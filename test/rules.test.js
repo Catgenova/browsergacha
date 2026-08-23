@@ -1796,6 +1796,36 @@ test('tanner: favors, bubbles that eat one hit, and meter for the laggard', () =
   assert(tanner.turnMeter === 0, 'a healthy prince took a refund');
 });
 
+test('the event calendar: one element doubled each weekday, all five on weekends', () => {
+  const E = g.Events;
+  // 2026-08-24 is a Monday; the week walks forward from there.
+  const day = (offset) => new Date(2026, 7, 24 + offset, 12, 0, 0);
+  const week = [
+    ['Monday', 'fire'], ['Tuesday', 'water'], ['Wednesday', 'wind'],
+    ['Thursday', 'light'], ['Friday', 'dark'],
+  ];
+  week.forEach(([name, el], i) => {
+    const d = day(i);
+    assert(E.boostedElements(d).join() === el, `${name} boosts ${E.boostedElements(d)}`);
+    assert(E.elementBoost(el, d) === 2, `${name}: ${el} is not doubled`);
+    for (const other of E.ALL_ELEMENTS) {
+      if (other === el) continue;
+      assert(E.elementBoost(other, d) === 1, `${name}: ${other} doubled by mistake`);
+    }
+    assert(E.scheduleLabel(d).includes('2×'), `${name}: label reads ${E.scheduleLabel(d)}`);
+  });
+  // Saturday and Sunday: everything doubles.
+  for (const offset of [5, 6]) {
+    const d = day(offset);
+    assert(E.isWeekend(d), `${d} should be a weekend`);
+    for (const el of E.ALL_ELEMENTS) {
+      assert(E.elementBoost(el, d) === 2, `weekend: ${el} is not doubled`);
+    }
+    assert(E.scheduleLabel(d).includes('EVERY'), 'the weekend label undersells it');
+  }
+  assert(!E.isWeekend(day(0)), 'Monday is not a weekend, whatever it feels like');
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

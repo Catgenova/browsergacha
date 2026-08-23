@@ -908,6 +908,9 @@ class BattleScreen {
           const { element, stage } = this.attuneFight;
           GameState.recordAttuneClear(element, stage);
           const drops = Attune.roll(stage);
+          // Event schedule: today's element(s) drop double.
+          const boost = typeof Events !== 'undefined' ? Events.elementBoost(element) : 1;
+          if (boost > 1) for (const size of Attune.SIZES) drops[size] *= boost;
           GameState.addElements(element, drops);
           const info = Elements.info(element);
           const bits = Attune.SIZES
@@ -915,6 +918,7 @@ class BattleScreen {
             .map((size) => `${drops[size]} ${Attune.SIZE_LABEL[size]}`);
           sub.unshift(`Stage ${stage} cleared!`);
           sub.push(`${info ? info.emoji : ''} ${bits.join(' · ')} ${info ? info.name : element} Elements!`);
+          if (boost > 1) sub.push(`⚡ ${boost}× event bonus — ${info ? info.name : element} day pays double!`);
         }
         if (this.dungeonFight) {
           GameState.recordBossClear(this.dungeonFight.bossId, this.dungeonFight.stage);
