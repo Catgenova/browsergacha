@@ -183,7 +183,7 @@ test('every race pack mirrors its gear set, tier for tier', () => {
 
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
-    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew'] },
+    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'ari'] },
     hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
     shadowflower: { number: 2, members: ['sawyer'] },
