@@ -84,7 +84,27 @@ class Battle {
     dt *= this.speedMult || 1;
     // Animations & flashes always advance.
     for (const u of this.units) {
-      if (u.animator) u.animator.update(dt);
+      if (u.animator) {
+        // Stance holds: a strip can declare `stanceHold: '<stat>'` —
+        // while the unit carries that status and would otherwise idle,
+        // it holds the strip's final frame instead (Silas stays
+        // crouched and drawn for as long as Aiming Stance lasts).
+        let held = false;
+        if (u.alive &&
+            ['idle', 'idle2', 'idle3', 'ready'].includes(u.animator.current)) {
+          for (const [name, a] of Object.entries(u.animator.sheet.animations)) {
+            if (a.stanceHold &&
+                u.statusEffects.some((fx) => fx.stat === a.stanceHold)) {
+              u.animator.current = name;
+              u.animator.frame = a.frames - 1;
+              u.animator.elapsed = 0;
+              held = true;
+              break;
+            }
+          }
+        }
+        if (!held) u.animator.update(dt);
+      }
       if (u.hitFlash > 0) u.hitFlash = Math.max(0, u.hitFlash - dt);
     }
     for (const ft of this.floatingTexts) ft.age += dt;

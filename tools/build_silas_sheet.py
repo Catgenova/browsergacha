@@ -294,7 +294,8 @@ html = r'''<title>Silas, Boltcaster of Reverence</title>
       <div class="meta">Self &middot; held until spent or broken</div>
       <p>Settle, draw, hold. The next shot deals <b>100% extra damage</b>; the
       stance survives volleys and dodged arrows, and falls only to a direct
-      hit that lands.</p>
+      hit that lands. On the field he <b>stays crouched and drawn</b> &#x2014;
+      the pose holds for as long as the stance does.</p>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -332,7 +333,7 @@ html = r'''<title>Silas, Boltcaster of Reverence</title>
     <div class="clip"><img src="%%idle%%" alt="Idle animation"><div class="cap"><b>Idle</b></div><div class="note">9 frames &middot; his resting loop</div></div>
     <div class="clip"><img src="%%boltshot%%" alt="Boltshot animation"><div class="cap"><b>Boltshot</b></div><div class="note">9 frames &middot; the release snaps on frame 6</div></div>
     <div class="clip"><img src="%%lumenarrow%%" alt="Lumen Arrow animation"><div class="cap"><b>Lumen Arrow</b></div><div class="note">8 frames &middot; loosed on frame 5</div></div>
-    <div class="clip"><img src="%%stance%%" alt="Aiming Stance animation"><div class="cap"><b>Aiming Stance</b></div><div class="note">9 frames &middot; he settles, draws, and holds</div></div>
+    <div class="clip"><img src="%%stance%%" alt="Aiming Stance animation"><div class="cap"><b>Aiming Stance</b></div><div class="note">9 frames &middot; he settles, draws &#x2014; and stays on the last frame while the stance lasts</div></div>
     <div class="clip"><img src="%%death%%" alt="Death animation"><div class="cap"><b>Death</b></div><div class="note">9 frames &middot; freezes on the final pose</div></div>
     <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one, a short hop"><div class="cap"><b>Idle Fidget I</b></div><div class="note">a short spring off the ground &#x2014; airborne on frames 6&#x2013;8 &middot; every 8&#x2013;15s</div></div>
     <div class="clip"><img src="%%fidget2%%" alt="Idle fidget two"><div class="cap"><b>Idle Fidget II</b></div><div class="note">plays every 8&#x2013;15s of idling</div></div>
