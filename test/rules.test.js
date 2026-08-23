@@ -1559,6 +1559,49 @@ test('andrew: pickwork drains AP, two masters gives and takes, undermine digs', 
   }
 });
 
+test('angelica: every freeze in the fight compounds her, the forge steadies her', () => {
+  const battle = makeBattle();
+  const angelica = place(battle, HEROES.angelica, TEAM.PLAYER, 4); // back hex
+  const polarus = place(battle, HEROES.polarus, TEAM.PLAYER, 1);
+  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  angelica.gearAccuracy = 10;
+  polarus.gearAccuracy = 10;
+  for (const f of [foeA, foeB]) f.dodgeChance = () => 0;
+
+  // Her own freeze pays the tally...
+  Abilities.freeze(angelica, foeA, 2, battle);
+  assert(angelica.effectiveStat('atk') === Math.round(angelica.baseAtk * 1.1),
+    `one freeze reads ${angelica.effectiveStat('atk')} vs base ${angelica.baseAtk}`);
+  // ...and the King's freeze pays it just the same.
+  Abilities.freeze(polarus, foeB, 2, battle);
+  assert(angelica.effectiveStat('atk') === Math.round(angelica.baseAtk * 1.2),
+    `two freezes read ${angelica.effectiveStat('atk')}`);
+
+  // The chance riders on her skills go through the same door: with the
+  // dice pinned, Shardcast freezes and the tally ticks again.
+  foeA.statusEffects.length = 0;
+  const realRandom = Math.random;
+  Math.random = () => 0.01;
+  try {
+    Abilities.execute(HEROES.angelica.abilities[0], angelica, foeA, battle);
+  } finally {
+    Math.random = realRandom;
+  }
+  assert(foeA.statusEffects.some((fx) => fx.stat === 'freeze'),
+    'shardcast did not freeze on pinned dice');
+  assert(angelica.effectiveStat('atk') === Math.round(angelica.baseAtk * 1.3),
+    `three freezes read ${angelica.effectiveStat('atk')}`);
+
+  // Cold Forge: the back hex pays +15% ATK and +10% DEF at her turn
+  // start, stacking with the tally.
+  angelica.startTurn(battle);
+  assert(angelica.effectiveStat('atk') === Math.round(angelica.baseAtk * 1.3 * 1.15),
+    `forge atk reads ${angelica.effectiveStat('atk')}`);
+  assert(angelica.effectiveStat('def') === Math.round(angelica.baseDef * 1.1),
+    `forge def reads ${angelica.effectiveStat('def')}`);
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

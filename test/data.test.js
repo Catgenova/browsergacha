@@ -63,7 +63,7 @@ test('no two abilities are mechanically identical', () => {
   // colliding is still an error.
   const named = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
-    'sawyer', 'polarus', 'andrew']);
+    'sawyer', 'polarus', 'andrew', 'angelica']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
@@ -251,7 +251,7 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
 test('every generic hero shares one base power budget', () => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew']);
+    'polarus', 'andrew', 'angelica']);
   for (const h of heroes) {
     if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);

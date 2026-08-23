@@ -129,11 +129,15 @@ const Abilities = (() => {
     return { kind: 'damage', target, amount: dealt, crit };
   }
 
+  // The battle the current execute() is resolving in, for effects that
+  // fire deeper in the pipeline than the battle reference travels.
+  let currentBattle = null;
+
   // Freeze: the ice-flavored stun — the frozen unit loses its turns.
   // One door for every source (Polarus's bolt, the Crystalline counter,
   // his passive) so the resist check and the freezer's onFroze hooks
   // (the Frost Throne's cooldown refund) always run together.
-  function freeze(caster, target, turns = 2) {
+  function freeze(caster, target, turns = 2, battle = null) {
     if (!target.alive) return null;
     if (!debuffLands(caster, target)) {
       return { kind: 'debuff', target, stat: 'freeze', resisted: true };
@@ -141,6 +145,19 @@ const Abilities = (() => {
     target.addStatusEffect({ kind: 'debuff', stat: 'freeze', turns, source: caster });
     for (const p of (caster.hookSources ? caster.hookSources() : [])) {
       if (p.hooks && p.hooks.onFroze) p.hooks.onFroze(caster, target);
+    }
+    // Team-wide watchers: everyone opposing the frozen unit hears about
+    // it, whoever landed the ice (Angelica's tally counts the King's
+    // freezes as gladly as her own).
+    const b = battle || currentBattle ||
+      (typeof Battle !== 'undefined' ? Battle.active : null);
+    if (b) {
+      for (const u of b.livingUnits()) {
+        if (u.team === target.team) continue;
+        for (const p of (u.hookSources ? u.hookSources() : [])) {
+          if (p.hooks && p.hooks.onEnemyFrozen) p.hooks.onEnemyFrozen(u, target, caster);
+        }
+      }
     }
     return { kind: 'freeze', target, turns };
   }
@@ -457,6 +474,9 @@ const Abilities = (() => {
   let chainDepth = 0;
 
   function execute(ability, caster, chosenTarget, battle) {
+    // Remembered for effects that fire deeper in the pipeline than the
+    // battle reference travels (freeze's team-wide watcher hooks).
+    currentBattle = battle || currentBattle;
     const targets = resolveTargets(ability, caster, chosenTarget, battle);
     // Skill-level power: +10% per level past 1 on this ability's numbers.
     const power = caster.skillPowerFor ? caster.skillPowerFor(ability) : 1;
