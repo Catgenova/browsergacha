@@ -1855,7 +1855,7 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
   const draws = 6000;
   let hits = 0;
   for (let i = 0; i < draws; i++) {
-    const def = g.Gacha.pickHero(3, ['light', 'dark'], during);
+    const def = g.Gacha.pickHero(3, ['light', 'dark'], true, during);
     const sect = RACES.sectOf(def);
     if (sect && sect.id === 'reverence') hits++;
   }
@@ -1864,6 +1864,18 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
   const seen = hits / draws;
   assert(seen > expectedFlat * 1.4 && seen < expectedTilted * 1.25,
     `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
+
+  // The banner is ELECTIVE: an un-elected pull stays flat even while
+  // the banner runs.
+  let flatHits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = g.Gacha.pickHero(3, ['light', 'dark'], false, during);
+    const sect = RACES.sectOf(def);
+    if (sect && sect.id === 'reverence') flatHits++;
+  }
+  const flatSeen = flatHits / draws;
+  assert(flatSeen > expectedFlat * 0.75 && flatSeen < expectedFlat * 1.25,
+    `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {

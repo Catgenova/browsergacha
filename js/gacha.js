@@ -59,8 +59,8 @@ const Gacha = (() => {
   // A banner rate-up (see Events.SUMMON_BANNERS) tilts the draw WITHIN
   // the rolled band: each hero carries a weight, and the banner's sect
   // carries double. Band rates are untouched.
-  function weightedDraw(pool, date) {
-    if (typeof Events === 'undefined' || !Events.bannerWeight) {
+  function weightedDraw(pool, banner, date) {
+    if (!banner || typeof Events === 'undefined' || !Events.bannerWeight) {
       return pool[Math.floor(Math.random() * pool.length)];
     }
     const weights = pool.map((h) => Events.bannerWeight(h, date));
@@ -73,7 +73,7 @@ const Gacha = (() => {
     return pool[pool.length - 1];
   }
 
-  function pickHero(rarity, elements = null, date = new Date()) {
+  function pickHero(rarity, elements = null, banner = false, date = new Date()) {
     // The scroll's element pool applies; if that pool is entirely empty
     // (e.g. no dark/light heroes yet) fall back to all elements.
     const inPool = (r) => poolByRarity(r, elements);
@@ -93,19 +93,19 @@ const Gacha = (() => {
       const below = available.filter((r) => r <= rarity);
       pool = pick(below.length > 0 ? below[below.length - 1] : available[0]);
     }
-    return weightedDraw(pool, date);
+    return weightedDraw(pool, banner, date);
   }
 
   // One pull with a scroll of `kind`. Rare-scroll pulls tick the 5★
   // pity counter; the pity break only fires while a 5★ hero exists.
-  function resolvePull(kind) {
+  function resolvePull(kind, banner = false) {
     const elements = POOL_ELEMENTS[kind] || null;
     let rarity = rollRarity(kind);
     if (kind === 'rare' &&
         GameState.pity + 1 >= PITY_LIMIT && poolByRarity(5, elements).length > 0) {
       rarity = 5; // pity break
     }
-    const def = pickHero(rarity, elements);
+    const def = pickHero(rarity, elements, banner);
     if (kind === 'rare') {
       GameState.setPity(def.rarity === 5 ? 0 : GameState.pity + 1);
     }
@@ -120,14 +120,16 @@ const Gacha = (() => {
   // a summon now hands over a whole hero, and dropping some of them on
   // the floor because the roster is full is not something to do quietly.
   // Returns { error, space } instead of results when there is no room.
-  function pull(kind, count) {
+  // `opts.banner` marks an elective banner pull: same scrolls, same
+  // band rates, but the running banner's sect draws at double weight.
+  function pull(kind, count, opts = {}) {
     if (GameState.rosterSpace() < count) {
       return { error: 'roster-full', space: GameState.rosterSpace(),
         need: count, max: GameState.MAX_ROSTER };
     }
     if (!GameState.spendScrolls(kind, count)) return null;
     const results = [];
-    for (let i = 0; i < count; i++) results.push(resolvePull(kind));
+    for (let i = 0; i < count; i++) results.push(resolvePull(kind, !!opts.banner));
     GameState.questBump('summons', count);
     return results;
   }
