@@ -1695,6 +1695,57 @@ test('cain: mercy in shares of himself, and the overflow lashes the healthiest',
   assert(foeLow.hp === woundedHp, 'the overflow hit the wounded enemy instead');
 });
 
+test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock', () => {
+  const battle = makeBattle();
+  const bit = place(battle, HEROES.bit, TEAM.PLAYER, 1); // front hex — Bedrock live
+  const foeFront = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const foeCenter = place(battle, HEROES.rat_knight, TEAM.ENEMY, 0);
+  const foeBack = place(battle, HEROES.rat_knight, TEAM.ENEMY, 4);
+  bit.baseCritChance = 0;
+  bit.gearAccuracy = 10; // the DEF strip must land to be readable
+  for (const f of [foeFront, foeCenter, foeBack]) f.dodgeChance = () => 0;
+
+  // Bedrock: the front hex pays +25% DEF, and every skill scales off it.
+  const def = bit.effectiveStat('def');
+  assert(def === Math.round(bit.baseDef * 1.25), `bedrock def reads ${def}`);
+
+  const elem = g.Elements.mult(bit.element, foeFront.element);
+
+  // Core Sample: 125% of his (bedrock-boosted) DEF through the curve.
+  foeFront.hp = foeFront.maxHp;
+  Abilities.execute(HEROES.bit.abilities[1], bit, foeFront, battle);
+  const expected = Abilities.damageFormula(def * 1.25 * elem, foeFront.effectiveStat('def'));
+  assert(foeFront.maxHp - foeFront.hp === expected,
+    `core sample paid ${foeFront.maxHp - foeFront.hp}, expected ${expected}`);
+
+  // Bore Sweep: hits the front row only, and strips 30% DEF for 1 turn.
+  foeFront.hp = foeFront.maxHp; foeBack.hp = foeBack.maxHp;
+  Abilities.execute(HEROES.bit.abilities[0], bit, foeFront, battle);
+  assert(foeFront.hp < foeFront.maxHp, 'bore sweep missed the front');
+  assert(foeBack.hp === foeBack.maxHp, 'bore sweep reached the back row');
+  const strip = foeFront.statusEffects.find((fx) => fx.kind === 'debuff' && fx.stat === 'def');
+  assert(strip && strip.mult === 0.7 && strip.turns === 1,
+    `the strip landed as ${JSON.stringify(strip)}`);
+
+  // Breakthrough: front AND center, never the back.
+  for (const f of [foeFront, foeCenter, foeBack]) f.hp = f.maxHp;
+  Abilities.execute(HEROES.bit.abilities[2], bit, null, battle);
+  assert(foeFront.hp < foeFront.maxHp && foeCenter.hp < foeCenter.maxHp,
+    'breakthrough spared the wall');
+  assert(foeBack.hp === foeBack.maxHp, 'breakthrough reached the back row');
+
+  // Case-Hardened: a DEF buff turns +20% damage on; without one, off.
+  foeFront.hp = foeFront.maxHp;
+  foeFront.statusEffects.length = 0;
+  bit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.3, turns: 2 });
+  Abilities.execute(HEROES.bit.abilities[1], bit, foeFront, battle);
+  const buffedDef = bit.effectiveStat('def');
+  const hardened = Abilities.damageFormula(buffedDef * 1.25 * 1.20 * elem,
+    foeFront.effectiveStat('def'));
+  assert(foeFront.maxHp - foeFront.hp === hardened,
+    `case-hardened paid ${foeFront.maxHp - foeFront.hp}, expected ${hardened}`);
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

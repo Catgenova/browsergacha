@@ -426,7 +426,7 @@ const Abilities = (() => {
   // to be re-derived from hardcoded lists of targeting names in ui.js,
   // which meant a new targeting kind silently pointed at the wrong side.
   const ENEMY_TARGETING = ['enemy', 'enemy-row', 'all-enemies',
-    'front-enemies', 'back-enemies'];
+    'front-enemies', 'back-enemies', 'front-and-center-enemies'];
   const ALLY_TARGETING = ['ally', 'dead-ally', 'all-allies', 'front-allies',
     'self-and-wounded-allies', 'lowest-allies'];
 
@@ -479,6 +479,18 @@ const Abilities = (() => {
           .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)
           .slice(0, n);
         return [caster, ...others];
+      }
+      case 'front-and-center-enemies': {
+        // Everyone holding a front or center hex — the wall and its
+        // keystone together (Bit's breakthrough). A boss spans every
+        // hex; an empty front still catches one random enemy.
+        const pool = battle.livingUnits(caster.enemyTeam());
+        const wall = pool.filter((u) => u.isBoss ||
+          u.slot.position === POSITION.FRONT ||
+          u.slot.position === POSITION.CENTER);
+        if (wall.length > 0) return wall;
+        return pool.length > 0
+          ? [pool[Math.floor(Math.random() * pool.length)]] : [];
       }
       case 'back-enemies':
         // Every living enemy standing in a back-position hex (a boss
