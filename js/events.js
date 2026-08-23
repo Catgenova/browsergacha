@@ -89,15 +89,16 @@ const Events = (() => {
 
   // ---- Login bonuses ----
   // The 7-day track: one step per calendar day the player claims,
-  // looping forever. Day 7 is the payoff.
+  // looping forever — and it pays in HEROES. A full lap hands over the
+  // newer half of the roster, dupes feeding star-ups on later laps.
   const LOGIN_WEEK = [
-    { common: 2, label: '2 Common Scrolls 📜' },
-    { whetstones: 20, label: '20 Whetstones 🪨' },
-    { rare: 1, label: '1 Rare Scroll ✨' },
-    { arcana: 15, label: '15 Arcana ✦' },
-    { diamonds: 25, label: '25 Diamonds 💎' },
-    { rare: 2, label: '2 Rare Scrolls ✨' },
-    { temporal: 1, label: '1 Temporal Scroll 🌀' },
+    { hero: 'florence', label: 'Tide — 4★ hero 💧' },
+    { hero: 'ari', label: 'Ari — 3★ hero 💧' },
+    { hero: 'cain', label: 'Cain — 4★ hero 💧' },
+    { hero: 'tanner', label: 'Tanner — 4★ hero 💧' },
+    { hero: 'angelica', label: 'Angelica — 3★ hero 💧' },
+    { hero: 'bit', label: 'Bit — 5★ hero 💧' },
+    { hero: 'sawyer', label: 'Sawyer — 5★ hero 🌙' },
   ];
 
   // The monthly calendar: a reward for your Nth login day of the month

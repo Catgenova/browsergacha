@@ -1878,38 +1878,62 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
     `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
-test('login bonuses: one claim a day pays the week track and stamps the month', () => {
+test('login bonuses: the week pays heroes, the month stamps, catch-up buys back', () => {
   const w = loadGame();
   const G = w.GameState;
   const E = w.Events;
 
+  // The 7-day track hands over the water court in order.
+  const order = ['florence', 'ari', 'cain', 'tanner', 'angelica', 'bit', 'sawyer'];
   assert(E.LOGIN_WEEK.length === 7, 'the week track is not a week');
+  E.LOGIN_WEEK.forEach((r, i) => {
+    assert(r.hero === order[i], `day ${i + 1} pays ${r.hero}, wanted ${order[i]}`);
+    assert(w.HEROES[r.hero], `day ${i + 1} pays a hero that does not exist`);
+  });
   for (const [n, r] of Object.entries(E.LOGIN_MONTH_MILESTONES)) {
     assert(E.monthlyLoginReward(Number(n)) === r, `milestone ${n} unreachable`);
   }
-  assert(E.monthlyLoginReward(1).label, 'day 1 filler has no label');
   assert(E.monthlyLoginReward(29).label, 'day 29 falls off the calendar');
 
   assert(G.loginClaimable(), 'a fresh save has nothing to claim');
-  const before = {
-    common: G.scrollsCommon, whetstones: G.whetstones, diamonds: G.diamonds,
-  };
+  const tideBefore = G.countOf('florence');
+  const whetBefore = G.whetstones;
   const got = G.claimLogin();
   assert(got && got.day === 1 && got.stamps === 1,
     `first claim reported ${JSON.stringify(got)}`);
-  // Day 1 of the week track pays 2 common scrolls; stamp 1 of the month
-  // pays the n=1 filler (15 whetstones).
-  assert(G.scrollsCommon === before.common + 2,
-    `common scrolls ${G.scrollsCommon} vs ${before.common} + 2`);
-  assert(G.whetstones === before.whetstones + 15,
-    `whetstones ${G.whetstones} vs ${before.whetstones} + 15`);
-  assert(G.loginInfo().cycle === 1, 'the track did not advance');
-  assert(G.loginInfo().stamps === 1, 'the month did not stamp');
+  // Day 1 of the week track pays a Tide; stamp 1 of the month pays the
+  // n=1 filler (15 whetstones).
+  assert(G.countOf('florence') === tideBefore + 1, 'day 1 paid no Tide');
+  assert(G.whetstones === whetBefore + 15,
+    `whetstones ${G.whetstones} vs ${whetBefore} + 15`);
+  assert(G.loginInfo().cycle === 1 && G.loginInfo().stamps === 1,
+    'the ledgers did not advance');
+  assert(G.claimLogin() === null, 'a double claim went through');
 
-  // Same day, second claim: refused, nothing granted.
-  const again = G.claimLogin();
-  assert(again === null, 'a double claim went through');
-  assert(!G.loginClaimable(), 'still claimable after claiming');
+  // Catch-up: every missed calendar day this month can be bought back
+  // at 20 diamonds apiece, stamping the month and paying each stamp.
+  const missed = G.loginMissedDays();
+  assert(G.loginCatchUpCost() === missed * 20,
+    `cost ${G.loginCatchUpCost()} for ${missed} missed`);
+  if (missed === 0) {
+    // The 1st of the month: nothing to buy.
+    assert(G.buyLoginCatchUp() === null, 'bought zero days');
+  } else {
+    const broke = G.buyLoginCatchUp();
+    assert(broke && broke.error === 'diamonds', 'a broke catch-up went through');
+    G.addDiamonds(missed * 20);
+    const spentFrom = G.diamonds;
+    const bought = G.buyLoginCatchUp();
+    assert(bought && bought.bought === missed && bought.rewards.length === missed,
+      `catch-up reported ${JSON.stringify(bought && { b: bought.bought })}`);
+    // Diamonds went out (some may have come back as stamp rewards).
+    assert(G.loginInfo().stamps === 1 + missed,
+      `stamps ${G.loginInfo().stamps} after buying ${missed}`);
+    assert(G.loginMissedDays() === 0, 'days still missing after the buy');
+    assert(spentFrom - bought.cost <= G.diamonds, 'diamond math went backwards');
+    // The 7-day track did NOT move — catch-up is calendar-only.
+    assert(G.loginInfo().cycle === 1, 'catch-up dragged the week track');
+  }
 });
 
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
