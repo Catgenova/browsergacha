@@ -1132,6 +1132,87 @@ Object.assign(HEROES, {
     positional: POSITIONALS.spillway,
   },
 
+  bit: {
+    id: 'bit',
+    element: 'water',
+    name: 'Bit',
+    title: 'Engine of Cryst',
+    rarity: 5,
+    // A mining construct the court built out of its own crystal: every
+    // number in his kit is DEF-scaled, so the wall IS the weapon.
+    stats: { hp: 2450, atk: 85, def: 295, speed: 90 },
+    tint: { body: '#4aa8e8', helm: '#8ad8ff', weapon: '#c8963a', shield: '#7ae0e8' },
+    // 256px square frames: 9 across, except skill 3 at 15. Three idles —
+    // the heavy sway and two drill-arm fidgets.
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Bit/bitidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Bit/bitidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Bit/bitidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The drill spins up and bites on frame 6.
+        attack: { src: 'assets/heroes/Bit/bitskill1.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 6 },
+        // The bit swells to full bore before the slam.
+        skill2: { src: 'assets/heroes/Bit/bitskill2.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 6 },
+        // Fifteen frames of wind-up into the breakthrough at 10.
+        skill3: { src: 'assets/heroes/Bit/bitskill3.png', frames: 15, fps: 12,
+                  loop: false, hitFrame: 10 },
+        death: { src: 'assets/heroes/Bit/bitdeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bit_bore_sweep', name: 'Bore Sweep',
+        icon: 'assets/icons/fc1013.png',
+        description: 'Grind the enemy FRONT row for 80% of Bit\'s DEF each ' +
+          'and strip 30% of their DEF for 1 turn.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damageDef', mult: 0.8 },
+          { type: 'debuff', stat: 'def', mult: 0.7, turns: 1 },
+        ],
+      },
+      {
+        id: 'bit_core_sample', name: 'Core Sample',
+        icon: 'assets/icons/fc1089.png',
+        description: 'The bit at full bore, driven into one enemy for ' +
+          '125% of Bit\'s DEF.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damageDef', mult: 1.25 },
+        ],
+      },
+      {
+        id: 'bit_breakthrough', name: 'Breakthrough',
+        icon: 'assets/icons/fc1014.png',
+        description: 'Drive through the enemy FRONT row and CENTER at once ' +
+          'for 90% of Bit\'s DEF each.',
+        cooldown: 5, targeting: 'front-and-center-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damageDef', mult: 0.9 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Case-Hardened',
+      icon: 'assets/icons/fc1101.png',
+      description: 'While carrying a DEF buff, his damage is increased ' +
+        '20% — a harder shell drills harder.',
+      hooks: {
+        damageDealtMult(unit) {
+          return unit.statusEffects.some(
+            (fx) => fx.kind === 'buff' && fx.stat === 'def') ? 1.20 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.bedrock,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

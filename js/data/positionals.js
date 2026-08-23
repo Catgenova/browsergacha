@@ -341,6 +341,13 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('bedrock', {
+    position: POSITION.FRONT,
+    name: 'Bedrock',
+    description: 'Front hex: +25% DEF. Some things you build on.',
+    stat: 'def', mult: 1.25,
+  });
+
   def('spillway', {
     position: POSITION.BACK,
     name: 'Spillway',
