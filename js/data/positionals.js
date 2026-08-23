@@ -341,6 +341,13 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('giantslayer', {
+    position: POSITION.BACK,
+    name: 'Giantslayer',
+    description: "Back hex: attacks add 2% of the target's max HP to the damage. The bigger they are.",
+    hooks: { targetHpBonus: 0.02 },
+  });
+
   def('cold_forge', {
     position: POSITION.BACK,
     name: 'Cold Forge',

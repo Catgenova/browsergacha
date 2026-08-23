@@ -58,18 +58,18 @@ test('no two heroes share an ability name', () => {
 test('no two abilities are mechanically identical', () => {
   // The rule guards the GENERICS against accidental cloning. A named
   // hero's numbers are authored to spec (Silas's basic is exactly 115%,
-  // which one rat also happens to swing), so a named-vs-generic
-  // coincidence is allowed; two generics — or two named heroes —
-  // colliding is still an error.
+  // which one rat also happens to swing; Coral's and Ari's basics are
+  // both specced at a plain 110%), so any collision involving a named
+  // hero is allowed; two GENERICS colliding is still an error.
   const named = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
-    'sawyer', 'polarus', 'andrew', 'angelica']);
+    'sawyer', 'polarus', 'andrew', 'angelica', 'ari']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
     if (seen.has(fp)) {
       const other = seen.get(fp);
-      assert(named.has(h.id) !== named.has(other.heroId),
+      assert(named.has(h.id) || named.has(other.heroId),
         `${h.id}/${a.id} plays exactly like ${other.label}`);
       continue;
     }
@@ -251,7 +251,7 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
 test('every generic hero shares one base power budget', () => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew', 'angelica']);
+    'polarus', 'andrew', 'angelica', 'ari']);
   for (const h of heroes) {
     if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);

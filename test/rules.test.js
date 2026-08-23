@@ -1602,6 +1602,50 @@ test('angelica: every freeze in the fight compounds her, the forge steadies her'
     `forge def reads ${angelica.effectiveStat('def')}`);
 });
 
+test('ari: the lance slips DEF, the volley taxes max HP, the quarry eats a free arrow', () => {
+  const battle = makeBattle();
+  const ari = place(battle, HEROES.ari, TEAM.PLAYER, 4); // back hex — Giantslayer live
+  const polarus = place(battle, HEROES.polarus, TEAM.PLAYER, 1);
+  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  ari.baseCritChance = 0;
+  polarus.gearAccuracy = 10;
+  foe.dodgeChance = () => 0;
+
+  const atk = ari.effectiveStat('atk');
+  const elem = g.Elements.mult(ari.element, foe.element);
+  const def = foe.effectiveStat('def');
+  const tithe = foe.maxHp * 0.02; // the back hex's Giantslayer rider
+
+  const hit = (i) => {
+    foe.hp = foe.maxHp;
+    Abilities.execute(HEROES.ari.abilities[i], ari, foe, battle);
+    return foe.maxHp - foe.hp;
+  };
+
+  // Crystbarb: 110% through the full DEF curve, plus the tithe.
+  const d1 = hit(0);
+  assert(d1 === Abilities.damageFormula(atk * 1.1 * elem + tithe, def),
+    `crystbarb paid ${d1}`);
+
+  // Lancing Shot: 135% against only 90% of the DEF.
+  const d2 = hit(1);
+  assert(d2 === Abilities.damageFormula(atk * 1.35 * elem + tithe, def * 0.9),
+    `lancing shot paid ${d2}`);
+
+  // Marrow Volley: 140% plus 5% of the target's max HP, plus the tithe.
+  const d3 = hit(2);
+  assert(d3 === Abilities.damageFormula(atk * 1.4 * elem + foe.maxHp * 0.05 + tithe, def),
+    `marrow volley paid ${d3}`);
+
+  // Frozen Quarry: the King freezes, and her arrow follows for free —
+  // the same Crystbarb, same books.
+  foe.hp = foe.maxHp;
+  const r = Abilities.freeze(polarus, foe, 2, battle);
+  assert(r && !r.resisted, 'the freeze was resisted');
+  assert(foe.maxHp - foe.hp === d1,
+    `the free arrow paid ${foe.maxHp - foe.hp} vs crystbarb's ${d1}`);
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
