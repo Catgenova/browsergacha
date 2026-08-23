@@ -6,11 +6,11 @@
 //     weapon gives ~5 ATK; level 90 gives 500). Levels are bought with
 //     Whetstones (polishing), costing more each level.
 //   - a RARITY (normal/uncommon/rare/epic/legendary) that sets its max
-//     level and max substat count (1/2/3/4/5). Items drop with one sub
-//     fewer than their max (legendary: 4 subs plus a free bonus boost).
-//   - an ENCHANT level (+0..+15) bought with Arcana. At +3/6/9/12/15 a
-//     new substat rolls if the item is below its rarity's cap,
-//     otherwise a random existing substat gets boosted.
+//     level and substat count (1/2/3/4/5). Items drop with their full
+//     count of distinct substats.
+//   - an ENCHANT level (+0..+15) bought with Arcana. At +3/6/9/12/15
+//     one EXISTING substat eats another roll from its own range — the
+//     line grows (marked with an arrow per boost), no new line appears.
 //
 // Base stats per slot: weapon raw ATK, gloves raw DEF, chest raw HP,
 // boots raw SPD, ring ATK% (caps at 100%), amulet HP% (caps at 100%).
@@ -330,10 +330,16 @@ const Gear = (() => {
 
   // A fresh set of values for the same stats. Pure: nothing is mutated.
   function rollSubValues(piece) {
-    return (piece.subs || []).map((sub) => ({
-      stat: sub.stat,
-      value: rollValue(SUB_POOL[sub.stat]),
-    }));
+    return (piece.subs || []).map((sub) => {
+      const t = SUB_POOL[sub.stat];
+      // A boosted line re-rolls all of its rolls — the base one plus one
+      // per enchant milestone it has eaten — so rerolling never quietly
+      // strips the enchant value off a line.
+      let value = 0;
+      for (let i = 0; i <= (sub.boosts || 0); i++) value += rollValue(t);
+      if (t.pct) value = Math.round(value * 100) / 100;
+      return { stat: sub.stat, value, boosts: sub.boosts || 0 };
+    });
   }
 
   // Is the offered set better? Only advisory — the player chooses. Each
@@ -359,15 +365,31 @@ const Gear = (() => {
     return 0.95 - (0.90 * plus) / 14;
   }
 
-  // Advance one enchant level. Every third level rolls a whole new
-  // substat from the same ranges the base rolls use — duplicates
-  // welcome, so a piece can stack +12 ATK on +11 ATK. Five milestones
-  // to +15 put a Legendary at ten substat lines fully enchanted.
+  // Enchant milestones don't mint new lines — they pick one of the
+  // piece's EXISTING substats and add a fresh roll from that stat's own
+  // range onto its value. `boosts` counts the milestones the line has
+  // eaten, so the display can put one arrow beside it per boost.
+  function boostSub(piece, rand = Math.random) {
+    if (!piece.subs.length) return null;
+    const sub = piece.subs[Math.floor(rand() * piece.subs.length)];
+    const add = rollValue(SUB_POOL[sub.stat], rand);
+    // Percent rolls live as hundredths; re-snap after adding so float
+    // drift never leaves a line at 0.13000000000000002.
+    sub.value = SUB_POOL[sub.stat].pct
+      ? Math.round((sub.value + add) * 100) / 100
+      : sub.value + add;
+    sub.boosts = (sub.boosts || 0) + 1;
+    return sub;
+  }
+
+  // Advance one enchant level. Every third level boosts one existing
+  // substat with another roll from the same range the base roll used —
+  // the line grows, no sixth line appears. Five milestones to +15.
   function applyEnchant(piece) {
     piece.plus++;
     if (piece.plus % 3 !== 0) return null;
-    const sub = rollSub(piece, Math.random, true);
-    return sub ? `Enchant roll: ${subLabel(sub)}` : null;
+    const sub = boostSub(piece);
+    return sub ? `Enchant boost: ${subLabel(sub)}` : null;
   }
 
   // ---- Display ----
@@ -494,7 +516,7 @@ const Gear = (() => {
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
     baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
-    rerollCost, rollSubValues, subsScore, rollSub,
+    rerollCost, rollSubValues, subsScore, rollSub, boostSub,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,
   };
 })();
