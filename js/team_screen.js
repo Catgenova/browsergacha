@@ -189,12 +189,18 @@ class TeamScreen {
   }
 
   refresh() {
+    // The repaint below can tear out the scroll anchor (see swapGrid)
+    // and the details panel can change the page's height; both read to
+    // the player as the page snapping to the top. Pin the scroll across
+    // the whole repaint — scrollTo clamps if the page got shorter.
+    const pageY = window.scrollY;
     this.buildRoster();
     this.updateDetails();
     this.updateButtons();
     // The team may have changed since the last paint; anything newly
     // placed needs a player. Cheap when nothing has.
     this.ensureAnimators();
+    if (window.scrollY !== pageY) window.scrollTo(0, pageY);
   }
 
   updateButtons() {
@@ -347,7 +353,20 @@ class TeamScreen {
     for (const heroId of ids) {
       frag.appendChild(this.rosterCard(heroId, inTeam));
     }
+    this.swapGrid(frag);
+  }
+
+  // Swapping the whole grid in one replaceChildren tears out the
+  // browser's scroll anchor (on a real click that includes the focused
+  // card), which Chrome answers by snapping the page to the top. Pin
+  // the scroll across the swap so storing or re-sorting a hero deep in
+  // the list leaves the page where the player was.
+  swapGrid(frag) {
+    const pageY = window.scrollY;
+    const gridY = this.rosterEl.scrollTop;
     this.rosterEl.replaceChildren(frag);
+    this.rosterEl.scrollTop = gridY;
+    if (window.scrollY !== pageY) window.scrollTo(0, pageY);
   }
 
   // The vault, drawn in the roster's grid. Cards are built fresh each
@@ -427,7 +446,7 @@ class TeamScreen {
         : 'The vault is empty. Select a hero and use "Send to storage" to park them here.';
       frag.appendChild(empty);
     }
-    this.rosterEl.replaceChildren(frag);
+    this.swapGrid(frag);
   }
 
   // Portrait painting is deferred until a card comes near the viewport.
