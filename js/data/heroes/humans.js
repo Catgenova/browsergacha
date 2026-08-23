@@ -746,11 +746,12 @@ Object.assign(HEROES, {
       {
         id: 'polarus_shatterfall', name: 'Shatterfall',
         icon: 'assets/icons/fc1014.png',
-        description: 'Sweep the whole enemy team for 50% ATK — the frozen ' +
+        description: 'Sweep the whole enemy team for 80% ATK — the frozen ' +
           'take 300% instead — then the ice shatters away.',
         cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 0.5, bonusVs: { stat: 'freeze', mult: 6 } },
+          // 0.8 x 3.75 keeps the frozen payout at the specced 300%.
+          { type: 'damage', mult: 0.8, bonusVs: { stat: 'freeze', mult: 3.75 } },
           { type: 'removeStatus', stat: 'freeze' },
         ],
       },

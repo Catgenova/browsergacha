@@ -1491,13 +1491,13 @@ test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', 
   assert(pol.abilities[2].cooldownRemaining === 2,
     `frost throne refunded to ${pol.abilities[2].cooldownRemaining}`);
 
-  // Shatterfall: 50% ATK to the unfrozen, 300% to the frozen (x6),
+  // Shatterfall: 80% ATK to the unfrozen, 300% to the frozen (x3.75),
   // and the ice comes off afterwards.
   foeA.hp = foeA.maxHp; foeB.hp = foeB.maxHp;
   Abilities.execute(HEROES.polarus.abilities[2], pol, null, battle);
   const frozenDmg = foeA.maxHp - foeA.hp;
   const plainDmg = foeB.maxHp - foeB.hp;
-  assert(frozenDmg > plainDmg * 5.4 && frozenDmg < plainDmg * 6.6,
+  assert(frozenDmg > plainDmg * 3.4 && frozenDmg < plainDmg * 4.1,
     `shatterfall paid ${plainDmg} plain vs ${frozenDmg} frozen`);
   assert(!foeA.statusEffects.some((fx) => fx.stat === 'freeze'),
     'shatterfall left the ice on');
