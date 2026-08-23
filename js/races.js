@@ -23,7 +23,7 @@ const RACES = (() => {
   // and future one-off ids never fall into the race by accident.
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
-    'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli',
+    'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
   ]);
 
   const NAMES = {
@@ -62,6 +62,10 @@ const RACES = (() => {
                  members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
+    // Sawyer's order; no sect bonuses are wired for anyone yet, so a
+    // one-member sect costs nothing and claims the name.
+    shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
+                 members: ['sawyer'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

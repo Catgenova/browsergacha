@@ -600,6 +600,93 @@ Object.assign(HEROES, {
     positional: POSITIONALS.windrunner,
   },
 
+  sawyer: {
+    id: 'sawyer',
+    element: 'dark',
+    name: 'Sawyer',
+    title: 'Blade of Shadowflower',
+    rarity: 5,
+    // Front-row carry money: the ATK line leads, the DEF line pays for
+    // it, and Night Bloom is how he affords standing in the front hexes.
+    stats: { hp: 1700, atk: 265, def: 120, speed: 104 },
+    tint: { body: '#3a3448', helm: '#c8963a', weapon: '#8a4ae8', skin: '#d8a888' },
+    // 256px square frames: 9 across, except the death at 8 and skill 3
+    // at 15. Three idles — the base sway and two fidgets, the second a
+    // full sword flourish with slash trails.
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Sawyer/sawyeridle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Sawyer/sawyeridle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Sawyer/sawyeridle2.png', frames: 9, fps: 8, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The dark burst blooms around the target on frames 7-8.
+        attack: { src: 'assets/heroes/Sawyer/sawyerskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 7 },
+        // Blade charge — the sweep that lights the sword white.
+        skill2: { src: 'assets/heroes/Sawyer/sawyerskill2.png', frames: 9, fps: 10,
+                  loop: false },
+        // Long windup into the horizontal skewer at frame 12.
+        skill3: { src: 'assets/heroes/Sawyer/sawyerskill3.png', frames: 15, fps: 12,
+                  loop: false, hitFrame: 12 },
+        death: { src: 'assets/heroes/Sawyer/sawyerdeath.png', frames: 8, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'sawyer_petalfall_cut', name: 'Petalfall Cut',
+        icon: 'assets/icons/fc1054.png',
+        description: 'Carve one enemy for 150% ATK and scatter 2 random ' +
+          'debuffs over them for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'randomDebuffs', count: 2, turns: 2 },
+        ],
+      },
+      {
+        id: 'sawyer_night_bloom', name: 'Night Bloom',
+        icon: 'assets/icons/fc1053.png',
+        description: 'Come into flower: +30% ATK, +30% DEF and +30% SPD ' +
+          'for 3 turns.',
+        cooldown: 3, targeting: 'self', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.3, turns: 3 },
+          { type: 'buff', stat: 'def', mult: 1.3, turns: 3 },
+          { type: 'buff', stat: 'speed', mult: 1.3, turns: 3 },
+        ],
+      },
+      {
+        id: 'sawyer_deadheading', name: 'Deadheading',
+        icon: 'assets/icons/fc1051.png',
+        description: 'Run one enemy through for 230% ATK. A unit holding ' +
+          'the CENTER hex takes 50% more — cut the central bloom first.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 2.3,
+            bonusPosition: { position: 'center', mult: 1.5 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Wilting Garden',
+      icon: 'assets/icons/fc1119.png',
+      description: 'Deals 10% extra damage per debuff on the target ' +
+        '(up to +30%) — flowers cut easiest once they droop.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target) return 1;
+          const hexes = target.statusEffects.filter(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+          return 1 + 0.10 * Math.min(3, hexes);
+        },
+      },
+    },
+    positional: POSITIONALS.reckless_charge,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
