@@ -1517,6 +1517,48 @@ test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', 
     'striking the crystal did not freeze the attacker');
 });
 
+test('andrew: pickwork drains AP, two masters gives and takes, undermine digs', () => {
+  const battle = makeBattle();
+  const andrew = place(battle, HEROES.andrew, TEAM.PLAYER, 0); // center hex
+  const aniani = place(battle, HEROES.echo, TEAM.PLAYER, 1);
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  andrew.baseCritChance = 0;
+  andrew.gearAccuracy = 10; // the dig must land to be readable
+  foe.dodgeChance = () => 0;
+
+  // Skill 1: honest damage plus a flat 15-point AP cut.
+  foe.turnMeter = CONFIG.TURN_METER_MAX * 0.6;
+  Abilities.execute(HEROES.andrew.abilities[0], andrew, foe, battle);
+  assert(Math.abs(foe.turnMeter - CONFIG.TURN_METER_MAX * 0.45) < 1,
+    `pickwork left the meter at ${foe.turnMeter}`);
+
+  // His turn starts: Aniani's company pays +30% ATK (Two Masters), and
+  // the center hex undermines the only enemy for -30% DEF (2 turns).
+  const atkBefore = andrew.effectiveStat('atk');
+  andrew.startTurn(battle);
+  assert(andrew.effectiveStat('atk') === Math.round(atkBefore * 1.3),
+    `aniani's company pays ${andrew.effectiveStat('atk')} vs base ${atkBefore}`);
+  assert(andrew.effectiveStat('def') === Math.round(andrew.baseDef),
+    'polarus is not here, yet the king taxes him');
+  const dig = foe.statusEffects.find((fx) => fx.kind === 'debuff' && fx.stat === 'def');
+  assert(dig && dig.mult === 0.7 && dig.turns === 2,
+    `undermine landed ${JSON.stringify(dig)}`);
+
+  // The king arrives: the same turn start now also takes -30% DEF.
+  place(battle, HEROES.polarus, TEAM.PLAYER, 2);
+  andrew.startTurn(battle);
+  assert(andrew.effectiveStat('def') === Math.round(andrew.baseDef * 0.7),
+    `the king's tax reads ${andrew.effectiveStat('def')} vs base ${andrew.baseDef}`);
+
+  // Shore Up braces everyone: +30% DEF on the whole team for 2 turns.
+  Abilities.execute(HEROES.andrew.abilities[1], andrew, andrew, battle);
+  for (const mate of [andrew, aniani]) {
+    assert(mate.statusEffects.some((fx) =>
+      fx.kind === 'buff' && fx.stat === 'def' && fx.mult === 1.3 && fx.turns === 2),
+      `${mate.name} was not shored up`);
+  }
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
