@@ -1459,12 +1459,14 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
     .map((fx) => fx.stat).sort().join();
   assert(paints === 'atk,def,speed', `night bloom buffs ${paints}`);
 
-  // Wilting Garden: the two petalfall hexes are worth +20% on the next cut.
+  // Wilting Garden: two debuffs are worth +20% on the next cut. Planted
+  // by hand as SPD/crit hexes — the neutral ones — so the comparison
+  // reads the passive alone, not a drawn DEF-break or damage-taken hex.
   frontFoe.statusEffects.length = 0;
   const clean = hit(frontFoe);
   frontFoe.hp = frontFoe.maxHp;
-  Abilities.execute(HEROES.sawyer.abilities[0], sawyer, frontFoe, battle);
-  frontFoe.hp = frontFoe.maxHp;
+  frontFoe.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.75, turns: 2 });
+  frontFoe.addStatusEffect({ kind: 'debuff', stat: 'critChance', add: -0.15, turns: 2 });
   Abilities.execute(dead, sawyer, frontFoe, battle);
   const wilted = frontFoe.maxHp - frontFoe.hp;
   assert(wilted > clean * 1.15 && wilted < clean * 1.25,
