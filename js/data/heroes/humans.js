@@ -687,6 +687,95 @@ Object.assign(HEROES, {
     positional: POSITIONALS.reckless_charge,
   },
 
+  polarus: {
+    id: 'polarus',
+    element: 'water',
+    name: 'Polarus',
+    title: 'King of Cryst',
+    rarity: 5,
+    // A center-tile carry: the statline holds court rather than rushes.
+    // The freezes are the throughput — every one refunds his cooldowns
+    // from the Frost Throne.
+    stats: { hp: 1800, atk: 255, def: 135, speed: 100 },
+    tint: { body: '#e8e2d4', helm: '#7ad8e8', weapon: '#8ee8ff', skin: '#e8c8a8' },
+    // 256px square frames: 9 across, except the death at 17. Three
+    // idles — the regal sway, a beard stroke and a crown adjust.
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Polarus/polarusidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Polarus/polarusidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Polarus/polarusidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The ice bolt leaves his hand mid-strip.
+        attack: { src: 'assets/heroes/Polarus/polarusskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 5 },
+        // The whiteout into crystal form — rests on the crystalline pose.
+        skill2: { src: 'assets/heroes/Polarus/polarusskill2.png', frames: 9, fps: 10,
+                  loop: false, holds: { 8: 5 } },
+        // The court-wide frost nova, crackling at frame 6.
+        skill3: { src: 'assets/heroes/Polarus/polarusskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Polarus/polarusdeath.png', frames: 17, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'polarus_glacial_bolt', name: 'Glacial Bolt',
+        icon: 'assets/icons/fc1011.png',
+        description: 'Hurl a shard of court ice for 125% ATK, with a 30% ' +
+          'chance to freeze the target solid — unable to act for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'freeze', chance: 0.30, turns: 2 },
+        ],
+      },
+      {
+        id: 'polarus_crystalline_mantle', name: 'Crystalline Mantle',
+        icon: 'assets/icons/fc1016.png',
+        description: 'Take on Crystalline form for 2 turns: enemies who ' +
+          'strike him have a 30% chance to freeze solid on contact.',
+        cooldown: 3, targeting: 'self', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'crystalline', mult: 1, turns: 2 },
+        ],
+      },
+      {
+        id: 'polarus_shatterfall', name: 'Shatterfall',
+        icon: 'assets/icons/fc1014.png',
+        description: 'Sweep the whole enemy team for 50% ATK — the frozen ' +
+          'take 300% instead — then the ice shatters away.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.5, bonusVs: { stat: 'freeze', mult: 6 } },
+          { type: 'removeStatus', stat: 'freeze' },
+        ],
+      },
+    ],
+    passive: {
+      name: "The King's Winter",
+      icon: 'assets/icons/fc1010.png',
+      description: 'Every hit he lands carries the cold: 5% chance to ' +
+        'freeze the victim solid for 2 turns.',
+      hooks: {
+        onDealtDamage(unit, { target, battle }) {
+          if (!target || !target.alive || target.team === unit.team) return;
+          if (Math.random() >= 0.05) return;
+          const r = Abilities.freeze(unit, target);
+          if (battle && r && !r.resisted) {
+            battle.addFloatingText(target, '❄ FROZEN', '#8ee8ff', true);
+            battle.log(`${target.name} freezes solid in the king's winter ` +
+              `(${r.turns} turns)!`, 'log-system');
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.frost_throne,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

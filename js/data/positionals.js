@@ -341,5 +341,20 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('frost_throne', {
+    position: POSITION.CENTER,
+    name: 'Frost Throne',
+    description: 'Center hex: freezing an enemy refunds 1 turn of cooldown on every ability.',
+    hooks: {
+      // Fired from Abilities.freeze for every enemy actually frozen, by
+      // any source — the bolt, the Crystalline counter, the passive.
+      onFroze(unit) {
+        for (const a of unit.abilities) {
+          if (a.cooldownRemaining > 0) a.cooldownRemaining--;
+        }
+      },
+    },
+  });
+
   return P;
 })();

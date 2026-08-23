@@ -1473,6 +1473,50 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
     `wilting garden off: ${clean} clean vs ${wilted} hexed`);
 });
 
+test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', () => {
+  const battle = makeBattle();
+  const pol = place(battle, HEROES.polarus, TEAM.PLAYER, 0); // center hex
+  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  pol.baseCritChance = 0;
+  pol.gearAccuracy = 10; // the freezes must land to be readable
+  for (const f of [foeA, foeB]) f.dodgeChance = () => 0;
+
+  // Freeze is a 2-turn lockout, and freezing from the center hex
+  // refunds a turn of cooldown on everything (Frost Throne).
+  pol.abilities[2].cooldownRemaining = 3;
+  const r = Abilities.freeze(pol, foeA);
+  assert(r && !r.resisted && r.turns === 2, `freeze came back ${JSON.stringify(r)}`);
+  assert(foeA.statusEffects.some((fx) => fx.stat === 'freeze'), 'no freeze status landed');
+  assert(pol.abilities[2].cooldownRemaining === 2,
+    `frost throne refunded to ${pol.abilities[2].cooldownRemaining}`);
+
+  // Shatterfall: 50% ATK to the unfrozen, 300% to the frozen (x6),
+  // and the ice comes off afterwards.
+  foeA.hp = foeA.maxHp; foeB.hp = foeB.maxHp;
+  Abilities.execute(HEROES.polarus.abilities[2], pol, null, battle);
+  const frozenDmg = foeA.maxHp - foeA.hp;
+  const plainDmg = foeB.maxHp - foeB.hp;
+  assert(frozenDmg > plainDmg * 5.4 && frozenDmg < plainDmg * 6.6,
+    `shatterfall paid ${plainDmg} plain vs ${frozenDmg} frozen`);
+  assert(!foeA.statusEffects.some((fx) => fx.stat === 'freeze'),
+    'shatterfall left the ice on');
+
+  // Crystalline Mantle: with the dice pinned low, the striker freezes.
+  Abilities.execute(HEROES.polarus.abilities[1], pol, pol, battle);
+  assert(pol.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'crystalline'),
+    'mantle did not land');
+  const realRandom = Math.random;
+  Math.random = () => 0.01;
+  try {
+    Abilities.execute(HEROES.rat_brawler.abilities[0], foeB, pol, battle);
+  } finally {
+    Math.random = realRandom;
+  }
+  assert(foeB.statusEffects.some((fx) => fx.stat === 'freeze'),
+    'striking the crystal did not freeze the attacker');
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
