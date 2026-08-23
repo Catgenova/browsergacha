@@ -68,7 +68,10 @@ const Abilities = (() => {
     const dodged = opts.dodge === false
       ? false
       : Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
-    let dmg = damageFormula(raw, target.effectiveStat('def'));
+    // ignoreDef: a fraction of the target's DEF the blow slips past
+    // (Ari's lancing shot) — the curve sees the rest.
+    let dmg = damageFormula(raw,
+      target.effectiveStat('def') * (1 - (opts.ignoreDef || 0)));
     let crit = false;
     if (opts.crit) {
       crit = Math.random() < caster.effectiveStat('critChance');
@@ -155,7 +158,7 @@ const Abilities = (() => {
       for (const u of b.livingUnits()) {
         if (u.team === target.team) continue;
         for (const p of (u.hookSources ? u.hookSources() : [])) {
-          if (p.hooks && p.hooks.onEnemyFrozen) p.hooks.onEnemyFrozen(u, target, caster);
+          if (p.hooks && p.hooks.onEnemyFrozen) p.hooks.onEnemyFrozen(u, target, caster, b);
         }
       }
     }
@@ -195,7 +198,17 @@ const Abilities = (() => {
             target.slot.position === effect.bonusPosition.position) {
           raw *= effect.bonusPosition.mult;
         }
-        return { ...strike(caster, target, raw, { crit: true }), elem: elemMult };
+        // Flat riders scaled off the TARGET's max HP (Ari): from the
+        // effect itself and from targetHpBonus hooks. Added after the
+        // multipliers — the rider is a share of the victim, not of the
+        // swing — then mitigated like everything else.
+        let hpFrac = effect.targetHpPct || 0;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.targetHpBonus) hpFrac += p.hooks.targetHpBonus;
+        }
+        if (hpFrac > 0) raw += target.maxHp * hpFrac;
+        return { ...strike(caster, target, raw,
+          { crit: true, ignoreDef: effect.ignoreDef }), elem: elemMult };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);

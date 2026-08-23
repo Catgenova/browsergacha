@@ -956,6 +956,87 @@ Object.assign(HEROES, {
     positional: POSITIONALS.cold_forge,
   },
 
+  ari: {
+    id: 'ari',
+    element: 'water',
+    name: 'Ari',
+    title: 'Crystquiver',
+    rarity: 3,
+    // A back-line archer built to finish what the freezers start: every
+    // enemy that ices over eats a free arrow from her passive.
+    stats: { hp: 1080, atk: 240, def: 88, speed: 105 },
+    tint: { body: '#e4e0d4', helm: '#f0ece0', weapon: '#7ae0e8', skin: '#d8b090' },
+    // 256px square frames: 9 across, except skill 1 at 11 and skill 2
+    // at 12. Three idles — the hooded stance and two quiver fidgets.
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Ari/ariidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Ari/ariidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Ari/ariidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // Draw and loose — the arrow leaves on frame 8.
+        attack: { src: 'assets/heroes/Ari/ariskill1.png', frames: 11, fps: 12,
+                  loop: false, hitFrame: 8 },
+        // The bow charges to full crystal glow before the shot.
+        skill2: { src: 'assets/heroes/Ari/ariskill2.png', frames: 12, fps: 12,
+                  loop: false, hitFrame: 10 },
+        // The crystal volley fans out on frame 7.
+        skill3: { src: 'assets/heroes/Ari/ariskill3.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 7 },
+        death: { src: 'assets/heroes/Ari/arideath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ari_crystbarb', name: 'Crystbarb',
+        icon: 'assets/icons/fc1019.png',
+        description: 'Loose a crystal-tipped arrow for 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+        ],
+      },
+      {
+        id: 'ari_lancing_shot', name: 'Lancing Shot',
+        icon: 'assets/icons/fc1017.png',
+        description: 'A charged shot for 135% ATK that slips past 10% of ' +
+          "the target's DEF.",
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.35, ignoreDef: 0.10 },
+        ],
+      },
+      {
+        id: 'ari_marrow_volley', name: 'Marrow Volley',
+        icon: 'assets/icons/fc1012.png',
+        description: 'A fanned volley for 140% ATK that adds 5% of the ' +
+          "target's max HP to the blow.",
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.4, targetHpPct: 0.05 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Frozen Quarry',
+      icon: 'assets/icons/fc1010.png',
+      description: 'The moment an enemy freezes — by anyone\'s ice — she ' +
+        'looses Crystbarb at them, free.',
+      hooks: {
+        onEnemyFrozen(unit, target, caster, battle) {
+          if (!battle || !target.alive) return;
+          battle.log(`${unit.name} marks the frozen quarry — Crystbarb flies!`,
+            unit.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
+          Abilities.execute(unit.def.abilities[0], unit, target, battle);
+        },
+      },
+    },
+    positional: POSITIONALS.giantslayer,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).
