@@ -266,7 +266,7 @@ html = r'''<title>Polarus, King of Cryst</title>
       </div>
     </div>
     <div class="doors-cap">The ice is also ammunition: <b>Shatterfall pays 300% ATK to
-      frozen enemies</b> (against 50% to everyone else), then melts every freeze it spent.</div>
+      frozen enemies</b> (against 80% to everyone else), then melts every freeze it spent.</div>
   </div>
 
   <h2><span class="glyph">&#x265A;</span> The Frost Throne</h2>
@@ -306,9 +306,9 @@ html = r'''<title>Polarus, King of Cryst</title>
     <div class="ability">
       <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
       <h3>Shatterfall</h3>
-      <div class="meta">All enemies &middot; <b>50% ATK</b> &middot; <b>300%</b> to the frozen &middot; then thaws</div>
+      <div class="meta">All enemies &middot; <b>80% ATK</b> &middot; <b>300%</b> to the frozen &middot; then thaws</div>
       <p>The whole court sweeps the enemy team. The unfrozen feel a chill;
-      the frozen take <b>six times the blow</b> &#x2014; and then the ice
+      the frozen take <b>300% ATK</b> outright &#x2014; and then the ice
       shatters away, spent.</p>
     </div>
     <div class="ability passive-card">
@@ -334,7 +334,7 @@ html = r'''<title>Polarus, King of Cryst</title>
       </thead>
       <tbody>
         <tr><th>Glacial Bolt, % ATK</th><td>125</td><td>138</td><td>150</td><td>163</td><td class="max">175</td></tr>
-        <tr><th>Shatterfall, % ATK each</th><td>50</td><td>55</td><td>60</td><td>65</td><td class="max">70</td></tr>
+        <tr><th>Shatterfall, % ATK each</th><td>80</td><td>88</td><td>96</td><td>104</td><td class="max">112</td></tr>
         <tr><th>&nbsp;&nbsp;&#x2026;against the frozen</th><td>300</td><td>330</td><td>360</td><td>390</td><td class="max">420</td></tr>
       </tbody>
     </table>
