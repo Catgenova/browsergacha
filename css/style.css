@@ -2430,6 +2430,30 @@ html.is-mobile .sub-compare { font-size: 13px; }
 .bs-stage.locked { opacity: 0.45; cursor: default; }
 #bs-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .bs-variants { display: flex; flex-wrap: wrap; gap: 4px; }
+/* ==== Daily login board ==== */
+.login-track {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 6px; margin: 10px 0;
+}
+.login-chip {
+  background: #1a1626; border: 1px solid #3a3450; border-radius: 8px;
+  padding: 7px 8px; text-align: center;
+}
+.login-chip-day { font-size: 10px; letter-spacing: 1px; color: #9a92b8; text-transform: uppercase; }
+.login-chip-reward { font-size: 11px; color: #e8e4d8; margin-top: 2px; }
+.login-chip-tag { font-size: 9px; letter-spacing: 1px; color: #ffd76a; margin-top: 3px; }
+.login-chip.login-today { border-color: #ffd76a; background: rgba(240, 193, 75, 0.1); }
+.login-chip.login-next { border-color: #5a527a; }
+.login-month { font-size: 12px; color: #9a92b8; margin: 8px 0 10px; }
+.login-month-line b { color: #ffd76a; }
+.login-milestones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.login-milestone {
+  font-size: 10.5px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid #3a3450; color: #9a92b8;
+}
+.login-milestone.login-done { border-color: #4a7a4a; color: #a8e8a8; }
+.login-claim { width: 100%; }
+
 /* The elective banner summon block below the results. */
 #banner-block {
   margin: 18px auto 0; max-width: 720px; padding: 16px 18px 18px;

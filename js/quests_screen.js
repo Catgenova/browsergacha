@@ -31,6 +31,7 @@ class QuestsScreen {
     // Ties keep their natural order (daily, weekly, monthly, then the
     // achievement groups).
     const boards = [
+      ...this.guardedBoards('Login', () => this.loginBoard()),
       ...this.guardedBoards('Quests', () => this.questBoards()),
       ...this.guardedBoards('Achievements', () => this.achievementBoards()),
     ].map((b, i) => ({ ...b, i }));
@@ -42,6 +43,15 @@ class QuestsScreen {
     const sx = window.scrollX, sy = window.scrollY;
     this.boardsEl.innerHTML = boards.map((b) => b.html).join('');
     window.scrollTo(sx, sy);
+
+    const loginBtn = this.boardsEl.querySelector('.login-claim:not([disabled])');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', () => {
+        const got = GameState.claimLogin();
+        if (got && typeof Sound !== 'undefined') Sound.play('claim');
+        this.refresh();
+      });
+    }
 
     this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -70,6 +80,47 @@ class QuestsScreen {
           if (caret) caret.textContent = nowOpen ? '▾' : '▸';
         });
       });
+  }
+
+  // The login board: the looping 7-day track plus this month's stamp
+  // calendar, with one claim a day covering both.
+  loginBoard() {
+    const info = GameState.loginInfo();
+    const claimable = info.claimable ? 1 : 0;
+    const chips = Events.LOGIN_WEEK.map((r, i) => {
+      const today = i === info.cycle && info.claimable;
+      const next = i === info.cycle && !info.claimable;
+      return `<div class="login-chip${today ? ' login-today' : ''}${next ? ' login-next' : ''}">
+        <div class="login-chip-day">Day ${i + 1}</div>
+        <div class="login-chip-reward">${r.label}</div>
+        ${today ? '<div class="login-chip-tag">TODAY</div>'
+          : next ? '<div class="login-chip-tag">TOMORROW</div>' : ''}
+      </div>`;
+    }).join('');
+    const nextStamp = info.stamps + (info.claimable ? 1 : 0);
+    const monthNow = Events.monthlyLoginReward(Math.max(1, nextStamp));
+    const milestones = Object.entries(Events.LOGIN_MONTH_MILESTONES)
+      .map(([n, r]) => `<span class="login-milestone${info.stamps >= Number(n) ? ' login-done' : ''}">
+        Day ${n}: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
+      .join('');
+    return [{
+      claimable,
+      html: `<div class="quest-board">
+        <div class="quest-board-header"><h3>📅 Daily Login</h3>
+          <span class="quest-reset">${info.claimable
+            ? 'Today\'s bonus is ready!'
+            : `Next bonus in ${Quests.formatCountdown(Quests.timeToReset('daily'))}`}</span>
+        </div>
+        <div class="login-track">${chips}</div>
+        <div class="login-month">
+          <div class="login-month-line">Monthly calendar: <b>${info.stamps}</b> login
+            day${info.stamps === 1 ? '' : 's'} stamped this month${info.claimable
+              ? ` — today's stamp (day ${nextStamp}) adds <b>${monthNow.label}</b>` : ''}.</div>
+          <div class="login-milestones">${milestones}</div>
+        </div>
+        <button class="login-claim panel-btn gold" ${info.claimable ? '' : 'disabled'}>
+          ${info.claimable ? 'Claim today\'s login bonus' : 'Claimed — come back tomorrow'}</button>
+      </div>` }];
   }
 
   // Run one section's builder (which returns [{claimable, html}]); on a

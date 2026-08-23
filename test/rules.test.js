@@ -1878,6 +1878,40 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
     `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
+test('login bonuses: one claim a day pays the week track and stamps the month', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const E = w.Events;
+
+  assert(E.LOGIN_WEEK.length === 7, 'the week track is not a week');
+  for (const [n, r] of Object.entries(E.LOGIN_MONTH_MILESTONES)) {
+    assert(E.monthlyLoginReward(Number(n)) === r, `milestone ${n} unreachable`);
+  }
+  assert(E.monthlyLoginReward(1).label, 'day 1 filler has no label');
+  assert(E.monthlyLoginReward(29).label, 'day 29 falls off the calendar');
+
+  assert(G.loginClaimable(), 'a fresh save has nothing to claim');
+  const before = {
+    common: G.scrollsCommon, whetstones: G.whetstones, diamonds: G.diamonds,
+  };
+  const got = G.claimLogin();
+  assert(got && got.day === 1 && got.stamps === 1,
+    `first claim reported ${JSON.stringify(got)}`);
+  // Day 1 of the week track pays 2 common scrolls; stamp 1 of the month
+  // pays the n=1 filler (15 whetstones).
+  assert(G.scrollsCommon === before.common + 2,
+    `common scrolls ${G.scrollsCommon} vs ${before.common} + 2`);
+  assert(G.whetstones === before.whetstones + 15,
+    `whetstones ${G.whetstones} vs ${before.whetstones} + 15`);
+  assert(G.loginInfo().cycle === 1, 'the track did not advance');
+  assert(G.loginInfo().stamps === 1, 'the month did not stamp');
+
+  // Same day, second claim: refused, nothing granted.
+  const again = G.claimLogin();
+  assert(again === null, 'a double claim went through');
+  assert(!G.loginClaimable(), 'still claimable after claiming');
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

@@ -87,7 +87,41 @@ const Events = (() => {
     return b ? b.label : '';
   }
 
+  // ---- Login bonuses ----
+  // The 7-day track: one step per calendar day the player claims,
+  // looping forever. Day 7 is the payoff.
+  const LOGIN_WEEK = [
+    { common: 2, label: '2 Common Scrolls 📜' },
+    { whetstones: 20, label: '20 Whetstones 🪨' },
+    { rare: 1, label: '1 Rare Scroll ✨' },
+    { arcana: 15, label: '15 Arcana ✦' },
+    { diamonds: 25, label: '25 Diamonds 💎' },
+    { rare: 2, label: '2 Rare Scrolls ✨' },
+    { temporal: 1, label: '1 Temporal Scroll 🌀' },
+  ];
+
+  // The monthly calendar: a reward for your Nth login day of the month
+  // (not consecutive — every stamped day counts). Milestones land on
+  // 7/14/21/28 so any month can complete the card; days past 28 draw
+  // from the small rotation.
+  const LOGIN_MONTH_MILESTONES = {
+    7:  { rare: 1, diamonds: 25, label: '1 Rare Scroll ✨ + 25 Diamonds 💎' },
+    14: { rare: 3, label: '3 Rare Scrolls ✨' },
+    21: { temporal: 1, label: '1 Temporal Scroll 🌀' },
+    28: { temporal: 2, diamonds: 100, label: '2 Temporal Scrolls 🌀 + 100 Diamonds 💎' },
+  };
+  const LOGIN_MONTH_FILLER = [
+    { diamonds: 10, label: '10 Diamonds 💎' },
+    { whetstones: 15, label: '15 Whetstones 🪨' },
+    { common: 1, label: '1 Common Scroll 📜' },
+    { arcana: 10, label: '10 Arcana ✦' },
+  ];
+  function monthlyLoginReward(n) {
+    return LOGIN_MONTH_MILESTONES[n] || LOGIN_MONTH_FILLER[n % 4];
+  }
+
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
-    SUMMON_BANNERS, currentBanner, bannerWeight, bannerLabel };
+    SUMMON_BANNERS, currentBanner, bannerWeight, bannerLabel,
+    LOGIN_WEEK, LOGIN_MONTH_MILESTONES, monthlyLoginReward };
 })();
