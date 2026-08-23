@@ -2335,6 +2335,8 @@ html.is-mobile .sum-k { font-size: 11px; }
 .sub-arrow.up, .sub-new.up { color: #7ae87a; }
 .sub-arrow.down, .sub-new.down { color: #ff9a8a; }
 .sub-new { color: #e8e4d8; }
+/* One gold arrow per enchant milestone rolled into the substat. */
+.sub-boosts { color: #ffd76a; font-size: 10px; letter-spacing: 1px; }
 html.is-mobile .sub-compare { font-size: 13px; }
 
 /* ==== Battle: the empty state ==== */

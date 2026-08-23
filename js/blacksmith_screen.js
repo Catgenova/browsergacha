@@ -177,10 +177,15 @@ class BlacksmithScreen {
     const nextMilestone = atMaxPlus ? null : Math.ceil((piece.plus + 1) / 3) * 3;
     const wearer = GameState.wearerOf(piece.uid);
     const pending = piece.pendingSubs || null;
+    // One arrow per enchant milestone the line has eaten — the value
+    // shown already includes those boosts.
+    const boostArrows = (s) => (s.boosts
+      ? ` <span class="sub-boosts" title="${s.boosts} enchant boost${s.boosts > 1 ? 's' : ''} rolled into this substat">${'▲'.repeat(s.boosts)}</span>`
+      : '');
     const subsHtml = piece.subs.length
       ? piece.subs.map((s, i) => {
         if (!pending || !pending[i]) {
-          return `<div class="set-bonus">${Gear.subLabel(s)}</div>`;
+          return `<div class="set-bonus">${Gear.subLabel(s)}${boostArrows(s)}</div>`;
         }
         // Side by side, with the direction marked, so the choice does
         // not require reading two numbers and doing the sum.
@@ -190,7 +195,7 @@ class BlacksmithScreen {
           <span class="sub-old">${Gear.subLabel(s)}</span>
           <span class="sub-arrow ${same ? '' : up ? 'up' : 'down'}">
             ${same ? '=' : up ? '\u25b2' : '\u25bc'}</span>
-          <span class="sub-new ${same ? '' : up ? 'up' : 'down'}">${Gear.subLabel(pending[i])}</span>
+          <span class="sub-new ${same ? '' : up ? 'up' : 'down'}">${Gear.subLabel(pending[i])}</span>${boostArrows(s)}
         </div>`;
       }).join('')
       : '<div class="set-bonus">No substats yet</div>';
@@ -217,9 +222,9 @@ class BlacksmithScreen {
         ${rar.name} · Lv ${piece.level}/${capLevel} · ${Gear.statText(base.stat, base.value)}
         ${wearer && GameState.defOf(wearer) ? `<br>Equipped by ${GameState.defOf(wearer).name}` : '<br>Unequipped'}
       </div>
-      <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs + Gear.MAX_PLUS / 3})</div>
+      <div class="detail-section">Substats (${piece.subs.length}/${rar.maxSubs})</div>
       ${subsHtml}
-      ${nextMilestone ? `<div class="set-bonus">Next substat roll at +${nextMilestone}</div>` : ''}
+      ${nextMilestone ? `<div class="set-bonus">Next substat boost at +${nextMilestone}</div>` : ''}
       ${setHtml}
       <div class="detail-section">Upgrade</div>
       <div class="gear-actions">

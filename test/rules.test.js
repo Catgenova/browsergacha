@@ -1742,22 +1742,41 @@ test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
       assert(Math.abs(snapped - s.value) < 1e-9, `${s.stat} rolled a ragged ${s.value}`);
     }
   }
-  // Enchanting: every third level adds one MORE roll from the same
-  // ranges (duplicate stats welcome), so +15 on a Legendary is 5 base
-  // lines plus 5 enchant lines.
+  // Enchanting: every third level boosts one EXISTING substat with
+  // another roll from its own range — the line count never grows, the
+  // boosted line's value does, and it books one arrow per milestone.
   const p = G.drop('dragon', 20);
   p.rarity = 'legendary';
   while (p.subs.length < 5) G.rollSub(p);
+  const baseValues = p.subs.map((s) => s.value);
   for (let plus = 1; plus <= 15; plus++) {
     const msg = G.applyEnchant(p);
-    if (plus % 3 === 0) {
-      assert(msg && p.subs.length === 5 + plus / 3,
-        `milestone +${plus} left ${p.subs.length} lines`);
-    } else {
-      assert(!msg, `+${plus} is no milestone yet it rolled`);
-    }
+    assert(p.subs.length === 5, `+${plus} changed the line count to ${p.subs.length}`);
+    if (plus % 3 === 0) assert(msg, `milestone +${plus} rolled nothing`);
+    else assert(!msg, `+${plus} is no milestone yet it rolled`);
   }
-  assert(p.subs.length === 10, `a +15 Legendary should carry 10 lines, has ${p.subs.length}`);
+  const boosts = p.subs.reduce((n, s) => n + (s.boosts || 0), 0);
+  assert(boosts === 5, `a +15 piece should carry 5 boosts, has ${boosts}`);
+  p.subs.forEach((s, i) => {
+    const r = RANGES[s.stat];
+    const grew = s.value - baseValues[i];
+    if (!s.boosts) {
+      assert(Math.abs(grew) < 1e-9, `${s.stat} moved without a boost`);
+      return;
+    }
+    // Each boost adds one whole roll from the stat's own range.
+    assert(grew >= s.boosts * r[0] - 1e-9 && grew <= s.boosts * r[1] + 1e-9,
+      `${s.stat} grew ${grew} over ${s.boosts} boosts, range ${r}`);
+  });
+  // Rerolling a boosted piece re-rolls all its rolls: base plus boosts.
+  const offer = G.rollSubValues(p);
+  offer.forEach((o, i) => {
+    const r = RANGES[o.stat];
+    const rolls = 1 + (p.subs[i].boosts || 0);
+    assert(o.boosts === (p.subs[i].boosts || 0), 'reroll dropped the boost count');
+    assert(o.value >= rolls * r[0] - 1e-9 && o.value <= rolls * r[1] + 1e-9,
+      `reroll of ${o.stat} (${rolls} rolls) offered ${o.value}, range ${r}`);
+  });
   w.unseed();
 });
 
