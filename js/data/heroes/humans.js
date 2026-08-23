@@ -1213,6 +1213,102 @@ Object.assign(HEROES, {
     positional: POSITIONALS.bedrock,
   },
 
+  tanner: {
+    id: 'tanner',
+    element: 'water',
+    name: 'Tanner',
+    title: 'Prince of Cryst',
+    rarity: 4,
+    // A tempo support in court dress: token heals, real gifts — turn
+    // meter handed out every round, and a bubble that voids whole hits.
+    stats: { hp: 1550, atk: 140, def: 145, speed: 108 },
+    tint: { body: '#3a5a9a', helm: '#2a3a6a', weapon: '#c8b070', skin: '#e8c8a8' },
+    // 256px square frames: 9 across, except the idle at 13 — the prince
+    // sways with his cane at length. Two gesturing fidgets.
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Tanner/tanneridle.png', frames: 13, fps: 6, loop: true },
+        idle2: { src: 'assets/heroes/Tanner/tanneridle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Tanner/tanneridle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // A conjured droplet, sprinkled with princely economy.
+        attack: { src: 'assets/heroes/Tanner/tannerskill1.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        // The cane flourish that scatters blue plumes over an ally.
+        skill2: { src: 'assets/heroes/Tanner/tannerskill2.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 6 },
+        // The spin that blows the bubbles — rings of water at 6.
+        skill3: { src: 'assets/heroes/Tanner/tannerskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Tanner/tannerdeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'tanner_royal_gesture', name: 'Royal Gesture',
+        icon: 'assets/icons/fc1023.png',
+        description: 'A token of royal concern: mend one ally for 5% of ' +
+          'Tanner\'s max HP.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.05 },
+        ],
+      },
+      {
+        id: 'tanner_royal_favor', name: 'Royal Favor',
+        icon: 'assets/icons/fc1091.png',
+        description: 'Bestow the court\'s favor on one ally: +30% ATK for ' +
+          '2 turns and +50 turn meter on the spot.',
+        cooldown: 3, targeting: 'ally', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.3, turns: 2 },
+          { type: 'turnMeter', amount: 0.50 },
+        ],
+      },
+      {
+        id: 'tanner_bubble_court', name: 'Bubble Court',
+        icon: 'assets/icons/fc1016.png',
+        description: 'Blow a bubble around every ally for 2 turns: each ' +
+          'bubble swallows ONE entire hit, then pops.',
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        effects: [
+          { type: 'bubble', turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Noblesse Oblige',
+      icon: 'assets/icons/fc1092.png',
+      description: 'At the start of each of his turns, the ally furthest ' +
+        'from acting gains +10 turn meter. Rank has its duties.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const mates = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (!mates.length) return null;
+          const ally = mates.sort((a, b) => a.turnMeter - b.turnMeter)[0];
+          const before = ally.turnMeter;
+          ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            ally.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+          const gained = ally.turnMeter - before;
+          // The turn this buys can credit its damage back to the prince.
+          if (gained > 0 && ally.meterGifts) {
+            ally.meterGifts.push({ source: unit, amount: gained });
+          }
+          return {
+            label: 'Noblesse Oblige',
+            message: `${unit.name} waves ${ally.name} onward — +10 turn meter.`,
+            floats: [{ target: ally, text: 'AP ▲', color: '#5ec2f0' }],
+          };
+        },
+      },
+    },
+    positional: POSITIONALS.second_wind,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

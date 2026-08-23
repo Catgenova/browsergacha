@@ -911,5 +911,15 @@ class Unit {
     const cd = abilityState.def.cooldown;
     abilityState.cooldownRemaining = cd > 0 ? Math.max(0, cd - this.gearCdr) : 0;
     this.turnMeter = 0;
+    // Meter refunds a hook can promise (Tanner's second wind): applied
+    // after the reset, so the refund is a head start on the next fill.
+    for (const p of this.hookSources()) {
+      const hook = p.hooks && p.hooks.meterRefund;
+      const refund = hook ? hook(this) : 0;
+      if (refund > 0) {
+        this.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+          this.turnMeter + CONFIG.TURN_METER_MAX * refund);
+      }
+    }
   }
 }

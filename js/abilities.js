@@ -84,6 +84,19 @@ const Abilities = (() => {
       if (target.dodged) target.dodged(caster);
       return { kind: 'damage', target, amount: 0, dodged: true };
     }
+    // Bubble (Tanner): a held breath that eats ONE entire hit, then
+    // pops. Checked after the dodge — a hit that never came doesn't pop
+    // it — and before everything else: the bubble takes the whole blow.
+    const bi = target.statusEffects.findIndex((fx) => fx.kind === 'bubble');
+    if (bi !== -1) {
+      const fx = target.statusEffects[bi];
+      target.statusEffects.splice(bi, 1);
+      // The prevented hit is the bubble-blower's mitigation.
+      if (typeof Meter !== 'undefined' && Meter.mitigated) {
+        Meter.mitigated(fx.source || target, dmg);
+      }
+      return { kind: 'damage', target, amount: 0, bubbled: true };
+    }
     // Defensive multipliers (guard passives, wards, resonance) blunt the
     // hit. blunt() books who prevented what — a ward cast by a support
     // belongs to that support, not to the ally standing behind it.
@@ -383,6 +396,19 @@ const Abilities = (() => {
           return null; // no trigger, no log noise
         }
         return freeze(caster, target, effect.turns || 2);
+      }
+      case 'bubble': {
+        // A blue glass sphere around the target: it absorbs one whole
+        // incoming hit, pops, and is gone. Recasting refreshes the timer
+        // instead of stacking a second sphere.
+        const turns = effect.turns || 2;
+        const held = target.statusEffects.find((fx) => fx.kind === 'bubble');
+        if (held) {
+          held.turns = turns;
+          return { kind: 'bubble', target, turns, refreshed: true };
+        }
+        target.addStatusEffect({ kind: 'bubble', turns, source: caster });
+        return { kind: 'bubble', target, turns };
       }
       case 'removeStatus': {
         // Strip every status matching `stat` off the target — Polarus's
