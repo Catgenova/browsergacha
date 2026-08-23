@@ -48,20 +48,20 @@ const Events = (() => {
   // A rotating rate-up: while a banner runs, its sect's heroes draw at
   // `mult` weight WITHIN whatever star band a pull rolls — the band
   // rates themselves never move, only the contest inside the band.
-  // The weight applies to every scroll kind and is naturally inert
-  // where the sect has no heroes in the pool (Reverence is all light,
-  // so its banner only bites on Temporal pulls; Cryst is all water, so
-  // its turn lives in Common and Rare pulls).
   //
   // `from`/`until` are [year, monthIndex, day] local midnights; `until`
   // is exclusive — the day the next banner takes over.
+  // `scroll` is the scroll kind a banner pull spends: the banner is an
+  // ELECTIVE summon — pull on it and the sect draws at 2× weight inside
+  // whatever star band the roll lands; pull the plain scroll instead
+  // and the pool stays flat.
   const SUMMON_BANNERS = [
     { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence',
-      mult: 2, until: [2026, 7, 30],
-      label: 'Rate-up: Reverence Sect heroes at 2× draw weight in Temporal 🌀 summons — through Aug 29.' },
+      scroll: 'temporal', mult: 2, until: [2026, 7, 30],
+      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 29, then the Court of Cryst takes the banner.' },
     { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
-      mult: 2, from: [2026, 7, 30],
-      label: 'Rate-up: Cryst Sect heroes at 2× draw weight in Common 📜 and Rare ✨ summons.' },
+      scroll: 'rare', mult: 2, from: [2026, 7, 30],
+      label: 'Cryst Sect heroes at 2× draw weight within their star band.' },
   ];
 
   function currentBanner(date = new Date()) {

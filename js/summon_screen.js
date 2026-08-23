@@ -22,6 +22,19 @@ class SummonScreen {
     for (const b of this.buttons) {
       b.el.addEventListener('click', () => this.summon(b.kind, b.count));
     }
+    // The elective banner pulls: same scrolls as the banner's kind, but
+    // the running sect draws at double weight inside its star band.
+    this.bannerBtns = [
+      { el: document.getElementById('summon-banner-one'), count: 1 },
+      { el: document.getElementById('summon-banner-ten'), count: 10 },
+    ];
+    for (const b of this.bannerBtns) {
+      b.el.addEventListener('click', () => {
+        const banner = typeof Events !== 'undefined' ? Events.currentBanner() : null;
+        if (banner) this.summon(banner.scroll, b.count, { banner: true });
+      });
+    }
+    this.builtBannerId = null;
   }
 
   enter() {
@@ -33,13 +46,15 @@ class SummonScreen {
   updateInfo() {
     this.scrollsEl.textContent =
       `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare · 🌀 ${GameState.scrollsTemporal} temporal`;
-    // The running rate-up banner, if the calendar has one.
+    // The running rate-up banner points at its elective block below.
     const bannerEl = document.getElementById('summon-banner');
+    const banner = typeof Events !== 'undefined' ? Events.currentBanner() : null;
     if (bannerEl) {
-      const label = typeof Events !== 'undefined' ? Events.bannerLabel() : '';
-      bannerEl.textContent = label ? `⚡ ${label}` : '';
-      bannerEl.classList.toggle('hidden', !label);
+      bannerEl.textContent = banner
+        ? `⚡ Banner: ${banner.name} — scroll down to pull on it!` : '';
+      bannerEl.classList.toggle('hidden', !banner);
     }
+    this.updateBannerBlock(banner);
     // Pity is only meaningful once a 5★ hero exists to be pitied into.
     const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
     this.pityEl.textContent = has5
@@ -53,11 +68,61 @@ class SummonScreen {
     }
   }
 
-  summon(kind, count) {
+  // The elective banner block: name, the featured sect, its own pull
+  // buttons. Rebuilt only when the calendar turns a page.
+  updateBannerBlock(banner) {
+    const block = document.getElementById('banner-block');
+    if (!block) return;
+    block.classList.toggle('hidden', !banner);
+    if (!banner) return;
+    const SCROLL = { common: ['📜', 'Common'], rare: ['✨', 'Rare'], temporal: ['🌀', 'Temporal'] };
+    const [icon, scrollName] = SCROLL[banner.scroll] || ['📜', banner.scroll];
+    if (this.builtBannerId !== banner.id) {
+      this.builtBannerId = banner.id;
+      document.getElementById('banner-title').textContent = `⚡ Banner: ${banner.name}`;
+      document.getElementById('banner-sub').textContent =
+        `${banner.label} Uses ${scrollName} ${icon} scrolls — the star rates are the scroll's own.`;
+      const strip = document.getElementById('banner-featured');
+      strip.innerHTML = '';
+      const featured = Object.values(HEROES)
+        .filter((h) => RACES.sectOf(h) && RACES.sectOf(h).id === banner.sect)
+        .sort((a, b) => b.rarity - a.rarity);
+      for (const def of featured) {
+        const card = document.createElement('div');
+        card.className = 'banner-hero';
+        const canvas = document.createElement('canvas');
+        canvas.width = 72;
+        canvas.height = 72;
+        Sprites.drawPortrait(canvas, def);
+        const name = document.createElement('div');
+        name.className = 'bh-name';
+        name.textContent = def.name;
+        const stars = document.createElement('div');
+        stars.className = 'bh-stars';
+        stars.textContent = '★'.repeat(def.rarity);
+        card.append(canvas, name, stars);
+        card.title = `Open ${def.name} in the compendium`;
+        card.addEventListener('click', () => {
+          this.app.screens.compendium.openHero(def.id);
+          this.app.showScreen('compendium');
+        });
+        strip.appendChild(card);
+      }
+    }
+    const have = banner.scroll === 'rare' ? GameState.scrollsRare
+      : banner.scroll === 'temporal' ? GameState.scrollsTemporal
+      : GameState.scrollsCommon;
+    for (const b of this.bannerBtns) {
+      b.el.textContent = `Banner ×${b.count} (${b.count} ${icon})`;
+      b.el.disabled = this.revealing || have < b.count;
+    }
+  }
+
+  summon(kind, count, opts = {}) {
     if (this.revealing) return;
     this.errorEl.textContent = '';
 
-    const results = Gacha.pull(kind, count);
+    const results = Gacha.pull(kind, count, opts);
     if (!results) {
       this.errorEl.textContent = 'Not enough scrolls!';
       return;
