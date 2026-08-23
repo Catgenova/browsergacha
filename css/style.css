@@ -2456,6 +2456,26 @@ html.is-mobile .sub-compare { font-size: 13px; }
 }
 .login-milestone.login-done { border-color: #4a7a4a; color: #a8e8a8; }
 .login-claim { width: 100%; }
+/* The month grid: one cell per calendar day. */
+.login-calendar {
+  display: grid; grid-template-columns: repeat(7, minmax(34px, 1fr));
+  gap: 4px; margin: 10px 0;
+}
+.cal-day {
+  position: relative; min-height: 34px; border-radius: 6px;
+  border: 1px solid #3a3450; background: #1a1626;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-num { font-size: 11px; color: #c8c2da; font-variant-numeric: tabular-nums; }
+.cal-check { position: absolute; right: 3px; bottom: 1px; font-size: 9px; color: #7ae87a; }
+.cal-star { position: absolute; left: 3px; top: 1px; font-size: 8px; color: #ffd76a; }
+.cal-day.cal-stamped { border-color: #4a7a4a; background: rgba(122, 232, 122, 0.07); }
+.cal-day.cal-today { border-color: #ffd76a; background: rgba(240, 193, 75, 0.12); }
+.cal-day.cal-today .cal-num { color: #ffd76a; font-weight: 700; }
+.cal-day.cal-missed { opacity: 0.55; }
+.cal-day.cal-missed .cal-num { color: #d88a7a; }
+.cal-day.cal-future { opacity: 0.45; }
+
 .login-catchup-row {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   margin: 4px 0 10px; padding: 8px 10px;

@@ -44,21 +44,30 @@ class QuestsScreen {
     this.boardsEl.innerHTML = boards.map((b) => b.html).join('');
     window.scrollTo(sx, sy);
 
-    const loginBtn = this.boardsEl.querySelector('.login-claim:not([disabled])');
-    if (loginBtn) {
-      loginBtn.addEventListener('click', () => {
-        const got = GameState.claimLogin();
+    const first7Btn = this.boardsEl.querySelector('.first7-claim:not([disabled])');
+    if (first7Btn) {
+      first7Btn.addEventListener('click', () => {
+        const got = GameState.claimFirstSeven();
         this.loginMsg = got && got.error === 'roster-full'
           ? 'The roster is full — make room before claiming today\'s hero.' : '';
         if (got && !got.error && typeof Sound !== 'undefined') Sound.play('claim');
         this.refresh();
       });
     }
+    const monthBtn = this.boardsEl.querySelector('.month-claim:not([disabled])');
+    if (monthBtn) {
+      monthBtn.addEventListener('click', () => {
+        const got = GameState.claimMonthly();
+        if (got && typeof Sound !== 'undefined') Sound.play('claim');
+        this.refresh();
+      });
+    }
     const catchUpBtn = this.boardsEl.querySelector('.login-catchup:not([disabled])');
     if (catchUpBtn) {
-      catchUpBtn.addEventListener('click', () => {
+      catchUpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const got = GameState.buyLoginCatchUp();
-        this.loginMsg = got && got.error === 'diamonds'
+        this.loginMsg2 = got && got.error === 'diamonds'
           ? `Not enough Diamonds — the catch-up costs ${got.cost} 💎.` : '';
         if (got && !got.error && typeof Sound !== 'undefined') Sound.play('claim');
         this.refresh();
@@ -94,16 +103,22 @@ class QuestsScreen {
       });
   }
 
-  // The login board: the looping 7-day track plus this month's stamp
-  // calendar, with one claim a day covering both.
+  // Two separate login boards: the one-time First Seven Days hero
+  // track, and the monthly stamp calendar (its own daily claim, drawn
+  // as a real month grid, collapsible once today is stamped).
   loginBoard() {
+    return [...this.firstSevenBoard(), ...this.monthlyBoard()];
+  }
+
+  firstSevenBoard() {
     const info = GameState.loginInfo();
-    const claimable = info.claimable ? 1 : 0;
     const trackDone = info.cycle >= Events.LOGIN_WEEK.length;
+    if (trackDone) return []; // finished for good — the board retires
+    const claimable = info.firstSevenClaimable ? 1 : 0;
     const chips = Events.LOGIN_WEEK.map((r, i) => {
       const done = i < info.cycle;
-      const today = i === info.cycle && info.claimable;
-      const next = i === info.cycle && !info.claimable;
+      const today = i === info.cycle && claimable;
+      const next = i === info.cycle && !claimable;
       return `<div class="login-chip${done ? ' login-done-chip' : ''}${today ? ' login-today' : ''}${next ? ' login-next' : ''}">
         <div class="login-chip-day">Day ${i + 1}</div>
         <div class="login-chip-reward">${r.label}</div>
@@ -112,46 +127,91 @@ class QuestsScreen {
           : next ? '<div class="login-chip-tag">NEXT</div>' : ''}
       </div>`;
     }).join('');
-    const nextStamp = info.stamps + (info.claimable ? 1 : 0);
+    return [{
+      claimable,
+      html: `<div class="quest-board">
+        <div class="quest-board-header"><h3>🎁 First Seven Days</h3>
+          <span class="quest-reset">${claimable
+            ? 'Today\'s hero is ready!'
+            : `Next hero in ${Quests.formatCountdown(Quests.timeToReset('daily'))}`}</span>
+        </div>
+        <div class="login-sub">Your first seven login days — any seven, they
+          need not be consecutive — each bring a hero to the roster.</div>
+        <div class="login-track">${chips}</div>
+        ${this.loginMsg ? `<div class="login-msg">${this.loginMsg}</div>` : ''}
+        <button class="first7-claim panel-btn gold" ${claimable ? '' : 'disabled'}>
+          ${claimable
+            ? `Claim day ${info.cycle + 1}: ${Events.LOGIN_WEEK[info.cycle].label}`
+            : 'Claimed — come back tomorrow'}</button>
+      </div>` }];
+  }
+
+  monthlyBoard() {
+    const info = GameState.loginInfo();
+    const claimable = info.monthlyClaimable ? 1 : 0;
+    const now = new Date();
+    const today = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthName = now.toLocaleString('default', { month: 'long' });
+    const stamped = new Set(info.stampedDays);
+    const cells = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cls = stamped.has(d) ? 'cal-stamped'
+        : d === today ? (claimable ? 'cal-today' : 'cal-stamped')
+        : d < today ? 'cal-missed' : 'cal-future';
+      const milestone = Events.LOGIN_MONTH_MILESTONES[d];
+      cells.push(`<div class="cal-day ${cls}"${milestone
+        ? ` title="Stamp ${d} milestone: ${milestone.label}"` : ''}>
+        <span class="cal-num">${d}</span>
+        ${stamped.has(d) || (d === today && !claimable) ? '<span class="cal-check">✓</span>' : ''}
+        ${milestone ? '<span class="cal-star">★</span>' : ''}
+      </div>`);
+    }
+    const nextStamp = info.stamps + (claimable ? 1 : 0);
     const monthNow = Events.monthlyLoginReward(Math.max(1, nextStamp));
     const milestones = Object.entries(Events.LOGIN_MONTH_MILESTONES)
       .map(([n, r]) => `<span class="login-milestone${info.stamps >= Number(n) ? ' login-done' : ''}">
-        Day ${n}: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
+        Stamp ${n}: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
       .join('');
     const missed = GameState.loginMissedDays();
     const cost = GameState.loginCatchUpCost();
     const canAfford = GameState.diamonds >= cost;
     const catchUp = missed > 0 ? `
         <div class="login-catchup-row">
-          <span class="login-missed">${missed} calendar day${missed > 1 ? 's' : ''} missed
+          <span class="login-missed">${missed} day${missed > 1 ? 's' : ''} missed
             this month — buy the stamps back?</span>
           <button class="login-catchup panel-btn" ${canAfford ? '' : 'disabled'}
             title="${canAfford ? `Stamp all ${missed} missed days and collect their rewards`
               : `Needs ${cost} 💎 — you have ${GameState.diamonds}`}">
             Catch up (${cost} 💎)</button>
         </div>` : '';
+    // Collapsible: shut by default once today is stamped, unless the
+    // player opened it this session (the achievement accordion's rules).
+    const group = 'monthly_login';
+    const open = this.groupOpen.has(group) ? this.groupOpen.get(group) : claimable > 0;
     return [{
       claimable,
-      html: `<div class="quest-board">
-        <div class="quest-board-header"><h3>📅 First Seven Days</h3>
-          <span class="quest-reset">${info.claimable
-            ? 'Today\'s bonus is ready!'
-            : `Next bonus in ${Quests.formatCountdown(Quests.timeToReset('daily'))}`}</span>
+      html: `<div class="quest-board ${open ? '' : 'quest-collapsed'}" data-group="${group}">
+        <div class="quest-board-header">
+          <h3><span class="ach-caret">${open ? '▾' : '▸'}</span>📅 ${monthName} Login Calendar</h3>
+          <span class="quest-reset">${claimable
+            ? 'Today\'s stamp is ready!'
+            : `Stamped ✓ — next in ${Quests.formatCountdown(Quests.timeToReset('daily'))}`}
+            · ${info.stamps} stamped</span>
         </div>
-        <div class="login-sub">Your first seven login days — any seven, they
-          need not be consecutive — each bring a hero to the roster.${trackDone
-            ? ' <b>All seven claimed — the court is yours.</b>' : ''}</div>
-        <div class="login-track">${chips}</div>
-        <div class="login-month">
-          <div class="login-month-line">Monthly calendar: <b>${info.stamps}</b> login
-            day${info.stamps === 1 ? '' : 's'} stamped this month${info.claimable
-              ? ` — today's stamp (day ${nextStamp}) adds <b>${monthNow.label}</b>` : ''}.</div>
-          <div class="login-milestones">${milestones}</div>
+        <div class="quest-rows">
+          <div class="login-calendar">${cells.join('')}</div>
+          <div class="login-month">
+            <div class="login-month-line">${claimable
+              ? `Today's stamp (stamp ${nextStamp}) adds <b>${monthNow.label}</b>.`
+              : 'Today is stamped — the calendar rolls on tomorrow.'}</div>
+            <div class="login-milestones">${milestones}</div>
+          </div>
+          ${catchUp}
+          ${this.loginMsg2 ? `<div class="login-msg">${this.loginMsg2}</div>` : ''}
+          <button class="month-claim panel-btn gold" ${claimable ? '' : 'disabled'}>
+            ${claimable ? 'Stamp today' : 'Stamped — come back tomorrow'}</button>
         </div>
-        ${catchUp}
-        ${this.loginMsg ? `<div class="login-msg">${this.loginMsg}</div>` : ''}
-        <button class="login-claim panel-btn gold" ${info.claimable ? '' : 'disabled'}>
-          ${info.claimable ? 'Claim today\'s login bonus' : 'Claimed — come back tomorrow'}</button>
       </div>` }];
   }
 

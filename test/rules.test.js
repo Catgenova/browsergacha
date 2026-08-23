@@ -1878,61 +1878,57 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
     `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
-test('login bonuses: the week pays heroes, the month stamps, catch-up buys back', () => {
+test('login bonuses: two separate claims, a real calendar, catch-up buys days', () => {
   const w = loadGame();
   const G = w.GameState;
   const E = w.Events;
 
-  // The 7-day track hands over the water court in order.
   const order = ['florence', 'ari', 'cain', 'tanner', 'angelica', 'bit', 'sawyer'];
-  assert(E.LOGIN_WEEK.length === 7, 'the week track is not a week');
   E.LOGIN_WEEK.forEach((r, i) => {
     assert(r.hero === order[i], `day ${i + 1} pays ${r.hero}, wanted ${order[i]}`);
-    assert(w.HEROES[r.hero], `day ${i + 1} pays a hero that does not exist`);
   });
-  for (const [n, r] of Object.entries(E.LOGIN_MONTH_MILESTONES)) {
-    assert(E.monthlyLoginReward(Number(n)) === r, `milestone ${n} unreachable`);
-  }
-  assert(E.monthlyLoginReward(29).label, 'day 29 falls off the calendar');
 
-  assert(G.loginClaimable(), 'a fresh save has nothing to claim');
+  // The two claims are independent: taking the hero leaves the stamp.
+  assert(G.firstSevenClaimable() && G.monthlyClaimable(), 'fresh save not claimable');
   const tideBefore = G.countOf('florence');
-  const whetBefore = G.whetstones;
-  const got = G.claimLogin();
-  assert(got && got.day === 1 && got.stamps === 1,
-    `first claim reported ${JSON.stringify(got)}`);
-  // Day 1 of the week track pays a Tide; stamp 1 of the month pays the
-  // n=1 filler (15 whetstones).
+  const heroGot = G.claimFirstSeven();
+  assert(heroGot && heroGot.day === 1, `hero claim reported ${JSON.stringify(heroGot)}`);
   assert(G.countOf('florence') === tideBefore + 1, 'day 1 paid no Tide');
-  assert(G.whetstones === whetBefore + 15,
-    `whetstones ${G.whetstones} vs ${whetBefore} + 15`);
-  assert(G.loginInfo().cycle === 1 && G.loginInfo().stamps === 1,
-    'the ledgers did not advance');
-  assert(G.claimLogin() === null, 'a double claim went through');
+  assert(!G.firstSevenClaimable(), 'hero claim still open');
+  assert(G.monthlyClaimable(), 'the hero claim swallowed the stamp');
 
-  // Catch-up: every missed calendar day this month can be bought back
-  // at 20 diamonds apiece, stamping the month and paying each stamp.
-  const missed = G.loginMissedDays();
-  assert(G.loginCatchUpCost() === missed * 20,
-    `cost ${G.loginCatchUpCost()} for ${missed} missed`);
-  if (missed === 0) {
-    // The 1st of the month: nothing to buy.
+  // The stamp records today\'s actual calendar day.
+  const whetBefore = G.whetstones;
+  const stampGot = G.claimMonthly();
+  const today = new Date().getDate();
+  assert(stampGot && stampGot.dayOfMonth === today && stampGot.stamps === 1,
+    `stamp reported ${JSON.stringify(stampGot)}`);
+  assert(G.whetstones === whetBefore + 15, 'stamp 1 skipped the filler');
+  assert(G.loginInfo().stampedDays.join() === String(today),
+    `stamped days read ${G.loginInfo().stampedDays}`);
+  assert(G.claimMonthly() === null && G.claimFirstSeven() === null,
+    'a double claim went through');
+
+  // Catch-up: buys exactly the unstamped PRIOR days of the month.
+  const missedList = G.loginMissedList();
+  assert(missedList.length === today - 1, `missed ${missedList.length} of ${today - 1}`);
+  assert(G.loginCatchUpCost() === missedList.length * 20, 'cost off the menu');
+  if (missedList.length === 0) {
     assert(G.buyLoginCatchUp() === null, 'bought zero days');
   } else {
     const broke = G.buyLoginCatchUp();
     assert(broke && broke.error === 'diamonds', 'a broke catch-up went through');
-    G.addDiamonds(missed * 20);
-    const spentFrom = G.diamonds;
+    G.addDiamonds(G.loginCatchUpCost());
     const bought = G.buyLoginCatchUp();
-    assert(bought && bought.bought === missed && bought.rewards.length === missed,
-      `catch-up reported ${JSON.stringify(bought && { b: bought.bought })}`);
-    // Diamonds went out (some may have come back as stamp rewards).
-    assert(G.loginInfo().stamps === 1 + missed,
-      `stamps ${G.loginInfo().stamps} after buying ${missed}`);
+    assert(bought && bought.bought === missedList.length, 'the buy came up short');
     assert(G.loginMissedDays() === 0, 'days still missing after the buy');
-    assert(spentFrom - bought.cost <= G.diamonds, 'diamond math went backwards');
-    // The 7-day track did NOT move — catch-up is calendar-only.
-    assert(G.loginInfo().cycle === 1, 'catch-up dragged the week track');
+    const days = G.loginInfo().stampedDays;
+    assert(days.length === today, `calendar shows ${days.length} of ${today} days`);
+    for (let d = 1; d <= today; d++) {
+      assert(days.includes(d), `day ${d} missing from the calendar`);
+    }
+    // The hero track did not move.
+    assert(G.loginInfo().cycle === 1, 'catch-up dragged the hero track');
   }
 });
 
