@@ -44,6 +44,50 @@ const Events = (() => {
     return `Today's event: ${DROP_MULT}× ${name} drops from the ${name} rift!`;
   }
 
+  // ---- Summon banners ----
+  // A rotating rate-up: while a banner runs, its sect's heroes draw at
+  // `mult` weight WITHIN whatever star band a pull rolls — the band
+  // rates themselves never move, only the contest inside the band.
+  // The weight applies to every scroll kind and is naturally inert
+  // where the sect has no heroes in the pool (Reverence is all light,
+  // so its banner only bites on Temporal pulls; Cryst is all water, so
+  // its turn lives in Common and Rare pulls).
+  //
+  // `from`/`until` are [year, monthIndex, day] local midnights; `until`
+  // is exclusive — the day the next banner takes over.
+  const SUMMON_BANNERS = [
+    { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence',
+      mult: 2, until: [2026, 7, 30],
+      label: 'Rate-up: Reverence Sect heroes at 2× draw weight in Temporal 🌀 summons — through Aug 29.' },
+    { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
+      mult: 2, from: [2026, 7, 30],
+      label: 'Rate-up: Cryst Sect heroes at 2× draw weight in Common 📜 and Rare ✨ summons.' },
+  ];
+
+  function currentBanner(date = new Date()) {
+    for (const b of SUMMON_BANNERS) {
+      if (b.from && date < new Date(...b.from)) continue;
+      if (b.until && date >= new Date(...b.until)) continue;
+      return b;
+    }
+    return null;
+  }
+
+  // The draw weight this hero carries in a summon pool today (1 or the
+  // running banner's mult).
+  function bannerWeight(def, date = new Date()) {
+    const b = currentBanner(date);
+    if (!b || !def) return 1;
+    const sect = typeof RACES !== 'undefined' ? RACES.sectOf(def) : null;
+    return sect && sect.id === b.sect ? b.mult : 1;
+  }
+
+  function bannerLabel(date = new Date()) {
+    const b = currentBanner(date);
+    return b ? b.label : '';
+  }
+
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
-    isWeekend, boostedElements, elementBoost, scheduleLabel };
+    isWeekend, boostedElements, elementBoost, scheduleLabel,
+    SUMMON_BANNERS, currentBanner, bannerWeight, bannerLabel };
 })();

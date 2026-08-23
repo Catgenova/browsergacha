@@ -33,6 +33,13 @@ class SummonScreen {
   updateInfo() {
     this.scrollsEl.textContent =
       `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare · 🌀 ${GameState.scrollsTemporal} temporal`;
+    // The running rate-up banner, if the calendar has one.
+    const bannerEl = document.getElementById('summon-banner');
+    if (bannerEl) {
+      const label = typeof Events !== 'undefined' ? Events.bannerLabel() : '';
+      bannerEl.textContent = label ? `⚡ ${label}` : '';
+      bannerEl.classList.toggle('hidden', !label);
+    }
     // Pity is only meaningful once a 5★ hero exists to be pitied into.
     const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
     this.pityEl.textContent = has5

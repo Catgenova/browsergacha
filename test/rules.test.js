@@ -1826,6 +1826,46 @@ test('the event calendar: one element doubled each weekday, all five on weekends
   assert(!E.isWeekend(day(0)), 'Monday is not a weekend, whatever it feels like');
 });
 
+test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => {
+  const E = g.Events;
+  const during = new Date(2026, 7, 25, 12); // Aug 25 — Reverence running
+  const after = new Date(2026, 7, 30, 0, 1); // Aug 30 — Cryst takes over
+
+  assert(E.currentBanner(during).id === 'reverence_rateup',
+    `Aug 25 banner is ${E.currentBanner(during).id}`);
+  assert(E.currentBanner(after).id === 'cryst_rateup',
+    `Aug 30 banner is ${E.currentBanner(after).id}`);
+  assert(E.currentBanner(new Date(2026, 7, 29, 23, 59)).id === 'reverence_rateup',
+    'the handover came early');
+
+  // Weights tilt with the calendar; the band rates never moved.
+  assert(E.bannerWeight(HEROES.toll, during) === 2, 'Toll unweighted on his banner');
+  assert(E.bannerWeight(HEROES.polarus, during) === 1, 'the King cut in early');
+  assert(E.bannerWeight(HEROES.toll, after) === 1, 'Toll overstayed');
+  assert(E.bannerWeight(HEROES.polarus, after) === 2, 'the King missed his turn');
+  assert(E.bannerWeight(HEROES.rat_brawler, during) === 1, 'a rat on the banner');
+
+  // The tilt shows up in real draws: 3-star Temporal picks during the
+  // Reverence banner land on sect members ~2x their per-capita share.
+  const pool3 = Object.values(HEROES).filter((h) =>
+    h.rarity === 3 && ['light', 'dark'].includes(h.element));
+  const revCount = pool3.filter((h) =>
+    RACES.sectOf(h) && RACES.sectOf(h).id === 'reverence').length;
+  assert(revCount > 0, 'no 3-star Reverence heroes in the temporal pool');
+  const draws = 6000;
+  let hits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = g.Gacha.pickHero(3, ['light', 'dark'], during);
+    const sect = RACES.sectOf(def);
+    if (sect && sect.id === 'reverence') hits++;
+  }
+  const expectedFlat = revCount / pool3.length;
+  const expectedTilted = (revCount * 2) / (pool3.length + revCount);
+  const seen = hits / draws;
+  assert(seen > expectedFlat * 1.4 && seen < expectedTilted * 1.25,
+    `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

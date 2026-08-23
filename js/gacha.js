@@ -56,7 +56,24 @@ const Gacha = (() => {
     return RATES[kind][RATES[kind].length - 1].rarity;
   }
 
-  function pickHero(rarity, elements = null) {
+  // A banner rate-up (see Events.SUMMON_BANNERS) tilts the draw WITHIN
+  // the rolled band: each hero carries a weight, and the banner's sect
+  // carries double. Band rates are untouched.
+  function weightedDraw(pool, date) {
+    if (typeof Events === 'undefined' || !Events.bannerWeight) {
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    const weights = pool.map((h) => Events.bannerWeight(h, date));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i];
+      if (r < 0) return pool[i];
+    }
+    return pool[pool.length - 1];
+  }
+
+  function pickHero(rarity, elements = null, date = new Date()) {
     // The scroll's element pool applies; if that pool is entirely empty
     // (e.g. no dark/light heroes yet) fall back to all elements.
     const inPool = (r) => poolByRarity(r, elements);
@@ -76,7 +93,7 @@ const Gacha = (() => {
       const below = available.filter((r) => r <= rarity);
       pool = pick(below.length > 0 ? below[below.length - 1] : available[0]);
     }
-    return pool[Math.floor(Math.random() * pool.length)];
+    return weightedDraw(pool, date);
   }
 
   // One pull with a scroll of `kind`. Rare-scroll pulls tick the 5★
@@ -115,5 +132,5 @@ const Gacha = (() => {
     return results;
   }
 
-  return { pull, PITY_LIMIT, RATES };
+  return { pull, pickHero, PITY_LIMIT, RATES };
 })();
