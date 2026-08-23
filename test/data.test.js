@@ -184,8 +184,8 @@ test('every race pack mirrors its gear set, tier for tier', () => {
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
     cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit', 'tanner'] },
-    hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
-    reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
+    hedge: { number: 3, members: ['vex', 'vivian', 'coral'] },
+    reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily'] },
     shadowflower: { number: 2, members: ['sawyer'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),

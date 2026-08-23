@@ -54,15 +54,15 @@ const RACES = (() => {
 
   // Human sects: the named heroes belong to orders, each with an
   // assigned number (a designation, not a roster size — Reverence is
-  // No. 4 and runs seven strong). Members are hero ids; 'echo' is
+  // No. 4 and runs eight strong). Members are hero ids; 'echo' is
   // Aniani, 'florence' is Tide (the Crystal Blade wears Cryst blue).
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
                  members: ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit', 'tanner'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
-                 members: ['vex', 'vivian', 'coral', 'emily'] },
+                 members: ['vex', 'vivian', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
-                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
+                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily'] },
     // Sawyer's order; no sect bonuses are wired for anyone yet, so a
     // one-member sect costs nothing and claims the name.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
