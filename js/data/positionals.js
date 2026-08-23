@@ -341,6 +341,19 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('cold_forge', {
+    position: POSITION.BACK,
+    name: 'Cold Forge',
+    description: 'Back hex: +15% ATK and +10% DEF — the craft is better done unhurried.',
+    hooks: {
+      onTurnStart(unit) {
+        unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.15, turns: 1 });
+        unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.10, turns: 1 });
+        return null; // silent: it re-applies every turn
+      },
+    },
+  });
+
   def('undermine', {
     position: POSITION.CENTER,
     name: 'Undermine',

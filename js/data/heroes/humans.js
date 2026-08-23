@@ -865,6 +865,97 @@ Object.assign(HEROES, {
     positional: POSITIONALS.undermine,
   },
 
+  angelica: {
+    id: 'angelica',
+    element: 'water',
+    name: 'Angelica',
+    title: 'Crystcaster',
+    rarity: 3,
+    // A back-line caster who starts modest and compounds: every enemy
+    // frozen anywhere in the fight adds another tenth to her ATK.
+    stats: { hp: 1100, atk: 235, def: 90, speed: 102 },
+    tint: { body: '#e8e4da', helm: '#f0ece2', weapon: '#7ae0e8', skin: '#e8c8a8' },
+    // 256px square frames: 9 across, except the death at 17. Three
+    // idles — the hooded sway and two crystal-flare fidgets.
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Angelica/angelicaidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Angelica/angelicaidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Angelica/angelicaidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The staff crystal flares as the shard flies.
+        attack: { src: 'assets/heroes/Angelica/angelicaskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 7 },
+        // The conjured orb leaves her hand mid-strip.
+        skill2: { src: 'assets/heroes/Angelica/angelicaskill2.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 7 },
+        // The staff slams and the burst crackles out on frame 7.
+        skill3: { src: 'assets/heroes/Angelica/angelicaskill3.png', frames: 9, fps: 10,
+                  loop: false, hitFrame: 7 },
+        death: { src: 'assets/heroes/Angelica/angelicadeath.png', frames: 17, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'angelica_shardcast', name: 'Shardcast',
+        icon: 'assets/icons/fc1012.png',
+        description: 'Loose a crystal shard for 90% ATK with a 30% chance ' +
+          'to freeze the target solid for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+          { type: 'freeze', chance: 0.30, turns: 2 },
+        ],
+      },
+      {
+        id: 'angelica_rimeorb', name: 'Rimeorb',
+        icon: 'assets/icons/fc1023.png',
+        description: 'Conjure and hurl a sphere of packed rime: 125% ATK ' +
+          'and a 40% chance to freeze for 2 turns.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'freeze', chance: 0.40, turns: 2 },
+        ],
+      },
+      {
+        id: 'angelica_cryst_lance', name: 'Cryst Lance',
+        icon: 'assets/icons/fc1017.png',
+        description: 'Drive the staff home: 150% ATK and a coin-flip 50% ' +
+          'chance to freeze the target solid for 2 turns.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.5 },
+          { type: 'freeze', chance: 0.50, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Cold Arithmetic',
+      icon: 'assets/icons/fc1015.png',
+      description: 'Every enemy frozen this fight — by anyone — adds a ' +
+        'permanent +10% ATK to her for the rest of it. The winter compounds.',
+      hooks: {
+        onEnemyFrozen(unit) {
+          // One tally effect, grown in place: +10% of base per freeze,
+          // additive, for the whole fight.
+          const fx = unit.statusEffects.find((f) => f.frostTally !== undefined);
+          if (fx) {
+            fx.frostTally++;
+            fx.mult = 1 + 0.10 * fx.frostTally;
+          } else {
+            unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1,
+              turns: 9999, frostTally: 1 });
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.cold_forge,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

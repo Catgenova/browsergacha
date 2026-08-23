@@ -24,7 +24,7 @@ const RACES = (() => {
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew',
+    'polarus', 'andrew', 'angelica',
   ]);
 
   const NAMES = {
