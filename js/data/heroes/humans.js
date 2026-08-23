@@ -698,8 +698,9 @@ Object.assign(HEROES, {
     title: 'Crystal Blade',
     rarity: 4,
     stats: { hp: 1450, atk: 240, def: 130, speed: 105 },
-    // Placeholder tint (silver armor, crystal sword) until strips load.
-    tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#a83a3a' },
+    // Placeholder tint (silver armor, crystal sword, blue plume) until
+    // strips load.
+    tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#3a5ac8' },
     sprite: {
       displayH: 88,
       // Manual: her body is in the right half of the frame, and the low

@@ -182,7 +182,7 @@ test('every race pack mirrors its gear set, tier for tier', () => {
 
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
-    cryst: { number: 1, members: ['echo'] },
+    cryst: { number: 1, members: ['echo', 'florence'] },
     hedge: { number: 3, members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'] },
     shadowflower: { number: 2, members: ['sawyer'] },
@@ -203,7 +203,8 @@ test('human sects hold real humans, once each, with their numbers', () => {
       assert(RACES.sectOf(HEROES[m]) === sect, `sectOf(${m}) misses`);
     }
   }
-  assert(RACES.sectOf(HEROES.florence) === null, 'Florence has no sect yet');
+  assert(RACES.sectOf(HEROES.florence) === RACES.SECTS.cryst,
+    'Tide marches with Cryst now');
 });
 
 test('every hero resolves a full tag line', () => {

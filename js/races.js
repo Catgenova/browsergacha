@@ -54,10 +54,10 @@ const RACES = (() => {
   // Human sects: the named heroes belong to orders, each with an
   // assigned number (a designation, not a roster size — Reverence is
   // No. 4 and runs seven strong). Members are hero ids; 'echo' is
-  // Aniani. Florence stands outside the sects for now.
+  // Aniani, 'florence' is Tide (the Crystal Blade wears Cryst blue).
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
-                 members: ['echo'] },
+                 members: ['echo', 'florence'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
