@@ -136,6 +136,13 @@ const Abilities = (() => {
             (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
           raw *= effect.bonusVs.mult;
         }
+        // Conditional on where the TARGET stands (Sawyer hunts the
+        // center hex). Position is a battle-grid fact, so this only
+        // fires in real formations — bench duels have no hexes.
+        if (effect.bonusPosition && target.slot &&
+            target.slot.position === effect.bonusPosition.position) {
+          raw *= effect.bonusPosition.mult;
+        }
         return { ...strike(caster, target, raw, { crit: true }), elem: elemMult };
       }
       case 'heal': {
@@ -287,6 +294,28 @@ const Abilities = (() => {
         });
         return { kind: effect.type, target, stat: effect.stat, turns };
       }
+      case 'randomDebuffs': {
+        // A grab-bag hex (Sawyer): draw `count` DIFFERENT debuffs from
+        // the standard book, each applied through the normal debuff path
+        // so accuracy, resistance and duration extensions all hold.
+        const pool = [
+          { stat: 'atk', mult: 0.75 },
+          { stat: 'def', mult: 0.75 },
+          { stat: 'speed', mult: 0.75 },
+          { stat: 'critChance', add: -0.15 },
+          { stat: 'damageTaken', mult: 1.25 },
+        ];
+        const count = Math.min(effect.count || 1, pool.length);
+        const out = [];
+        for (let i = 0; i < count; i++) {
+          const pick = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          const res = applyEffect(
+            { type: 'debuff', turns: effect.turns, ...pick },
+            caster, target, power);
+          if (res) out.push(res);
+        }
+        return out;
+      }
       default:
         console.warn('Unknown effect type', effect.type);
         return null;
@@ -384,13 +413,17 @@ const Abilities = (() => {
     for (const target of targets) {
       for (const effect of ability.effects) {
         const res = applyEffect(effect, caster, target, power);
-        if (res) results.push(res);
+        // A composite effect (randomDebuffs) reports one result per
+        // debuff it landed, so the log narrates each hex separately.
+        if (Array.isArray(res)) results.push(...res);
+        else if (res) results.push(res);
       }
     }
     // Optional rider effects the ability applies to the caster itself.
     for (const effect of ability.selfEffects || []) {
       const res = applyEffect(effect, caster, caster, power);
-      if (res) results.push(res);
+      if (Array.isArray(res)) results.push(...res);
+      else if (res) results.push(res);
     }
     // Cat set: any damaged target can lose 20% of its turn meter.
     const drainChance = caster.apDrainChance ? caster.apDrainChance() : 0;

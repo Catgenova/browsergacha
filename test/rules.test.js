@@ -1423,6 +1423,54 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
   assert(G.withdraw(uid) === null, 'withdrew into a full roster');
 });
 
+test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center hex', () => {
+  const battle = makeBattle();
+  const sawyer = place(battle, HEROES.sawyer, TEAM.PLAYER, 1);
+  const centerFoe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
+  const frontFoe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  for (const f of [centerFoe, frontFoe]) f.dodgeChance = () => 0;
+  sawyer.baseCritChance = 0;  // the numbers must be readable, not lucky
+  sawyer.gearAccuracy = 10;   // and the hexes must land to be counted
+
+  // Skill 1: two DIFFERENT debuffs, both for 2 turns.
+  Abilities.execute(HEROES.sawyer.abilities[0], sawyer, frontFoe, battle);
+  const hexes = frontFoe.statusEffects.filter((fx) => fx.kind === 'debuff');
+  assert(hexes.length === 2, `petalfall landed ${hexes.length} hexes`);
+  assert(hexes[0].stat !== hexes[1].stat, 'petalfall dealt the same hex twice');
+  assert(hexes.every((fx) => fx.turns === 2), 'petalfall hex durations off');
+
+  // Skill 3: the same strike, half again harder against the center tile.
+  // Debuffs are cleared so Wilting Garden can't tilt the comparison.
+  const dead = HEROES.sawyer.abilities[2];
+  const hit = (foe) => {
+    foe.hp = foe.maxHp;
+    foe.statusEffects.length = 0;
+    Abilities.execute(dead, sawyer, foe, battle);
+    return foe.maxHp - foe.hp;
+  };
+  const vsFront = hit(frontFoe);
+  const vsCenter = hit(centerFoe);
+  assert(vsCenter > vsFront * 1.4 && vsCenter < vsFront * 1.6,
+    `center bonus off: ${vsFront} front vs ${vsCenter} center`);
+
+  // Skill 2: all three war paints at once.
+  Abilities.execute(HEROES.sawyer.abilities[1], sawyer, sawyer, battle);
+  const paints = sawyer.statusEffects.filter((fx) => fx.kind === 'buff')
+    .map((fx) => fx.stat).sort().join();
+  assert(paints === 'atk,def,speed', `night bloom buffs ${paints}`);
+
+  // Wilting Garden: the two petalfall hexes are worth +20% on the next cut.
+  frontFoe.statusEffects.length = 0;
+  const clean = hit(frontFoe);
+  frontFoe.hp = frontFoe.maxHp;
+  Abilities.execute(HEROES.sawyer.abilities[0], sawyer, frontFoe, battle);
+  frontFoe.hp = frontFoe.maxHp;
+  Abilities.execute(dead, sawyer, frontFoe, battle);
+  const wilted = frontFoe.maxHp - frontFoe.hp;
+  assert(wilted > clean * 1.15 && wilted < clean * 1.25,
+    `wilting garden off: ${clean} clean vs ${wilted} hexed`);
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
