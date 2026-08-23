@@ -2430,6 +2430,13 @@ html.is-mobile .sub-compare { font-size: 13px; }
 .bs-stage.locked { opacity: 0.45; cursor: default; }
 #bs-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .bs-variants { display: flex; flex-wrap: wrap; gap: 4px; }
+/* The rate-up banner on the summon screen. */
+.summon-banner {
+  margin: 6px auto 0; max-width: 640px; padding: 5px 12px;
+  font-size: 12px; letter-spacing: 0.5px;
+  color: #ffd76a; background: rgba(240, 193, 75, 0.08);
+  border: 1px solid rgba(240, 193, 75, 0.35); border-radius: 8px;
+}
 /* The events banner under the rift picker: today's 2x element(s). */
 .bs-event {
   margin-top: 6px; padding: 5px 10px; font-size: 11px; letter-spacing: 0.5px;
