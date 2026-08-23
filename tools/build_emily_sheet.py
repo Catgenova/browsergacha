@@ -186,7 +186,7 @@ html = r'''<title>Emily, Dawn Cleric</title>
 </style>
 
 <div class="wrap">
-  <div class="eyebrow">Browser Gacha &middot; Hero Dossier &middot; <b>4&#x2605; Light &middot; Hedge Sect</b></div>
+  <div class="eyebrow">Browser Gacha &middot; Hero Dossier &middot; <b>4&#x2605; Light &middot; Reverence Sect</b></div>
 
   <div class="hero">
     <div class="hero-art">
@@ -201,9 +201,9 @@ html = r'''<title>Emily, Dawn Cleric</title>
         <span class="badge light">&#x2600;&#xfe0f; Light</span>
         <span class="badge">Center support</span>
         <span class="badge">Heals, cleanses &amp; revives</span>
-        <span class="badge">Hedge Sect</span>
+        <span class="badge">Reverence Sect</span>
       </div>
-      <p class="lede">The Hedge's gentlest hand, and the one healer in the game
+      <p class="lede">Reverence's gentlest hand, and the one healer in the game
       who refuses to accept a death. She mends one ally at a time in gold
       light, purifies the whole party in a single chorus &#x2014; and when someone
       falls anyway, <b>she simply brings the dawn back around</b>.</p>
@@ -314,7 +314,7 @@ html = r'''<title>Emily, Dawn Cleric</title>
       or 500 &#x1f48e; in the Shop.</div></div>
   </div>
 
-  <div class="foot">Play her now at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a> &middot; of the Hedge Sect, beside Vex, Vivian and Coral.</div>
+  <div class="foot">Play her now at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a> &middot; eighth of the Reverence Sect, beside Catherine, Toll, Javarious, Leonardo, Oak, Silas and Eli.</div>
 </div>
 '''
 
