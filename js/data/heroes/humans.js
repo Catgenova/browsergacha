@@ -776,6 +776,95 @@ Object.assign(HEROES, {
     positional: POSITIONALS.frost_throne,
   },
 
+  andrew: {
+    id: 'andrew',
+    element: 'water',
+    name: 'Andrew',
+    title: 'Casualty of Cryst',
+    rarity: 3,
+    // A center support who still swings a pick: the statline splits the
+    // difference between hitting and holding the middle of the flower.
+    stats: { hp: 1250, atk: 200, def: 120, speed: 98 },
+    tint: { body: '#8a6a4a', helm: '#5a4632', weapon: '#b8b2c0', skin: '#d8a878' },
+    // 256px square frames: 9 across on every strip. Three idles — the
+    // shouldered pick, and two weary fidgets. (The skill 3 strip's
+    // filename carries an upstream capital A, kept as uploaded.)
+    sprite: {
+      displayH: 90,
+      strips: {
+        idle:  { src: 'assets/heroes/Andrew/andrewidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Andrew/andrewidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Andrew/andrewidle2.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The pick comes off the shoulder and lands mid-strip.
+        attack: { src: 'assets/heroes/Andrew/andrewskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        // Raising the pick as the crystals on his back glow.
+        skill2: { src: 'assets/heroes/Andrew/andrewskill2.png', frames: 9, fps: 10,
+                  loop: false },
+        // The crystal spoil bursts across the back line on frame 7.
+        skill3: { src: 'assets/heroes/Andrew/Andrewskill3.png', frames: 9, fps: 11,
+                  loop: false, hitFrame: 7 },
+        death: { src: 'assets/heroes/Andrew/andrewdeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'andrew_pickwork', name: 'Pickwork',
+        icon: 'assets/icons/fc1044.png',
+        description: 'A working swing for 110% ATK that knocks 15 action ' +
+          'points off the target.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.1 },
+          { type: 'turnMeter', amount: -0.15 },
+        ],
+      },
+      {
+        id: 'andrew_shore_up', name: 'Shore Up',
+        icon: 'assets/icons/fc1099.png',
+        description: 'Brace the whole team the way you brace a tunnel: ' +
+          '+30% DEF for 2 turns.',
+        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.3, turns: 2 },
+        ],
+      },
+      {
+        id: 'andrew_crystal_spoil', name: 'Crystal Spoil',
+        icon: 'assets/icons/fc1013.png',
+        description: 'Hurl a basketful of sharp spoil across the enemy ' +
+          'BACK row for 90% ATK each.',
+        cooldown: 4, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.9 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Two Masters',
+      icon: 'assets/icons/fc1015.png',
+      description: 'The court gives and the court takes: beside Aniani he ' +
+        'swings +30% ATK harder; under Polarus he carries -30% DEF.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const mates = battle.livingUnits(unit.team).filter((u) => u !== unit);
+          if (mates.some((u) => u.def && u.def.id === 'echo')) {
+            unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.3, turns: 1 });
+          }
+          if (mates.some((u) => u.def && u.def.id === 'polarus')) {
+            unit.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.7, turns: 1 });
+          }
+          return null; // silent: it re-applies every turn
+        },
+      },
+    },
+    positional: POSITIONALS.undermine,
+  },
+
   // ---- 1★ rat cohort ------------------------------------------------------
   // Idle-only art for now; attack/ready/death strips will be added later
   // (attacks gracefully hold idle until then).

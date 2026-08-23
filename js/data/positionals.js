@@ -341,6 +341,26 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('undermine', {
+    position: POSITION.CENTER,
+    name: 'Undermine',
+    description: 'Center hex: at the start of each turn, digs the ground from under a random enemy — -30% DEF for 2 turns.',
+    hooks: {
+      onTurnStart(unit, battle) {
+        if (!battle) return null;
+        const foes = battle.livingUnits().filter((u) => u.team !== unit.team);
+        if (!foes.length) return null;
+        const target = foes[Math.floor(Math.random() * foes.length)];
+        target.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.7, turns: 2, source: unit });
+        return {
+          label: 'Undermine',
+          message: `${unit.name} undermines ${target.name} — their footing (and 30% of their DEF) gives way.`,
+          floats: [{ target, text: 'DEF ▼', color: '#d78aff' }],
+        };
+      },
+    },
+  });
+
   def('frost_throne', {
     position: POSITION.CENTER,
     name: 'Frost Throne',
