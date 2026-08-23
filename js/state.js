@@ -242,6 +242,10 @@ const GameState = (() => {
     dungeonSettings: { boss: 'whetstone', stage: 1, repeat: 1 },
     // Daily attempt ledger: each dungeon takes three challenges a day.
     dungeonRuns: { day: '', counts: {} },   // { day: 'YYYY-MM-DD', counts: { bossId: n } }
+    // Login bonuses: `day` is the last calendar day claimed, `cycle` the
+    // next step (0-6) on the looping 7-day track, `stamps` the login
+    // days claimed inside `monthKey`'s calendar.
+    login: { day: '', cycle: 0, monthKey: '', stamps: 0 },
     nextGearUid: 1,
     whetstones: 0,                       // item-leveling currency
     arcana: 0,                           // enchanting currency
@@ -426,6 +430,7 @@ const GameState = (() => {
     if (!loaded.dungeonSettings.boss) loaded.dungeonSettings.boss = 'whetstone';
     if (!loaded.dungeonRuns) loaded.dungeonRuns = { day: '', counts: {} };
     if (!loaded.dungeonRuns.counts) loaded.dungeonRuns.counts = {};
+    if (!loaded.login) loaded.login = { day: '', cycle: 0, monthKey: '', stamps: 0 };
 
     // Migrate first-generation gear (fixed main stat, no rarity) to the
     // leveled/rarity schema: rare, level carried over (capped), no subs.
@@ -969,6 +974,47 @@ const GameState = (() => {
       return 1;
     },
     get whetstones() { return state.whetstones; },
+    // ---- Login bonuses ----
+    // Rewards are {common, rare, temporal, whetstones, arcana, diamonds}
+    // bags (see Events.LOGIN_WEEK / monthlyLoginReward).
+    loginClaimable() {
+      return state.login.day !== Quests.periodKey('daily');
+    },
+    loginInfo() {
+      const month = Quests.periodKey('monthly');
+      return {
+        claimable: this.loginClaimable(),
+        cycle: state.login.cycle,
+        stamps: state.login.monthKey === month ? state.login.stamps : 0,
+      };
+    },
+    claimLogin() {
+      if (!this.loginClaimable() || typeof Events === 'undefined') return null;
+      const apply = (r) => {
+        if (r.common) this.addScrolls('common', r.common);
+        if (r.rare) this.addScrolls('rare', r.rare);
+        if (r.temporal) this.addScrolls('temporal', r.temporal);
+        if (r.whetstones) state.whetstones += r.whetstones;
+        if (r.arcana) state.arcana += r.arcana;
+        if (r.diamonds) state.diamonds += r.diamonds;
+      };
+      const month = Quests.periodKey('monthly');
+      if (state.login.monthKey !== month) {
+        state.login.monthKey = month;
+        state.login.stamps = 0; // a fresh calendar page
+      }
+      const week = Events.LOGIN_WEEK[state.login.cycle];
+      const day = state.login.cycle + 1;
+      state.login.cycle = (state.login.cycle + 1) % Events.LOGIN_WEEK.length;
+      state.login.stamps++;
+      const monthReward = Events.monthlyLoginReward(state.login.stamps);
+      apply(week);
+      apply(monthReward);
+      state.login.day = Quests.periodKey('daily');
+      save();
+      return { week, day, month: monthReward, stamps: state.login.stamps };
+    },
+
     addWhetstones(n) { state.whetstones += n; save(); },
     get arcana() { return state.arcana; },
     addArcana(n) { state.arcana += n; save(); },

@@ -232,7 +232,8 @@ const App = {
   const questBadge = document.getElementById('quest-badge');
   const updateQuestBadge = () => {
     const claimable = GameState.claimableQuestCount() +
-      (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.claimableCount() : 0);
+      (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.claimableCount() : 0) +
+      (GameState.loginClaimable && GameState.loginClaimable() ? 1 : 0);
     questBadge.classList.toggle('hidden', claimable === 0);
   };
   GameState.onChange(() => {
