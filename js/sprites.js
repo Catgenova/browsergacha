@@ -297,6 +297,9 @@ const Sprites = (() => {
           hop: strip.hop || null,           // in-place jump arc (see battle.js hopHeight)
           frameEffects: strip.frameEffects || null, // spawned effects per frame
           freeze: !!strip.freeze,           // hold last frame at completion
+          // While the unit carries this status stat, an idling animator
+          // holds this strip's FINAL frame instead (Silas's drawn bow).
+          stanceHold: strip.stanceHold || null,
         };
       }
       if (animations.idle) {

@@ -472,9 +472,11 @@ Object.assign(HEROES, {
         // Lumen Arrow: the empowered line shot, loosed on frame 5.
         skill2: { src: 'assets/heroes/Silas/silasskill2.png', frames: 8, fps: 11,
                   loop: false, hitFrame: 5 },
-        // Aiming Stance: he settles, draws, and holds.
+        // Aiming Stance: he settles, draws, and holds — and KEEPS
+        // holding: while the aiming status lasts, he stays on this
+        // strip's final crouched frame instead of idling.
         skill3: { src: 'assets/heroes/Silas/silasskill3.png', frames: 9, fps: 10,
-                  loop: false, hitFrame: 7 },
+                  loop: false, hitFrame: 7, stanceHold: 'aiming' },
         death: { src: 'assets/heroes/Silas/silasdeath.png', frames: 9, fps: 7,
                  loop: false, freeze: true },
       },
@@ -1763,7 +1765,7 @@ Object.assign(HEROES, {
     // 256px square frames: 9 across, except skill 3 at 14 and the death
     // at 17. Four idles -- the base loop and three fidgets.
     sprite: {
-      displayH: 90,
+      displayH: 104, // drawn 1.15x the house 90 — the leader stands taller
       // Authored facing left, every strip. Flagged rather than mirrored
       // into the files: the art is the artist's, and the flag is what it
       // is for -- Sprites.facesLeft() is honoured by the board, the team
