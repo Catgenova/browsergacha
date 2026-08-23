@@ -48,7 +48,19 @@ class QuestsScreen {
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
         const got = GameState.claimLogin();
-        if (got && typeof Sound !== 'undefined') Sound.play('claim');
+        this.loginMsg = got && got.error === 'roster-full'
+          ? 'The roster is full — make room before claiming today\'s hero.' : '';
+        if (got && !got.error && typeof Sound !== 'undefined') Sound.play('claim');
+        this.refresh();
+      });
+    }
+    const catchUpBtn = this.boardsEl.querySelector('.login-catchup:not([disabled])');
+    if (catchUpBtn) {
+      catchUpBtn.addEventListener('click', () => {
+        const got = GameState.buyLoginCatchUp();
+        this.loginMsg = got && got.error === 'diamonds'
+          ? `Not enough Diamonds — the catch-up costs ${got.cost} 💎.` : '';
+        if (got && !got.error && typeof Sound !== 'undefined') Sound.play('claim');
         this.refresh();
       });
     }
@@ -103,6 +115,18 @@ class QuestsScreen {
       .map(([n, r]) => `<span class="login-milestone${info.stamps >= Number(n) ? ' login-done' : ''}">
         Day ${n}: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
       .join('');
+    const missed = GameState.loginMissedDays();
+    const cost = GameState.loginCatchUpCost();
+    const canAfford = GameState.diamonds >= cost;
+    const catchUp = missed > 0 ? `
+        <div class="login-catchup-row">
+          <span class="login-missed">${missed} calendar day${missed > 1 ? 's' : ''} missed
+            this month — buy the stamps back?</span>
+          <button class="login-catchup panel-btn" ${canAfford ? '' : 'disabled'}
+            title="${canAfford ? `Stamp all ${missed} missed days and collect their rewards`
+              : `Needs ${cost} 💎 — you have ${GameState.diamonds}`}">
+            Catch up (${cost} 💎)</button>
+        </div>` : '';
     return [{
       claimable,
       html: `<div class="quest-board">
@@ -118,6 +142,8 @@ class QuestsScreen {
               ? ` — today's stamp (day ${nextStamp}) adds <b>${monthNow.label}</b>` : ''}.</div>
           <div class="login-milestones">${milestones}</div>
         </div>
+        ${catchUp}
+        ${this.loginMsg ? `<div class="login-msg">${this.loginMsg}</div>` : ''}
         <button class="login-claim panel-btn gold" ${info.claimable ? '' : 'disabled'}>
           ${info.claimable ? 'Claim today\'s login bonus' : 'Claimed — come back tomorrow'}</button>
       </div>` }];

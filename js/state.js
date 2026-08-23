@@ -988,16 +988,24 @@ const GameState = (() => {
         stamps: state.login.monthKey === month ? state.login.stamps : 0,
       };
     },
+    // One reward bag onto the pile (shared by the daily claim and the
+    // calendar catch-up).
+    grantLoginReward(r) {
+      if (r.hero) this.addHero(r.hero);
+      if (r.common) this.addScrolls('common', r.common);
+      if (r.rare) this.addScrolls('rare', r.rare);
+      if (r.temporal) this.addScrolls('temporal', r.temporal);
+      if (r.whetstones) state.whetstones += r.whetstones;
+      if (r.arcana) state.arcana += r.arcana;
+      if (r.diamonds) state.diamonds += r.diamonds;
+    },
     claimLogin() {
       if (!this.loginClaimable() || typeof Events === 'undefined') return null;
-      const apply = (r) => {
-        if (r.common) this.addScrolls('common', r.common);
-        if (r.rare) this.addScrolls('rare', r.rare);
-        if (r.temporal) this.addScrolls('temporal', r.temporal);
-        if (r.whetstones) state.whetstones += r.whetstones;
-        if (r.arcana) state.arcana += r.arcana;
-        if (r.diamonds) state.diamonds += r.diamonds;
-      };
+      // A hero reward needs a roster slot; refuse rather than vanish it.
+      if (Events.LOGIN_WEEK[state.login.cycle].hero && this.rosterFull()) {
+        return { error: 'roster-full' };
+      }
+      const apply = (r) => this.grantLoginReward(r);
       const month = Quests.periodKey('monthly');
       if (state.login.monthKey !== month) {
         state.login.monthKey = month;
@@ -1013,6 +1021,43 @@ const GameState = (() => {
       state.login.day = Quests.periodKey('daily');
       save();
       return { week, day, month: monthReward, stamps: state.login.stamps };
+    },
+
+    // ---- Calendar catch-up ----
+    // Days of THIS month that could have been stamped and weren't. An
+    // unclaimed today is not "missed" — it is claimed free, above.
+    LOGIN_CATCHUP_COST: 20, // diamonds per missed day
+    loginMissedDays() {
+      const dayOfMonth = new Date().getDate();
+      const month = Quests.periodKey('monthly');
+      const stamps = state.login.monthKey === month ? state.login.stamps : 0;
+      const available = this.loginClaimable() ? dayOfMonth - 1 : dayOfMonth;
+      return Math.max(0, available - stamps);
+    },
+    loginCatchUpCost() { return this.loginMissedDays() * this.LOGIN_CATCHUP_COST; },
+    // Buy every missed calendar day at once: each one stamps the month
+    // and pays its stamp's reward, exactly as if it had been logged.
+    // The 7-day track is untouched — that one only moves a day at a time.
+    buyLoginCatchUp() {
+      if (typeof Events === 'undefined') return null;
+      const missed = this.loginMissedDays();
+      if (missed <= 0) return null;
+      const cost = missed * this.LOGIN_CATCHUP_COST;
+      if (!this.spendDiamonds(cost)) return { error: 'diamonds', cost, missed };
+      const month = Quests.periodKey('monthly');
+      if (state.login.monthKey !== month) {
+        state.login.monthKey = month;
+        state.login.stamps = 0;
+      }
+      const rewards = [];
+      for (let i = 0; i < missed; i++) {
+        state.login.stamps++;
+        const r = Events.monthlyLoginReward(state.login.stamps);
+        this.grantLoginReward(r);
+        rewards.push({ n: state.login.stamps, label: r.label });
+      }
+      save();
+      return { bought: missed, cost, stamps: state.login.stamps, rewards };
     },
 
     addWhetstones(n) { state.whetstones += n; save(); },
