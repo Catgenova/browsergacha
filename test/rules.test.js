@@ -1746,6 +1746,56 @@ test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock
     `case-hardened paid ${foeFront.maxHp - foeFront.hp}, expected ${hardened}`);
 });
 
+test('tanner: favors, bubbles that eat one hit, and meter for the laggard', () => {
+  const battle = makeBattle();
+  const tanner = place(battle, HEROES.tanner, TEAM.PLAYER, 4); // back hex — Second Wind live
+  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const slow = place(battle, HEROES.rat_knight, TEAM.PLAYER, 2);
+  const foe = place(battle, HEROES.rat_mauler, TEAM.ENEMY, 1);
+  foe.baseCritChance = 0;
+  mate.dodgeChance = () => 0;
+
+  // Royal Favor: the ATK buff plus 50 points of meter on the spot.
+  mate.turnMeter = CONFIG.TURN_METER_MAX * 0.2;
+  Abilities.execute(HEROES.tanner.abilities[1], tanner, mate, battle);
+  assert(mate.statusEffects.some((fx) =>
+    fx.kind === 'buff' && fx.stat === 'atk' && fx.mult === 1.3 && fx.turns === 2),
+    'the favor carried no ATK');
+  assert(Math.abs(mate.turnMeter - CONFIG.TURN_METER_MAX * 0.7) < 1,
+    `the favor filled the meter to ${mate.turnMeter}`);
+
+  // Bubble Court: everyone bubbled; a bubble eats one WHOLE hit and
+  // pops; the second hit lands.
+  Abilities.execute(HEROES.tanner.abilities[2], tanner, tanner, battle);
+  for (const u of [tanner, mate, slow]) {
+    assert(u.statusEffects.some((fx) => fx.kind === 'bubble'), `${u.name} unbubbled`);
+  }
+  mate.hp = mate.maxHp;
+  Abilities.execute(HEROES.rat_mauler.abilities[0], foe, mate, battle);
+  assert(mate.hp === mate.maxHp, 'the bubble let the hit through');
+  assert(!mate.statusEffects.some((fx) => fx.kind === 'bubble'), 'the bubble survived the pop');
+  Abilities.execute(HEROES.rat_mauler.abilities[0], foe, mate, battle);
+  assert(mate.hp < mate.maxHp, 'the second hit should land');
+
+  // Noblesse Oblige: his turn start waves the laggard ally onward.
+  mate.turnMeter = CONFIG.TURN_METER_MAX * 0.9;
+  slow.turnMeter = CONFIG.TURN_METER_MAX * 0.1;
+  tanner.startTurn(battle);
+  assert(Math.abs(slow.turnMeter - CONFIG.TURN_METER_MAX * 0.2) < 1,
+    `the laggard sits at ${slow.turnMeter}`);
+  assert(Math.abs(mate.turnMeter - CONFIG.TURN_METER_MAX * 0.9) < 1,
+    'the wrong ally was waved on');
+
+  // Second Wind: below half HP, acting refunds 20 meter; above, none.
+  tanner.hp = Math.round(tanner.maxHp * 0.4);
+  tanner.useAbility(tanner.abilities[0]);
+  assert(Math.abs(tanner.turnMeter - CONFIG.TURN_METER_MAX * 0.2) < 1,
+    `second wind refunded to ${tanner.turnMeter}`);
+  tanner.hp = tanner.maxHp;
+  tanner.useAbility(tanner.abilities[0]);
+  assert(tanner.turnMeter === 0, 'a healthy prince took a refund');
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;

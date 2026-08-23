@@ -356,6 +356,35 @@ class Renderer {
       this.drawEffectFrame('shield_bubble', 0, this.feetX(unit, x), visualTop + visH / 2,
         { alpha: 0.75, height: visH * 1.5 * breathe });
     }
+    // Tanner's Bubble: one whole hit held off, drawn as blue glass so
+    // it reads apart from the gold shield sphere.
+    if ((unit.statusEffects || []).some((fx) => fx.kind === 'bubble')) {
+      const footPad = (unit.animator && unit.animator.sheet.footPad) || 0;
+      const visH = Math.max(8, dh - headPad - footPad);
+      const cx = this.feetX(unit, x);
+      const cy = visualTop + visH / 2;
+      const breathe = 1 + Math.sin(performance.now() / 430 + unit.slot.index) * 0.04;
+      const r = visH * 0.62 * breathe;
+      const ctx2 = this.ctx;
+      ctx2.save();
+      const grad = ctx2.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.15, cx, cy, r);
+      grad.addColorStop(0, 'rgba(210,240,255,0.35)');
+      grad.addColorStop(0.72, 'rgba(94,194,240,0.10)');
+      grad.addColorStop(1, 'rgba(94,194,240,0.30)');
+      ctx2.fillStyle = grad;
+      ctx2.beginPath();
+      ctx2.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx2.fill();
+      ctx2.strokeStyle = 'rgba(150,220,250,0.7)';
+      ctx2.lineWidth = 1.5;
+      ctx2.stroke();
+      // The glossy highlight that sells it as a soap bubble.
+      ctx2.fillStyle = 'rgba(240,250,255,0.45)';
+      ctx2.beginPath();
+      ctx2.ellipse(cx - r * 0.38, cy - r * 0.42, r * 0.16, r * 0.09, -0.6, 0, Math.PI * 2);
+      ctx2.fill();
+      ctx2.restore();
+    }
     this.drawBars(unit, x, visualTop);
 
     // Charging warning: what this unit is about to unleash.
@@ -421,6 +450,8 @@ class Renderer {
                      note: 'hardened armour, stacking' },
       shield:      { glyph: '▣', color: '#7ae8d8', title: 'Shielded',
                      note: 'absorbs damage before HP; the pip is what is left' },
+      bubble:      { glyph: '○', color: '#5ec2f0', title: 'Bubbled',
+                     note: 'the next hit pops the bubble harmlessly' },
       atk:         { glyph: 'A', color: null, title: 'ATK' },
       def:         { glyph: 'D', color: null, title: 'DEF' },
       speed:       { glyph: 'S', color: null, title: 'SPD' },
@@ -438,7 +469,8 @@ class Renderer {
       // it, added once below rather than one pip per stack.
       if (fx.kind === 'shield') continue;
       // Poisons and regens are keyed by kind; everything else by stat.
-      const key = fx.kind === 'dot' || fx.kind === 'hot' ? fx.kind : fx.stat;
+      const key = fx.kind === 'dot' || fx.kind === 'hot' || fx.kind === 'bubble'
+        ? fx.kind : fx.stat;
       const icon = ICONS[key];
       if (!icon) continue;
       // Buffs read green-ish, debuffs purple, unless the status has a

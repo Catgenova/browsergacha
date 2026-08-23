@@ -341,6 +341,18 @@ const POSITIONALS = (() => {
     hooks: { apDrainAdd: 0.15 },
   });
 
+  def('second_wind', {
+    position: POSITION.BACK,
+    name: 'Second Wind',
+    description: 'Back hex: below half HP, each of his turns starts the next fill with +20 turn meter.',
+    hooks: {
+      // Read by useAbility after the meter resets — the refund is a
+      // head start on the next turn, exactly as the spec's "at the
+      // beginning of your turn" cashes out mechanically.
+      meterRefund: (u) => (u.hp / u.maxHp < 0.5 ? 0.20 : 0),
+    },
+  });
+
   def('bedrock', {
     position: POSITION.FRONT,
     name: 'Bedrock',

@@ -472,7 +472,10 @@ class Battle {
         if (typeof Sound !== 'undefined' && !res.dodged) {
           Sound.play(res.crit ? 'crit' : 'hit');
         }
-        if (res.reflected) {
+        if (res.bubbled) {
+          this.addFloatingText(res.target, '🫧 POP', '#5ec2f0', true);
+          this.log(`${res.target.name}'s bubble bursts — the whole hit is swallowed!`, cls);
+        } else if (res.reflected) {
           this.addFloatingText(res.target, 'REFLECT!', '#ffd76a', true);
           this.addFloatingText(caster, `-${res.reflectAmount}`, '#ff6a6a');
           this.log(`${res.target.name} REFLECTS ${caster.name}'s ${ability.name} — ${res.reflectAmount} damage bounces back!`, cls);
@@ -536,6 +539,11 @@ class Battle {
         this.addFloatingText(res.target, `\u25a3 +${res.amount}`, '#7ae8d8');
         this.log(`${res.target.name} raises a shield for ${res.amount} ` +
           `(${res.turns} turn${res.turns > 1 ? 's' : ''}).`, cls);
+      } else if (res.kind === 'bubble') {
+        this.addFloatingText(res.target, '○ BUBBLE', '#5ec2f0');
+        this.log(res.refreshed
+          ? `${res.target.name}'s bubble is blown anew (${res.turns} turns).`
+          : `${res.target.name} is wrapped in a bubble — the next hit pops harmlessly (${res.turns} turns).`, cls);
       } else if (res.kind === 'freeze') {
         this.addFloatingText(res.target, '❄ FROZEN', '#8ee8ff', true);
         this.log(`${res.target.name} freezes solid for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
