@@ -107,7 +107,42 @@ const Abilities = (() => {
     // Hooks that answer landing a blow (Javarious builds his shield out
     // of his own damage). After the books, so a hook sees a settled hit.
     if (caster.dealt) caster.dealt(dealt, target);
+    // Crystalline (Polarus): striking a hero wearing the crystal is how
+    // you catch the cold — 30% chance the attacker freezes. Guarded like
+    // retaliation so a frozen counter can never chain into another.
+    if (!Unit.retaliating && dealt > 0 && caster.alive &&
+        caster.team !== target.team &&
+        target.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'crystalline') &&
+        Math.random() < 0.30) {
+      Unit.retaliating = true;
+      try {
+        const r = freeze(target, caster);
+        const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+        if (battle && r && !r.resisted) {
+          battle.addFloatingText(caster, '❄ FROZEN', '#8ee8ff', true);
+          battle.log(`${caster.name} strikes the crystal and freezes solid for ${r.turns} turns!`, 'log-system');
+        }
+      } finally {
+        Unit.retaliating = false;
+      }
+    }
     return { kind: 'damage', target, amount: dealt, crit };
+  }
+
+  // Freeze: the ice-flavored stun — the frozen unit loses its turns.
+  // One door for every source (Polarus's bolt, the Crystalline counter,
+  // his passive) so the resist check and the freezer's onFroze hooks
+  // (the Frost Throne's cooldown refund) always run together.
+  function freeze(caster, target, turns = 2) {
+    if (!target.alive) return null;
+    if (!debuffLands(caster, target)) {
+      return { kind: 'debuff', target, stat: 'freeze', resisted: true };
+    }
+    target.addStatusEffect({ kind: 'debuff', stat: 'freeze', turns, source: caster });
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.onFroze) p.hooks.onFroze(caster, target);
+    }
+    return { kind: 'freeze', target, turns };
   }
 
   // `power` is the caster's skill-level multiplier for the ability this
@@ -293,6 +328,22 @@ const Abilities = (() => {
           turns,
         });
         return { kind: effect.type, target, stat: effect.stat, turns };
+      }
+      case 'freeze': {
+        // `chance` gates the roll (default always); resistance applies
+        // like any debuff inside freeze() itself.
+        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+          return null; // no trigger, no log noise
+        }
+        return freeze(caster, target, effect.turns || 2);
+      }
+      case 'removeStatus': {
+        // Strip every status matching `stat` off the target — Polarus's
+        // shatter melting the ice he just profited from.
+        const before = target.statusEffects.length;
+        target.statusEffects = target.statusEffects.filter((fx) => fx.stat !== effect.stat);
+        const count = before - target.statusEffects.length;
+        return count > 0 ? { kind: 'removeStatus', target, stat: effect.stat, count } : null;
       }
       case 'randomDebuffs': {
         // A grab-bag hex (Sawyer): draw `count` DIFFERENT debuffs from
@@ -517,5 +568,5 @@ const Abilities = (() => {
   // through the same pipeline instead of calling takeDamage directly,
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
-  return { execute, resolveTargets, damageFormula, strike, sideOf, needsTarget };
+  return { execute, resolveTargets, damageFormula, strike, freeze, sideOf, needsTarget };
 })();

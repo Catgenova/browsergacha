@@ -150,7 +150,9 @@ class Battle {
 
     // Stun check happens BEFORE startTurn ticks statuses away: a stunned
     // unit loses this turn (its DoTs/HoTs and cooldowns still tick).
+    // Freeze is the ice-flavored stun and skips the turn the same way.
     const stunned = unit.statusEffects.some((fx) => fx.stat === 'stun');
+    const frozen = !stunned && unit.statusEffects.some((fx) => fx.stat === 'freeze');
 
     // Alert stance while it's this unit's turn (falls back to idle if the
     // hero has no ready animation).
@@ -180,11 +182,13 @@ class Battle {
       return;
     }
 
-    // Stunned: the turn is spent recovering — no action.
-    if (stunned) {
+    // Stunned or frozen: the turn is spent recovering — no action.
+    if (stunned || frozen) {
       unit.turnMeter = 0;
-      this.addFloatingText(unit, 'STUNNED', '#8ee8ff', true);
-      this.log(`${unit.name} is stunned and loses the turn!`, 'log-system');
+      this.addFloatingText(unit, frozen ? '❄ FROZEN' : 'STUNNED', '#8ee8ff', true);
+      this.log(frozen
+        ? `${unit.name} is frozen solid and loses the turn!`
+        : `${unit.name} is stunned and loses the turn!`, 'log-system');
       if (unit.animator && unit.animator.current === 'ready') {
         unit.animator.play('idle');
       }
@@ -532,6 +536,14 @@ class Battle {
         this.addFloatingText(res.target, `\u25a3 +${res.amount}`, '#7ae8d8');
         this.log(`${res.target.name} raises a shield for ${res.amount} ` +
           `(${res.turns} turn${res.turns > 1 ? 's' : ''}).`, cls);
+      } else if (res.kind === 'freeze') {
+        this.addFloatingText(res.target, '❄ FROZEN', '#8ee8ff', true);
+        this.log(`${res.target.name} freezes solid for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
+      } else if (res.kind === 'removeStatus') {
+        if (res.stat === 'freeze') {
+          this.addFloatingText(res.target, 'THAWED', '#8ee8ff');
+          this.log(`The ice shatters off ${res.target.name}.`, cls);
+        }
       } else if (res.kind === 'stun') {
         this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
         this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
@@ -555,6 +567,10 @@ class Battle {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
+        } else if (res.stat === 'crystalline') {
+          // Polarus's mantle: attackers risk freezing on contact.
+          this.addFloatingText(res.target, '💠 CRYSTALLINE', '#8ee8ff');
+          this.log(`${res.target.name} takes on Crystalline form — strike it and freeze (${res.turns} turns).`, cls);
         } else if (res.stat === 'aiming') {
           // Silas's stance: held until spent by a shot or broken by a
           // landed single-target hit — not a timed buff.
