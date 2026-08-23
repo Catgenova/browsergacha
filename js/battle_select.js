@@ -213,12 +213,14 @@ class BattleSelect {
           ${Elements.badge(b.element)} ${b.name}${open ? '' : ' 🔒'}</button>`;
       }).join('');
     } else if (this.mode === 'rift') {
+      const boosted = typeof Events !== 'undefined' ? Events.boostedElements() : [];
       btns = Object.entries(ELEMENTAL_BOSSES).map(([key, b]) => {
         const info = Elements.info(b.element);
+        const hot = boosted.includes(b.attuneId || b.element);
         return `<button class="bs-variant${key === cur.boss ? ' active' : ''}"
           data-act="variant" data-v="${key}"
           ${info ? `style="color:${key === cur.boss ? '' : info.color}"` : ''}
-          title="${b.name} — ${b.title || ''}">${info ? info.emoji : ''} ${info ? info.name : key}</button>`;
+          title="${b.name} — ${b.title || ''}${hot ? ' — 2× drops today!' : ''}">${info ? info.emoji : ''} ${info ? info.name : key}${hot ? ' ⚡2×' : ''}</button>`;
       }).join('');
     } else if (this.mode === 'dungeon') {
       btns = Object.entries(DUNGEON_BOSSES).map(([key, b]) => {
@@ -231,7 +233,9 @@ class BattleSelect {
     } else {
       return '';
     }
-    return `<div class="bs-variants">${btns}</div>`;
+    const eventLine = this.mode === 'rift' && typeof Events !== 'undefined'
+      ? `<div class="bs-event">⚡ ${Events.scheduleLabel()}</div>` : '';
+    return `<div class="bs-variants">${btns}</div>${eventLine}`;
   }
 
   infoHtml(cur) {
@@ -278,7 +282,10 @@ class BattleSelect {
                 XP ⭐ for every team member, every clear — about
                 ${Math.round((def.xpMult || 6) / 6)}× what a boss fight of this
                 level pays. No gear here — pure schooling.`)
-        : `${Attune.payoutText(cur.stage)} ${elInfo ? elInfo.name : ''} Elements.`;
+        : `${Attune.payoutText(cur.stage)} ${elInfo ? elInfo.name : ''} Elements.${
+            typeof Events !== 'undefined' &&
+            Events.elementBoost(def.attuneId || def.element) > 1
+              ? ' <b>⚡ Doubled today by the event schedule!</b>' : ''}`;
       const word = this.mode === 'dungeon' ? 'Floor' : 'Stage';
       return `
         <div class="bs-title">${Elements.badge(def.element)} ${def.name}
