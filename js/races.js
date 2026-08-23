@@ -24,7 +24,7 @@ const RACES = (() => {
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew', 'angelica', 'ari',
+    'polarus', 'andrew', 'angelica', 'ari', 'cain',
   ]);
 
   const NAMES = {
@@ -58,7 +58,7 @@ const RACES = (() => {
   // Aniani, 'florence' is Tide (the Crystal Blade wears Cryst blue).
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
-                 members: ['polarus', 'echo', 'florence', 'andrew', 'ari'] },
+                 members: ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral', 'emily'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,

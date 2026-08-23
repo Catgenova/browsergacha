@@ -1646,6 +1646,55 @@ test('ari: the lance slips DEF, the volley taxes max HP, the quarry eats a free 
     `the free arrow paid ${foe.maxHp - foe.hp} vs crystbarb's ${d1}`);
 });
 
+test('cain: mercy in shares of himself, and the overflow lashes the healthiest', () => {
+  const battle = makeBattle();
+  const cain = place(battle, HEROES.cain, TEAM.PLAYER, 4); // back hex — Spillway live
+  const mateA = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const mateB = place(battle, HEROES.rat_knight, TEAM.PLAYER, 2);
+  const foeHigh = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const foeLow = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  for (const f of [foeHigh, foeLow]) f.dodgeChance = () => 0;
+  foeLow.hp = Math.round(foeLow.maxHp * 0.4); // the HEALTHY one must be lashed
+
+  // Tidemend: 30% of Cain's own pool, not the patient's.
+  mateA.hp = 1;
+  Abilities.execute(HEROES.cain.abilities[0], cain, mateA, battle);
+  assert(mateA.hp === Math.min(mateA.maxHp, 1 + Math.round(cain.maxHp * 0.30)),
+    `tidemend left ${mateA.hp}/${mateA.maxHp}`);
+
+  // Twin Mercies: exactly the two most-wounded allies, 35% each; a
+  // full-health Cain is not among them.
+  mateA.hp = 1;
+  mateB.hp = Math.round(mateB.maxHp * 0.5);
+  cain.hp = cain.maxHp;
+  Abilities.execute(HEROES.cain.abilities[1], cain, null, battle);
+  assert(mateA.hp === 1 + Math.round(cain.maxHp * 0.35), `mercy A left ${mateA.hp}`);
+  assert(mateB.hp === Math.round(mateB.maxHp * 0.5) + Math.round(cain.maxHp * 0.35)
+    || mateB.hp === mateB.maxHp, `mercy B left ${mateB.hp}/${mateB.maxHp}`);
+
+  // Quickening Waters: 50% of his pool plus the send-off.
+  mateA.hp = 1;
+  Abilities.execute(HEROES.cain.abilities[2], cain, mateA, battle);
+  assert(mateA.hp === Math.min(mateA.maxHp, 1 + Math.round(cain.maxHp * 0.50)),
+    `quickening left ${mateA.hp}`);
+  assert(mateA.statusEffects.some((fx) =>
+    fx.kind === 'buff' && fx.stat === 'speed' && fx.mult === 1.3 && fx.turns === 2),
+    'the waters did not quicken');
+
+  // Nothing Is Wasted + Spillway: a heal on a full ally converts whole
+  // into damage on the healthiest enemy, x1.25 from the back hex,
+  // mitigated like any strike — and the wounded enemy is spared.
+  mateA.hp = mateA.maxHp;
+  foeHigh.hp = foeHigh.maxHp;
+  const woundedHp = foeLow.hp;
+  Abilities.execute(HEROES.cain.abilities[0], cain, mateA, battle);
+  const overflow = Math.round(cain.maxHp * 0.30);
+  const expected = Abilities.damageFormula(overflow * 1.25, foeHigh.effectiveStat('def'));
+  assert(foeHigh.maxHp - foeHigh.hp === expected,
+    `overflow lashed for ${foeHigh.maxHp - foeHigh.hp}, expected ${expected}`);
+  assert(foeLow.hp === woundedHp, 'the overflow hit the wounded enemy instead');
+});
+
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
