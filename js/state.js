@@ -362,6 +362,21 @@ const GameState = (() => {
     if (fresh && firstStarter && !Object.keys(loaded.team).length) {
       loaded.team[1] = firstStarter;
     }
+    // One copy of a character per formation. Saves from before the rule
+    // (or presets applied under it) can carry two copies of the same
+    // hero — keep the first slot, drop the rest, on the team and every
+    // preset alike.
+    const dedupeTeam = (team) => {
+      const seenChars = new Set();
+      for (const slot of Object.keys(team).sort((a, b) => a - b)) {
+        const entry = loaded.roster[team[slot]];
+        const heroId = entry && entry.heroId;
+        if (!heroId || seenChars.has(heroId)) delete team[slot];
+        else seenChars.add(heroId);
+      }
+    };
+    dedupeTeam(loaded.team);
+    for (const preset of loaded.presets || []) dedupeTeam(preset.team || {});
     // Scrub heroes that no longer exist (removed characters) from saves.
     if (typeof HEROES !== 'undefined') {
       for (const [uid, entry] of Object.entries(loaded.roster)) {
@@ -900,9 +915,14 @@ const GameState = (() => {
       return null;
     },
     setTeamSlot(slotIndex, heroId) {
-      // Remove the hero from any slot it already occupies, then place it.
+      // One copy of a CHARACTER on the field: remove the hero from any
+      // slot it already occupies, and evict any OTHER copy of the same
+      // character — two Tides never stand in one formation.
+      const defId = this.defIdOf(heroId);
       for (const [slot, id] of Object.entries(state.team)) {
-        if (id === heroId) delete state.team[slot];
+        if (id === heroId || (defId && this.defIdOf(id) === defId)) {
+          delete state.team[slot];
+        }
       }
       state.team[slotIndex] = heroId;
       save();
@@ -955,10 +975,16 @@ const GameState = (() => {
       const team = {};
       let missing = 0;
       // Presets store roster uids. A hero that has since been spent on a
-      // star-up is simply gone, and the rest of the formation still fields.
+      // star-up is simply gone, and the rest of the formation still
+      // fields. One copy of a character only — a preset saved before
+      // the rule cannot smuggle a second Tide back in.
+      const seen = new Set();
       for (const [slot, uid] of Object.entries(p.team)) {
-        if (state.roster[uid]) team[slot] = uid;
-        else missing++;
+        const defId = this.defIdOf(uid);
+        if (state.roster[uid] && defId && !seen.has(defId)) {
+          team[slot] = uid;
+          seen.add(defId);
+        } else missing++;
       }
       state.team = team;
       save();
