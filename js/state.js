@@ -1209,37 +1209,6 @@ const GameState = (() => {
       return { success: true, milestone };
     },
 
-    // ---- Rerolling substat values ----
-    // Charges up front and parks the offer on the piece; the player then
-    // keeps or discards it. Parking it on the piece (rather than in a
-    // screen) means a pending offer survives navigating away and back.
-    rerollGear(uid) {
-      const piece = state.gear[uid];
-      if (!piece || !piece.subs || piece.subs.length === 0) return null;
-      if (piece.pendingSubs) return null; // decide the open offer first
-      const cost = Gear.rerollCost(piece);
-      if (state.arcana < cost) return null;
-      state.arcana -= cost;
-      piece.pendingSubs = Gear.rollSubValues(piece);
-      save();
-      return { cost, offered: piece.pendingSubs };
-    },
-    keepReroll(uid) {
-      const piece = state.gear[uid];
-      if (!piece || !piece.pendingSubs) return false;
-      piece.subs = piece.pendingSubs;
-      delete piece.pendingSubs;
-      this.questBump('rerolls'); // saves
-      return true;
-    },
-    discardReroll(uid) {
-      const piece = state.gear[uid];
-      if (!piece || !piece.pendingSubs) return false;
-      delete piece.pendingSubs;
-      save();
-      return true;
-    },
-
     // Hero currently wearing a piece, or null.
     wearerOf(uid) {
       for (const [heroId, entry] of Object.entries(state.roster)) {

@@ -2662,15 +2662,6 @@ test('substats follow the rulebook: counts by rarity, ranges by stat', () => {
     assert(grew >= s.boosts * r[0] - 1e-9 && grew <= s.boosts * r[1] + 1e-9,
       `${s.stat} grew ${grew} over ${s.boosts} boosts, range ${r}`);
   });
-  // Rerolling a boosted piece re-rolls all its rolls: base plus boosts.
-  const offer = G.rollSubValues(p);
-  offer.forEach((o, i) => {
-    const r = RANGES[o.stat];
-    const rolls = 1 + (p.subs[i].boosts || 0);
-    assert(o.boosts === (p.subs[i].boosts || 0), 'reroll dropped the boost count');
-    assert(o.value >= rolls * r[0] - 1e-9 && o.value <= rolls * r[1] + 1e-9,
-      `reroll of ${o.stat} (${rolls} rolls) offered ${o.value}, range ${r}`);
-  });
   w.unseed();
 });
 
