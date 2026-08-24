@@ -398,7 +398,9 @@ class BattleScreen {
       return opts;
     }
     if (this.towerFight) {
-      return { retry: true, next: true, nextLabel: 'Next Floor' };
+      // A loss never unlocks the floor above, so "Next Floor" would just
+      // refight this one — that's Retry.
+      return { retry: true, next: winner === TEAM.PLAYER, nextLabel: 'Next Floor' };
     }
     if (this.dungeonFight) {
       const cleared = GameState.bossStageCleared(this.dungeonFight.bossId);
