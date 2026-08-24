@@ -2113,4 +2113,86 @@ Object.assign(HEROES, {
     positional: POSITIONALS.tentpole,
   },
 
+  esmerelda: {
+    id: 'esmerelda',
+    element: 'fire',
+    name: 'Esmerelda',
+    title: 'Firedancer of the Firetroupe',
+    rarity: 3,
+    // Front-line DPS who spreads the troupe's burns and then feeds on
+    // them: her heal reads the whole enemy team's DoTs. The art is a
+    // dancer trailing burning silk ribbons through every strip.
+    stats: { hp: 1550, atk: 165, def: 110, speed: 104 },
+    tint: { body: '#8a2a2a', helm: '#3a2018', weapon: '#ff7a3a', skin: '#e8a888' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        // A 17-frame ribbon dance for the base idle; short fidgets.
+        idle:  { src: 'assets/heroes/Esmerelda/esmereldaidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Esmerelda/esmereldaidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Esmerelda/esmereldaidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The ribbon lashes forward early in the strip.
+        attack: { src: 'assets/heroes/Esmerelda/esmereldaskill1.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 4 },
+        skill2: { src: 'assets/heroes/Esmerelda/esmereldaskill2.png', frames: 'auto', fps: 10,
+                  loop: false },
+        // The high arc peaks mid-strip on its way to the backline.
+        skill3: { src: 'assets/heroes/Esmerelda/esmereldaskill3.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 5 },
+        death: { src: 'assets/heroes/Esmerelda/esmereldadeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'esmerelda_ribbon_lash', name: 'Ribbon Lash',
+        icon: 'assets/icons/fc1036.png',
+        description: 'Lash one enemy with a burning silk for 110% ATK ' +
+          'and leave a burn eating 3% of their max HP per turn for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.10 },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+      },
+      {
+        id: 'esmerelda_gathering_embers', name: 'Gathering Embers',
+        icon: 'assets/icons/fc1037.png',
+        description: 'Draw the heat home: heal every front-row ally for ' +
+          "20% of Esmerelda's ATK per damage-over-time burning on the " +
+          'enemy team.',
+        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        effects: [
+          { type: 'healPerDot', pct: 0.20 },
+        ],
+      },
+      {
+        id: 'esmerelda_trailing_flame', name: 'Trailing Flame',
+        icon: 'assets/icons/fc1038.png',
+        description: 'Send the ribbons arcing over the wall: 125% ATK to ' +
+          'the enemy back row, each victim left with a burn eating 3% of ' +
+          'their max HP per turn for 2 turns.',
+        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Moth to Flame',
+      icon: 'assets/icons/fc1058.png',
+      description: 'Deals 15% extra damage to burning enemies — the ' +
+        'dance always returns to the fire.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          return target && target.burning && target.burning() ? 1.15 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.vanguard_press,
+  },
+
 });

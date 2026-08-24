@@ -2645,6 +2645,63 @@ test('the Firetroupe sect set: accuracy tiers and the Oilslick mark', () => {
     `non-fire vs oil dealt ${hp0 - foe.hp}, expected ~${vexRaw(1)}`);
 });
 
+test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Elements: E, POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const esme = new U(H.esmerelda, T.PLAYER, { level: 30, stars: 3 });
+  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const foeA = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(esme, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.BACK));
+  battle.placeUnit(foeA, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeB, battle.enemySlots.findIndex((s) => s.position === P.BACK));
+  for (const f of [foeA, foeB]) {
+    f.hp = f.maxHp = 10 ** 6;
+    f.hookSources = () => [];
+    f.dodgeChance = () => 0;
+  }
+  esme.baseCritChance = -1;
+
+  // Ribbon Lash: 110% plus a two-turn burn at 3% of the victim's pool.
+  A.execute(esme.abilities[0].def, esme, foeA, battle);
+  const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+  assert(burn && burn.turns === 2 && burn.amount === Math.round(foeA.maxHp * 0.03),
+    `lash burn reads ${burn && burn.amount} for ${burn && burn.turns}`);
+
+  // Trailing Flame reaches the BACK row and burns it too.
+  A.execute(esme.abilities[2].def, esme, null, battle);
+  assert(foeB.burning(), 'the arc missed the backline');
+  assert(!foeB.statusEffects.some((fx) => fx.stat === 'oilslicked'),
+    'sanity: nothing else stuck to the target');
+
+  // Gathering Embers: 20% ATK per enemy DoT, paid to front-row allies.
+  // Two burns tick on the field, so the heal is exactly 2 x 20% ATK.
+  esme.hp = Math.round(esme.maxHp * 0.4);
+  const hp0 = esme.hp;
+  const mateHp0 = (mate.hp = Math.round(mate.maxHp * 0.5));
+  A.execute(esme.abilities[1].def, esme, null, battle);
+  const want = Math.round(esme.effectiveStat('atk') * 0.20 * 2);
+  assert(esme.hp === hp0 + want,
+    `front-row self heal read ${esme.hp - hp0}, expected ${want}`);
+  assert(mate.hp === mateHp0, 'the back-row ally was healed by a front-row gather');
+
+  // Moth to Flame: exactly 15% more into a burning target.
+  const dmg = (foe) => {
+    const h0 = foe.hp;
+    A.execute(esme.abilities[0].def, esme, foe, battle);
+    return h0 - foe.hp;
+  };
+  foeA.statusEffects = [];
+  const cold = dmg(foeA);        // burn cleared: baseline hit (re-burns it)
+  const hot = dmg(foeA);         // now burning: the moth returns
+  assert(Math.abs(hot / cold - 1.15) < 0.02,
+    `moth ratio ${(hot / cold).toFixed(3)}, expected ~1.15`);
+});
+
 test("Carl's kit: pole swings, Iron Appetite, and the tentpole", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
