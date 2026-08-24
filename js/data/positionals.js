@@ -174,6 +174,13 @@ const POSITIONALS = (() => {
     hooks: { dodgeAdd: 0.08 },
   });
 
+  def('shorthand', {
+    position: POSITION.BACK,
+    name: 'Shorthand',
+    description: 'Back hex: +15 SPD — the pen moves faster than the sword.',
+    stat: 'speed', add: 15,
+  });
+
   def('cruel_fortune', {
     position: POSITION.BACK,
     name: 'Cruel Fortune',

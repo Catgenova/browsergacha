@@ -3423,4 +3423,63 @@ test("Cleo's kit: triage by the ball, stolen luck, and reading the flames", () =
   }
 });
 
+test("Artur's kit: annotations, the page turn, and permanent ink", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    POSITION: P, CONFIG: C } = w;
+  M.resetBattle();
+  const battle = new B();
+  const artur = new U(H.artur, T.PLAYER, { level: 30, stars: 3 });
+  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(artur, battle.playerSlots.findIndex((s) => s.position === P.BACK));
+  battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foe, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  mate.hookSources = () => [];
+
+  // Shorthand: +15 flat SPD from the back hex.
+  const bare = new U(H.artur, T.PLAYER, { level: 30, stars: 3 });
+  assert(artur.effectiveStat('speed') === bare.effectiveStat('speed') + 15,
+    `shorthand read ${artur.effectiveStat('speed')} vs ${bare.effectiveStat('speed')}`);
+
+  // Margin Note: +30% crit chance for 2 turns and 30% meter, at once.
+  const cc0 = mate.effectiveStat('critChance');
+  mate.turnMeter = 0;
+  A.execute(artur.abilities[0].def, artur, mate, battle);
+  assert(Math.abs(mate.effectiveStat('critChance') - (cc0 + 0.30)) < 1e-9,
+    'the margin note did not sharpen the crit');
+  assert(mate.turnMeter === 0.30 * C.TURN_METER_MAX, 'the note paid no meter');
+
+  // Illuminated Letter: +60% crit damage for 2 turns and 30% meter.
+  const cd0 = mate.effectiveStat('critDamage');
+  mate.turnMeter = 0;
+  A.execute(artur.abilities[1].def, artur, mate, battle);
+  assert(Math.abs(mate.effectiveStat('critDamage') - (cd0 + 0.60)) < 1e-9,
+    'the gold leaf did not take');
+  assert(mate.turnMeter === 0.30 * C.TURN_METER_MAX, 'the letter paid no meter');
+
+  // Turn the Page: every ally advances 15%.
+  artur.turnMeter = 0;
+  mate.turnMeter = 0;
+  A.execute(artur.abilities[2].def, artur, null, battle);
+  assert(mate.turnMeter === 0.15 * C.TURN_METER_MAX &&
+    artur.turnMeter === 0.15 * C.TURN_METER_MAX, 'the page did not turn');
+
+  // Permanent Ink: a meter cut on any teammate is refused while the
+  // scribe lives — and lands the moment he does not.
+  B.active = battle;
+  try {
+    mate.turnMeter = 0.50 * C.TURN_METER_MAX;
+    const r = A.applyEffect({ type: 'turnMeter', amount: -0.30 }, foe, mate, 1);
+    assert(r.guarded && mate.turnMeter === 0.50 * C.TURN_METER_MAX,
+      'the ink did not hold');
+    artur.hp = 0;
+    const r2 = A.applyEffect({ type: 'turnMeter', amount: -0.30 }, foe, mate, 1);
+    assert(!r2.guarded && mate.turnMeter === 0.20 * C.TURN_METER_MAX,
+      'a dead scribe still guarded the page');
+  } finally {
+    B.active = null;
+  }
+});
+
 report();

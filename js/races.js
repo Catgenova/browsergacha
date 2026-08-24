@@ -25,7 +25,7 @@ const RACES = (() => {
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo',
+    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
   ]);
 
   const NAMES = {
@@ -63,7 +63,7 @@ const RACES = (() => {
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
-                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily'] },
+                 members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
     // Sawyer's order; a one-member sect costs nothing and claims the
     // name until its pack is specced.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
