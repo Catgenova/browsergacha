@@ -64,7 +64,7 @@ test('no two abilities are mechanically identical', () => {
   const named = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
     'sawyer', 'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl']);
+    'lucian', 'franz', 'carl', 'esmerelda']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
@@ -188,7 +188,7 @@ test('human sects hold real humans, once each, with their numbers', () => {
     hedge: { number: 3, members: ['vex', 'vivian', 'coral'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily'] },
     shadowflower: { number: 2, members: ['sawyer'] },
-    firetroupe: { number: 5, members: ['lucian', 'franz', 'carl'] },
+    firetroupe: { number: 5, members: ['lucian', 'franz', 'carl', 'esmerelda'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -254,7 +254,7 @@ test('every generic hero shares one base power budget', () => {
   const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl']);
+    'lucian', 'franz', 'carl', 'esmerelda']);
   for (const h of heroes) {
     if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);

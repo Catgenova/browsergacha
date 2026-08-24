@@ -269,6 +269,25 @@ const Abilities = (() => {
         notifyOverheal(caster, amount - healed, target);
         return { kind: 'heal', target, amount: healed };
       }
+      case 'healPerDot': {
+        // Esmerelda's gathering: an ATK-scaled heal that grows with
+        // every DoT currently ticking on the ENEMY team — the fires on
+        // the field are the medicine.
+        const b = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        const foes = b
+          ? b.livingUnits().filter((u) => u.team !== caster.team) : [];
+        const count = foes.reduce((n, u) =>
+          n + u.statusEffects.filter((fx) => fx.kind === 'dot').length, 0);
+        if (count === 0) return { kind: 'heal', target, amount: 0 };
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const amount = Math.round(caster.effectiveStat('atk') * effect.pct *
+          count * power * boost);
+        const healed = target.heal(amount, caster,
+          { assists: caster.healAssists(true) });
+        notifyOverheal(caster, amount - healed, target);
+        return { kind: 'heal', target, amount: healed };
+      }
       case 'hot': {
         // Heal-over-time: fixed amount (locked at cast) at the start of
         // each of the target's turns.
