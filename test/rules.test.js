@@ -2598,6 +2598,53 @@ test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls',
   });
 });
 
+test('the Firetroupe sect set: accuracy tiers and the Oilslick mark', () => {
+  const tiers = RACES.SECT_BONUSES.firetroupe;
+  assert(tiers.length === 3 && tiers[0].mods.accuracy === 0.15 &&
+    tiers[1].mods.accuracy === 0.05 && tiers[2].mods.oilOnHit === 0.10,
+    'the Firetroupe table drifted');
+
+  // Two members fielded is below every tier: no pack fires.
+  const b0 = makeBattle();
+  const duo = ['lucian', 'franz'].map((id, i) => place(b0, HEROES[id], TEAM.PLAYER, i));
+  assert(!RACES.applyParty(duo).some((s) => s.title === 'Firetroupe sect'),
+    'two performers lit the whole pack');
+
+  // The 7pc channel: a landed hit slicks the victim for 2 turns.
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Elements: E } = w;
+  const franz = new U(H.franz, T.PLAYER, { level: 30, stars: 4 });
+  const vex = new U(H.vex, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  foe.hp = foe.maxHp = 10 ** 6;
+  foe.hookSources = () => [];
+  foe.dodgeChance = () => 0;
+  franz.baseCritChance = -1;
+  franz.synergyOilOnHit = 1; // certainty, for the assertion
+  franz.dealt(500, foe);
+  const oil = foe.statusEffects.find((fx) => fx.stat === 'oilslicked');
+  assert(oil && oil.turns === 2, 'the hit left no oil');
+
+  // Oiled: a FIRE attacker hits half again as hard; a non-fire one
+  // gains nothing.
+  const expect = (mult) => Math.round(A.damageFormula(
+    franz.maxHp * 0.20 * E.mult('fire', foe.element) * mult,
+    foe.effectiveStat('def')));
+  franz.synergyOilOnHit = 0;
+  let hp0 = foe.hp;
+  A.execute(franz.abilities[0].def, franz, foe, null);
+  assert(Math.abs((hp0 - foe.hp) - expect(1.5)) <= 1,
+    `fire vs oil dealt ${hp0 - foe.hp}, expected ~${expect(1.5)}`);
+  vex.baseCritChance = -1;
+  const vexRaw = (mult) => Math.round(A.damageFormula(
+    vex.effectiveStat('atk') * (H.vex.abilities[0].effects[0].mult) *
+    E.mult(vex.element, foe.element) * mult, foe.effectiveStat('def')));
+  hp0 = foe.hp;
+  A.execute(vex.abilities[0].def, vex, foe, null);
+  assert(Math.abs((hp0 - foe.hp) - vexRaw(1)) <= 1,
+    `non-fire vs oil dealt ${hp0 - foe.hp}, expected ~${vexRaw(1)}`);
+});
+
 test("Franz's kit: HP-scaled bonks, wounded fury, and the hearth's regen", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
