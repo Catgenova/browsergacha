@@ -1193,6 +1193,15 @@ body {
   transform: rotateY(180deg);
 }
 
+/* Once the flip lands the 3D machinery is retired: a face left inside
+   a rotateY(180deg) preserve-3d layer rasterizes its text soft
+   (visibly so on the shadowed 4/5-star borders). `settled` flattens
+   the card back to plain 2D rendering. */
+.summon-card.settled { perspective: none; }
+.summon-card.settled .summon-card-inner { transform: none; transition: none; }
+.summon-card.settled .summon-back { display: none; }
+.summon-card.settled .summon-front { transform: none; }
+
 .summon-face {
   position: absolute;
   inset: 0;
