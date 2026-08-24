@@ -153,6 +153,22 @@ const RACES = (() => {
     { count: 7, mods: { takenMult: 0.85 }, label: '7: takes 15% less damage' },
   ];
 
+  // Blessed/Godtouched company: fielding several summon-lottery copies
+  // together, tiered at 3/5/7 like every pack. Counts are strict — a
+  // Godtouched hero counts for the Godtouched pack only, not both.
+  const BLESSING_BONUSES = {
+    blessed: [
+      { count: 3, mods: { critDamage: 0.25 }, label: '3: +25% Crit Damage' },
+      { count: 5, mods: { resurrect: 0.15 }, label: '5: 15% chance to resurrect' },
+      { count: 7, mods: { hpPct: 0.20 }, label: '7: +20% HP' },
+    ],
+    godtouched: [
+      { count: 3, mods: { critDamage: 0.50 }, label: '3: +50% Crit Damage' },
+      { count: 5, mods: { resurrect: 0.30 }, label: '5: 30% chance to resurrect' },
+      { count: 7, mods: { hpPct: 0.40 }, label: '7: +40% HP' },
+    ],
+  };
+
   // The identity a hero brings to the motley count.
   function groupOf(def) {
     const sect = sectOf(def);
@@ -224,6 +240,7 @@ const RACES = (() => {
     if (mods.resistance) unit.gearResistance += mods.resistance;
     if (mods.critChance) unit.baseCritChance += mods.critChance;
     if (mods.critDamage) unit.baseCritDamage += mods.critDamage;
+    if (mods.resurrect) unit.resurrectChance += mods.resurrect;
     if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
     if (mods.apOnEnemyTurn) unit.synergyApOnEnemyTurn += mods.apOnEnemyTurn;
     if (mods.debuffExtraChance) unit.synergyDebuffExtraChance += mods.debuffExtraChance;
@@ -273,6 +290,19 @@ const RACES = (() => {
       active.push({ title: 'Motley company', count: motley,
         labels: motleyTiers.map((t) => t.label) });
     }
+    // Blessed/Godtouched company: summon-lottery copies fielded
+    // together, paid to everyone like the other packs.
+    for (const [kind, tiers] of Object.entries(BLESSING_BONUSES)) {
+      const count = units.filter((u) => u.blessing === kind).length;
+      const hit = tiers.filter((t) => count >= t.count);
+      if (hit.length === 0) continue;
+      for (const unit of units) {
+        for (const tier of hit) applyModsToUnit(unit, tier.mods);
+      }
+      const name = kind === 'godtouched' ? 'Godtouched' : 'Blessed';
+      active.push({ title: `${name} company`, count,
+        labels: hit.map((t) => t.label) });
+    }
     return active;
   }
 
@@ -280,7 +310,8 @@ const RACES = (() => {
     of, NAMES, counts, activeTiers, SECTS, sectOf,
     get BONUSES() { return buildBonuses(); },
     ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
-    PRISM_BONUS, DIVERSITY_BONUSES, groupOf, prismActive, diversityCount,
+    PRISM_BONUS, DIVERSITY_BONUSES, BLESSING_BONUSES,
+    groupOf, prismActive, diversityCount,
     applyParty,
   };
 })();

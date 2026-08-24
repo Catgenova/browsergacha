@@ -159,10 +159,11 @@ class SummonScreen {
   }
 
   buildCard(res) {
-    const { def, rarity, isNew, copies } = res;
+    const { def, rarity, isNew, copies, blessing } = res;
 
     const card = document.createElement('div');
     card.className = `summon-card rarity-${rarity}`;
+    if (blessing) card.classList.add(`blessing-${blessing}`);
 
     const inner = document.createElement('div');
     inner.className = 'summon-card-inner';
@@ -206,6 +207,18 @@ class SummonScreen {
       : copies > 1 ? `\u00d7${copies} in roster` : 'Collected before';
 
     front.append(portrait, name, element, stars, status);
+    // The lottery ticket: a Blessed (1/1,000) or Godtouched (1/10,000)
+    // copy announces itself on the card, over everything else.
+    if (blessing && typeof Blessing !== 'undefined') {
+      const b = Blessing.of(blessing);
+      if (b) {
+        const tag = document.createElement('div');
+        tag.className = `card-blessing-tag blessing-${blessing}`;
+        tag.textContent = `${b.icon} ${b.name.toUpperCase()}`;
+        tag.title = `${b.name} — ${b.blurb}`;
+        front.appendChild(tag);
+      }
+    }
     inner.append(back, front);
     card.appendChild(inner);
 

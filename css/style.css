@@ -1067,6 +1067,60 @@ body {
 .roster-card:has(.card-fav.on) { border-color: #6b5a2e; }
 .roster-card.selected:has(.card-fav.on) { border-color: #ffd76a; }
 
+/* ==== Blessed / Godtouched ====
+   Summon-lottery copies: the portrait pulses silver (Blessed, 1/1,000)
+   or gold (Godtouched, 1/10,000) wherever the card appears. */
+.roster-card.blessing-blessed .portrait,
+.summon-card.blessing-blessed .portrait {
+  animation: blessed-pulse 2.2s ease-in-out infinite;
+}
+.roster-card.blessing-godtouched .portrait,
+.summon-card.blessing-godtouched .portrait {
+  animation: godtouched-pulse 2.2s ease-in-out infinite;
+}
+@keyframes blessed-pulse {
+  0%, 100% { box-shadow: 0 0 5px 1px rgba(215, 226, 245, 0.35); }
+  50%      { box-shadow: 0 0 15px 4px rgba(215, 226, 245, 0.85); }
+}
+@keyframes godtouched-pulse {
+  0%, 100% { box-shadow: 0 0 5px 1px rgba(255, 215, 106, 0.35); }
+  50%      { box-shadow: 0 0 15px 4px rgba(255, 215, 106, 0.9); }
+}
+.roster-card.blessing-blessed { border-color: #8f9cb5; }
+.roster-card.blessing-godtouched { border-color: #a8853a; }
+/* The card mark: the kind's glyph in the free top-left corner. */
+.card-blessing {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 13px;
+  line-height: 1;
+  pointer-events: none;
+}
+.card-blessing.blessing-blessed {
+  color: #cdd6e4;
+  text-shadow: 0 0 6px rgba(215, 226, 245, 0.9);
+}
+.card-blessing.blessing-godtouched {
+  color: #ffd76a;
+  text-shadow: 0 0 6px rgba(255, 215, 106, 0.9);
+}
+/* Summon reveal: the ticket names itself under the stars. */
+.card-blessing-tag {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.card-blessing-tag.blessing-blessed {
+  color: #cdd6e4;
+  text-shadow: 0 0 6px rgba(215, 226, 245, 0.8);
+}
+.card-blessing-tag.blessing-godtouched {
+  color: #ffd76a;
+  text-shadow: 0 0 6px rgba(255, 215, 106, 0.8);
+}
+
 /* ==== Summon screen ==== */
 #summon-header {
   padding: 14px 16px;

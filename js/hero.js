@@ -34,6 +34,16 @@ class Unit {
       scaled.atk = Math.round(scaled.atk * m);
       scaled.def = Math.round(scaled.def * m);
     }
+    // Blessing: this copy rolled Blessed (+20%) or Godtouched (+40%) at
+    // summon time. Like attunement it lifts HP/ATK/DEF and leaves speed
+    // alone, so the turn economy is not part of the lottery.
+    this.blessing = progress?.blessing || null;
+    if (this.blessing && typeof Blessing !== 'undefined') {
+      const m = Blessing.statMult(this.blessing);
+      scaled.hp = Math.round(scaled.hp * m);
+      scaled.atk = Math.round(scaled.atk * m);
+      scaled.def = Math.round(scaled.def * m);
+    }
     // `statScale` retunes one deployment of a unit without touching its
     // definition. The campaign uses it to hold its chapter holders to a
     // curve of their own: the boss roster is unevenly tuned relative to
@@ -71,6 +81,10 @@ class Unit {
     this.synergyTakenMult = 1;
     this.synergyApOnEnemyTurn = 0;
     this.synergyDebuffExtraChance = 0;
+    // Blessed/Godtouched company: a chance to come back from a killing
+    // blow, at most once per battle.
+    this.resurrectChance = 0;
+    this.resurrected = false;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
     // one per hit. Sprite variants per count live in unit.mirrorSheets.
@@ -584,6 +598,19 @@ class Unit {
     amount -= absorbed;
     this.hp = Math.max(0, this.hp - amount);
     this.hitFlash = 0.18;
+    // Blessed/Godtouched company: the killing blow may not stick. One
+    // return per battle, at 30% HP, statuses wiped like any other death.
+    if (!this.alive && this.resurrectChance > 0 && !this.resurrected &&
+        Math.random() < this.resurrectChance) {
+      this.resurrected = true;
+      this.statusEffects = [];
+      this.hp = Math.max(1, Math.round(this.maxHp * 0.30));
+      if (typeof Battle !== 'undefined' && Battle.active) {
+        Battle.active.addFloatingText(this, '✨ RESURRECTED', '#ffd76a');
+        Battle.active.log(
+          `A blessing holds — ${this.name} resurrects at 30% HP!`, 'log-system');
+      }
+    }
     if (!this.alive) {
       this.turnMeter = 0;
       this.statusEffects = [];

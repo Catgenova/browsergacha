@@ -433,6 +433,10 @@ class TeamScreen {
       };
       up.addEventListener('click', (e) => { e.stopPropagation(); withdraw(); });
       card.append(portrait, name, stars, level, up);
+      if (r.e.blessing && typeof Blessing !== 'undefined') {
+        card.classList.add(`blessing-${r.e.blessing}`);
+        card.insertAdjacentHTML('beforeend', Blessing.iconHtml(r.e.blessing));
+      }
       // Clicking the card inspects, exactly like a roster card; only the
       // explicit ▲ (or the details panel's button) withdraws.
       card.addEventListener('click', () => this.selectHero(r.uid, 'storage'));
@@ -536,6 +540,13 @@ class TeamScreen {
         this.buildRoster();   // re-sort so it moves immediately
       });
       card.append(portrait, name, stars, level, badge, fav, store);
+      // Blessed/Godtouched copies: the mark is permanent to the uid, so
+      // it is stamped once at build time — a pulsing portrait glow plus
+      // the kind's glyph on the card.
+      if (progress.blessing && typeof Blessing !== 'undefined') {
+        card.classList.add(`blessing-${progress.blessing}`);
+        card.insertAdjacentHTML('beforeend', Blessing.iconHtml(progress.blessing));
+      }
       card.addEventListener('click', () => this.selectHero(heroId, 'roster'));
       card._parts = { stars, level, badge, fav, store };
       this.cardCache.set(heroId, card);
