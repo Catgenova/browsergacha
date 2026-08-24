@@ -2442,19 +2442,8 @@ html.is-mobile #mute-btn { min-height: 44px; min-width: 44px; font-size: 18px; }
 html.is-mobile #battle-summary { font-size: 13px; }
 html.is-mobile .sum-k { font-size: 11px; }
 
-/* ==== Gear reroll: current value against the offered one ==== */
-.sub-compare {
-  display: flex; align-items: baseline; gap: 8px;
-  font-size: 11px; color: #9a92b8; margin-top: 2px;
-}
-.sub-old { min-width: 108px; }
-.sub-arrow { width: 12px; text-align: center; color: #6b6486; }
-.sub-arrow.up, .sub-new.up { color: #7ae87a; }
-.sub-arrow.down, .sub-new.down { color: #ff9a8a; }
-.sub-new { color: #e8e4d8; }
 /* One gold arrow per enchant milestone rolled into the substat. */
 .sub-boosts { color: #ffd76a; font-size: 10px; letter-spacing: 1px; }
-html.is-mobile .sub-compare { font-size: 13px; }
 
 /* ==== Battle: the empty state ==== */
 /* Shown when nothing is running. The tab used to roll a fresh hunt in

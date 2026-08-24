@@ -12,7 +12,7 @@ const Quests = (() => {
   //   campaignWins  campaign node cleared     towerFloors tower floor climbed
   //   summons       heroes summoned           starUps    hero starred up
   //   polishes      item levelled             enchants   enchant attempted
-  //   salvages      item salvaged             rerolls    substats rerolled
+  //   salvages      item salvaged
   //   flawless      battle won with nobody down
   //   sacrifices    hero spent on another hero
   //   synergyWins   battle won with any party bonus (pack/resonance) active
@@ -79,8 +79,6 @@ const Quests = (() => {
         reward: { diamonds: 400 } },
       { id: 'm_salvage', name: 'Salvage 25 items', counter: 'salvages', goal: 25,
         reward: { diamonds: 500 } },
-      { id: 'm_reroll', name: 'Reroll 20 sets of substats', counter: 'rerolls',
-        goal: 20, reward: { diamonds: 600 } },
       { id: 'm_tower', name: 'Climb 50 tower floors', counter: 'towerFloors', goal: 50,
         reward: { scrollsRare: 4 } },
       { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,

@@ -248,12 +248,6 @@ const ACHIEVEMENTS = (() => {
     progress: () => ({ have: Math.min(250, GameState.stat('salvages')), need: 250 }),
     reward: { whetstones: 3000 },
   });
-  add({
-    id: 'craft_reroll_100', group: 'Craft', name: 'Chasing Substats',
-    detail: 'Keep 100 rerolled substat lines.',
-    progress: () => ({ have: Math.min(100, GameState.stat('rerolls')), need: 100 }),
-    reward: { arcana: 1200 },
-  });
 
   // ---- Campaign ----------------------------------------------------------
   const chaptersBeaten = (tierId) => CAMPAIGN.CHAPTERS
@@ -412,12 +406,6 @@ const ACHIEVEMENTS = (() => {
     { n: 100, name: "Breaker's Yard", reward: { arcana: 300 } },
     { n: 500, name: 'Industrial Recycling', reward: { rare: 6 } },
     { n: 1000, name: 'Nothing Wasted', reward: { temporal: 4 } },
-  ]);
-  ladder('Command', 'craft_reroll', stat('rerolls'), (n) => `Keep ${fmt(n)} rerolled substat lines.`, [
-    { n: 50, name: 'Second Opinions', reward: { arcana: 400 } },
-    { n: 250, name: 'Dice Whisperer', reward: { rare: 5 } },
-    { n: 500, name: "Fate's Editor", reward: { temporal: 3 } },
-    { n: 1000, name: 'Probability Bender', reward: { temporal: 6 } },
   ]);
 
   ladder('Command', 'cmd_synergy', stat('synergyWins'),
@@ -645,7 +633,6 @@ const ACHIEVEMENTS = (() => {
     polishes: ['Polishes', [2500, 5000, 10000, 25000, 50000]],
     enchants: ['Enchants', [2500, 5000, 10000, 25000, 50000]],
     salvages: ['Salvages', [2500, 5000, 10000, 25000, 50000]],
-    rerolls: ['Rerolls', [2500, 5000, 10000, 25000, 50000]],
     synergyWins: ['Synergy Wins', [1000, 2500, 5000, 10000, 25000]],
   };
   const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
