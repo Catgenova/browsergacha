@@ -244,6 +244,11 @@ const Campaign = (() => {
 
   function gearFor(nodeObj, tierId, def) {
     if (!tier(tierId).full || typeof Gear === 'undefined') return [];
+    // Holders fight bare-handed on every tier: they already carry their
+    // chapter tuning compounded with the tier's stat scale, and a full
+    // six-piece set on top of that made them unbeatable rather than
+    // hard. Gear is the rank and file's tier bonus.
+    if (nodeObj.type === 'boss') return [];
     const level = levelFor(nodeObj, tierId);
     const rarity = gearRarityFor(level);
     const capped = Math.min(level, Gear.RARITIES[rarity].maxLevel);
@@ -269,7 +274,9 @@ const Campaign = (() => {
     const t = tier(tierId);
     const bits = [`enemies ${t.scale}\u00d7`];
     if (t.full && nodeObj.type !== 'boss') bits.push('full formation');
-    const worn = t.full ? gearRarityFor(levelFor(nodeObj, tierId)) : null;
+    // Holders wear nothing (see gearFor), so their note claims nothing.
+    const worn = t.full && nodeObj.type !== 'boss'
+      ? gearRarityFor(levelFor(nodeObj, tierId)) : null;
     if (worn) {
       const level = Math.min(levelFor(nodeObj, tierId), Gear.RARITIES[worn].maxLevel);
       bits.push(`${Gear.RARITIES[worn].name.toLowerCase()} Lv ${level} gear`);
