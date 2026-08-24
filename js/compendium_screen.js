@@ -650,9 +650,12 @@ class CompendiumScreen {
     const size = this.animator.size();
     // The animator renders at battle size (~90px), which rattles around
     // a 260px stage. Blow it up to fill the box, scaled around the feet
-    // so the ground line and shadow hold still.
-    const zoom = Math.max(1, Math.min(
+    // so the ground line and shadow hold still. A sheet that measured
+    // badly (image still decoding, or failed) yields NaN/zero sizes —
+    // fall back to 1:1 rather than feeding NaN into the canvas.
+    let zoom = Math.max(1, Math.min(
       (c.width - 56) / size.w, (c.height - 76) / size.h));
+    if (!Number.isFinite(zoom) || zoom <= 0) zoom = 1;
     const baseY = c.height - 26;
     // Ground shadow, then the sprite standing on it.
     const shadowZoom = Math.min(zoom, 1.7);

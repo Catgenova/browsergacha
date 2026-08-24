@@ -280,7 +280,10 @@ const Sprites = (() => {
       }
       for (const [name, strip] of strips) {
         const img = images.get(name);
-        if (!img) continue; // strip not delivered yet — skip it
+        // Not delivered, or delivered but failed to decode (0x0): skip
+        // it — a zero-size image poisons every frame measurement with
+        // NaN and blanks whatever tries to draw it.
+        if (!img || !img.width || !img.height) continue;
         // frames: 'auto' measures the count off the delivered image
         // (hero strips are square frames), so a def can be wired before
         // its art lands and still slice correctly when it does.

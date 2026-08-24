@@ -296,7 +296,13 @@ const App = {
     App.updateBattleBadge();
   }
   function frame(now) {
-    advance(now, true);
+    // One bad frame must not kill the game: an uncaught throw here would
+    // skip the re-arm below and freeze every canvas on the page for good.
+    try {
+      advance(now, true);
+    } catch (e) {
+      console.error('frame error:', e);
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
