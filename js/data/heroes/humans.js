@@ -1969,8 +1969,9 @@ Object.assign(HEROES, {
                   loop: false, hitFrame: 6 },
         skill2: { src: 'assets/heroes/Franz/franzskill2.png', frames: 'auto', fps: 11,
                   loop: false, hitFrame: 6 },
-        skill3: { src: 'assets/heroes/Franz/franzskill3.png', frames: 'auto', fps: 11,
-                  loop: false, hitFrame: 6 },
+        // The finisher runs 14 frames — the collapse lands late.
+        skill3: { src: 'assets/heroes/Franz/franzskill3.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 11 },
         death: { src: 'assets/heroes/Franz/franzdeath.png', frames: 'auto', fps: 7,
                  loop: false, freeze: true },
       },
