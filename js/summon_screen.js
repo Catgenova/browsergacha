@@ -39,6 +39,18 @@ class SummonScreen {
   updateInfo() {
     this.scrollsEl.textContent =
       `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare · 🌀 ${GameState.scrollsTemporal} temporal`;
+    // Roster room: every pull needs a free slot, so say up front how
+    // many are left before a summon bounces off a full roster.
+    const spaceEl = document.getElementById('summon-roster-space');
+    if (spaceEl) {
+      const free = GameState.rosterSpace();
+      spaceEl.textContent =
+        `Roster: ${GameState.rosterCount()}/${GameState.MAX_ROSTER} — ` +
+        (free === 0 ? 'FULL! Free up space before summoning.'
+          : `${free} free slot${free === 1 ? '' : 's'}`);
+      spaceEl.classList.toggle('roster-low', free > 0 && free <= 10);
+      spaceEl.classList.toggle('roster-full', free === 0);
+    }
     // The running rate-up banners point at their elective blocks below.
     const bannerEl = document.getElementById('summon-banner');
     const banners = typeof Events !== 'undefined' && Events.activeBanners
