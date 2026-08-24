@@ -509,7 +509,41 @@ class BattleScreen {
     return ids;
   }
 
+  // Guarded battle start. The build is async (sprite fetches) and used
+  // to run bare: any throw mid-build died as an unhandled rejection
+  // AFTER the idle picker was hidden but BEFORE the renderer got a
+  // battle — a dead black board with live-looking controls. The guard
+  // also serializes starts: a chain tick landing while another start is
+  // in flight would interleave two builds of this.battle.
   async startNewBattle(mode = 'wave') {
+    if (this.starting) return;
+    this.starting = true;
+    try {
+      await this.buildBattle(mode);
+      const err = document.getElementById('battle-start-error');
+      if (err) err.textContent = '';
+    } catch (e) {
+      console.error('Battle failed to start:', e);
+      // Never strand a dead board: back to the picker, with a note.
+      this.battle = null;
+      this.cancelChain();
+      this.drawSummary();
+      this.showIdle(true);
+      let msg = document.getElementById('battle-start-error');
+      if (!msg) {
+        msg = document.createElement('div');
+        msg.id = 'battle-start-error';
+        const idle = document.getElementById('battle-idle');
+        if (idle) idle.prepend(msg);
+      }
+      msg.textContent =
+        `The battle could not start (${(e && e.message) || e}) — pick the fight again.`;
+    } finally {
+      this.starting = false;
+    }
+  }
+
+  async buildBattle(mode = 'wave') {
     const team = GameState.getTeam();
     this.showIdle(false);
     this.armRetreat(false);
