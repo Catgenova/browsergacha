@@ -24,8 +24,8 @@ def font64(path):
 
 # Hero portrait: first idle frame, alpha-cropped, flipped right when the
 # art is authored facing left (same flags as the game defs).
-FACE_LEFT = {'lucian', 'esmerelda', 'koe', 'samuels', 'angelica', 'florence',
-             'javarious', 'cleo', 'artur', 'carl', 'franz', 'lin', 'slick',
+FACE_LEFT = {'lucian', 'esmerelda', 'koe', 'angelica', 'florence',
+             'javarious', 'artur', 'franz', 'lin', 'slick',
              'andrew', 'cain', 'catherine'}
 IDLE = {
     'polarus': 'Polarus/polarusidle.png', 'echo': 'Echo/Echoidle.png',

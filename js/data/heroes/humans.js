@@ -2063,9 +2063,8 @@ Object.assign(HEROES, {
     // placeholder art stands in until the upload lands).
     sprite: {
       displayH: 96,
-      // Authored facing left, like Angelica and Javarious — flagged,
-      // not mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Authored facing RIGHT (his skill punches land to the right of
+      // frame) — no faceLeft flag, unlike most of the troupe.
       strips: {
         idle:  { src: 'assets/heroes/Carl/carlidle.png', frames: 'auto', fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Carl/carlidle1.png', frames: 'auto', fps: 6, loop: false,
@@ -2331,9 +2330,8 @@ Object.assign(HEROES, {
     tint: { body: '#8a4a2a', helm: '#3a2418', weapon: '#c8ccd8', skin: '#e8a878' },
     sprite: {
       displayH: 96,
-      // Authored facing left, like Angelica and Javarious — flagged,
-      // not mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Authored facing RIGHT (all three daggers stab to the right of
+      // frame) — no faceLeft flag, unlike most of the troupe.
       strips: {
         idle:  { src: 'assets/heroes/Samuels/samuelsidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Samuels/samuelsidle1.png', frames: 'auto', fps: 6, loop: false,
@@ -2609,9 +2607,8 @@ Object.assign(HEROES, {
     tint: { body: '#c83a3a', helm: '#8a2a2a', weapon: '#ffb04a', skin: '#e8b898' },
     sprite: {
       displayH: 92,
-      // Authored facing left, like the rest of the Firetroupe — flagged,
-      // not mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Authored facing RIGHT (her profile and gaze point right of
+      // frame) — no faceLeft flag, unlike most of the troupe.
       strips: {
         idle:  { src: 'assets/heroes/Cleo/cleoidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Cleo/cleoidle1.png', frames: 'auto', fps: 6, loop: false,
