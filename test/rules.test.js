@@ -2702,7 +2702,7 @@ test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
     `moth ratio ${(hot / cold).toFixed(3)}, expected ~1.15`);
 });
 
-test("Carl's kit: pole swings, Iron Appetite, and the tentpole", () => {
+test("Carl's kit: pole swings, Iron Appetite, and the strongman", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
     Elements: E, POSITION: P } = w;
@@ -2712,9 +2712,9 @@ test("Carl's kit: pole swings, Iron Appetite, and the tentpole", () => {
   const builtMax = carl.maxHp;
   const frontIdx = battle.playerSlots.findIndex((s) => s.position === P.FRONT);
   battle.placeUnit(carl, frontIdx);
-  // Tentpole: +15% max HP, applied once at placement on the front hex.
+  // Strongman: +15% max HP, applied once at placement on the front hex.
   assert(carl.maxHp === Math.round(builtMax * 1.15),
-    `tentpole read ${carl.maxHp} vs built ${builtMax}`);
+    `strongman read ${carl.maxHp} vs built ${builtMax}`);
 
   const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
@@ -2730,7 +2730,7 @@ test("Carl's kit: pole swings, Iron Appetite, and the tentpole", () => {
   const exp = (mult, foe, extra = 1) => Math.round(A.damageFormula(
     carl.maxHp * mult * E.mult('fire', foe.element) * extra,
     foe.effectiveStat('def')));
-  // Clobber: exactly 15% of his (tentpoled) max HP through the pipeline.
+  // Clobber: exactly 15% of his (strongman-built) max HP through the pipeline.
   let hp0 = foeBack.hp;
   A.execute(carl.abilities[0].def, carl, foeBack, battle);
   assert(Math.abs((hp0 - foeBack.hp) - exp(0.15, foeBack)) <= 1,

@@ -367,9 +367,9 @@ const POSITIONALS = (() => {
     hooks: { overhealBoost: 0.25 },
   });
 
-  def('tentpole', {
+  def('strongman', {
     position: POSITION.FRONT,
-    name: 'Tentpole',
+    name: 'Strongman',
     description: 'Front hex: +15% max HP — the whole show leans on him.',
     stat: 'hp', mult: 1.15,
   });

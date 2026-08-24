@@ -2031,7 +2031,7 @@ Object.assign(HEROES, {
     id: 'carl',
     element: 'fire',
     name: 'Carl',
-    title: 'Tentpole of the Firetroupe',
+    title: 'Strongman of the Firetroupe',
     rarity: 3,
     // Front-line tank in the Franz mold: swings scale off his OWN max
     // HP, and every blow he absorbs makes the pool — and therefore the
@@ -2110,7 +2110,7 @@ Object.assign(HEROES, {
         },
       },
     },
-    positional: POSITIONALS.tentpole,
+    positional: POSITIONALS.strongman,
   },
 
   esmerelda: {
