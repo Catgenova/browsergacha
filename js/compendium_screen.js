@@ -390,8 +390,12 @@ class CompendiumScreen {
     if (sect) {
       const names = sect.members.map((id) =>
         HEROES[id] ? HEROES[id].name : id.charAt(0).toUpperCase() + id.slice(1));
+      const sectTiers = RACES.SECT_BONUSES[sect.id];
       synergyRows.push(`<div class="comp-syn"><b>${sect.name} Sect (No. ${sect.number})</b>` +
-        `<span>${names.join(', ')}</span><span>Sect bonuses to come.</span></div>`);
+        `<span>${names.join(', ')}</span>` +
+        (sectTiers && sectTiers.length
+          ? sectTiers.map((t) => `<span>${t.label}</span>`).join('')
+          : '<span>Sect bonuses to come.</span>') + '</div>');
     }
     if (race && RACES.BONUSES[race] && RACES.BONUSES[race].length) {
       synergyRows.push(`<div class="comp-syn"><b>${RACES.NAMES[race]} pack</b>` +

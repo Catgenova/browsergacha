@@ -234,17 +234,23 @@ class TeamScreen {
         if (!tiers.length) continue; // humans: sects, not a pack
         row(`${RACES.NAMES[race]} pack`, null, count, tiers);
       }
-      // Human sects: shown as soon as a member is fielded. No bonuses
-      // yet -- the rows say who stands together and how many the sect
-      // will want (its number).
+      // Human sects: shown as soon as a member is fielded. A sect with
+      // a wired pack (Reverence, Cryst) shows its real tiers like any
+      // other row; the rest still say who stands together and that
+      // their bonuses are to come.
       for (const sect of Object.values(RACES.SECTS)) {
         const fielded = defs.filter((d) => RACES.sectOf(d) === sect).length;
         if (fielded < 1) continue;
-        rows.push(`<div class="syn-row">
-          <span class="syn-name">${sect.name} sect &times;${fielded}</span>
-          <span class="syn-tier">No. ${sect.number}</span>
-          <span class="syn-tier">${fielded}/${sect.members.length} known members</span>
-          <span class="syn-tier">bonuses to come</span></div>`);
+        const tiers = RACES.SECT_BONUSES[sect.id];
+        if (tiers && tiers.length) {
+          row(`${sect.name} sect`, null, fielded, tiers);
+        } else {
+          rows.push(`<div class="syn-row">
+            <span class="syn-name">${sect.name} sect &times;${fielded}</span>
+            <span class="syn-tier">No. ${sect.number}</span>
+            <span class="syn-tier">${fielded}/${sect.members.length} known members</span>
+            <span class="syn-tier">bonuses to come</span></div>`);
+        }
       }
       for (const [el, count] of Object.entries(RACES.elementCounts(defs))) {
         if (count < 2) continue;
