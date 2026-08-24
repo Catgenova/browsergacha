@@ -2143,6 +2143,9 @@ Object.assign(HEROES, {
     name: 'Esmerelda',
     title: 'Firedancer of the Firetroupe',
     rarity: 3,
+    // Explicit role: the stat fold reads her 1550 HP as bulk, but the
+    // ribbon dancer is a front-line DPS.
+    role: 'dps',
     // Front-line DPS who spreads the troupe's burns and then feeds on
     // them: her heal reads the whole enemy team's DoTs. The art is a
     // dancer trailing burning silk ribbons through every strip.
@@ -2318,6 +2321,9 @@ Object.assign(HEROES, {
     name: 'Samuels',
     title: 'Stabby Triplets of the Firetroupe',
     rarity: 3,
+    // Explicit role: three knife-throwing brothers are a front-line
+    // DPS, whatever the stat fold makes of their shared HP pool.
+    role: 'dps',
     // Front-line DPS who is three brothers in a stack: every skill is
     // THREE separate strikes, each rolling its own crit — the art is a
     // three-high knife-acrobat tower, and the death is it toppling.
