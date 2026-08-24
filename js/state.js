@@ -217,7 +217,12 @@ const GameState = (() => {
     storage: {},  // parked heroes: same entries, no gear, out of play
     nextHeroUid: 1,
     team: {},                            // slotIndex (0-6) -> roster uid
-    pity: 0,                             // pulls since last 5★
+    pity: 0,                             // plain rare pulls since last 5★
+    // bannerId -> { count, claimed: [heroId] }: the banner pity ledger.
+    // `count` is elective pulls toward the next guarantee; `claimed`
+    // lists featured heroes already handed over (out of the pity pool
+    // for the rest of that banner).
+    bannerPity: {},
     bossStages: {},                      // bossId -> highest stage cleared
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
@@ -1589,5 +1594,17 @@ const GameState = (() => {
     // ---- Gacha pity ----
     get pity() { return state.pity; },
     setPity(n) { state.pity = n; save(); },
+    // The banner pity ledger, per banner id (see Gacha).
+    bannerPity(bannerId) {
+      const s = (state.bannerPity || {})[bannerId];
+      return s ? { count: s.count || 0, claimed: [...(s.claimed || [])] }
+        : { count: 0, claimed: [] };
+    },
+    setBannerPity(bannerId, s) {
+      if (!state.bannerPity) state.bannerPity = {};
+      state.bannerPity[bannerId] = {
+        count: s.count || 0, claimed: [...(s.claimed || [])] };
+      save();
+    },
   };
 })();

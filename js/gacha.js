@@ -9,10 +9,15 @@
 // heroes come ONLY from Temporal Scrolls (1% drop from normal hunts and
 // from boss stage 15+, plus every 50th tower floor).
 // One scroll per summon. Pity: a 5★ is guaranteed within PITY_LIMIT
-// rare-scroll pulls (once a 5★ hero exists in the pool).
+// PLAIN rare-scroll pulls (once a 5★ hero exists in the pool). Banner
+// pulls run a pity of their own instead — every BANNER_PITY_EVERY
+// elective pulls hand over one of the banner's featured heroes, who
+// then leaves that banner's pity pool for good; once all of them have
+// been claimed the banner's pity is spent for its remaining run.
 
 const Gacha = (() => {
-  const PITY_LIMIT = 40;
+  const PITY_LIMIT = 100;
+  const BANNER_PITY_EVERY = 50;
 
   const RATES = {
     common: [
@@ -101,23 +106,69 @@ const Gacha = (() => {
     return weightedDraw(pool, banner, date);
   }
 
-  // One pull with a scroll of `kind`. Rare-scroll pulls tick the 5★
-  // pity counter; the pity break only fires while a 5★ hero exists.
+  // A banner's featured pool: every member of its sect, the heroes on
+  // its display strip.
+  function bannerFeatured(b) {
+    return Object.values(HEROES)
+      .filter((h) => {
+        const s = typeof RACES !== 'undefined' ? RACES.sectOf(h) : null;
+        return s && s.id === b.sect;
+      })
+      .map((h) => h.id);
+  }
+
+  // The banner's pity ledger, dressed for the UI: pulls made toward the
+  // next guarantee, heroes already claimed, and who is still in the pool.
+  function bannerPityInfo(b) {
+    const s = GameState.bannerPity(b.id);
+    return { ...s, every: BANNER_PITY_EVERY,
+      remaining: bannerFeatured(b).filter((id) => !s.claimed.includes(id)) };
+  }
+
+  // One pull with a scroll of `kind`. PLAIN rare pulls tick the 5★ pity
+  // ladder (the break fires while a 5★ hero exists); banner pulls tick
+  // their banner's own pity instead.
   function resolvePull(kind, banner = false) {
     const elements = POOL_ELEMENTS[kind] || null;
-    let rarity = rollRarity(kind);
-    if (kind === 'rare' &&
-        GameState.pity + 1 >= PITY_LIMIT && poolByRarity(5, elements).length > 0) {
-      rarity = 5; // pity break
+    // Banner pity: the pull that lands on the 50th mark hands over one
+    // of the featured heroes still in the pool, at random, and crosses
+    // them off. With nobody left in the pool the counter stops moving —
+    // the pity is spent for the rest of the banner.
+    let pityDef = null;
+    if (banner && typeof Events !== 'undefined' && Events.currentBanner) {
+      const b = Events.currentBanner(new Date(), kind);
+      if (b) {
+        const s = GameState.bannerPity(b.id);
+        const remaining = bannerFeatured(b).filter((id) => !s.claimed.includes(id));
+        if (remaining.length > 0) {
+          const count = s.count + 1;
+          if (count >= BANNER_PITY_EVERY) {
+            const id = remaining[Math.floor(Math.random() * remaining.length)];
+            pityDef = HEROES[id];
+            GameState.setBannerPity(b.id, { count: 0, claimed: [...s.claimed, id] });
+          } else {
+            GameState.setBannerPity(b.id, { count, claimed: s.claimed });
+          }
+        }
+      }
     }
-    const def = pickHero(rarity, elements, banner ? kind : false);
-    if (kind === 'rare') {
+    let def = pityDef;
+    if (!def) {
+      let rarity = rollRarity(kind);
+      if (kind === 'rare' && !banner &&
+          GameState.pity + 1 >= PITY_LIMIT && poolByRarity(5, elements).length > 0) {
+        rarity = 5; // pity break
+      }
+      def = pickHero(rarity, elements, banner ? kind : false);
+    }
+    if (kind === 'rare' && !banner) {
       GameState.setPity(def.rarity === 5 ? 0 : GameState.pity + 1);
     }
     const added = GameState.addHero(def.id);
     return { def, rarity: def.rarity, uid: added ? added.uid : null,
       isNew: !!added && added.isNew, copies: GameState.countOf(def.id),
-      blessing: (added && added.blessing) || null };
+      blessing: (added && added.blessing) || null,
+      bannerPity: !!pityDef };
   }
 
   // Spend `count` scrolls of `kind` for that many summons.
@@ -140,5 +191,6 @@ const Gacha = (() => {
     return results;
   }
 
-  return { pull, pickHero, PITY_LIMIT, RATES };
+  return { pull, pickHero, PITY_LIMIT, RATES,
+    BANNER_PITY_EVERY, bannerPityInfo };
 })();

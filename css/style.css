@@ -2606,7 +2606,23 @@ html.is-mobile .sub-compare { font-size: 13px; }
   display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
   margin: 12px 0;
 }
-.banner-hero { width: 84px; }
+.banner-hero { width: 84px; position: relative; }
+/* A featured hero already claimed by the banner's pity: still shown,
+   crossed off, out of the pity pool. */
+.banner-hero.pity-claimed canvas { filter: grayscale(0.85) brightness(0.55); }
+.banner-hero.pity-claimed .bh-name,
+.banner-hero.pity-claimed .bh-stars { opacity: 0.45; }
+.bh-x {
+  position: absolute;
+  top: 12px; left: 0; right: 0;
+  text-align: center;
+  font-size: 38px;
+  font-weight: bold;
+  color: #ff5a5a;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+.banner-pity { font-size: 12px; color: #c8b88a; margin: 0 0 10px; }
 .banner-hero canvas {
   width: 72px; height: 72px; display: block; margin: 0 auto;
   border: 1px solid rgba(240, 193, 75, 0.4); border-radius: 8px;
