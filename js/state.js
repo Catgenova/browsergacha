@@ -4,6 +4,11 @@
 
 const GameState = (() => {
   const KEY = 'browsergacha_save_v1';
+  // Rolling backup of the healthiest recent save, one key over. Written
+  // on load, never overwritten by a save holding fewer heroes than it —
+  // so whatever goes wrong, the copy worth restoring survives it.
+  // GameState.restoreBackup() (from the console) swaps it back in.
+  const BACKUP_KEY = KEY + '_backup';
 
   // Save schema version. Every structural change to the save gets a
   // numbered migration below rather than another ad-hoc patch in
@@ -215,6 +220,10 @@ const GameState = (() => {
     rosterCapBonus: 0,   // purchased roster room, in tens
     storageCapBonus: 0,  // purchased vault room, in tens
     storage: {},  // parked heroes: same entries, no gear, out of play
+    // Quarantine for roster entries whose character definition failed
+    // to load (mid-deploy script failure, removed character). Entries
+    // wait here intact and return to the roster when the def is back.
+    limbo: {},
     nextHeroUid: 1,
     team: {},                            // slotIndex (0-6) -> roster uid
     pity: 0,                             // plain rare pulls since last 5★
@@ -324,6 +333,15 @@ const GameState = (() => {
         // A save that came off disk belongs to somebody who has already
         // worked the game out. The first-run tour is for first runs.
         if (parsed.onboarded === undefined) loaded.onboarded = true;
+        // Keep the backup at least this healthy. A wiped or shrunken
+        // save (fewer heroes than the backup holds) does NOT overwrite
+        // it — that is exactly the save you'd want back.
+        try {
+          const count = Object.keys(parsed.roster || {}).length;
+          const prev = JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null');
+          const prevCount = prev ? Object.keys(prev.roster || {}).length : -1;
+          if (count >= prevCount) localStorage.setItem(BACKUP_KEY, raw);
+        } catch (e) { /* the backup is best-effort */ }
       } else {
         loaded = structuredClone(DEFAULTS);
         fresh = true;
@@ -377,10 +395,28 @@ const GameState = (() => {
     };
     dedupeTeam(loaded.team);
     for (const preset of loaded.presets || []) dedupeTeam(preset.team || {});
-    // Scrub heroes that no longer exist (removed characters) from saves.
+    // Heroes whose character has no definition are QUARANTINED, never
+    // deleted. "No definition" is weak evidence: a data script that
+    // fails to fetch for one page load — mid-deploy, flaky cache —
+    // leaves HEROES partially built, and hard-deleting on that once
+    // cost a player their entire roster (the wipe was then saved, and
+    // permanent). Limbo keeps the entry whole — level, stars, gear,
+    // favourite — and hands it straight back on the first load where
+    // the definition exists again.
+    if (!loaded.limbo) loaded.limbo = {};
     if (typeof HEROES !== 'undefined') {
+      for (const [uid, entry] of Object.entries(loaded.limbo)) {
+        if (entry && entry.heroId && HEROES[entry.heroId]) {
+          if (!loaded.roster[uid]) loaded.roster[uid] = entry;
+          delete loaded.limbo[uid];
+        }
+      }
       for (const [uid, entry] of Object.entries(loaded.roster)) {
-        if (!entry || !HEROES[entry.heroId]) delete loaded.roster[uid];
+        if (!entry) delete loaded.roster[uid];
+        else if (!HEROES[entry.heroId]) {
+          loaded.limbo[uid] = entry;
+          delete loaded.roster[uid];
+        }
       }
       // Invariant, not a migration: promoting a character later must
       // still lift heroes already in the roster.
@@ -390,6 +426,23 @@ const GameState = (() => {
       }
       for (const [slot, uid] of Object.entries(loaded.team)) {
         if (!loaded.roster[uid]) delete loaded.team[slot];
+      }
+    }
+    // A save with a collection but not one hero ANYWHERE — roster,
+    // storage or limbo — is the wreck the old delete-on-missing-def
+    // scrub left behind; normal play cannot reach it. The entries that
+    // held levels and gear are gone for good, but the collection
+    // registry survived the wipe: regrant one fresh copy of every
+    // character ever collected so the account itself comes back.
+    if (typeof HEROES !== 'undefined' &&
+        !Object.keys(loaded.roster).length &&
+        !Object.keys(loaded.storage || {}).length &&
+        !Object.keys(loaded.limbo).length &&
+        Object.keys(loaded.collected || {}).length) {
+      for (const heroId of Object.keys(loaded.collected)) {
+        if (HEROES[heroId]) {
+          loaded.roster[String(loaded.nextHeroUid++)] = freshEntry(heroId);
+        }
       }
     }
 
@@ -499,6 +552,18 @@ const GameState = (() => {
     // ---- First-run tour ----
     get onboarded() { return !!state.onboarded; },
     setOnboarded(v) { state.onboarded = !!v; save(); },
+
+    // The escape hatch for a save that went wrong: swap the rolling
+    // backup in as the live save and reboot. Run from the console as
+    // GameState.restoreBackup().
+    restoreBackup() {
+      let raw = null;
+      try { raw = localStorage.getItem(BACKUP_KEY); } catch (e) { /* gone */ }
+      if (!raw) return false;
+      try { localStorage.setItem(KEY, raw); } catch (e) { return false; }
+      if (typeof location !== 'undefined' && location.reload) location.reload();
+      return true;
+    },
 
     // ---- Autobattle tactics ----
     get tactics() { return state.tactics; },
