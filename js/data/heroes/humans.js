@@ -218,6 +218,9 @@ Object.assign(HEROES, {
     name: 'Catherine',
     title: 'White Paladin of Reverence',
     rarity: 4,
+    // Explicit role: her bulk narrowly outweighs her punch on the stat
+    // fold, but the 200 ATK paladin is a front-line DPS, not a wall.
+    role: 'dps',
     stats: { hp: 1700, atk: 200, def: 160, speed: 98 },
     tint: { body: '#e8e4dc', helm: '#f0ece0', weapon: '#c8b88a', skin: '#e8c0a0' },
     sprite: {

@@ -18,6 +18,11 @@ const Tags = (() => {
   // points at their own side is support, and the rest split on whether
   // their statline is bulk or punch.
   function role(def) {
+    // A def can name its role outright (Catherine's stats read tanky
+    // but she is a DPS); the derivation below covers everyone else.
+    if (def.role) {
+      return { tank: 'Tank', dps: 'DPS', support: 'Support' }[def.role] || 'DPS';
+    }
     const abilities = def.abilities || [];
     const mendsAllies = abilities.some((a) =>
       Abilities.sideOf(a.targeting) === 'ally' &&
