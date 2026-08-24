@@ -2473,4 +2473,104 @@ Object.assign(HEROES, {
     positional: POSITIONALS.limelight,
   },
 
+  koe: {
+    id: 'koe',
+    element: 'fire',
+    name: 'Koe',
+    title: 'Mime of the Firetroupe',
+    rarity: 4,
+    // Back-line support who never says a word: an invisible remedy that
+    // fits whoever receives it, a rope-pull that drags the front line up
+    // the action bar, and the classic invisible wall — a Bubble that
+    // eats one whole hit. When a burning enemy strikes an ally, the
+    // remedy arrives unasked.
+    stats: { hp: 1900, atk: 125, def: 130, speed: 108 },
+    tint: { body: '#e8e4de', helm: '#241f22', weapon: '#c83a3a', skin: '#f0e8e0' },
+    sprite: {
+      displayH: 92,
+      // Authored facing left, like the rest of the Firetroupe — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
+      strips: {
+        idle:  { src: 'assets/heroes/Koe/koeidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Koe/koeidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Koe/koeidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The open-palmed offering — something from nothing.
+        attack: { src: 'assets/heroes/Koe/koeskill1.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The rope-pull, hand over hand.
+        skill2: { src: 'assets/heroes/Koe/koeskill2.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // Both palms flat on the invisible wall.
+        skill3: { src: 'assets/heroes/Koe/koeskill3.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Koe/koedeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'koe_something_from_nothing', name: 'Something From Nothing',
+        icon: 'assets/icons/fc1048.png',
+        description: 'Produce an invisible remedy: heal one ally for 15% ' +
+          'of THEIR max HP and lift 2 debuffs.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', targetPct: 0.15 },
+          { type: 'cleanse', count: 2 },
+        ],
+      },
+      {
+        id: 'koe_pull_the_rope', name: 'Pull the Rope',
+        icon: 'assets/icons/fc1049.png',
+        description: 'Haul the front line forward on a rope only Koe can ' +
+          'see: front-row allies gain 30% SPD for 2 turns and 20% turn ' +
+          'meter at once.',
+        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
+          { type: 'turnMeter', amount: 0.20 },
+        ],
+      },
+      {
+        id: 'koe_the_invisible_wall', name: 'The Invisible Wall',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Press both palms flat and the wall is THERE: every ' +
+          'front-row ally gains a Bubble for 2 turns that absorbs one ' +
+          'whole hit.',
+        cooldown: 5, targeting: 'front-allies', animation: 'skill3',
+        effects: [
+          { type: 'bubble', turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Silent Alarm',
+      icon: 'assets/icons/fc1062.png',
+      description: 'When an ally is struck by a burning enemy, Koe ' +
+        'answers at once — Something From Nothing, cast on them, free.',
+      hooks: {
+        onAllyStruck(unit, { ally, attacker, battle }) {
+          if (!attacker || attacker.team === unit.team) return;
+          if (!attacker.burning || !attacker.burning()) return;
+          if (!unit.alive || !ally.alive || ally === attacker) return;
+          const basic = unit.abilities && unit.abilities[0];
+          if (!basic) return;
+          const results = Abilities.execute(basic.def, unit, ally, battle) || [];
+          const healed = results.find && results.find((r) => r && r.kind === 'heal');
+          if (battle) {
+            if (healed && healed.amount > 0) {
+              battle.addFloatingText(ally, `+${healed.amount}`, '#8ae88a');
+            }
+            battle.log(`${unit.name} answers in silence — ` +
+              `${basic.def.name} for ${ally.name}.`, 'log-system');
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.vanishing_act,
+  },
+
 });

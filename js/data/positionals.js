@@ -174,6 +174,13 @@ const POSITIONALS = (() => {
     hooks: { dodgeAdd: 0.08 },
   });
 
+  def('vanishing_act', {
+    position: POSITION.BACK,
+    name: 'Vanishing Act',
+    description: 'Back hex: +15% Dodge — you cannot hit what refuses to be seen.',
+    hooks: { dodgeAdd: 0.15 },
+  });
+
   def('hexweaver', {
     position: POSITION.BACK,
     name: 'Hexweaver',

@@ -273,11 +273,14 @@ const Abilities = (() => {
       }
       case 'healHpPct': {
         // Heal scaled off the CASTER's max HP; optional bigger cut for
-        // front-row targets.
+        // front-row targets. `targetPct` scales off the TARGET's pool
+        // instead (Koe's mime remedy fits whoever receives it).
         const front = target.slot && target.slot.position === POSITION.FRONT;
-        const pct = front && effect.frontPct ? effect.frontPct : effect.pct;
+        const pct = front && effect.frontPct ? effect.frontPct
+          : (effect.pct ?? effect.targetPct);
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const amount = Math.round(caster.maxHp * pct * power * hpBoost);
+        const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
+        const amount = Math.round(pool * pct * power * hpBoost);
         const healed = target.heal(amount, caster,
           { assists: caster.healAssists(false) }); // max-HP scaled: gifts only
         notifyOverheal(caster, amount - healed, target);
