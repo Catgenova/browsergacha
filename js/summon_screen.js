@@ -167,6 +167,9 @@ class SummonScreen {
         // The run climbs with rarity, so the ear knows what turned up
         // before the card finishes flipping.
         if (typeof Sound !== 'undefined') Sound.play('summon', res.rarity);
+        // The flip transition runs 0.5s; once it lands, flatten the 3D
+        // transform so the face's text renders crisp (see .settled).
+        setTimeout(() => card.classList.add('settled'), 600);
       }, delay);
     });
 
