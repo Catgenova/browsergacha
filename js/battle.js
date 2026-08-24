@@ -642,6 +642,19 @@ class Battle {
             ? `${res.target.name} finds no fires to draw from.`
             : `${res.target.name}'s forge is already at full heat.`, cls);
         }
+      } else if (res.kind === 'stripBuff') {
+        if (res.count === 0) {
+          this.log(`${res.target.name} carries no blessing to tear away.`, cls);
+        } else {
+          this.addFloatingText(res.target, 'BUFF ✕', '#d78aff');
+          this.log(`${caster.name} tears ${res.count === 1 ? 'a blessing' :
+            `${res.count} blessings`} from ${res.target.name}!`, cls);
+          if (res.burned) {
+            this.addFloatingText(res.target, '♨ BURN', '#ff9a5a');
+            this.log(`Fate replaces it with fire — ${res.target.name} ` +
+              'catches a 2-turn burn.', cls);
+          }
+        }
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
         // A ward gets its own note — it is the one buff whose whole
         // value is invisible until something hits the ally wearing it.
@@ -791,7 +804,7 @@ class Battle {
         e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||
         e.type === 'cleanse' || (e.type === 'buff' && e.stat === 'def'));
       const targetsAllies = ['ally', 'all-allies', 'self', 'front-allies',
-        'self-and-wounded-allies'].includes(a.def.targeting);
+        'self-and-wounded-allies', 'lowest-allies'].includes(a.def.targeting);
       return !(defensiveOnly && targetsAllies && !anyImpaired);
     });
     // Skip group-target abilities whose target set is currently empty

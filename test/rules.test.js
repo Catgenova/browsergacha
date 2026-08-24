@@ -3326,4 +3326,101 @@ test("Koe's kit: the remedy, the rope, the wall, and the silent alarm", () => {
   }
 });
 
+test("Cleo's kit: triage by the ball, stolen luck, and reading the flames", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const cleo = new U(H.cleo, T.PLAYER, { level: 30, stars: 5 });
+  const hurt = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const hurtier = new U(H.rat_warrior, T.PLAYER, { level: 30, stars: 3 });
+  const foeA = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(cleo, battle.playerSlots.findIndex((s) => s.position === P.BACK));
+  battle.placeUnit(hurt, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(hurtier, battle.playerSlots.findIndex((s, i) =>
+    s.position === P.FRONT && !battle.playerSlots[i].unit));
+  battle.placeUnit(foeA, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeB, battle.enemySlots.findIndex((s) => s.position === P.BACK));
+  for (const u of [hurt, hurtier, foeA, foeB]) {
+    u.hookSources = () => [];
+    u.dodgeChance = () => 0;
+  }
+
+  // A Kind Fortune: no chosen target — the ball finds the lowest bar.
+  hurt.hp = Math.round(hurt.maxHp * 0.5);
+  hurtier.hp = Math.round(hurtier.maxHp * 0.2);
+  const h0 = hurtier.hp;
+  const other0 = hurt.hp;
+  A.execute(cleo.abilities[0].def, cleo, null, battle);
+  assert(hurtier.hp - h0 === Math.round(hurtier.maxHp * 0.20),
+    `the ball paid ${hurtier.hp - h0}`);
+  assert(hurt.hp === other0, 'the single reading healed a second ally');
+
+  // Twin Fates: the TWO lowest healed 25% each, one debuff lifted each,
+  // and full-HP Cleo (third wheel) left out of the reading.
+  hurt.hp = Math.round(hurt.maxHp * 0.3);
+  hurtier.hp = Math.round(hurtier.maxHp * 0.3);
+  for (const u of [hurt, hurtier]) {
+    u.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.75, turns: 2 });
+    u.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.75, turns: 2 });
+  }
+  const a0 = hurt.hp, b0 = hurtier.hp, cleo0 = cleo.hp;
+  A.execute(cleo.abilities[1].def, cleo, null, battle);
+  assert(hurt.hp - a0 === Math.round(hurt.maxHp * 0.25) &&
+    hurtier.hp - b0 === Math.round(hurtier.maxHp * 0.25),
+    'the twin reading paid wrong');
+  assert(cleo.hp === cleo0, 'the reader read herself');
+  assert(hurt.statusEffects.filter((fx) => fx.kind === 'debuff').length === 1 &&
+    hurtier.statusEffects.filter((fx) => fx.kind === 'debuff').length === 1,
+    'each fate should lift exactly one debuff');
+
+  // Fortunes Reversed: one buff torn from EVERY enemy, oldest first; an
+  // unbuffed enemy is no error. Cruel Fortune (back hex): at 0.1 the
+  // 20% roll replaces the torn buff with a 3%-pool 2-turn burn.
+  foeA.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.25, turns: 3 });
+  foeA.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.25, turns: 3 });
+  const Math2 = w.Math;
+  const realRandom = Math2.random;
+  try {
+    Math2.random = () => 0.1;
+    A.execute(cleo.abilities[2].def, cleo, null, battle);
+    const buffs = foeA.statusEffects.filter((fx) => fx.kind === 'buff');
+    assert(buffs.length === 1 && buffs[0].stat === 'def',
+      'the strip should take the oldest buff only');
+    const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+    assert(burn && burn.turns === 2 && burn.amount === Math.round(foeA.maxHp * 0.03),
+      'cruel fortune did not light the torn blessing');
+    assert(!foeB.statusEffects.some((fx) => fx.kind === 'dot'),
+      'an unbuffed enemy had nothing to strip, so nothing to burn');
+    // At 0.9 the roll fails: strip lands, no burn follows.
+    foeA.statusEffects = [];
+    foeA.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.25, turns: 3 });
+    Math2.random = () => 0.9;
+    A.execute(cleo.abilities[2].def, cleo, null, battle);
+    assert(!foeA.statusEffects.some((fx) => fx.kind === 'buff') &&
+      !foeA.statusEffects.some((fx) => fx.kind === 'dot'),
+      'a failed roll still burned');
+  } finally {
+    Math2.random = realRandom;
+  }
+
+  // Read the Flames: every burn tick on an enemy pays the lowest ally
+  // 5% of their pool.
+  B.active = battle;
+  try {
+    foeA.statusEffects = [];
+    foeA.hp = foeA.maxHp = 10 ** 6;
+    foeA.addStatusEffect({ kind: 'dot', amount: 100, turns: 2, flavor: 'burn', source: cleo });
+    hurtier.hp = Math.round(hurtier.maxHp * 0.2);
+    const low0 = hurtier.hp;
+    foeA.startTurn(battle);
+    assert(hurtier.hp - low0 === Math.round(hurtier.maxHp * 0.05),
+      `the flames paid ${hurtier.hp - low0}`);
+  } finally {
+    B.active = null;
+  }
+});
+
 report();

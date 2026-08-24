@@ -174,6 +174,13 @@ const POSITIONALS = (() => {
     hooks: { dodgeAdd: 0.08 },
   });
 
+  def('cruel_fortune', {
+    position: POSITION.BACK,
+    name: 'Cruel Fortune',
+    description: 'Back hex: each buff this hero strips has a 20% chance to be replaced with a 2-turn burn.',
+    hooks: { stripBurnChance: 0.20 },
+  });
+
   def('vanishing_act', {
     position: POSITION.BACK,
     name: 'Vanishing Act',
