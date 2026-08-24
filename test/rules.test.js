@@ -2019,14 +2019,16 @@ test('the World Rift: weekly rotation, score ledger, milestones pay once', () =>
   assert(E.worldRiftWeekKey(new Date(2026, 7, 24)) !==
     E.worldRiftWeekKey(new Date(2026, 7, 31)), 'two weeks shared a ledger key');
 
-  // First run: best recorded, the 25k and 60k milestones pay together.
+  // First run: best recorded, the 25k and 60k milestones pay together —
+  // the ladder is 1/2/3/4/5 Temporal Scrolls, so this pays 3.
   const before = { whet: G.whetstones, arcana: G.arcana, rare: G.scrollsRare,
     temporal: G.scrollsTemporal, dia: G.diamonds };
   const r1 = G.recordWorldRift(70000);
   assert(r1.newBest && r1.best === 70000 && r1.crossed.length === 2,
     `first run reported ${JSON.stringify({ best: r1.best, crossed: r1.crossed.length })}`);
-  assert(G.whetstones === before.whet + 30 && G.arcana === before.arcana + 10 &&
-    G.scrollsRare === before.rare + 1 && G.diamonds === before.dia + 100,
+  assert(G.scrollsTemporal === before.temporal + 3 &&
+    G.whetstones === before.whet && G.scrollsRare === before.rare &&
+    G.diamonds === before.dia,
     'the crossed milestones paid wrong');
 
   // A worse run neither moves the best nor re-pays anything.
@@ -2034,15 +2036,13 @@ test('the World Rift: weekly rotation, score ledger, milestones pay once', () =>
   assert(!r2.newBest && r2.best === 70000 && r2.crossed.length === 0,
     'a worse run moved the ledger');
 
-  // A better run pays exactly the newly crossed marks — including the
-  // week-element large elements at 120k.
-  const el = E.worldRiftElement();
-  const largeBefore = G.elementsOf(el).large;
+  // A better run pays exactly the newly crossed marks: 120k (3) and
+  // 250k (4), on top of the 3 already banked.
   const r3 = G.recordWorldRift(260000);
   assert(r3.newBest && r3.crossed.length === 2,
     `the better run crossed ${r3.crossed.length} marks`);
-  assert(G.elementsOf(el).large === largeBefore + 5, 'the element milestone unpaid');
-  assert(G.scrollsTemporal === before.temporal + 1, 'the 250k temporal unpaid');
+  assert(G.scrollsTemporal === before.temporal + 10,
+    'the 120k/250k temporals unpaid');
   assert(G.worldRiftInfo().best === 260000 &&
     G.worldRiftInfo().claimed.length === 4, 'the ledger read back wrong');
 });
