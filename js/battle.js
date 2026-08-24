@@ -591,8 +591,17 @@ class Battle {
         this.addFloatingText(res.target, 'HoT ▲', '#7ae87a');
         this.log(`${res.target.name} is blessed with regrowth for ${res.turns} turns.`, cls);
       } else if (res.kind === 'meter') {
-        this.addFloatingText(res.target, 'METER ▼', '#d78aff');
-        this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+        if (res.guarded) {
+          this.addFloatingText(res.target, '✎ INKED', '#ffe8a8');
+          this.log(`${res.target.name}'s place is written in permanent ` +
+            'ink — the drain is refused.', cls);
+        } else if (res.amount >= 0) {
+          this.addFloatingText(res.target, 'METER ▲', '#8ecbff');
+          this.log(`${res.target.name}'s action bar surges by ${Math.round(res.amount * 100)}%.`, cls);
+        } else {
+          this.addFloatingText(res.target, 'METER ▼', '#d78aff');
+          this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+        }
       } else if (res.kind === 'taunt') {
         this.addFloatingText(res.target, '⚑ TAUNT', '#ffd76a', true);
         this.log(`${res.target.name} draws the enemy's attention for ${res.turns} turns!`, cls);

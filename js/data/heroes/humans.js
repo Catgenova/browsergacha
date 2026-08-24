@@ -2687,4 +2687,89 @@ Object.assign(HEROES, {
     positional: POSITIONALS.cruel_fortune,
   },
 
+  artur: {
+    id: 'artur',
+    element: 'light',
+    name: 'Artur',
+    title: 'Scribe of Reverence',
+    rarity: 3,
+    // Back-line tempo support: he writes allies' turns into the record
+    // early, sharpens their crits by annotation, and what he has set
+    // down in permanent ink no enemy can scratch out — the team's turn
+    // meters cannot be drained while he stands.
+    role: 'support',
+    stats: { hp: 1650, atk: 115, def: 125, speed: 112 },
+    tint: { body: '#ece8dc', helm: '#d8ceb4', weapon: '#e8b04a', skin: '#e8c0a0' },
+    sprite: {
+      displayH: 92,
+      // Authored facing left — flagged, not mirrored into the files;
+      // Sprites.facesLeft() flips him right.
+      faceLeft: true,
+      strips: {
+        idle:  { src: 'assets/heroes/Artur/arturidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Artur/arturidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Artur/arturidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The quill flicks a margin note into the air.
+        attack: { src: 'assets/heroes/Artur/arturskill1.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The page takes its gold leaf.
+        skill2: { src: 'assets/heroes/Artur/arturskill2.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The page turns for everyone at once.
+        skill3: { src: 'assets/heroes/Artur/arturskill3.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        death: { src: 'assets/heroes/Artur/arturdeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'artur_margin_note', name: 'Margin Note',
+        icon: 'assets/icons/fc1064.png',
+        description: "A sharp annotation in one ally's margin: +30% Crit " +
+          'Chance for 2 turns and 30% turn meter at once.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'buff', stat: 'critChance', add: 0.30, turns: 2 },
+          { type: 'turnMeter', amount: 0.30 },
+        ],
+      },
+      {
+        id: 'artur_illuminated_letter', name: 'Illuminated Letter',
+        icon: 'assets/icons/fc1065.png',
+        description: "Gold leaf on one ally's initial: +60% Crit Damage " +
+          'for 2 turns and 30% turn meter at once.',
+        cooldown: 3, targeting: 'ally', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'critDamage', add: 0.60, turns: 2 },
+          { type: 'turnMeter', amount: 0.30 },
+        ],
+      },
+      {
+        id: 'artur_turn_the_page', name: 'Turn the Page',
+        icon: 'assets/icons/fc1067.png',
+        description: 'The whole chapter advances: every ally gains 15% ' +
+          'turn meter.',
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        effects: [
+          { type: 'turnMeter', amount: 0.15 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Permanent Ink',
+      icon: 'assets/icons/fc1068.png',
+      description: 'What Artur has written stands: effects that would ' +
+        "drain his team's turn meters are refused while he lives.",
+      hooks: {
+        // Presence hook: Abilities.meterGuarded() looks for it on any
+        // living teammate before letting a drain through.
+        meterGuard: true,
+      },
+    },
+    positional: POSITIONALS.shorthand,
+  },
+
 });

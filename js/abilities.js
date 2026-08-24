@@ -40,6 +40,17 @@ const Abilities = (() => {
     return Math.max(1, Math.round(rawAtk * (1 - mitigation)));
   }
 
+  // Meter-drain protection (Artur's Permanent Ink): a living teammate
+  // carrying a meterGuard hook voids anything that would push this
+  // unit's action bar backwards.
+  function meterGuarded(victim) {
+    const b = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (!b) return false;
+    return b.livingUnits(victim.team).some((u) =>
+      (u.hookSources ? u.hookSources() : []).some(
+        (p) => p.hooks && p.hooks.meterGuard));
+  }
+
   // Debuff landing roll: accuracy (attacker) offsets resistance
   // (defender); the land chance is floored at 15%.
   function debuffLands(caster, target) {
@@ -365,6 +376,11 @@ const Abilities = (() => {
       }
       case 'turnMeter': {
         // Push the target's action bar by a fraction of max (negative cuts).
+        // A cut is refused outright while a meterGuard ally stands
+        // (Artur's Permanent Ink).
+        if (effect.amount < 0 && meterGuarded(target)) {
+          return { kind: 'meter', target, amount: 0, guarded: true };
+        }
         const before = target.turnMeter;
         target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
           target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX));
@@ -709,6 +725,10 @@ const Abilities = (() => {
       }
       for (const victim of damaged) {
         if (Math.random() < drainChance) {
+          if (meterGuarded(victim)) {
+            results.push({ kind: 'meter', target: victim, amount: 0, guarded: true });
+            continue;
+          }
           victim.turnMeter = Math.max(0, victim.turnMeter - CONFIG.TURN_METER_MAX * 0.20);
           results.push({ kind: 'meter', target: victim, amount: -0.20 });
         }
