@@ -56,6 +56,15 @@ class SummonScreen {
     this.pityEl.textContent = has5
       ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} plain Rare pulls (banner pulls run their own pity)`
       : '';
+    const wl = document.getElementById('summon-wishlist');
+    if (wl) {
+      const names = GameState.wishlist()
+        .map((id) => (HEROES[id] ? HEROES[id].name : id));
+      wl.textContent = names.length
+        ? `Wishlist (${Gacha.WISHLIST_MULT}× draw weight in plain summons): ${names.join(', ')}`
+        : `Wishlist: empty — mark up to ${GameState.WISHLIST_MAX} heroes in the Compendium ` +
+          `for ${Gacha.WISHLIST_MULT}× draw weight in plain summons.`;
+    }
     for (const b of this.buttons) {
       const have = b.kind === 'rare' ? GameState.scrollsRare
         : b.kind === 'temporal' ? GameState.scrollsTemporal

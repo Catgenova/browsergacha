@@ -223,6 +223,8 @@ const GameState = (() => {
     // lists featured heroes already handed over (out of the pity pool
     // for the rest of that banner).
     bannerPity: {},
+    // Up to three heroIds drawing at double weight in PLAIN summons.
+    wishlist: [],
     bossStages: {},                      // bossId -> highest stage cleared
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
@@ -1605,6 +1607,28 @@ const GameState = (() => {
       state.bannerPity[bannerId] = {
         count: s.count || 0, claimed: [...(s.claimed || [])] };
       save();
+    },
+    // ---- Summon wishlist ----
+    // Up to WISHLIST_MAX characters the player is hunting: they draw at
+    // double weight inside whatever star band a PLAIN pull rolls (see
+    // Gacha.weightedDraw — banner pulls run the banner's tilt instead).
+    WISHLIST_MAX: 3,
+    wishlist() { return [...(state.wishlist || [])]; },
+    isWishlisted(heroId) { return (state.wishlist || []).includes(heroId); },
+    toggleWishlist(heroId) {
+      if (!state.wishlist) state.wishlist = [];
+      const i = state.wishlist.indexOf(heroId);
+      if (i >= 0) {
+        state.wishlist.splice(i, 1);
+        save();
+        return { on: false };
+      }
+      if (state.wishlist.length >= this.WISHLIST_MAX) {
+        return { error: 'full', max: this.WISHLIST_MAX };
+      }
+      state.wishlist.push(heroId);
+      save();
+      return { on: true };
     },
   };
 })();

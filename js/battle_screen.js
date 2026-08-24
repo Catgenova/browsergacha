@@ -1021,6 +1021,30 @@ class BattleScreen {
       battle.log(`${b.title} ×${b.count}: ${b.labels.join(' · ')}`, 'log-system');
     }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
+
+    // Cryst sect (5pc): ONE free freeze attempt on a random enemy as
+    // the battle opens — fired here because applyParty runs before the
+    // enemy side exists. Cast by a random fielded Cryst member, so
+    // onFroze hooks (the Frost Throne) get their due; resistance
+    // applies inside Abilities.freeze like any debuff.
+    const openers = battle.units.filter((u) =>
+      u.team === TEAM.PLAYER && u.alive && u.synergyOpeningFreeze > 0);
+    if (openers.length > 0) {
+      const caster = openers[Math.floor(Math.random() * openers.length)];
+      const foes = battle.livingUnits(TEAM.ENEMY);
+      if (foes.length > 0) {
+        const mark = foes[Math.floor(Math.random() * foes.length)];
+        const r = Abilities.freeze(caster, mark, 2, battle);
+        if (r && !r.resisted) {
+          battle.addFloatingText(mark, '❄ FROZEN', '#8ee8ff', true);
+          battle.log(`The court's cold arrives first — ${mark.name} ` +
+            `freezes solid for ${r.turns} turns!`, 'log-system');
+        } else {
+          battle.log(`The court's opening cold rolls over ${mark.name}, ` +
+            'who shrugs it off.', 'log-system');
+        }
+      }
+    }
   }
 
   update(dt) {

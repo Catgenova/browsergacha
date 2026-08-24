@@ -159,6 +159,16 @@ const RACES = (() => {
   // floor, an opening shield, and the party-wide copy of Javarious's
   // Gathering Dawn (every blow shields its dealer).
   const SECT_BONUSES = {
+    // The water court fights in its element: an ATK floor, one free
+    // freeze attempt as the battle opens (fired by the battle screen
+    // once enemies stand), and a colder edge on every freeze roll.
+    cryst: [
+      { count: 3, mods: { atkPct: 0.10 }, label: '3: +10% ATK' },
+      { count: 5, mods: { openingFreeze: 1 },
+        label: '5: battle opens with a freeze attempt on a random enemy' },
+      { count: 7, mods: { freezeChance: 0.15 },
+        label: '7: +15% chance on every freeze roll' },
+    ],
     reverence: [
       { count: 3, mods: { defPct: 0.10 }, label: '3: +10% DEF' },
       { count: 5, mods: { startShield: 0.15 },
@@ -258,6 +268,8 @@ const RACES = (() => {
     if (mods.resurrect) unit.resurrectChance += mods.resurrect;
     if (mods.startShield) unit.synergyStartShield += mods.startShield;
     if (mods.shieldOnDeal) unit.synergyShieldOnDeal += mods.shieldOnDeal;
+    if (mods.openingFreeze) unit.synergyOpeningFreeze += mods.openingFreeze;
+    if (mods.freezeChance) unit.synergyFreezeChance += mods.freezeChance;
     if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
     if (mods.apOnEnemyTurn) unit.synergyApOnEnemyTurn += mods.apOnEnemyTurn;
     if (mods.debuffExtraChance) unit.synergyDebuffExtraChance += mods.debuffExtraChance;

@@ -424,6 +424,11 @@ class CompendiumScreen {
               : known ? '<span class="comp-badge owned">Collected</span>' : ''}
           </div>
           ${Tags.html(def)}
+          ${sources.length ? `<div class="comp-wishlist-row">
+            <button id="comp-wishlist" class="panel-btn${GameState.isWishlisted(def.id) ? ' gold' : ''}">
+              ${GameState.isWishlisted(def.id) ? '★ Wishlisted' : '☆ Add to wishlist'}</button>
+            <span id="comp-wishlist-note"></span>
+          </div>` : ''}
           <div class="comp-stats">${statsHtml}</div>
           ${ownedHtml}
         </div>
@@ -451,6 +456,25 @@ class CompendiumScreen {
     `;
 
     this.previewCanvas = document.getElementById('comp-canvas');
+    // Wishlist toggle: up to three characters at double draw weight in
+    // plain summons. Updated in place so the animation preview and the
+    // page scroll survive the click.
+    const wishBtn = document.getElementById('comp-wishlist');
+    if (wishBtn) {
+      wishBtn.addEventListener('click', () => {
+        const note = document.getElementById('comp-wishlist-note');
+        const r = GameState.toggleWishlist(def.id);
+        if (r.error === 'full') {
+          note.textContent =
+            `The wishlist holds ${GameState.WISHLIST_MAX} — un-wishlist someone first.`;
+          return;
+        }
+        note.textContent = r.on
+          ? 'Wishlisted: 2× draw weight in plain summons.' : '';
+        wishBtn.classList.toggle('gold', r.on);
+        wishBtn.textContent = r.on ? '★ Wishlisted' : '☆ Add to wishlist';
+      });
+    }
     this.detailEl.querySelectorAll('.comp-anim-btn').forEach((b) => {
       b.addEventListener('click', () => this.playAnim(b.dataset.anim));
     });

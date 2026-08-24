@@ -766,7 +766,7 @@ Object.assign(HEROES, {
       hooks: {
         onDealtDamage(unit, { target, battle }) {
           if (!target || !target.alive || target.team === unit.team) return;
-          if (Math.random() >= 0.05) return;
+          if (Math.random() >= 0.05 + (unit.synergyFreezeChance || 0)) return;
           const r = Abilities.freeze(unit, target);
           if (battle && r && !r.resisted) {
             battle.addFloatingText(target, '❄ FROZEN', '#8ee8ff', true);

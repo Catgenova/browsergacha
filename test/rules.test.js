@@ -1982,6 +1982,57 @@ test('pity ladders: plain rare breaks at 100, banner pity claims the featured st
   assert(G.bannerPity(banner.id).count === 49, 'a spent pity kept counting');
 });
 
+test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const pool3 = Object.values(w.HEROES).filter((h) =>
+    h.rarity === 3 && ['water', 'fire', 'wind'].includes(h.element));
+  // Sectless picks, so the running Cryst banner can't muddy the
+  // banners-unaffected check below.
+  const picks = pool3.filter((h) => !w.RACES.sectOf(h)).slice(0, 4);
+
+  // Three slots, toggling on and off.
+  assert(G.toggleWishlist(picks[0].id).on && G.toggleWishlist(picks[1].id).on &&
+    G.toggleWishlist(picks[2].id).on, 'wishing failed');
+  assert(G.toggleWishlist(picks[3].id).error === 'full', 'a fourth slot opened');
+  assert(G.toggleWishlist(picks[2].id).on === false && G.wishlist().length === 2,
+    'toggle-off failed');
+  G.toggleWishlist(picks[2].id);
+  assert(G.isWishlisted(picks[0].id) && !G.isWishlisted(picks[3].id),
+    'membership reads wrong');
+
+  // Plain 3★ draws land on wishlisted characters at ~2x their
+  // per-capita share; the band itself never moved.
+  const wish = new Set(G.wishlist());
+  const draws = 6000;
+  let hits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = w.Gacha.pickHero(3, ['water', 'fire', 'wind'], false);
+    if (wish.has(def.id)) hits++;
+  }
+  const flat = 3 / pool3.length;
+  const tilted = 6 / (pool3.length + 3);
+  const seen = hits / draws;
+  assert(seen > flat * 1.4 && seen < tilted * 1.35,
+    `wishlist share ${seen.toFixed(4)} vs flat ${flat.toFixed(4)} / tilted ${tilted.toFixed(4)}`);
+
+  // A banner pull runs the banner's tilt, not the wishlist's: the
+  // wishlisted trio (none of them Cryst) stays at or below flat share.
+  assert(picks.slice(0, 3).every((h) => {
+    const s = w.RACES.sectOf(h);
+    return !s || s.id !== 'cryst';
+  }), 'test picks collide with the running banner sect');
+  let bHits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = w.Gacha.pickHero(3, null, 'rare');
+    if (wish.has(def.id)) bHits++;
+  }
+  const all3 = Object.values(w.HEROES).filter((h) => h.rarity === 3).length;
+  const bFlat = 3 / all3;
+  assert(bHits / draws < bFlat * 1.35,
+    `banner pulls honored the wishlist (${(bHits / draws).toFixed(4)} vs flat ${bFlat.toFixed(4)})`);
+});
+
 test('login bonuses: two separate claims, a real calendar, catch-up buys days', () => {
   const w = loadGame();
   const G = w.GameState;
@@ -2406,6 +2457,50 @@ test('the Reverence sect set: a DEF floor, an opening shield, shields off every 
   trio.forEach((u, i) => {
     assert(u.baseDef === Math.round(defs[i] * 1.10), 'trio DEF off');
     assert(u.shieldTotal() === 0 && u.synergyShieldOnDeal === 0,
+      'higher tiers paid early');
+  });
+});
+
+test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls', () => {
+  const tiers = RACES.SECT_BONUSES.cryst;
+  assert(tiers.length === 3 && tiers[0].mods.atkPct === 0.10 &&
+    tiers[1].mods.openingFreeze === 1 && tiers[2].mods.freezeChance === 0.15,
+    'the Cryst table drifted');
+
+  const battle = makeBattle();
+  const members = ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit'];
+  const units = members.map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
+  const atkBefore = units.map((u) => u.baseAtk);
+  const entry = RACES.applyParty(units).find((s) => s.title === 'Cryst sect');
+  assert(entry && entry.count === 7 && entry.labels.length === 3,
+    `sect pack read ${JSON.stringify(entry)}`);
+  units.forEach((u, i) => {
+    assert(u.baseAtk === Math.round(atkBefore[i] * 1.10), 'the ATK floor was not paid');
+    assert(u.synergyOpeningFreeze === 1, 'no opening freeze armed');
+    assert(Math.abs(u.synergyFreezeChance - 0.15) < 1e-9, 'freeze rolls no colder');
+  });
+
+  // The 7pc bonus makes an 85% freeze roll a certainty (0.85 + 0.15):
+  // a hundred casts must all pass the chance gate (frozen or resisted,
+  // never a silent miss).
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const caster = units[4]; // Ari
+  for (let i = 0; i < 100; i++) {
+    foe.statusEffects = [];
+    const r = Abilities.applyEffect(
+      { type: 'freeze', chance: 0.85, turns: 2 }, caster, foe);
+    assert(r !== null, `cast ${i + 1} missed a guaranteed freeze roll`);
+  }
+
+  // Three fielded: the ATK tier alone.
+  const b2 = makeBattle();
+  const trio = ['florence', 'ari', 'cain'].map((id, i) => place(b2, HEROES[id], TEAM.PLAYER, i));
+  const atks = trio.map((u) => u.baseAtk);
+  const e2 = RACES.applyParty(trio).find((s) => s.title === 'Cryst sect');
+  assert(e2 && e2.labels.length === 1, 'three members should pay one tier');
+  trio.forEach((u, i) => {
+    assert(u.baseAtk === Math.round(atks[i] * 1.10), 'trio ATK off');
+    assert(u.synergyOpeningFreeze === 0 && u.synergyFreezeChance === 0,
       'higher tiers paid early');
   });
 });
