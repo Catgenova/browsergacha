@@ -3566,4 +3566,77 @@ test('one copy of a character per formation', () => {
     'the preset fielded a character twice');
 });
 
+test('a missing character definition quarantines the hero, never deletes it', () => {
+  // A data script that fails to fetch for one page load leaves HEROES
+  // partially built. That must never destroy the entries it orphans.
+  const w = loadGame();
+  w.GameState.addHero('cain');
+  const raw = w.savedState();
+  const uid = String(Object.keys(raw.roster).length + 1);
+  raw.roster[uid] = { heroId: 'ghost_character', level: 30, xp: 12, stars: 4,
+    equipment: { weapon: 'g1' }, skills: {}, favorite: true, attune: 2 };
+  raw.nextHeroUid = Number(uid) + 1;
+
+  const w2 = loadGame({ save: raw });
+  assert(!w2.GameState.ownedHeroIds().includes(uid), 'the ghost stayed in play');
+  w2.GameState.addHero('cain'); // any mutation persists the loaded shape
+  const after = w2.savedState();
+  const held = after.limbo[uid];
+  assert(held && held.level === 30 && held.equipment.weapon === 'g1' && held.favorite,
+    'limbo did not keep the hero whole');
+
+  // The moment the definition exists again, the hero walks back out.
+  after.limbo[uid].heroId = 'cain';
+  const w3 = loadGame({ save: after });
+  assert(w3.GameState.ownedHeroIds().includes(uid) &&
+    w3.GameState.defIdOf(uid) === 'cain', 'limbo did not hand the hero back');
+});
+
+test('a wiped save regrows its roster from the collection registry', () => {
+  const w = loadGame();
+  const raw = w.savedState() || {};
+  // The wreck the old scrub left: not one hero anywhere, but the
+  // collection registry intact and every starter already stamped.
+  raw.schemaVersion = 7;
+  raw.roster = {};
+  raw.storage = {};
+  raw.limbo = {};
+  raw.team = {};
+  raw.nextHeroUid = 40;
+  raw.starters = { florence: true, vivian: true, coral: true, vex: true, emily: true };
+  raw.collected = { florence: true, cain: true, oak: true };
+
+  const G = loadGame({ save: raw }).GameState;
+  const chars = G.ownedHeroIds().map((u) => G.defIdOf(u)).sort();
+  assert(JSON.stringify(chars) === JSON.stringify(['cain', 'florence', 'oak']),
+    `the account came back as ${JSON.stringify(chars)}`);
+
+  // But a roster that is merely EMPTY BY CHOICE — everything parked in
+  // storage — is not a wreck, and must not be "restored".
+  raw.storage = { 9: { heroId: 'florence', level: 3, xp: 0, stars: 1,
+    equipment: {}, skills: {}, favorite: false, attune: 0 } };
+  const G2 = loadGame({ save: raw }).GameState;
+  assert(G2.ownedHeroIds().length === 0, 'the parked save was "restored" anyway');
+});
+
+test('the rolling backup survives and restores', () => {
+  const w = loadGame();
+  w.GameState.addHero('cain');
+  const raw = w.savedState();
+
+  // Booting off a save writes it to the backup slot...
+  const w2 = loadGame({ save: raw });
+  const KEY = 'browsergacha_save_v1';
+  const backed = JSON.parse(w2.localStorage.getItem(KEY + '_backup'));
+  assert(backed && Object.keys(backed.roster).length === Object.keys(raw.roster).length,
+    'the backup was not written on load');
+
+  // ...and restoreBackup() swaps it back in as the live save.
+  w2.GameState.addHero('oak');
+  assert(w2.savedState().nextHeroUid !== raw.nextHeroUid, 'mutation did not save');
+  assert(w2.GameState.restoreBackup() === true, 'restore refused');
+  assert(w2.localStorage.getItem(KEY) === w2.localStorage.getItem(KEY + '_backup'),
+    'the live save is not the backup');
+});
+
 report();
