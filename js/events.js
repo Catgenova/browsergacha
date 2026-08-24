@@ -115,16 +115,16 @@ const Events = (() => {
     return RIFT_ORDER[((worldRiftWeek(date) % n) + n) % n];
   }
   const WORLD_RIFT_MILESTONES = [
-    { score: 25000, reward: { whetstones: 30, arcana: 10 },
-      label: '30 Whetstones 🪨 + 10 Arcana ✦' },
-    { score: 60000, reward: { rare: 1, diamonds: 100 },
-      label: '1 Rare Scroll ✨ + 100 💎' },
-    { score: 120000, reward: { riftElements: 5 },
-      label: "5 Large Elements of the week's element" },
-    { score: 250000, reward: { temporal: 1 },
+    { score: 25000, reward: { temporal: 1 },
       label: '1 Temporal Scroll 🌀' },
-    { score: 500000, reward: { temporal: 2, diamonds: 250 },
-      label: '2 Temporal Scrolls 🌀 + 250 💎' },
+    { score: 60000, reward: { temporal: 2 },
+      label: '2 Temporal Scrolls 🌀' },
+    { score: 120000, reward: { temporal: 3 },
+      label: '3 Temporal Scrolls 🌀' },
+    { score: 250000, reward: { temporal: 4 },
+      label: '4 Temporal Scrolls 🌀' },
+    { score: 500000, reward: { temporal: 5 },
+      label: '5 Temporal Scrolls 🌀' },
   ];
 
   // ---- Login bonuses ----
