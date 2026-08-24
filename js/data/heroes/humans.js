@@ -2436,8 +2436,11 @@ Object.assign(HEROES, {
                   loop: false, hitFrame: 5 },
         // 17 frames: she dismounts and plants the ball as a wall. The
         // final braced frame HOLDS while the Blocker buff lasts.
+        // This one strip is authored the other way round: she dismounts
+        // and plants the ball to the RIGHT of frame, so it opts out of
+        // the sheet-wide faceLeft flip.
         skill3: { src: 'assets/heroes/Lin/linskill3.png', frames: 'auto', fps: 10,
-                  loop: false, stanceHold: 'blocker' },
+                  loop: false, stanceHold: 'blocker', faceLeft: false },
         death: { src: 'assets/heroes/Lin/lindeath.png', frames: 'auto', fps: 8,
                  loop: false, freeze: true },
       },

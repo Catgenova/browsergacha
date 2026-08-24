@@ -671,7 +671,8 @@ class CompendiumScreen {
     ctx.save();
     ctx.translate(c.width / 2, baseY + 8);
     ctx.scale(zoom, zoom);
-    this.animator.draw(ctx, 0, -size.h / 2, Sprites.facesLeft(def));
+    this.animator.draw(ctx, 0, -size.h / 2,
+      Sprites.facesLeft(def, this.animator.current));
     ctx.restore();
   }
 }
