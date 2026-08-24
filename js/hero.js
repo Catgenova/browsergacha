@@ -85,6 +85,10 @@ class Unit {
     // blow, at most once per battle.
     this.resurrectChance = 0;
     this.resurrected = false;
+    // Reverence sect pack: an opening shield (% of max HP, granted by
+    // applyParty) and shields off every blow dealt.
+    this.synergyStartShield = 0;
+    this.synergyShieldOnDeal = 0;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
     // one per hit. Sprite variants per count live in unit.mirrorSheets.
@@ -696,6 +700,12 @@ class Unit {
     const prevOwner = Unit.hookOwner;
     Unit.hookOwner = this;
     try {
+      // Reverence sect (7pc): every blow shields its dealer for a cut
+      // of the damage — the party-wide copy of Gathering Dawn, on the
+      // same three-turn shield.
+      if (this.synergyShieldOnDeal > 0) {
+        this.addShield(Math.round(amount * this.synergyShieldOnDeal), 3, this);
+      }
       for (const p of this.hookSources()) {
         const hook = p.hooks && p.hooks.onDealtDamage;
         if (hook) hook(this, { amount, target, battle });

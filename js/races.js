@@ -153,6 +153,21 @@ const RACES = (() => {
     { count: 7, mods: { takenMult: 0.85 }, label: '7: takes 15% less damage' },
   ];
 
+  // Sect packs: fielding 3/5/7 members of one SECT pays that order's
+  // own set to the whole party, exactly like a race pack. Reverence's
+  // is shields — Javarious and Toll made them a human signature: a DEF
+  // floor, an opening shield, and the party-wide copy of Javarious's
+  // Gathering Dawn (every blow shields its dealer).
+  const SECT_BONUSES = {
+    reverence: [
+      { count: 3, mods: { defPct: 0.10 }, label: '3: +10% DEF' },
+      { count: 5, mods: { startShield: 0.15 },
+        label: '5: battle opens with a shield worth 15% of max HP' },
+      { count: 7, mods: { shieldOnDeal: 0.10 },
+        label: '7: every blow shields its dealer for 10% of the damage' },
+    ],
+  };
+
   // Blessed/Godtouched company: fielding several summon-lottery copies
   // together, tiered at 3/5/7 like every pack. Counts are strict — a
   // Godtouched hero counts for the Godtouched pack only, not both.
@@ -241,6 +256,8 @@ const RACES = (() => {
     if (mods.critChance) unit.baseCritChance += mods.critChance;
     if (mods.critDamage) unit.baseCritDamage += mods.critDamage;
     if (mods.resurrect) unit.resurrectChance += mods.resurrect;
+    if (mods.startShield) unit.synergyStartShield += mods.startShield;
+    if (mods.shieldOnDeal) unit.synergyShieldOnDeal += mods.shieldOnDeal;
     if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
     if (mods.apOnEnemyTurn) unit.synergyApOnEnemyTurn += mods.apOnEnemyTurn;
     if (mods.debuffExtraChance) unit.synergyDebuffExtraChance += mods.debuffExtraChance;
@@ -303,6 +320,28 @@ const RACES = (() => {
       active.push({ title: `${name} company`, count,
         labels: hit.map((t) => t.label) });
     }
+    // Sect packs (Reverence shields, more to come), paid to everyone.
+    const sectTally = {};
+    for (const u of units) {
+      const sect = sectOf(u.def || u);
+      if (sect) sectTally[sect.id] = (sectTally[sect.id] || 0) + 1;
+    }
+    for (const [sectId, count] of Object.entries(sectTally)) {
+      const tiers = (SECT_BONUSES[sectId] || []).filter((t) => count >= t.count);
+      if (tiers.length === 0) continue;
+      for (const unit of units) {
+        for (const tier of tiers) applyModsToUnit(unit, tier.mods);
+      }
+      active.push({ title: `${SECTS[sectId].name} sect`, count,
+        labels: tiers.map((t) => t.label) });
+    }
+    // Opening shields (Reverence 5pc): granted last, once every pack
+    // above has finished shaping max HP. Effectively battle-long.
+    for (const unit of units) {
+      if (unit.synergyStartShield > 0) {
+        unit.addShield(Math.round(unit.maxHp * unit.synergyStartShield), 999, unit);
+      }
+    }
     return active;
   }
 
@@ -310,7 +349,7 @@ const RACES = (() => {
     of, NAMES, counts, activeTiers, SECTS, sectOf,
     get BONUSES() { return buildBonuses(); },
     ELEMENT_NAMES, ELEMENT_BONUSES, elementCounts, activeElementTiers,
-    PRISM_BONUS, DIVERSITY_BONUSES, BLESSING_BONUSES,
+    PRISM_BONUS, DIVERSITY_BONUSES, BLESSING_BONUSES, SECT_BONUSES,
     groupOf, prismActive, diversityCount,
     applyParty,
   };

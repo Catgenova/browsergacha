@@ -2368,6 +2368,48 @@ test('blessed and godtouched: the summon lottery, stat lifts, packs and resurrec
   assert(!u.alive, 'a second resurrection went through');
 });
 
+test('the Reverence sect set: a DEF floor, an opening shield, shields off every blow', () => {
+  const tiers = RACES.SECT_BONUSES.reverence;
+  assert(tiers.length === 3 && tiers[0].mods.defPct === 0.10 &&
+    tiers[1].mods.startShield === 0.15 && tiers[2].mods.shieldOnDeal === 0.10,
+    'the Reverence table drifted');
+
+  const battle = makeBattle();
+  const members = ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'];
+  const units = members.map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
+  const before = units.map((u) => ({ def: u.baseDef }));
+  const active = RACES.applyParty(units);
+  const entry = active.find((s) => s.title === 'Reverence sect');
+  assert(entry && entry.count === 7 && entry.labels.length === 3,
+    `sect pack read ${JSON.stringify(entry)}`);
+  units.forEach((u, i) => {
+    assert(u.baseDef === Math.round(before[i].def * 1.10), 'the DEF floor was not paid');
+    assert(u.shieldTotal() === Math.round(u.maxHp * 0.15),
+      `opening shield reads ${u.shieldTotal()} of ${u.maxHp}`);
+    assert(Math.abs(u.synergyShieldOnDeal - 0.10) < 1e-9, 'no shield off blows');
+  });
+  // The 7pc in motion: landing a 500 blow banks 50 shield on the dealer.
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const dealer = units[0];
+  dealer.hookSources = () => []; // isolate the synergy from kit hooks
+  const held = dealer.shieldTotal();
+  dealer.dealt(500, foe);
+  assert(dealer.shieldTotal() === held + 50,
+    `a 500 blow banked ${dealer.shieldTotal() - held} shield`);
+
+  // Three fielded: the DEF tier alone — no shields yet.
+  const b2 = makeBattle();
+  const trio = ['catherine', 'toll', 'oak'].map((id, i) => place(b2, HEROES[id], TEAM.PLAYER, i));
+  const defs = trio.map((u) => u.baseDef);
+  const e2 = RACES.applyParty(trio).find((s) => s.title === 'Reverence sect');
+  assert(e2 && e2.labels.length === 1, 'three members should pay one tier');
+  trio.forEach((u, i) => {
+    assert(u.baseDef === Math.round(defs[i] * 1.10), 'trio DEF off');
+    assert(u.shieldTotal() === 0 && u.synergyShieldOnDeal === 0,
+      'higher tiers paid early');
+  });
+});
+
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;
