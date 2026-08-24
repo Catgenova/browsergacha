@@ -367,6 +367,13 @@ const POSITIONALS = (() => {
     hooks: { overhealBoost: 0.25 },
   });
 
+  def('pyre_sight', {
+    position: POSITION.BACK,
+    name: 'Pyre Sight',
+    description: 'Back hex: +30% accuracy — the fire lights every mark.',
+    hooks: { accuracyAdd: 0.30 },
+  });
+
   def('giantslayer', {
     position: POSITION.BACK,
     name: 'Giantslayer',

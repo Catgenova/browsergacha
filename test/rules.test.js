@@ -2598,6 +2598,73 @@ test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls',
   });
 });
 
+test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M } = w;
+  M.resetBattle();
+  const battle = new B();
+  battle.autoMode = true;
+  const lucian = new U(H.lucian, T.PLAYER, { level: 30, stars: 5 });
+  const foeA = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(lucian, 5);
+  battle.placeUnit(foeA, 1);
+  battle.placeUnit(foeB, 4);
+  for (const f of [foeA, foeB]) {
+    f.hp = f.maxHp = 10 ** 6;
+    f.hookSources = () => [];
+    f.dodgeChance = () => 0;
+  }
+
+  // Cinder Lash: damage plus a burn ticking exactly 3% of the VICTIM's
+  // max HP (rats carry no resistance, so the land roll is certain).
+  A.execute(lucian.abilities[0].def, lucian, foeA, battle);
+  const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+  assert(burn, 'the burn failed to land');
+  assert(burn.amount === Math.round(foeA.maxHp * 0.03) && burn.turns === 3,
+    `burn reads ${burn && burn.amount} for ${burn && burn.turns} turns`);
+  assert(foeA.burning() && !foeB.burning(), 'burning() misreads the field');
+
+  // Stoke the Forge: +50 flat ATK per burning enemy, banked to 1000.
+  const atk0 = lucian.baseAtk;
+  A.execute(lucian.abilities[1].def, lucian, lucian, battle);
+  assert(lucian.baseAtk === atk0 + 50 && lucian.forgeBanked === 50,
+    `one fire banked ${lucian.forgeBanked}`);
+  lucian.forgeBanked = 990;
+  A.execute(lucian.abilities[1].def, lucian, lucian, battle);
+  assert(lucian.baseAtk === atk0 + 60 && lucian.forgeBanked === 1000,
+    'the cap leaked');
+  A.execute(lucian.abilities[1].def, lucian, lucian, battle);
+  assert(lucian.baseAtk === atk0 + 60, 'a full forge kept gaining');
+
+  // By Firelight: his turn opens at +30% ATK while anything burns, and
+  // cold once the fires are out.
+  const before = lucian.effectiveStat('atk');
+  lucian.startTurn(battle);
+  assert(Math.abs(lucian.effectiveStat('atk') - before * 1.3) < 1.5,
+    `firelight read ${lucian.effectiveStat('atk')} vs base ${before}`);
+  lucian.statusEffects = [];
+  foeA.statusEffects = [];
+  lucian.startTurn(battle);
+  assert(lucian.effectiveStat('atk') === before, 'the buff outlived the fires');
+
+  // Wildfire Arc: chance 1 ricochets to the runaway guard (30 hits),
+  // chance 0 stops at one — and with a single enemy standing, every
+  // bounce lands back in them.
+  const always = A.applyEffect({ type: 'bounce', mult: 1.25, chance: 1 },
+    lucian, foeA, 1);
+  assert(Array.isArray(always) && always.length === 30,
+    `chance-1 bounced ${always.length} times`);
+  const once = A.applyEffect({ type: 'bounce', mult: 1.25, chance: 0 },
+    lucian, foeA, 1);
+  assert(once.length === 1, `chance-0 bounced ${once.length} times`);
+  foeB.hp = 0;
+  const solo = A.applyEffect({ type: 'bounce', mult: 1.25, chance: 1 },
+    lucian, foeA, 1);
+  assert(solo.length === 30 && solo.every((r) => r.target === foeA),
+    'a lone enemy escaped the ricochet');
+});
+
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;

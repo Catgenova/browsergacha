@@ -1855,4 +1855,92 @@ Object.assign(HEROES, {
     },
   },
 
+  lucian: {
+    id: 'lucian',
+    element: 'fire',
+    name: 'Lucian',
+    title: 'Firebrand of the Firetroupe',
+    rarity: 5,
+    // Back-row fire carry, and the Firetroupe's founding member: the
+    // burn is the engine — the DoT eats max HP, the forge banks
+    // permanent ATK off the burning field, and the ricochet cashes it
+    // all out.
+    stats: { hp: 1450, atk: 280, def: 95, speed: 106 },
+    tint: { body: '#5a2a20', helm: '#e86a2a', weapon: '#ffb84a', skin: '#e8b088' },
+    // 256px square frames, 9 across on every strip. Three idles: the
+    // base sway and two fidgets. NOTE: the skill 2 strip was uploaded
+    // as "lucien" — referenced exactly as delivered.
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle:  { src: 'assets/heroes/Lucian/lucianidle.png', frames: 9, fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Lucian/lucianidle1.png', frames: 9, fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Lucian/lucianidle2.png', frames: 9, fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Lucian/lucianskill1.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Lucian/lucienskill2.png', frames: 9, fps: 10,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Lucian/lucianskill3.png', frames: 9, fps: 12,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Lucian/luciandeath.png', frames: 9, fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'lucian_cinder_lash', name: 'Cinder Lash',
+        icon: 'assets/icons/fc1025.png',
+        description: 'Lash one enemy for 110% ATK and set them alight: ' +
+          'the burn eats 3% of their max HP at the start of each of ' +
+          'their turns, for 3 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.10 },
+          { type: 'dot', targetHpPct: 0.03, turns: 3, flavor: 'burn' },
+        ],
+      },
+      {
+        id: 'lucian_stoke_the_forge', name: 'Stoke the Forge',
+        icon: 'assets/icons/fc1026.png',
+        description: 'Draw heat from the field: permanently gain 50 ATK ' +
+          'for each burning enemy, banking up to 1000 ATK per battle.',
+        cooldown: 3, targeting: 'self', animation: 'skill2',
+        effects: [
+          { type: 'atkPerDebuff', flavor: 'burn', per: 50, cap: 1000 },
+        ],
+      },
+      {
+        id: 'lucian_wildfire_arc', name: 'Wildfire Arc',
+        icon: 'assets/icons/fc1027.png',
+        description: 'Hurl fire for 125% ATK. It leaps to another enemy ' +
+          'and strikes again with a 75% chance, indefinitely — and with ' +
+          'one enemy left, it leaps back into them.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'bounce', mult: 1.25, chance: 0.75 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'By Firelight',
+      icon: 'assets/icons/fc1055.png',
+      description: 'While at least one enemy burns, Lucian fights at ' +
+        '+30% ATK — he works best by the light of his own fires.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          const b = battle ||
+            (typeof Battle !== 'undefined' ? Battle.active : null);
+          const lit = b && b.livingUnits().some((u) =>
+            u.team !== unit.team && u.burning && u.burning());
+          if (!lit) return null;
+          unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.3, turns: 1 });
+          return null; // silent: it re-applies while the fires hold
+        },
+      },
+    },
+    positional: POSITIONALS.pyre_sight,
+  },
+
 });

@@ -613,8 +613,25 @@ class Battle {
         this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
         this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
       } else if (res.kind === 'dot') {
-        this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
-        this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
+        if (res.flavor === 'burn') {
+          this.addFloatingText(res.target, '♨ BURNING', '#ff9a5a');
+          this.log(`${res.target.name} catches fire — burns for ${res.amount} per turn (${res.turns} turns).`, cls);
+        } else {
+          this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
+          this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
+        }
+      } else if (res.kind === 'forge') {
+        // Lucian's forge heat: permanent flat ATK off the burning field.
+        if (res.amount > 0) {
+          this.addFloatingText(res.target, `ATK +${res.amount}`, '#ff9a5a');
+          this.log(`${res.target.name} draws heat from ${res.count} burning ` +
+            `enem${res.count === 1 ? 'y' : 'ies'} — ATK up ${res.amount} for the fight ` +
+            `(${res.banked}/${res.cap} banked).`, cls);
+        } else {
+          this.log(res.count === 0
+            ? `${res.target.name} finds no fires to draw from.`
+            : `${res.target.name}'s forge is already at full heat.`, cls);
+        }
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
         // A ward gets its own note — it is the one buff whose whole
         // value is invisible until something hits the ally wearing it.
