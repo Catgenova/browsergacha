@@ -54,7 +54,7 @@ class SummonScreen {
     // Pity is only meaningful once a 5★ hero exists to be pitied into.
     const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
     this.pityEl.textContent = has5
-      ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} rare pulls`
+      ? `Pity: 5★ guaranteed within ${Math.max(1, Gacha.PITY_LIMIT - GameState.pity)} plain Rare pulls (banner pulls run their own pity)`
       : '';
     for (const b of this.buttons) {
       const have = b.kind === 'rare' ? GameState.scrollsRare
@@ -72,13 +72,18 @@ class SummonScreen {
     if (!block) return;
     block.classList.toggle('hidden', !banners.length);
     const SCROLL = { common: ['📜', 'Common'], rare: ['✨', 'Rare'], temporal: ['🌀', 'Temporal'] };
-    const key = banners.map((b) => b.id).join('|');
+    // A pity claim crosses a hero off the strip, so the claimed list is
+    // part of the rebuild key.
+    const key = banners.map((b) =>
+      `${b.id}:${Gacha.bannerPityInfo(b).claimed.join(',')}`).join('|');
     if (this.builtBannerKey !== key) {
       this.builtBannerKey = key;
       this.bannerBtns = [];
+      this.bannerPityEls = {};
       block.innerHTML = '';
       for (const banner of banners) {
         const [icon, scrollName] = SCROLL[banner.scroll] || ['📜', banner.scroll];
+        const pity = Gacha.bannerPityInfo(banner);
         const panel = document.createElement('div');
         panel.className = 'banner-panel';
         const title = document.createElement('div');
@@ -107,13 +112,29 @@ class SummonScreen {
           stars.className = 'bh-stars';
           stars.textContent = '★'.repeat(def.rarity);
           card.append(canvas, name, stars);
-          card.title = `Open ${def.name} in the compendium`;
+          // A pity-claimed hero stays on display but is crossed off: it
+          // cannot come from this banner's pity again.
+          if (pity.claimed.includes(def.id)) {
+            card.classList.add('pity-claimed');
+            const x = document.createElement('div');
+            x.className = 'bh-x';
+            x.textContent = '✕';
+            card.appendChild(x);
+            card.title = `${def.name} — already claimed by this banner's pity`;
+          } else {
+            card.title = `Open ${def.name} in the compendium`;
+          }
           card.addEventListener('click', () => {
             this.app.screens.compendium.openHero(def.id);
             this.app.showScreen('compendium');
           });
           strip.appendChild(card);
         }
+        // The pity readout: how far to the next guaranteed featured
+        // hero, or the fact that the pity has been spent entirely.
+        const pityLine = document.createElement('div');
+        pityLine.className = 'banner-pity';
+        this.bannerPityEls[banner.id] = pityLine;
         const actions = document.createElement('div');
         actions.className = 'banner-panel-actions';
         for (const count of [1, 10]) {
@@ -125,7 +146,7 @@ class SummonScreen {
           actions.appendChild(btn);
           this.bannerBtns.push({ el: btn, count, scroll: banner.scroll });
         }
-        panel.append(title, sub, strip, actions);
+        panel.append(title, sub, strip, pityLine, actions);
         block.appendChild(panel);
       }
     }
@@ -134,6 +155,18 @@ class SummonScreen {
         : b.scroll === 'temporal' ? GameState.scrollsTemporal
         : GameState.scrollsCommon;
       b.el.disabled = this.revealing || have < b.count;
+    }
+    // The pity counter moves on every pull, so its line is refreshed
+    // outside the rebuild.
+    for (const banner of banners) {
+      const el = this.bannerPityEls && this.bannerPityEls[banner.id];
+      if (!el) continue;
+      const info = Gacha.bannerPityInfo(banner);
+      const left = info.every - info.count;
+      el.textContent = info.remaining.length === 0
+        ? 'Banner pity spent — every featured hero has been claimed for this banner.'
+        : `Pity: a featured hero is guaranteed in ${left} banner pull${left === 1 ? '' : 's'}` +
+          ` · ${info.remaining.length} of ${info.remaining.length + info.claimed.length} still in the pity pool`;
     }
   }
 

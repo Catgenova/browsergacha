@@ -1934,6 +1934,54 @@ test('summon banners: Cryst rides the Rare scroll open-ended, Reverence the Temp
     `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
+test('pity ladders: plain rare breaks at 100, banner pity claims the featured strip', () => {
+  const w = loadGame();
+  const G = w.GameState, Ga = w.Gacha, R = w.RACES;
+
+  assert(Ga.PITY_LIMIT === 100, `plain pity limit is ${Ga.PITY_LIMIT}`);
+  assert(Ga.BANNER_PITY_EVERY === 50, `banner pity every ${Ga.BANNER_PITY_EVERY}`);
+
+  // Plain rare pity: at 99 misses, the next plain pull is a 5★ and the
+  // ladder resets.
+  G.setPity(Ga.PITY_LIMIT - 1);
+  G.addScrolls('rare', 1);
+  const [broke] = Ga.pull('rare', 1);
+  assert(broke.rarity === 5, `the pity break paid a ${broke.rarity}★`);
+  assert(G.pity === 0, 'the break should reset the ladder');
+
+  // Banner pulls leave the plain ladder alone and tick their own.
+  const banner = w.Events.currentBanner(new Date(), 'rare');
+  assert(banner && banner.sect === 'cryst', 'no rare banner running');
+  G.setPity(7);
+  G.addScrolls('rare', 49);
+  for (let i = 0; i < 49; i++) Ga.pull('rare', 1, { banner: true });
+  assert(G.pity === 7, 'banner pulls ticked the plain ladder');
+  let led = G.bannerPity(banner.id);
+  assert(led.count === 49 && led.claimed.length === 0,
+    `ledger reads ${JSON.stringify(led)}`);
+
+  // The 50th banner pull hands over a featured hero and crosses it off.
+  G.addScrolls('rare', 1);
+  const [fifty] = Ga.pull('rare', 1, { banner: true });
+  const sect = R.sectOf(fifty.def);
+  assert(fifty.bannerPity && sect && sect.id === 'cryst',
+    `the 50th pull paid ${fifty.def.id}`);
+  led = G.bannerPity(banner.id);
+  assert(led.count === 0 && led.claimed.length === 1 &&
+    led.claimed[0] === fifty.def.id, 'the claim was not written down');
+  const info = Ga.bannerPityInfo(banner);
+  assert(!info.remaining.includes(fifty.def.id), 'a claimed hero stayed in the pool');
+
+  // With every featured hero claimed, the pity is spent: the counter
+  // stops moving and no guarantee ever fires again this banner.
+  G.setBannerPity(banner.id, { count: 49,
+    claimed: [...info.remaining, ...led.claimed] });
+  G.addScrolls('rare', 1);
+  const [after] = Ga.pull('rare', 1, { banner: true });
+  assert(!after.bannerPity, 'a spent pity still fired');
+  assert(G.bannerPity(banner.id).count === 49, 'a spent pity kept counting');
+});
+
 test('login bonuses: two separate claims, a real calendar, catch-up buys days', () => {
   const w = loadGame();
   const G = w.GameState;
