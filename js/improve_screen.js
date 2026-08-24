@@ -27,23 +27,26 @@ class ImproveScreen {
     if (this.searchEl) {
       this.searchEl.addEventListener('input', () => this.renderList());
     }
-    // Auto star up: everything at 1-2 stars is forged up to 3. It
-    // spends heroes, so the first press shows the price and the second
-    // one pays it.
-    this.autoBtn = document.getElementById('imp-auto');
-    this.autoArmed = false;
-    if (this.autoBtn) {
-      this.autoBtn.addEventListener('click', () => {
-        const plan = GameState.planAutoStarUp();
+    // Auto star up: one button per target star (3-7), each forging
+    // every hero below that rank as far toward it as the fodder shelf
+    // allows. It spends heroes, so the first press on a button shows
+    // the price and the second one pays it; arming one disarms the
+    // rest.
+    this.autoBtns = [...document.querySelectorAll('.imp-auto-btn')];
+    this.autoArmed = null; // the armed button's target star, or null
+    for (const btn of this.autoBtns) {
+      const target = Number(btn.dataset.target);
+      btn.addEventListener('click', () => {
+        const plan = GameState.planAutoStarUp(target);
         if (!plan.length) return;
-        if (!this.autoArmed) {
-          this.autoArmed = true;
+        if (this.autoArmed !== target) {
+          this.autoArmed = target;
           this.renderAuto();
           return;
         }
-        this.autoArmed = false;
-        const r = GameState.autoStarUp();
-        this.message = `Auto star up: ${r.starUps} star up${r.starUps === 1 ? '' : 's'}, ` +
+        this.autoArmed = null;
+        const r = GameState.autoStarUp(target);
+        this.message = `Auto star up to ${target}★: ${r.starUps} star up${r.starUps === 1 ? '' : 's'}, ` +
           `${r.spent} hero${r.spent === 1 ? '' : 'es'} spent` +
           (r.skills ? `, ${r.skills} skill level${r.skills === 1 ? '' : 's'} gained` : '') + '.';
         if (typeof Sound !== 'undefined') Sound.play('levelup');
@@ -64,7 +67,7 @@ class ImproveScreen {
     this.resetScroll = true;
   }
 
-  enter() { this.autoArmed = false; this.refresh(); }
+  enter() { this.autoArmed = null; this.refresh(); }
   exit() {}
   update() {}
   draw() {}
@@ -81,19 +84,24 @@ class ImproveScreen {
     this.renderDetail();
   }
 
-  // The auto button always says what it would do right now; disabled
-  // when the shelf has nothing to forge.
+  // Each auto button always says what it would do right now; disabled
+  // when the shelf has nothing to forge toward its star.
   renderAuto() {
-    if (!this.autoBtn) return;
-    const plan = GameState.planAutoStarUp();
-    const spend = plan.reduce((n, st) => n + st.fodder.length, 0);
-    this.autoBtn.disabled = !plan.length;
-    this.autoBtn.classList.toggle('armed', this.autoArmed && !!plan.length);
-    this.autoBtn.innerHTML = !plan.length
-      ? 'Auto star up to 3&#9733;'
-      : this.autoArmed
-        ? `Spend ${spend} hero${spend === 1 ? '' : 'es'} for ${plan.length} star up${plan.length === 1 ? '' : 's'}?`
-        : `Auto star up to 3&#9733; (${plan.length})`;
+    for (const btn of this.autoBtns) {
+      const target = Number(btn.dataset.target);
+      const plan = GameState.planAutoStarUp(target);
+      const spend = plan.reduce((n, st) => n + st.fodder.length, 0);
+      const armed = this.autoArmed === target && plan.length > 0;
+      btn.disabled = !plan.length;
+      btn.classList.toggle('armed', armed);
+      btn.innerHTML = armed
+        ? `${target}&#9733;: spend ${spend} for ${plan.length} — sure?`
+        : `${target}&#9733;${plan.length ? ` (${plan.length})` : ''}`;
+      btn.title = plan.length
+        ? `Forge toward ${target}★: ${plan.length} star up${plan.length === 1 ? '' : 's'} for ` +
+          `${spend} spare hero${spend === 1 ? '' : 'es'}. Team members and favourites are never spent.`
+        : `Nothing on the shelf can star up toward ${target}★ right now.`;
+    }
   }
 
   renderCount() {
