@@ -1150,7 +1150,7 @@ Object.assign(HEROES, {
     // 256px square frames: 9 across, except skill 3 at 15. Three idles —
     // the heavy sway and two drill-arm fidgets.
     sprite: {
-      displayH: 96,
+      displayH: 120, // 96 × 1.25 — the golem should loom
       strips: {
         idle:  { src: 'assets/heroes/Bit/bitidle.png', frames: 9, fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Bit/bitidle1.png', frames: 9, fps: 6, loop: false,
