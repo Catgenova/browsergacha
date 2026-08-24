@@ -1982,6 +1982,29 @@ test('pity ladders: plain rare breaks at 100, banner pity claims the featured st
   assert(G.bannerPity(banner.id).count === 49, 'a spent pity kept counting');
 });
 
+test('auto star up: higher targets forge further up the ladder', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const one = Object.values(w.HEROES).find((h) => h.rarity === 1);
+  for (let i = 0; i < 24; i++) G.addHero(one.id);
+
+  // Plans are monotonic in the target: aiming at 4★ includes every
+  // step the 3★ plan takes plus the ranks above it.
+  const p3 = G.planAutoStarUp(3).length;
+  const p4 = G.planAutoStarUp(4).length;
+  assert(p3 > 0, 'a shelf of 24 spares planned nothing');
+  assert(p4 > p3, `target 4 planned ${p4} steps vs target 3's ${p3}`);
+
+  // Executing the 4★ plan performs exactly what it promised, and a new
+  // 4★ hero exists that did not before.
+  const fours = () => G.ownedHeroIds()
+    .filter((uid) => G.progressOf(uid).stars >= 4).length;
+  const before = fours();
+  const r = G.autoStarUp(4);
+  assert(r.starUps === p4, `planned ${p4} star ups, performed ${r.starUps}`);
+  assert(fours() > before, 'no new 4-star hero was forged');
+});
+
 test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
   const w = loadGame();
   const G = w.GameState;
