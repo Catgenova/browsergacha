@@ -236,6 +236,15 @@ body {
    media block turns it into a real clipping frame. */
 #battle-canvas-crop { display: contents; }
 
+/* A failed battle start reports itself on the picker instead of
+   leaving a dead board. */
+#battle-start-error {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #ff9a8a;
+}
+#battle-start-error:empty { display: none; }
+
 #battle-canvas {
   display: block;
   width: 960px;
