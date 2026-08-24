@@ -563,7 +563,10 @@ const Sprites = (() => {
 
   // Art authored facing LEFT. The board convention is facing right, and
   // every surface that draws a hero has to agree on this or the same
-  // character faces two ways in two screens.
+  // character faces two ways in two screens. Audited sheet by sheet
+  // (idle + action strips — wind-ups mislead, strikes don't): the
+  // species packs and most named heroes are authored facing right;
+  // the left-authored defs carry sprite.faceLeft explicitly.
   function facesLeft(def) {
     return !!(def && def.sprite && def.sprite.faceLeft);
   }
