@@ -33,10 +33,10 @@ def clip(fname, frames, fps):
 
 IMG = {name: clip(f, n, fps) for f, n, fps, name in STRIPS}
 
-html = r'''<title>Franz, Juggler of the Firetroupe</title>
+html = r'''<title>Franz, Firebreather of the Firetroupe</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
-  /* A committed single-theme sheet: the juggler poster. Iron reds
+  /* A committed single-theme sheet: the firebreather poster. Iron reds
      under showlight coral, set in Bungee's sideshow lettering. Every
      color painted explicitly. */
   :root {
@@ -131,22 +131,22 @@ html = r'''<title>Franz, Juggler of the Firetroupe</title>
   <div class="hero">
     <div class="hero-art">
       <span class="tag">Idle</span>
-      <img src="%%idle%%" alt="Franz idle animation, a barrel-chested juggler keeping a weight aloft" width="280" height="280">
+      <img src="%%idle%%" alt="Franz idle animation, a barrel-chested firebreather at ease before the act" width="280" height="280">
     </div>
     <div class="hero-id">
       <div class="stars">&#x2605;&#x2605;&#x2605;&#x2605;<span class="rank">RARITY 4</span></div>
       <h1>FRANZ</h1>
-      <div class="title-line">Juggler of the Firetroupe</div>
+      <div class="title-line">Firebreather of the Firetroupe</div>
       <div class="badges">
         <span class="badge fire">Fire</span>
         <span class="badge">Front-line DPS</span>
         <span class="badge">HP-scaled swings</span>
         <span class="badge sect">Firetroupe &middot; second act</span>
       </div>
-      <p class="lede">The poster act. Franz juggles <b>himself</b> into the
-      fight: every thrown weight deals a share of his own max HP, he
-      throws <b>harder the more hurt he is</b>, and the front hex keeps
-      knitting him back so the act never drops a ball.</p>
+      <p class="lede">The poster act. Franz throws <b>himself</b> into the
+      fight: every hurled weight deals a share of his own max HP, he
+      hits <b>harder the more hurt he is</b>, and when the finale comes he
+      draws one deep breath and the whole field burns.</p>
     </div>
   </div>
 
@@ -177,8 +177,8 @@ html = r'''<title>Franz, Juggler of the Firetroupe</title>
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Bonk</h3>
       <div class="meta">Single enemy &middot; <b>20% max HP</b></div>
-      <p>Hurl a juggling weight square off one enemy's head for <b>20% of
-      Franz's own max HP</b> as damage.</p>
+      <p>Hurl a showman's iron weight square off one enemy's head for
+      <b>20% of Franz's own max HP</b> as damage.</p>
     </div>
     <div class="ability">
       <div class="slot">Skill 2 &middot; Cooldown 3</div>
@@ -191,9 +191,9 @@ html = r'''<title>Franz, Juggler of the Firetroupe</title>
       <div class="slot">Skill 3 &middot; Cooldown 5</div>
       <h3>Flaming Finale</h3>
       <div class="meta">All enemies &middot; <b>15% max HP each</b></div>
-      <p>Set the juggle alight and pelt the entire enemy team with burning
-      weights for <b>15% of his own max HP</b> each. The 14-frame ignite
-      earns its wind-up.</p>
+      <p>Draw a deep breath and hose the entire enemy team with fire for
+      <b>15% of his own max HP</b> each. The 14-frame ignite earns its
+      wind-up.</p>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -213,12 +213,12 @@ html = r'''<title>Franz, Juggler of the Firetroupe</title>
 
   <h2><span class="glyph">&#x25a0;</span> The show</h2>
   <div class="gallery">
-    <div class="clip"><img src="%%idle%%" alt="Idle sway"><div class="cap"><b>Idle</b> &middot; 9f</div><div class="note">One weight, always aloft.</div></div>
+    <div class="clip"><img src="%%idle%%" alt="Idle sway"><div class="cap"><b>Idle</b> &middot; 9f</div><div class="note">Warming up the lungs.</div></div>
     <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one"><div class="cap"><b>Fidget I</b> &middot; 9f</div><div class="note">Playing to the crowd.</div></div>
     <div class="clip"><img src="%%fidget2%%" alt="Idle fidget two"><div class="cap"><b>Fidget II</b> &middot; 9f</div><div class="note">The flex.</div></div>
     <div class="clip"><img src="%%bonk%%" alt="Bonk attack"><div class="cap"><b>Bonk</b> &middot; 9f</div><div class="note">The weight leaves his hand.</div></div>
     <div class="clip"><img src="%%flattener%%" alt="Wagon Wheel"><div class="cap"><b>Wagon Wheel</b> &middot; 9f</div><div class="note">The wheel rolls the row.</div></div>
-    <div class="clip"><img src="%%collapse%%" alt="Flaming Finale"><div class="cap"><b>Flaming Finale</b> &middot; 14f</div><div class="note">The juggle catches fire.</div></div>
+    <div class="clip"><img src="%%collapse%%" alt="Flaming Finale"><div class="cap"><b>Flaming Finale</b> &middot; 14f</div><div class="note">The breath catches fire.</div></div>
     <div class="clip"><img src="%%death%%" alt="Death"><div class="cap"><b>Death</b> &middot; 9f</div><div class="note">The final bow.</div></div>
   </div>
 
