@@ -58,12 +58,17 @@ const Gacha = (() => {
 
   // A banner rate-up (see Events.SUMMON_BANNERS) tilts the draw WITHIN
   // the rolled band: each hero carries a weight, and the banner's sect
-  // carries double. Band rates are untouched.
+  // carries double. Band rates are untouched. `banner` is falsy for a
+  // flat pull, or the scroll kind being pulled — banners run one per
+  // scroll and can overlap, so the weight must come off the banner the
+  // player actually elected (`true` falls back to the first running
+  // banner, for callers that predate concurrency).
   function weightedDraw(pool, banner, date) {
     if (!banner || typeof Events === 'undefined' || !Events.bannerWeight) {
       return pool[Math.floor(Math.random() * pool.length)];
     }
-    const weights = pool.map((h) => Events.bannerWeight(h, date));
+    const scroll = typeof banner === 'string' ? banner : null;
+    const weights = pool.map((h) => Events.bannerWeight(h, date, scroll));
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
     for (let i = 0; i < pool.length; i++) {
@@ -105,7 +110,7 @@ const Gacha = (() => {
         GameState.pity + 1 >= PITY_LIMIT && poolByRarity(5, elements).length > 0) {
       rarity = 5; // pity break
     }
-    const def = pickHero(rarity, elements, banner);
+    const def = pickHero(rarity, elements, banner ? kind : false);
     if (kind === 'rare') {
       GameState.setPity(def.rarity === 5 ? 0 : GameState.pity + 1);
     }

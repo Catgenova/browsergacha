@@ -1826,24 +1826,38 @@ test('the event calendar: one element doubled each weekday, all five on weekends
   assert(!E.isWeekend(day(0)), 'Monday is not a weekend, whatever it feels like');
 });
 
-test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => {
+test('summon banners: Cryst rides the Rare scroll open-ended, Reverence the Temporal through Aug 29', () => {
   const E = g.Events;
-  const during = new Date(2026, 7, 25, 12); // Aug 25 — Reverence running
-  const after = new Date(2026, 7, 30, 0, 1); // Aug 30 — Cryst takes over
+  const during = new Date(2026, 7, 25, 12); // Aug 25 — both banners run
+  const after = new Date(2026, 7, 30, 0, 1); // Aug 30 — Reverence has ended
+  const farOut = new Date(2027, 3, 1);       // until further notice means it
 
-  assert(E.currentBanner(during).id === 'reverence_rateup',
-    `Aug 25 banner is ${E.currentBanner(during).id}`);
-  assert(E.currentBanner(after).id === 'cryst_rateup',
-    `Aug 30 banner is ${E.currentBanner(after).id}`);
-  assert(E.currentBanner(new Date(2026, 7, 29, 23, 59)).id === 'reverence_rateup',
-    'the handover came early');
+  // One banner per scroll kind, running concurrently.
+  assert(E.activeBanners(during).length === 2,
+    `Aug 25 runs ${E.activeBanners(during).length} banners`);
+  assert(E.currentBanner(during, 'rare').id === 'cryst_rateup',
+    'the Rare banner is not Cryst');
+  assert(E.currentBanner(during, 'temporal').id === 'reverence_rateup',
+    'the Temporal banner is not Reverence');
+  assert(E.currentBanner(new Date(2026, 7, 29, 23, 59), 'temporal').id === 'reverence_rateup',
+    'Reverence bowed out early');
+  assert(E.currentBanner(after, 'temporal') === null,
+    'the Temporal banner outlived Aug 29');
+  assert(E.currentBanner(after, 'rare').id === 'cryst_rateup' &&
+    E.currentBanner(farOut, 'rare').id === 'cryst_rateup',
+    'Cryst on the Rare scroll is until further notice');
+  // Cryst never rides the Temporal banner: its all-water roster cannot
+  // drop from the light/dark-only Temporal pool.
+  assert(E.SUMMON_BANNERS.every((b) => b.sect !== 'cryst' || b.scroll !== 'temporal'),
+    'Cryst scheduled on the Temporal scroll');
 
-  // Weights tilt with the calendar; the band rates never moved.
-  assert(E.bannerWeight(HEROES.toll, during) === 2, 'Toll unweighted on his banner');
-  assert(E.bannerWeight(HEROES.polarus, during) === 1, 'the King cut in early');
-  assert(E.bannerWeight(HEROES.toll, after) === 1, 'Toll overstayed');
-  assert(E.bannerWeight(HEROES.polarus, after) === 2, 'the King missed his turn');
-  assert(E.bannerWeight(HEROES.rat_brawler, during) === 1, 'a rat on the banner');
+  // Weights come off the banner for the scroll being pulled.
+  assert(E.bannerWeight(HEROES.toll, during, 'temporal') === 2, 'Toll unweighted on his banner');
+  assert(E.bannerWeight(HEROES.polarus, during, 'rare') === 2, 'the King unweighted on his');
+  assert(E.bannerWeight(HEROES.polarus, during, 'temporal') === 1, 'the King crashed the Temporal');
+  assert(E.bannerWeight(HEROES.toll, during, 'rare') === 1, 'Toll crashed the Rare');
+  assert(E.bannerWeight(HEROES.toll, after, 'temporal') === 1, 'Toll overstayed');
+  assert(E.bannerWeight(HEROES.rat_brawler, during, 'rare') === 1, 'a rat on the banner');
 
   // The tilt shows up in real draws: 3-star Temporal picks during the
   // Reverence banner land on sect members ~2x their per-capita share.
@@ -1855,7 +1869,7 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
   const draws = 6000;
   let hits = 0;
   for (let i = 0; i < draws; i++) {
-    const def = g.Gacha.pickHero(3, ['light', 'dark'], true, during);
+    const def = g.Gacha.pickHero(3, ['light', 'dark'], 'temporal', during);
     const sect = RACES.sectOf(def);
     if (sect && sect.id === 'reverence') hits++;
   }
@@ -1864,6 +1878,24 @@ test('the summon banner: Reverence 2x through Aug 29, Cryst from Aug 30', () => 
   const seen = hits / draws;
   assert(seen > expectedFlat * 1.4 && seen < expectedTilted * 1.25,
     `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
+
+  // Rare-scroll elective pulls tilt toward Cryst the same way — and
+  // keep doing it long after August (until further notice).
+  const poolR = Object.values(HEROES).filter((h) => h.rarity === 3);
+  const cryCount = poolR.filter((h) =>
+    RACES.sectOf(h) && RACES.sectOf(h).id === 'cryst').length;
+  assert(cryCount > 0, 'no 3-star Cryst heroes in the rare pool');
+  let cryHits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = g.Gacha.pickHero(3, null, 'rare', farOut);
+    const sect = RACES.sectOf(def);
+    if (sect && sect.id === 'cryst') cryHits++;
+  }
+  const cryFlat = cryCount / poolR.length;
+  const cryTilted = (cryCount * 2) / (poolR.length + cryCount);
+  const crySeen = cryHits / draws;
+  assert(crySeen > cryFlat * 1.4 && crySeen < cryTilted * 1.25,
+    `cryst share ${crySeen.toFixed(3)} vs flat ${cryFlat.toFixed(3)} / tilted ${cryTilted.toFixed(3)}`);
 
   // The banner is ELECTIVE: an un-elected pull stays flat even while
   // the banner runs.

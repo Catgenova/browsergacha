@@ -22,19 +22,12 @@ class SummonScreen {
     for (const b of this.buttons) {
       b.el.addEventListener('click', () => this.summon(b.kind, b.count));
     }
-    // The elective banner pulls: same scrolls as the banner's kind, but
-    // the running sect draws at double weight inside its star band.
-    this.bannerBtns = [
-      { el: document.getElementById('summon-banner-one'), count: 1 },
-      { el: document.getElementById('summon-banner-ten'), count: 10 },
-    ];
-    for (const b of this.bannerBtns) {
-      b.el.addEventListener('click', () => {
-        const banner = typeof Events !== 'undefined' ? Events.currentBanner() : null;
-        if (banner) this.summon(banner.scroll, b.count, { banner: true });
-      });
-    }
-    this.builtBannerId = null;
+    // The elective banner pulls: same scrolls as each banner's kind,
+    // but its sect draws at double weight inside the star band. Panels
+    // and their buttons are built per running banner in
+    // updateBannerBlock (banners can overlap, one per scroll kind).
+    this.bannerBtns = [];
+    this.builtBannerKey = null;
   }
 
   enter() {
@@ -46,15 +39,18 @@ class SummonScreen {
   updateInfo() {
     this.scrollsEl.textContent =
       `Scrolls: 📜 ${GameState.scrollsCommon} common · ✨ ${GameState.scrollsRare} rare · 🌀 ${GameState.scrollsTemporal} temporal`;
-    // The running rate-up banner points at its elective block below.
+    // The running rate-up banners point at their elective blocks below.
     const bannerEl = document.getElementById('summon-banner');
-    const banner = typeof Events !== 'undefined' ? Events.currentBanner() : null;
+    const banners = typeof Events !== 'undefined' && Events.activeBanners
+      ? Events.activeBanners() : [];
     if (bannerEl) {
-      bannerEl.textContent = banner
-        ? `⚡ Banner: ${banner.name} — scroll down to pull on it!` : '';
-      bannerEl.classList.toggle('hidden', !banner);
+      bannerEl.textContent = banners.length
+        ? `⚡ Banner${banners.length > 1 ? 's' : ''}: ` +
+          `${banners.map((b) => b.name).join(' & ')} — scroll down to pull!`
+        : '';
+      bannerEl.classList.toggle('hidden', !banners.length);
     }
-    this.updateBannerBlock(banner);
+    this.updateBannerBlock(banners);
     // Pity is only meaningful once a 5★ hero exists to be pitied into.
     const has5 = Object.values(HEROES).some((h) => h.rarity === 5);
     this.pityEl.textContent = has5
@@ -68,52 +64,75 @@ class SummonScreen {
     }
   }
 
-  // The elective banner block: name, the featured sect, its own pull
-  // buttons. Rebuilt only when the calendar turns a page.
-  updateBannerBlock(banner) {
+  // The elective banner blocks: one panel per running banner — name,
+  // the featured sect, its own pull buttons. Rebuilt only when the
+  // calendar changes which banners run.
+  updateBannerBlock(banners) {
     const block = document.getElementById('banner-block');
     if (!block) return;
-    block.classList.toggle('hidden', !banner);
-    if (!banner) return;
+    block.classList.toggle('hidden', !banners.length);
     const SCROLL = { common: ['📜', 'Common'], rare: ['✨', 'Rare'], temporal: ['🌀', 'Temporal'] };
-    const [icon, scrollName] = SCROLL[banner.scroll] || ['📜', banner.scroll];
-    if (this.builtBannerId !== banner.id) {
-      this.builtBannerId = banner.id;
-      document.getElementById('banner-title').textContent = `⚡ Banner: ${banner.name}`;
-      document.getElementById('banner-sub').textContent =
-        `${banner.label} Uses ${scrollName} ${icon} scrolls — the star rates are the scroll's own.`;
-      const strip = document.getElementById('banner-featured');
-      strip.innerHTML = '';
-      const featured = Object.values(HEROES)
-        .filter((h) => RACES.sectOf(h) && RACES.sectOf(h).id === banner.sect)
-        .sort((a, b) => b.rarity - a.rarity);
-      for (const def of featured) {
-        const card = document.createElement('div');
-        card.className = 'banner-hero';
-        const canvas = document.createElement('canvas');
-        canvas.width = 72;
-        canvas.height = 72;
-        Sprites.drawPortrait(canvas, def);
-        const name = document.createElement('div');
-        name.className = 'bh-name';
-        name.textContent = def.name;
-        const stars = document.createElement('div');
-        stars.className = 'bh-stars';
-        stars.textContent = '★'.repeat(def.rarity);
-        card.append(canvas, name, stars);
-        card.title = `Open ${def.name} in the compendium`;
-        card.addEventListener('click', () => {
-          this.app.screens.compendium.openHero(def.id);
-          this.app.showScreen('compendium');
-        });
-        strip.appendChild(card);
+    const key = banners.map((b) => b.id).join('|');
+    if (this.builtBannerKey !== key) {
+      this.builtBannerKey = key;
+      this.bannerBtns = [];
+      block.innerHTML = '';
+      for (const banner of banners) {
+        const [icon, scrollName] = SCROLL[banner.scroll] || ['📜', banner.scroll];
+        const panel = document.createElement('div');
+        panel.className = 'banner-panel';
+        const title = document.createElement('div');
+        title.className = 'banner-panel-title';
+        title.textContent = `⚡ Banner: ${banner.name}`;
+        const sub = document.createElement('div');
+        sub.className = 'banner-panel-sub';
+        sub.textContent =
+          `${banner.label} Uses ${scrollName} ${icon} scrolls — the star rates are the scroll's own.`;
+        const strip = document.createElement('div');
+        strip.className = 'banner-featured';
+        const featured = Object.values(HEROES)
+          .filter((h) => RACES.sectOf(h) && RACES.sectOf(h).id === banner.sect)
+          .sort((a, b) => b.rarity - a.rarity);
+        for (const def of featured) {
+          const card = document.createElement('div');
+          card.className = 'banner-hero';
+          const canvas = document.createElement('canvas');
+          canvas.width = 72;
+          canvas.height = 72;
+          Sprites.drawPortrait(canvas, def);
+          const name = document.createElement('div');
+          name.className = 'bh-name';
+          name.textContent = def.name;
+          const stars = document.createElement('div');
+          stars.className = 'bh-stars';
+          stars.textContent = '★'.repeat(def.rarity);
+          card.append(canvas, name, stars);
+          card.title = `Open ${def.name} in the compendium`;
+          card.addEventListener('click', () => {
+            this.app.screens.compendium.openHero(def.id);
+            this.app.showScreen('compendium');
+          });
+          strip.appendChild(card);
+        }
+        const actions = document.createElement('div');
+        actions.className = 'banner-panel-actions';
+        for (const count of [1, 10]) {
+          const btn = document.createElement('button');
+          btn.className = 'panel-btn gold';
+          btn.textContent = `Banner ×${count} (${count} ${icon})`;
+          btn.addEventListener('click', () =>
+            this.summon(banner.scroll, count, { banner: true }));
+          actions.appendChild(btn);
+          this.bannerBtns.push({ el: btn, count, scroll: banner.scroll });
+        }
+        panel.append(title, sub, strip, actions);
+        block.appendChild(panel);
       }
     }
-    const have = banner.scroll === 'rare' ? GameState.scrollsRare
-      : banner.scroll === 'temporal' ? GameState.scrollsTemporal
-      : GameState.scrollsCommon;
     for (const b of this.bannerBtns) {
-      b.el.textContent = `Banner ×${b.count} (${b.count} ${icon})`;
+      const have = b.scroll === 'rare' ? GameState.scrollsRare
+        : b.scroll === 'temporal' ? GameState.scrollsTemporal
+        : GameState.scrollsCommon;
       b.el.disabled = this.revealing || have < b.count;
     }
   }
