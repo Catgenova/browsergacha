@@ -553,13 +553,17 @@ const GameState = (() => {
     addHero(heroId) {
       if (this.rosterFull()) return null;
       const uid = String(state.nextHeroUid++);
-      state.roster[uid] = freshEntry(heroId);
+      const entry = freshEntry(heroId);
+      // The blessing roll: this COPY may arrive Blessed or Godtouched.
+      const blessing = typeof Blessing !== 'undefined' ? Blessing.roll() : null;
+      if (blessing) entry.blessing = blessing;
+      state.roster[uid] = entry;
       // NEW! means new to the COLLECTION, not to the current roster: a
       // character once held and since spent is a dupe, not a discovery.
       const isNew = !state.collected[heroId];
       state.collected[heroId] = true;
       save();
-      return { uid, heroId, isNew };
+      return { uid, heroId, isNew, blessing };
     },
 
     // The permanent collection: characters ever obtained, whether or not
@@ -613,7 +617,8 @@ const GameState = (() => {
       const e = state.roster[uid];
       return e
         ? { heroId: e.heroId, level: e.level, xp: e.xp, stars: e.stars,
-            attune: e.attune || 0, skills: { ...(e.skills || {}) } }
+            attune: e.attune || 0, blessing: e.blessing || null,
+            skills: { ...(e.skills || {}) } }
         : null;
     },
 

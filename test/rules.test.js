@@ -2186,6 +2186,84 @@ test('prismatic accord and motley company pay the party', () => {
   assert(!RACES.prismActive([HEROES.catherine, HEROES.toll]), 'rainbow from one color');
 });
 
+test('blessed and godtouched: the summon lottery, stat lifts, packs and resurrection', () => {
+  const B = g.Blessing;
+
+  // The roll owns exact slices: 1/10,000 Godtouched at the bottom,
+  // 1/1,000 Blessed right above it, nothing past both.
+  assert(B.roll(() => 0.00005) === 'godtouched', 'the bottom slice is Godtouched');
+  assert(B.roll(() => 0.0005) === 'blessed', 'the next slice is Blessed');
+  assert(B.roll(() => 0.00111) === null, 'past both slices still rolled something');
+  assert(B.roll(() => 0.5) === null, 'an ordinary roll came up blessed');
+
+  // Stat lifts on the built unit: +20% / +40% to HP/ATK/DEF, speed alone.
+  const def = HEROES.coral;
+  const mk = (blessing) => new Unit(def, TEAM.PLAYER, { level: 20, stars: def.rarity, blessing });
+  const plain = mk(null), bl = mk('blessed'), gt = mk('godtouched');
+  assert(bl.maxHp === Math.round(plain.maxHp * 1.2) &&
+    bl.baseAtk === Math.round(plain.baseAtk * 1.2) &&
+    bl.baseDef === Math.round(plain.baseDef * 1.2),
+    `blessed stats off: ${bl.maxHp}/${bl.baseAtk}/${bl.baseDef} vs ${plain.maxHp}/${plain.baseAtk}/${plain.baseDef}`);
+  assert(gt.maxHp === Math.round(plain.maxHp * 1.4) &&
+    gt.baseAtk === Math.round(plain.baseAtk * 1.4) &&
+    gt.baseDef === Math.round(plain.baseDef * 1.4), 'godtouched stats off');
+  assert(bl.speed === plain.speed && gt.speed === plain.speed,
+    'a blessing must not touch speed');
+
+  // The summon pipeline stamps the roll on the copy.
+  const w = loadGame();
+  const realRoll = w.Blessing.roll;
+  w.Blessing.roll = () => 'godtouched';
+  const added = w.GameState.addHero(def.id);
+  w.Blessing.roll = realRoll;
+  assert(added && added.blessing === 'godtouched', 'addHero dropped the roll');
+  assert(w.GameState.progressOf(added.uid).blessing === 'godtouched',
+    'the roster entry lost its blessing');
+
+  // Packs pay everyone fielded, against a like-for-like control team.
+  const party = (blessings) => blessings.map((kind) => mk(kind));
+  const run = (team) => { RACES.applyParty(team); return team; };
+  const ctrl3 = run(party([null, null, null, null]));
+  const ble3 = run(party(['blessed', 'blessed', 'blessed', null]));
+  ble3.forEach((u, i) => {
+    assert(Math.abs(u.baseCritDamage - ctrl3[i].baseCritDamage - 0.25) < 1e-9,
+      '3 blessed must pay +25% crit damage to everyone');
+    assert(u.resurrectChance === 0, '3 blessed paid the 5-pack tier');
+  });
+  const ctrl5 = run(party([null, null, null, null, null]));
+  const ble5 = run(party(['blessed', 'blessed', 'blessed', 'blessed', 'blessed']));
+  ble5.forEach((u, i) => {
+    assert(Math.abs(u.resurrectChance - 0.15) < 1e-9, '5 blessed must pay 15% resurrect');
+    // Only the copies' own +20% base lift — no 7-pack HP at five.
+    assert(u.maxHp === Math.round(ctrl5[i].maxHp * 1.2), '5 blessed paid the 7-pack HP');
+  });
+  const ctrl7 = run(party(Array(7).fill(null)));
+  const god7 = run(party(Array(7).fill('godtouched')));
+  god7.forEach((u, i) => {
+    assert(Math.abs(u.baseCritDamage - ctrl7[i].baseCritDamage - 0.50) < 1e-9,
+      '7 godtouched must pay +50% crit damage');
+    assert(Math.abs(u.resurrectChance - 0.30) < 1e-9, '7 godtouched must pay 30% resurrect');
+    // The copies' own +40% base lift, then the 7-pack's +40% on top.
+    assert(u.maxHp === Math.round(Math.round(ctrl7[i].maxHp * 1.4) * 1.4),
+      '7 godtouched must pay +40% HP on top of the base lift');
+  });
+  // Strict counts: godtouched copies do not feed the Blessed pack.
+  const titles = RACES.applyParty(party(['godtouched', 'godtouched', 'godtouched']))
+    .filter((s) => s.title.endsWith('company')).map((s) => s.title);
+  assert(titles.includes('Godtouched company') && !titles.includes('Blessed company'),
+    `3 godtouched lit: ${titles.join(', ')}`);
+
+  // Resurrection: the killing blow may not stick — once per battle.
+  const u = mk(null);
+  u.resurrectChance = 1;
+  const dealt = u.takeDamage(u.maxHp + 999);
+  assert(u.alive && u.resurrected && u.hp === Math.max(1, Math.round(u.maxHp * 0.30)),
+    `resurrection left hp at ${u.hp} of ${u.maxHp}`);
+  assert(dealt === u.maxHp + 999, 'the blow itself must still count as dealt');
+  u.takeDamage(u.maxHp * 10);
+  assert(!u.alive, 'a second resurrection went through');
+});
+
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;

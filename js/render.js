@@ -329,6 +329,40 @@ class Renderer {
       }
     }
 
+    // Blessed/Godtouched copies pulse — a soft radial aura painted
+    // BEHIND the sprite (silver or gold), so the art itself stays clean.
+    if (unit.blessing && typeof Blessing !== 'undefined') {
+      const b = Blessing.of(unit.blessing);
+      if (b) {
+        const hp0 = (unit.animator && unit.animator.sheet.headPad) || 0;
+        const fp0 = (unit.animator && unit.animator.sheet.footPad) || 0;
+        const visH0 = Math.max(8, dh - hp0 - fp0);
+        const cx = this.feetX(unit, x);
+        const cy = yc - dh / 2 + hp0 + visH0 / 2;
+        const pulse = 0.5 + 0.5 *
+          Math.sin(performance.now() / 480 + (unit.slot ? unit.slot.index : 0));
+        const r = visH0 * (0.62 + 0.06 * pulse);
+        ctx.save();
+        const grad = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r);
+        grad.addColorStop(0, `rgba(${b.glow}, ${0.45 + 0.30 * pulse})`);
+        grad.addColorStop(0.7, `rgba(${b.glow}, ${0.18 + 0.14 * pulse})`);
+        grad.addColorStop(1, `rgba(${b.glow}, 0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        // A pulsing ground ring seals the read at sprite scale, where a
+        // soft halo alone can sink into a bright background. Smaller
+        // than the gold active-turn ring so the two never blur together.
+        ctx.strokeStyle = `rgba(${b.glow}, ${0.45 + 0.45 * pulse})`;
+        ctx.lineWidth = 1.5 + pulse;
+        ctx.beginPath();
+        ctx.ellipse(cx, y + 7, 21, 6.5, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
     // Sprite; recently-hit units flash white along their own silhouette.
     if (unit.animator) {
       const flash = unit.hitFlash > 0 ? Math.min(1, unit.hitFlash * 5) * 0.85 : 0;

@@ -111,7 +111,8 @@ const Gacha = (() => {
     }
     const added = GameState.addHero(def.id);
     return { def, rarity: def.rarity, uid: added ? added.uid : null,
-      isNew: !!added && added.isNew, copies: GameState.countOf(def.id) };
+      isNew: !!added && added.isNew, copies: GameState.countOf(def.id),
+      blessing: (added && added.blessing) || null };
   }
 
   // Spend `count` scrolls of `kind` for that many summons.
