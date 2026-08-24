@@ -2021,4 +2021,90 @@ Object.assign(HEROES, {
     positional: POSITIONALS.hearthblood,
   },
 
+  carl: {
+    id: 'carl',
+    element: 'fire',
+    name: 'Carl',
+    title: 'Tentpole of the Firetroupe',
+    rarity: 3,
+    // Front-line tank in the Franz mold: swings scale off his OWN max
+    // HP, and every blow he absorbs makes the pool — and therefore the
+    // swings — bigger. Punishment is his training montage.
+    stats: { hp: 2000, atk: 100, def: 155, speed: 95 },
+    tint: { body: '#7a3a24', helm: '#b8b2bc', weapon: '#c8863a', skin: '#e8b088' },
+    // Wired ahead of the art (frames measured off the delivered strips;
+    // placeholder art stands in until the upload lands).
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Carl/carlidle.png', frames: 'auto', fps: 5, loop: true },
+        idle2: { src: 'assets/heroes/Carl/carlidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Carl/carlidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Carl/carlskill1.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Carl/carlskill2.png', frames: 'auto', fps: 11,
+                  loop: false, hitFrame: 6 },
+        skill3: { src: 'assets/heroes/Carl/carlskill3.png', frames: 'auto', fps: 11,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Carl/carldeath.png', frames: 'auto', fps: 7,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'carl_clobber', name: 'Clobber',
+        icon: 'assets/icons/fc1033.png',
+        description: "Clobber one enemy for 15% of Carl's own max HP as damage.",
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.15 },
+        ],
+      },
+      {
+        id: 'carl_pole_swing', name: 'Pole Swing',
+        icon: 'assets/icons/fc1034.png',
+        description: 'Bring the tentpole around on one enemy for 20% of ' +
+          'his own max HP as damage.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.20 },
+        ],
+      },
+      {
+        id: 'carl_bring_down_the_pole', name: 'Bring Down the Pole',
+        icon: 'assets/icons/fc1035.png',
+        description: 'Drive the pole into one enemy for 25% of his own ' +
+          'max HP as damage — a FRONT-row target takes 50% more. Tanks ' +
+          'first.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.25,
+            bonusPosition: { position: 'front', mult: 1.5 } },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Iron Appetite',
+      icon: 'assets/icons/fc1057.png',
+      description: 'Gains max HP equal to 10% of damage received, up to ' +
+        '+50% of his starting max HP — every beating makes him bigger.',
+      hooks: {
+        onStruck(unit, { amount }) {
+          if (!amount || amount <= 0) return;
+          // The baseline is his max HP as the first blow lands — i.e.
+          // battle-start, with placement and party bonuses included.
+          if (unit.ironBase === undefined) unit.ironBase = unit.maxHp;
+          const cap = Math.round(unit.ironBase * 0.5);
+          const grown = unit.maxHp - unit.ironBase;
+          const gain = Math.min(cap - grown, Math.round(amount * 0.10));
+          if (gain <= 0) return;
+          unit.maxHp += gain;
+        },
+      },
+    },
+    positional: POSITIONALS.tentpole,
+  },
+
 });
