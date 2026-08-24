@@ -1069,6 +1069,17 @@ test('difficulty tiers gate per chapter and pay exactly what they promise', () =
   assert(Campaign.chapterProgress(ch1, 'hard').done === 1,
     'Hard progress should count only its own clears (the holder)');
 
+  // The completion checkmark demands a FULL clear: chapter 1's holder
+  // is down on Normal but its side stages are not, so the chapter is
+  // beaten yet NOT full. Clearing every node flips it.
+  const partial = Campaign.chapterProgress(ch1, 'normal');
+  assert(partial.beaten && !partial.full,
+    `a holder-only clear read as full (${partial.done}/${partial.total})`);
+  for (const n of ch1.nodes) clear(n, 'normal');
+  const fullP = Campaign.chapterProgress(ch1, 'normal');
+  assert(fullP.full && fullP.done === fullP.total,
+    'a total clear did not read as full');
+
   // And the chapter chain still runs inside a tier.
   clear(Campaign.bossNode(ch2), 'normal');
   assert(Campaign.tierUnlocked(ch2, 'hard'), 'chapter 2 Hard should open once it falls');

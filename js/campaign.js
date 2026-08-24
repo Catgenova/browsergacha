@@ -319,10 +319,16 @@ const Campaign = (() => {
     return best;
   }
 
-  // Chapter progress for the header: cleared / total, holder down or not.
+  // Chapter progress for the header: cleared / total, holder down or
+  // not. `beaten` (the holder is down) drives progression — the next
+  // chapter and the tier above open off it. `full` (EVERY node cleared,
+  // side roads and secrets included) is the completion checkmark: a
+  // chapter with stages left is not done, however dead its holder.
   function chapterProgress(ch, tierId = 'normal') {
     const done = ch.nodes.filter((n) => nodeCleared(n, tierId)).length;
-    return { done, total: ch.nodes.length, beaten: nodeCleared(bossNode(ch), tierId) };
+    return { done, total: ch.nodes.length,
+      beaten: nodeCleared(bossNode(ch), tierId),
+      full: done === ch.nodes.length };
   }
 
   // Where to go after clearing `nodeObj`: follow the road first — a

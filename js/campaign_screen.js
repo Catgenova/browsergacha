@@ -102,9 +102,11 @@ class CampaignScreen {
   renderChapters() {
     this.chaptersEl.innerHTML = CAMPAIGN.CHAPTERS.map((ch) => {
       const open = Campaign.chapterUnlocked(ch, this.tierId);
-      const { done, total, beaten } = Campaign.chapterProgress(ch, this.tierId);
-      const state = !open ? 'locked' : beaten ? 'beaten' : 'open';
-      const mark = !open ? '🔒' : beaten ? '✓' : `${done}/${total}`;
+      // The checkmark demands a FULL clear — a beaten holder with side
+      // stages left still reads as a count, not as done.
+      const { done, total, full } = Campaign.chapterProgress(ch, this.tierId);
+      const state = !open ? 'locked' : full ? 'beaten' : 'open';
+      const mark = !open ? '🔒' : full ? '✓' : `${done}/${total}`;
       return `<button class="camp-chapter ${state}
         ${ch.id === this.chapterId ? 'active' : ''}" data-chapter="${ch.id}"
         ${open ? '' : 'disabled'}
