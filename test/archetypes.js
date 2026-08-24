@@ -80,6 +80,8 @@ const LEVEL = Progression.maxLevel(STARS);
 // bucket for exactly that reason: they are buffers, measured on a
 // leaderboard of attackers.
 function roleOf(def) {
+  // Explicit role on the def wins (Catherine: tanky statline, DPS kit).
+  if (def.role) return def.role;
   const abilities = def.abilities || [];
   const MEND = ['heal', 'healHpPct', 'hot', 'revive', 'cleanse'];
   // A mend that can only ever reach the caster is self-sustain, not
