@@ -760,6 +760,15 @@ class BattleScreen {
       }),
     ]);
 
+    // Mobile board crop: big-boss fights carry ~230px-tall art that the
+    // tight action-band crop would behead, so they flag the wrap and
+    // the CSS opens the band upward. Hero-sized fights stay tight.
+    const bigBoss = !!(this.bossFight || this.dungeonFight || this.attuneFight ||
+      (this.towerFight && this.towerFight.isBossFloor) ||
+      (campNode && campNode.type === 'boss'));
+    const wrapEl = document.getElementById('battle-wrap');
+    if (wrapEl) wrapEl.classList.toggle('boss-arena', bigBoss);
+
     this.battle = battle;
     this.renderer.setBattle(battle, bgPin);
     this.ui.bind(battle);
