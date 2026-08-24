@@ -173,6 +173,15 @@ const RACES = (() => {
       { count: 7, mods: { freezeChance: 0.15 },
         label: '7: +15% chance on every freeze roll' },
     ],
+    // The fire show's pack: the troupe never misses its mark, and at
+    // full strength their hits slick the enemy in oil — fire attacks
+    // against an Oilslicked target deal +50%.
+    firetroupe: [
+      { count: 3, mods: { accuracy: 0.15 }, label: '3: +15% Accuracy' },
+      { count: 5, mods: { accuracy: 0.05 }, label: '5: +20% Accuracy total' },
+      { count: 7, mods: { oilOnHit: 0.10 },
+        label: '7: hits have a 10% chance to Oilslick the target for 2 turns' },
+    ],
     reverence: [
       { count: 3, mods: { defPct: 0.10 }, label: '3: +10% DEF' },
       { count: 5, mods: { startShield: 0.15 },
@@ -274,6 +283,7 @@ const RACES = (() => {
     if (mods.shieldOnDeal) unit.synergyShieldOnDeal += mods.shieldOnDeal;
     if (mods.openingFreeze) unit.synergyOpeningFreeze += mods.openingFreeze;
     if (mods.freezeChance) unit.synergyFreezeChance += mods.freezeChance;
+    if (mods.oilOnHit) unit.synergyOilOnHit += mods.oilOnHit;
     if (mods.takenMult) unit.synergyTakenMult *= mods.takenMult;
     if (mods.apOnEnemyTurn) unit.synergyApOnEnemyTurn += mods.apOnEnemyTurn;
     if (mods.debuffExtraChance) unit.synergyDebuffExtraChance += mods.debuffExtraChance;

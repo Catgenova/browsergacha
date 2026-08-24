@@ -222,6 +222,13 @@ const Abilities = (() => {
             (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
           raw *= effect.bonusVs.mult;
         }
+        // Oilslicked (the Firetroupe's mark): ANY fire attacker hits an
+        // oiled target half again as hard — a standing rule, not a
+        // per-ability rider like methane's ignite.
+        if (caster.element === 'fire' && target.statusEffects.some(
+            (fx) => fx.stat === 'oilslicked')) {
+          raw *= 1.5;
+        }
         // Conditional on where the TARGET stands (Sawyer hunts the
         // center hex). Position is a battle-grid fact, so this only
         // fires in real formations — bench duels have no hexes.

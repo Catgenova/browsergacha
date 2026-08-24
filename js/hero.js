@@ -93,6 +93,9 @@ class Unit {
     // (fired by the battle screen) and a flat bonus on freeze rolls.
     this.synergyOpeningFreeze = 0;
     this.synergyFreezeChance = 0;
+    // Firetroupe sect pack: chance for landed hits to Oilslick the
+    // victim (fire attacks against the oiled deal +50%).
+    this.synergyOilOnHit = 0;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
     // one per hit. Sprite variants per count live in unit.mirrorSheets.
@@ -715,6 +718,18 @@ class Unit {
       // same three-turn shield.
       if (this.synergyShieldOnDeal > 0) {
         this.addShield(Math.round(amount * this.synergyShieldOnDeal), 3, this);
+      }
+      // Firetroupe sect (7pc): a landed hit may slick the victim in
+      // oil. The 10% roll is the whole gate — no second resist roll.
+      if (this.synergyOilOnHit > 0 && target && target.alive &&
+          target.team !== this.team &&
+          Math.random() < this.synergyOilOnHit) {
+        target.addStatusEffect({ kind: 'debuff', stat: 'oilslicked', turns: 2, source: this });
+        if (battle) {
+          battle.addFloatingText(target, '≋ OILSLICKED', '#d8b04a');
+          battle.log(`${target.name} is slicked in oil — fire strikes it ` +
+            'half again as hard (2 turns).', 'log-system');
+        }
       }
       for (const p of this.hookSources()) {
         const hook = p.hooks && p.hooks.onDealtDamage;
