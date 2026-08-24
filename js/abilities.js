@@ -197,17 +197,21 @@ const Abilities = (() => {
   function applyEffect(effect, caster, target, power = 1) {
     switch (effect.type) {
       case 'damage':
-      case 'damageDef': {
+      case 'damageDef':
+      case 'damageHp': {
         // 'damageDef' scales off the caster's DEF instead of ATK (Boar
-        // tank-bruiser kits, Toll's bell); everything downstream is
-        // identical, which is the point — a big DEF stat must not be a
-        // way around the mitigation curve.
+        // tank-bruiser kits, Toll's bell) and 'damageHp' off the
+        // caster's own MAX HP (Franz's bonks); everything downstream is
+        // identical, which is the point — a big DEF or HP stat must not
+        // be a way around the mitigation curve.
         const scaleStat = effect.type === 'damageDef' ? 'def' : 'atk';
+        const scaleBase = effect.type === 'damageHp'
+          ? caster.maxHp : caster.effectiveStat(scaleStat);
         // perMirror: extra multiplier per active crystal mirror (Echo).
         const mult = effect.mult +
           (effect.perMirror || 0) * (caster.mirrors || 0);
         const elemMult = Elements.mult(caster.element, target.element);
-        let raw = caster.effectiveStat(scaleStat) * mult * power *
+        let raw = scaleBase * mult * power *
           caster.damageDealtMult(target) * elemMult;
         // Combo hits: multiplied damage against a marked status — by
         // stat (methane fog) or by kind (detonating poisons).
