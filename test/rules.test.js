@@ -1106,6 +1106,19 @@ test('difficulty tiers gate per chapter and pay exactly what they promise', () =
     }
   }
 
+  // Hard and Expert gear the rank and file but NEVER the holder: the
+  // holder already compounds its chapter tuning with the tier scale,
+  // and a six-piece set on top made it unbeatable rather than hard.
+  assert(Campaign.gearFor(boss1, 'hard', HEROES.rat_brawler).length === 0 &&
+    Campaign.gearFor(boss1, 'expert', HEROES.rat_brawler).length === 0,
+    'the holder came armed');
+  assert(Campaign.gearFor(entry, 'hard', HEROES.rat_brawler).length > 0,
+    'the rank and file lost their tier gear');
+  assert(Campaign.gearFor(entry, 'normal', HEROES.rat_brawler).length === 0,
+    'Normal enemies must fight bare');
+  assert(!Campaign.tierNote(boss1, 'hard').includes('gear'),
+    `the tier note still advertises holder gear: ${Campaign.tierNote(boss1, 'hard')}`);
+
   // Harder tiers really are harder, and stay inside the level ceiling.
   for (const t of ['hard', 'expert']) {
     assert(Campaign.levelFor(boss1, t) > Campaign.levelFor(boss1, 'normal'),
