@@ -647,18 +647,29 @@ class CompendiumScreen {
     if (!c || !this.animator) return;
     const ctx = c.getContext('2d');
     ctx.clearRect(0, 0, c.width, c.height);
-    // Ground shadow, then the sprite standing on it.
+    const size = this.animator.size();
+    // The animator renders at battle size (~90px), which rattles around
+    // a 260px stage. Blow it up to fill the box, scaled around the feet
+    // so the ground line and shadow hold still.
+    const zoom = Math.max(1, Math.min(
+      (c.width - 56) / size.w, (c.height - 76) / size.h));
     const baseY = c.height - 26;
+    // Ground shadow, then the sprite standing on it.
+    const shadowZoom = Math.min(zoom, 1.7);
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
-    ctx.ellipse(c.width / 2, baseY + 6, 34, 9, 0, 0, Math.PI * 2);
+    ctx.ellipse(c.width / 2, baseY + 6, 34 * shadowZoom, 9 * shadowZoom,
+      0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    const size = this.animator.size();
     const def = this.roster()[this.selectedId] ||
       (typeof HEROES !== 'undefined' && HEROES[this.selectedId]) || null;
-    this.animator.draw(ctx, c.width / 2, baseY - size.h / 2 + 8, Sprites.facesLeft(def));
+    ctx.save();
+    ctx.translate(c.width / 2, baseY + 8);
+    ctx.scale(zoom, zoom);
+    this.animator.draw(ctx, 0, -size.h / 2, Sprites.facesLeft(def));
+    ctx.restore();
   }
 }
 
