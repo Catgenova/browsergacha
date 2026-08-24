@@ -1267,11 +1267,11 @@ Object.assign(HEROES, {
       {
         id: 'tanner_royal_gesture', name: 'Royal Gesture',
         icon: 'assets/icons/fc1023.png',
-        description: 'A token of royal concern: mend one ally for 5% of ' +
+        description: 'A token of royal concern: mend one ally for 20% of ' +
           'Tanner\'s max HP.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
-          { type: 'healHpPct', pct: 0.05 },
+          { type: 'healHpPct', pct: 0.20 },
         ],
       },
       {
