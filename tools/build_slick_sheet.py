@@ -22,7 +22,9 @@ def clip(fname, fps):
     fw = w // frames
     cells = []
     for i in range(frames):
-        cell = im.crop((i * fw, 0, (i + 1) * fw, h))
+        # Authored facing left; mirrored here to match the board's
+        # facing-right convention (the asset files stay untouched).
+        cell = im.crop((i * fw, 0, (i + 1) * fw, h)).transpose(Image.FLIP_LEFT_RIGHT)
         bg = Image.new('RGBA', cell.size, PANEL)
         bg.alpha_composite(cell)
         cells.append(bg.convert('RGB').resize((SIZE, SIZE), Image.NEAREST))

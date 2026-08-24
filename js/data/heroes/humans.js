@@ -1872,6 +1872,9 @@ Object.assign(HEROES, {
     // as "lucien" — referenced exactly as delivered.
     sprite: {
       displayH: 92,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Lucian/lucianidle.png', frames: 9, fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Lucian/lucianidle1.png', frames: 9, fps: 6, loop: false,
@@ -1961,6 +1964,9 @@ Object.assign(HEROES, {
     // and placeholder art stands in until the upload lands.
     sprite: {
       displayH: 96,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Franz/franzidle.png', frames: 'auto', fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Franz/franzidle1.png', frames: 'auto', fps: 6, loop: false,
@@ -2042,6 +2048,9 @@ Object.assign(HEROES, {
     // placeholder art stands in until the upload lands).
     sprite: {
       displayH: 96,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Carl/carlidle.png', frames: 'auto', fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Carl/carlidle1.png', frames: 'auto', fps: 6, loop: false,
@@ -2126,6 +2135,9 @@ Object.assign(HEROES, {
     tint: { body: '#8a2a2a', helm: '#3a2018', weapon: '#ff7a3a', skin: '#e8a888' },
     sprite: {
       displayH: 94,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         // A 17-frame ribbon dance for the base idle; short fidgets.
         idle:  { src: 'assets/heroes/Esmerelda/esmereldaidle.png', frames: 'auto', fps: 7, loop: true },
@@ -2209,6 +2221,9 @@ Object.assign(HEROES, {
     tint: { body: '#5a3018', helm: '#241418', weapon: '#d8b04a', skin: '#c8863a' },
     sprite: {
       displayH: 90,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         // The pitch never stops bubbling over the rim.
         idle:  { src: 'assets/heroes/Slick/slickidle.png', frames: 'auto', fps: 7, loop: true },
@@ -2295,6 +2310,9 @@ Object.assign(HEROES, {
     tint: { body: '#8a4a2a', helm: '#3a2418', weapon: '#c8ccd8', skin: '#e8a878' },
     sprite: {
       displayH: 96,
+      // Authored facing left, like Angelica and Javarious — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Samuels/samuelsidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Samuels/samuelsidle1.png', frames: 'auto', fps: 6, loop: false,
