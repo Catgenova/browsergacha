@@ -25,7 +25,7 @@ const RACES = (() => {
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl', 'esmerelda',
+    'lucian', 'franz', 'carl', 'esmerelda', 'slick',
   ]);
 
   const NAMES = {
@@ -70,7 +70,7 @@ const RACES = (() => {
                  members: ['sawyer'] },
     // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
-                 members: ['lucian', 'franz', 'carl', 'esmerelda'] },
+                 members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
@@ -174,8 +174,8 @@ const RACES = (() => {
         label: '7: +15% chance on every freeze roll' },
     ],
     // The fire show's pack: the troupe never misses its mark, and at
-    // full strength their hits slick the enemy in oil — fire attacks
-    // against an Oilslicked target deal +50%.
+    // full strength their hits slick the enemy in oil — burns tick
+    // TWICE as hard on an Oilslicked target.
     firetroupe: [
       { count: 3, mods: { accuracy: 0.15 }, label: '3: +15% Accuracy' },
       { count: 5, mods: { accuracy: 0.05 }, label: '5: +20% Accuracy total' },

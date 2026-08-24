@@ -481,7 +481,7 @@ class Renderer {
       methane:     { glyph: '☁', color: '#b8e85a', title: 'Methane fog',
                      note: 'ignites — fire attacks hit double' },
       oilslicked:  { glyph: '≋', color: '#d8b04a', title: 'Oilslicked',
-                     note: 'fire attacks against this unit deal +50%' },
+                     note: 'burns tick twice as hard on this unit' },
       veil:        { glyph: '≈', color: '#8ee8ff', title: 'Veiled',
                      note: 'much harder to hit this turn' },
       slag:        { glyph: '▨', color: '#ff9a5a', title: 'Slag plating',

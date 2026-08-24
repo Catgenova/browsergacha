@@ -235,6 +235,13 @@ const POSITIONALS = (() => {
 
   // ---- CENTER: the anchor ------------------------------------------------
 
+  def('center_ring', {
+    position: POSITION.CENTER,
+    name: 'Center Ring',
+    description: 'Center hex: +20% debuff Accuracy — every eye on the middle of the ring.',
+    hooks: { accuracyAdd: 0.20 },
+  });
+
   def('standard_bearer', {
     position: POSITION.CENTER,
     name: 'Standard Bearer',

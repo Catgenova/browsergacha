@@ -89,6 +89,13 @@ function roleOf(def) {
     Abilities.sideOf(a.targeting) === 'ally' &&
     (a.effects || []).some((e) => MEND.includes(e.type)));
   if (mends) return 'support';
+  // A kit with no damaging effect anywhere cannot be a dps of any kind:
+  // a pure debuffer (Slick oils the field and never swings) works in
+  // enemy output removed and ally damage enabled, which is support work.
+  const DMG = ['damage', 'damageDef', 'damageHpPct', 'damageHp', 'dot'];
+  if (!abilities.some((a) => (a.effects || []).some((e) => DMG.includes(e.type)))) {
+    return 'support';
+  }
   const forAllies = abilities.filter((a) =>
     ['ally', 'self'].includes(Abilities.sideOf(a.targeting))).length;
   if (forAllies > abilities.length / 2) return 'support';

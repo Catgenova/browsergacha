@@ -2625,24 +2625,33 @@ test('the Firetroupe sect set: accuracy tiers and the Oilslick mark', () => {
   const oil = foe.statusEffects.find((fx) => fx.stat === 'oilslicked');
   assert(oil && oil.turns === 2, 'the hit left no oil');
 
-  // Oiled: a FIRE attacker hits half again as hard; a non-fire one
-  // gains nothing.
+  // Oiled: direct hits gain NOTHING (oil is a burn amplifier, not a
+  // damage mark) — a fire hit lands at its plain value.
   const expect = (mult) => Math.round(A.damageFormula(
     franz.maxHp * 0.20 * E.mult('fire', foe.element) * mult,
     foe.effectiveStat('def')));
   franz.synergyOilOnHit = 0;
   let hp0 = foe.hp;
   A.execute(franz.abilities[0].def, franz, foe, null);
-  assert(Math.abs((hp0 - foe.hp) - expect(1.5)) <= 1,
-    `fire vs oil dealt ${hp0 - foe.hp}, expected ~${expect(1.5)}`);
-  vex.baseCritChance = -1;
-  const vexRaw = (mult) => Math.round(A.damageFormula(
-    vex.effectiveStat('atk') * (H.vex.abilities[0].effects[0].mult) *
-    E.mult(vex.element, foe.element) * mult, foe.effectiveStat('def')));
-  hp0 = foe.hp;
-  A.execute(vex.abilities[0].def, vex, foe, null);
-  assert(Math.abs((hp0 - foe.hp) - vexRaw(1)) <= 1,
-    `non-fire vs oil dealt ${hp0 - foe.hp}, expected ~${vexRaw(1)}`);
+  assert(Math.abs((hp0 - foe.hp) - expect(1)) <= 1,
+    `fire vs oil dealt ${hp0 - foe.hp}, expected ~${expect(1)}`);
+
+  // What oil DOES buy: burns tick twice as hard while it holds. Same
+  // burn, with and without the slick, must land 2:1.
+  const burner = new U(H.esmerelda, T.PLAYER, { level: 30, stars: 3 });
+  const tickWith = (oil) => {
+    foe.hp = foe.maxHp;
+    foe.statusEffects = [];
+    if (oil) foe.addStatusEffect({ kind: 'debuff', stat: 'oilslicked', turns: 2, source: burner });
+    foe.addStatusEffect({ kind: 'dot', amount: 500, turns: 2, flavor: 'burn', source: burner });
+    foe.startTurn(null);
+    return foe.maxHp - foe.hp;
+  };
+  const dry = tickWith(false);
+  const oiledTick = tickWith(true);
+  assert(dry > 0 && Math.abs(oiledTick - dry * 2) <= 2,
+    `oiled burn ticked ${oiledTick} vs dry ${dry} — expected double`);
+  assert(vex.element !== 'fire', 'sanity: vex still the non-fire control');
 });
 
 test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
@@ -3014,6 +3023,63 @@ test('dungeons take three challenges a day, per dungeon, reset daily', () => {
   raw.dungeonRuns.day = '2000-01-01';
   const G2 = loadGame({ save: raw }).GameState;
   assert(G2.dungeonRunsLeft(id) === 3, "yesterday's spent challenges carried over");
+});
+
+test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const slick = new U(H.slick, T.PLAYER, { level: 30, stars: 3 });
+  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const centerIdx = battle.playerSlots.findIndex((s) => s.position === P.CENTER);
+  battle.placeUnit(slick, centerIdx);
+  battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeBack, battle.enemySlots.findIndex((s) => s.position === P.BACK));
+  for (const f of [foeFront, foeBack]) {
+    f.hookSources = () => [];
+    f.dodgeChance = () => 0;
+  }
+
+  // Center Ring: +20% debuff accuracy from the center hex.
+  assert(Math.abs(slick.debuffAccuracy() - 0.20) < 1e-9,
+    `center accuracy read ${slick.debuffAccuracy()}`);
+
+  const oilOn = (u) => u.statusEffects.find((fx) => fx.stat === 'oilslicked');
+
+  // Splash Zone: the front row is oiled for 3 turns, the back row is dry.
+  A.execute(slick.abilities[0].def, slick, null, battle);
+  assert(oilOn(foeFront) && oilOn(foeFront).turns === 3,
+    'the front row stayed dry');
+  assert(!oilOn(foeBack), 'the splash reached a row it should not');
+
+  // The Big Spill: everyone is oiled.
+  foeFront.statusEffects = [];
+  A.execute(slick.abilities[2].def, slick, null, battle);
+  assert(oilOn(foeFront) && oilOn(foeBack) && oilOn(foeBack).turns === 3,
+    'the barrel missed somebody');
+
+  // Fresh Coat: +30% SPD and +30% debuff accuracy, on top of the hex.
+  const spd0 = slick.effectiveStat('speed');
+  A.execute(slick.abilities[1].def, slick, slick, battle);
+  assert(slick.effectiveStat('speed') === Math.round(spd0 * 1.30),
+    `coated speed read ${slick.effectiveStat('speed')} from ${spd0}`);
+  assert(Math.abs(slick.debuffAccuracy() - 0.50) < 1e-9,
+    `coated accuracy read ${slick.debuffAccuracy()}`);
+
+  // Backsplash: an enemy who strikes the barrel wears the barrel.
+  foeFront.statusEffects = [];
+  const prevActive = B.active;
+  B.active = battle;
+  try {
+    slick.struck(100, foeFront);
+  } finally {
+    B.active = prevActive;
+  }
+  assert(oilOn(foeFront) && oilOn(foeFront).turns === 2,
+    'the attacker came away clean');
 });
 
 report();

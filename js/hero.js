@@ -231,6 +231,10 @@ class Unit {
     for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.accuracyAdd) a += p.hooks.accuracyAdd;
     }
+    // Timed accuracy buffs (Slick's Fresh Coat) ride the status list.
+    for (const fx of this.statusEffects) {
+      if (fx.stat === 'accuracy' && fx.add) a += fx.add;
+    }
     return a;
   }
 
@@ -727,8 +731,8 @@ class Unit {
         target.addStatusEffect({ kind: 'debuff', stat: 'oilslicked', turns: 2, source: this });
         if (battle) {
           battle.addFloatingText(target, '≋ OILSLICKED', '#d8b04a');
-          battle.log(`${target.name} is slicked in oil — fire strikes it ` +
-            'half again as hard (2 turns).', 'log-system');
+          battle.log(`${target.name} is slicked in oil — burns tick ` +
+            'twice as hard (2 turns).', 'log-system');
         }
       }
       for (const p of this.hookSources()) {
@@ -927,13 +931,19 @@ class Unit {
     // is already in you, and there is no incoming blow to reflect.
     for (const fx of this.statusEffects) {
       if (fx.kind !== 'dot' || !this.alive) continue;
+      // Oilslicked (the Firetroupe's mark): burns tick for DOUBLE on an
+      // oiled target. Checked at tick time, so a slick applied after
+      // the burn still feeds it.
+      const oiled = fx.flavor === 'burn' && this.statusEffects.some(
+        (o) => o.stat === 'oilslicked');
+      const tick = oiled ? fx.amount * 2 : fx.amount;
       const dealt = (typeof Abilities !== 'undefined' && fx.source)
         // The tick's size was locked in when the poison was cast, so
         // whatever buffs the caster carries NOW did not buy it: no assist
         // split on this one.
-        ? Abilities.strike(fx.source, this, fx.amount,
+        ? Abilities.strike(fx.source, this, tick,
             { dodge: false, reflect: false, assist: false }).amount
-        : this.takeDamage(fx.amount); // sourceless tick: nobody to credit
+        : this.takeDamage(tick); // sourceless tick: nobody to credit
       // strike() books the meter itself; crediting it again here would
       // count every tick twice.
       const burn = fx.flavor === 'burn';
