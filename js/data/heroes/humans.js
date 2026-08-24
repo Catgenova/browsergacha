@@ -1947,13 +1947,13 @@ Object.assign(HEROES, {
     id: 'franz',
     element: 'fire',
     name: 'Franz',
-    title: 'Juggler of the Firetroupe',
+    title: 'Firebreather of the Firetroupe',
     rarity: 4,
     // Front-line bruiser whose every throw scales off his OWN max HP —
     // the ATK line is stage dressing; the HP line IS the weapon. Hurt
     // him and he throws harder still (Showman's Blood). The art is a
-    // big juggler in showman's stripes: weights, a wheel, and a finale
-    // of flaming juggling balls.
+    // big firebreather in showman's stripes: thrown weights, a wheel,
+    // and a finale where the whole act goes up in flame.
     stats: { hp: 2100, atk: 130, def: 135, speed: 98 },
     tint: { body: '#6a2a1a', helm: '#e8a83a', weapon: '#c8c2cc', skin: '#e8b088' },
     // frames: 'auto' — the def is wired ahead of the spritesheets; the
@@ -1973,7 +1973,7 @@ Object.assign(HEROES, {
         // The wheel is raised mid-strip and released at frame 7.
         skill2: { src: 'assets/heroes/Franz/franzskill2.png', frames: 'auto', fps: 11,
                   loop: false, hitFrame: 7 },
-        // 14 frames: the juggle ignites around frame 8 and the burning
+        // 14 frames: the breath ignites around frame 8 and the burning
         // volley flies on the final beats.
         skill3: { src: 'assets/heroes/Franz/franzskill3.png', frames: 'auto', fps: 12,
                   loop: false, hitFrame: 12 },
@@ -1985,8 +1985,8 @@ Object.assign(HEROES, {
       {
         id: 'franz_bonk', name: 'Bonk',
         icon: 'assets/icons/fc1030.png',
-        description: 'Hurl a juggling weight square off one enemy\'s ' +
-          "head for 20% of Franz's own max HP as damage.",
+        description: 'Hurl a showman\'s iron weight square off one ' +
+          "enemy's head for 20% of Franz's own max HP as damage.",
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
@@ -2005,8 +2005,8 @@ Object.assign(HEROES, {
       {
         id: 'franz_flaming_finale', name: 'Flaming Finale',
         icon: 'assets/icons/fc1032.png',
-        description: 'Set the juggle alight and pelt the entire enemy ' +
-          'team with burning weights for 15% of his own max HP each.',
+        description: 'Draw a deep breath and hose the entire enemy team ' +
+          'with fire for 15% of his own max HP each.',
         cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'strike',
         effects: [
           { type: 'damageHp', mult: 0.15 },

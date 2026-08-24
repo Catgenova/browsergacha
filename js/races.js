@@ -68,7 +68,7 @@ const RACES = (() => {
     // name until its pack is specced.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
                  members: ['sawyer'] },
-    // Lucian's order; Franz the juggler is its second act.
+    // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
                  members: ['lucian', 'franz', 'carl'] },
   };
