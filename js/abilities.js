@@ -65,6 +65,22 @@ const Abilities = (() => {
   // The RNG is drawn in a fixed order (dodge, crit, reflect) so a seeded
   // replay stays a replay.
   function strike(caster, target, raw, opts = {}) {
+    // Blocker (Lin): a planted guard absorbs every enemy hit aimed at a
+    // front-row ally, a quarter softer for the stance. DoT ticks pass
+    // redirect: false — a poison already in you cannot be bodyguarded.
+    if (opts.redirect !== false && caster.team !== target.team &&
+        target.slot && target.slot.position === POSITION.FRONT &&
+        !target.statusEffects.some((fx) => fx.stat === 'blocker')) {
+      const b = typeof Battle !== 'undefined' ? Battle.active : null;
+      const guard = b && b.livingUnits(target.team).find((u) =>
+        u !== target && u.slot &&
+        u.statusEffects.some((fx) => fx.stat === 'blocker'));
+      if (guard) {
+        target = guard;
+        raw *= 0.75;
+        opts = { ...opts, dodge: false }; // a planted guard absorbs, never slips
+      }
+    }
     const dodged = opts.dodge === false
       ? false
       : Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
@@ -104,7 +120,7 @@ const Abilities = (() => {
     // Defensive multipliers (guard passives, wards, resonance) blunt the
     // hit. blunt() books who prevented what — a ward cast by a support
     // belongs to that support, not to the ally standing behind it.
-    dmg = target.blunt(dmg);
+    dmg = target.blunt(dmg, { attacker: caster });
     // Reflect (Boar set 6pc / bristle passives): the whole hit bounces
     // back to the attacker instead of landing. Skipped when there is no
     // blow to bounce — a poison already inside you is not incoming.

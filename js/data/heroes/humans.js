@@ -2384,4 +2384,93 @@ Object.assign(HEROES, {
     positional: POSITIONALS.knifes_edge,
   },
 
+  lin: {
+    id: 'lin',
+    element: 'fire',
+    name: 'Lin',
+    title: 'Balance Act of the Firetroupe',
+    rarity: 4,
+    // Front-line tank on a big red circus ball: she pulls the enemy
+    // backline's eyes onto herself, sets the ball ablaze to seed burns,
+    // and her heaviest play is to stop acting entirely — planting the
+    // ball as a barricade that eats every hit meant for her front row.
+    stats: { hp: 2300, atk: 115, def: 165, speed: 96 },
+    tint: { body: '#a83232', helm: '#3a1c18', weapon: '#e84a3a', skin: '#e8b088' },
+    sprite: {
+      displayH: 96,
+      // Authored facing left, like the rest of the Firetroupe — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
+      strips: {
+        idle:  { src: 'assets/heroes/Lin/linidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Lin/linidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Lin/linidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The beckoning flourish — all eyes on the balance act.
+        attack: { src: 'assets/heroes/Lin/linskill1.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The ball ignites and rolls its flame at the front row.
+        skill2: { src: 'assets/heroes/Lin/linskill2.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // 17 frames: she dismounts and plants the ball as a wall. The
+        // final braced frame HOLDS while the Blocker buff lasts.
+        skill3: { src: 'assets/heroes/Lin/linskill3.png', frames: 'auto', fps: 10,
+                  loop: false, stanceHold: 'blocker' },
+        death: { src: 'assets/heroes/Lin/lindeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'lin_center_of_attention', name: 'Center of Attention',
+        icon: 'assets/icons/fc1045.png',
+        description: 'A flourish nobody can ignore: taunts the enemy ' +
+          'back row — on its next turn each victim must throw its ' +
+          'skill 1 at Lin and nothing else.',
+        cooldown: 0, targeting: 'back-enemies', animation: 'attack',
+        effects: [
+          // turns: 2 because statuses tick at the victim's turn start —
+          // this covers exactly ONE of the victim's turns.
+          { type: 'debuff', stat: 'taunted', turns: 2 },
+        ],
+      },
+      {
+        id: 'lin_blazing_ball', name: 'Blazing Ball',
+        icon: 'assets/icons/fc1046.png',
+        description: 'Set the ball alight and roll it down the line: ' +
+          'the enemy front row takes 2 burns, each eating 3% of their ' +
+          'max HP per turn for 2 turns.',
+        cooldown: 3, targeting: 'front-enemies', animation: 'skill2',
+        effects: [
+          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+      },
+      {
+        id: 'lin_ball_barricade', name: 'Ball Barricade',
+        icon: 'assets/icons/fc1047.png',
+        description: 'Plant the ball and brace: Lin gains Blocker for 2 ' +
+          'turns — she cannot act, but absorbs all damage aimed at ' +
+          'front-row allies, mitigating 25% of it.',
+        cooldown: 5, targeting: 'self', animation: 'skill3',
+        effects: [
+          { type: 'buff', stat: 'blocker', turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Used to the Heat',
+      icon: 'assets/icons/fc1061.png',
+      description: 'Takes 15% less damage from burning enemies — she ' +
+        'dances over fire for a living.',
+      hooks: {
+        damageTakenMult(unit, attacker) {
+          return attacker && attacker.burning && attacker.burning() ? 0.85 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.limelight,
+  },
+
 });
