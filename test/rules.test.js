@@ -3525,4 +3525,45 @@ test('gear mains: eight slots, per-slot roll pools, and the value book', () => {
   assert(Math.abs(stats.accuracy - 0.45) < 1e-9, 'the accuracy main went nowhere');
 });
 
+test('one copy of a character per formation', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const tideA = G.addHero('florence').uid;
+  const tideB = G.addHero('florence').uid;
+  const cain = G.addHero('cain').uid;
+
+  // Placing the second copy evicts the first — never two Tides at once.
+  G.setTeamSlot(0, tideA);
+  G.setTeamSlot(3, cain);
+  G.setTeamSlot(5, tideB);
+  let team = G.getTeam();
+  assert(team[5] === tideB && team[0] === undefined && team[3] === cain,
+    `the field held ${JSON.stringify(team)}`);
+  const chars = Object.values(team).map((u) => G.defIdOf(u));
+  assert(new Set(chars).size === chars.length, 'a character stood twice');
+
+  // Moving the SAME copy still just moves it.
+  G.setTeamSlot(1, tideB);
+  team = G.getTeam();
+  assert(team[1] === tideB && team[5] === undefined, 'the move duplicated');
+
+  // A save minted before the rule (two copies placed) is scrubbed on
+  // load — first slot wins.
+  const raw = w.savedState();
+  raw.team = { 0: tideA, 2: tideB, 3: cain };
+  const G2 = loadGame({ save: raw }).GameState;
+  const t2 = G2.getTeam();
+  assert(t2[0] === tideA && t2[2] === undefined && t2[3] === cain,
+    `the old save kept ${JSON.stringify(t2)}`);
+
+  // A pre-rule preset cannot smuggle the second copy back in.
+  raw.presets = [{ name: 'old', team: { 0: tideA, 1: tideB, 4: cain } }];
+  const G3 = loadGame({ save: raw }).GameState;
+  const r = G3.loadPreset('old');
+  const t3 = G3.getTeam();
+  const chars3 = Object.values(t3).map((u) => G3.defIdOf(u));
+  assert(new Set(chars3).size === chars3.length && r.placed === 2,
+    'the preset fielded a character twice');
+});
+
 report();
