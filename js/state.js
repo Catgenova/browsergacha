@@ -225,6 +225,9 @@ const GameState = (() => {
     bannerPity: {},
     // Up to three heroIds drawing at double weight in PLAIN summons.
     wishlist: [],
+    // World Rift: this week's best damage score and which milestone
+    // marks have already paid out (keyed by score threshold).
+    worldRift: { week: '', best: 0, claimed: [] },
     bossStages: {},                      // bossId -> highest stage cleared
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
@@ -1608,6 +1611,42 @@ const GameState = (() => {
         count: s.count || 0, claimed: [...(s.claimed || [])] };
       save();
     },
+    // ---- World Rift ----
+    // The weekly damage race's ledger. A stale week reads as a blank
+    // page; recording rolls it over.
+    worldRiftInfo() {
+      const week = Events.worldRiftWeekKey();
+      const fresh = state.worldRift && state.worldRift.week === week;
+      return { week, best: fresh ? state.worldRift.best : 0,
+        claimed: fresh ? [...state.worldRift.claimed] : [] };
+    },
+    recordWorldRift(score) {
+      const week = Events.worldRiftWeekKey();
+      if (!state.worldRift || state.worldRift.week !== week) {
+        state.worldRift = { week, best: 0, claimed: [] };
+      }
+      score = Math.round(score);
+      const prevBest = state.worldRift.best;
+      const newBest = score > prevBest;
+      if (newBest) state.worldRift.best = score;
+      // Milestones pay once per week, the moment the best crosses them.
+      const crossed = [];
+      for (const m of Events.WORLD_RIFT_MILESTONES) {
+        if (state.worldRift.best < m.score) continue;
+        if (state.worldRift.claimed.includes(m.score)) continue;
+        state.worldRift.claimed.push(m.score);
+        const reward = { ...m.reward };
+        if (reward.riftElements) {
+          this.addElements(Events.worldRiftElement(), { large: reward.riftElements });
+          delete reward.riftElements;
+        }
+        this.grantLoginReward(reward);
+        crossed.push(m);
+      }
+      save();
+      return { score, best: state.worldRift.best, prevBest, newBest, crossed };
+    },
+
     // ---- Summon wishlist ----
     // Up to WISHLIST_MAX characters the player is hunting: they draw at
     // double weight inside whatever star band a PLAIN pull rolls (see

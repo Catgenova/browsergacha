@@ -95,6 +95,38 @@ const Events = (() => {
     return b ? b.label : '';
   }
 
+  // ---- World Rift ----
+  // A weekly damage race: one colossal elemental boss, unkillable on
+  // purpose, a fixed turn budget — the score is the damage dealt when
+  // the rift closes. The element rotates weekly (local clock, weeks
+  // anchored to a Monday), and milestone rewards pay ONCE per week as
+  // the weekly best crosses each mark.
+  const WORLD_RIFT = { turns: 60, level: 80 };
+  const RIFT_ORDER = ['fire', 'water', 'wind', 'light', 'dark'];
+  const RIFT_EPOCH = new Date(2026, 0, 5); // a Monday
+  function worldRiftWeek(date = new Date()) {
+    return Math.floor((date - RIFT_EPOCH) / (7 * 24 * 3600 * 1000));
+  }
+  function worldRiftWeekKey(date = new Date()) {
+    return `rift-${worldRiftWeek(date)}`;
+  }
+  function worldRiftElement(date = new Date()) {
+    const n = RIFT_ORDER.length;
+    return RIFT_ORDER[((worldRiftWeek(date) % n) + n) % n];
+  }
+  const WORLD_RIFT_MILESTONES = [
+    { score: 25000, reward: { whetstones: 30, arcana: 10 },
+      label: '30 Whetstones 🪨 + 10 Arcana ✦' },
+    { score: 60000, reward: { rare: 1, diamonds: 100 },
+      label: '1 Rare Scroll ✨ + 100 💎' },
+    { score: 120000, reward: { riftElements: 5 },
+      label: "5 Large Elements of the week's element" },
+    { score: 250000, reward: { temporal: 1 },
+      label: '1 Temporal Scroll 🌀' },
+    { score: 500000, reward: { temporal: 2, diamonds: 250 },
+      label: '2 Temporal Scrolls 🌀 + 250 💎' },
+  ];
+
   // ---- Login bonuses ----
   // The First Seven Days: a one-time welcome track. Each of the
   // player's first seven login days (nonconsecutive — any seven) pays
@@ -140,5 +172,7 @@ const Events = (() => {
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
     SUMMON_BANNERS, activeBanners, currentBanner, bannerWeight, bannerLabel,
+    WORLD_RIFT, WORLD_RIFT_MILESTONES,
+    worldRiftWeek, worldRiftWeekKey, worldRiftElement,
     LOGIN_WEEK, LOGIN_CAL_WEEKDAY, calendarDayReward, LOGIN_MONTH_MILESTONES };
 })();

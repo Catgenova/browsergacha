@@ -391,7 +391,8 @@ class UI {
     if (typeof Sound !== 'undefined') {
       Sound.play(winner === TEAM.PLAYER ? 'victory' : 'defeat');
     }
-    this.bannerTitle.textContent = winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT';
+    this.bannerTitle.textContent =
+      opts.title || (winner === TEAM.PLAYER ? 'VICTORY' : 'DEFEAT');
     // Multi-line rewards (XP, level-ups) arrive as <br>-separated text.
     this.bannerSub.innerHTML = subText;
     this.bannerRetry.classList.toggle('hidden', !opts.retry);

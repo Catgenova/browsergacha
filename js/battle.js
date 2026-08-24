@@ -21,6 +21,10 @@ class Battle {
 
     this.units = [];
     this.state = BattleState.TICKING;
+    // Turn-limited fights (the World Rift): total unit turns allowed,
+    // null = fight to the finish.
+    this.turnLimit = null;
+    this.turnsTaken = 0;
     this.activeUnit = null;
     this.autoMode = false;      // player heroes act via AI when true
     this.onAutoTakeover = null; // notify UI when auto seizes a pending turn
@@ -175,7 +179,26 @@ class Battle {
       .filter((u) => u.turnMeter >= CONFIG.TURN_METER_MAX)
       .sort((a, b) => b.turnMeter - a.turnMeter);
 
-    if (ready.length > 0) this.beginTurn(ready[0]);
+    if (ready.length > 0) {
+      // A turn-limited fight (the World Rift) ends when the clock runs
+      // out, whoever is standing — the score is the point, not a kill.
+      if (this.turnLimit && this.turnsTaken >= this.turnLimit) {
+        this.activeUnit = null;
+        this.state = BattleState.ENDED;
+        if (this.onBattleEnd) this.onBattleEnd(TEAM.PLAYER);
+        return;
+      }
+      this.turnsTaken++;
+      if (this.turnLimit) {
+        const left = this.turnLimit - this.turnsTaken;
+        if ([30, 20, 10, 5, 3, 2, 1].includes(left)) {
+          this.log(`The rift closes in ${left} turn${left === 1 ? '' : 's'}!`, 'log-system');
+        } else if (left === 0) {
+          this.log('The final turn — the rift is closing!', 'log-system');
+        }
+      }
+      this.beginTurn(ready[0]);
+    }
   }
 
   beginTurn(unit) {
