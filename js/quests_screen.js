@@ -58,6 +58,10 @@ class QuestsScreen {
     if (monthBtn) {
       monthBtn.addEventListener('click', () => {
         const got = GameState.claimMonthly();
+        this.loginMsg2 = got
+          ? `Stamped! +${got.reward.label}${got.milestone
+              ? ` — and the ${got.stamps}-login bonus: ${got.milestone.label}` : ''}`
+          : '';
         if (got && typeof Sound !== 'undefined') Sound.play('claim');
         this.refresh();
       });
@@ -159,19 +163,18 @@ class QuestsScreen {
       const cls = stamped.has(d) ? 'cal-stamped'
         : d === today ? (claimable ? 'cal-today' : 'cal-stamped')
         : d < today ? 'cal-missed' : 'cal-future';
-      const milestone = Events.LOGIN_MONTH_MILESTONES[d];
-      cells.push(`<div class="cal-day ${cls}"${milestone
-        ? ` title="Stamp ${d} milestone: ${milestone.label}"` : ''}>
+      const dayReward = Events.calendarDayReward(now.getFullYear(), now.getMonth(), d);
+      cells.push(`<div class="cal-day ${cls}" title="${dayReward.label}">
         <span class="cal-num">${d}</span>
         ${stamped.has(d) || (d === today && !claimable) ? '<span class="cal-check">✓</span>' : ''}
-        ${milestone ? '<span class="cal-star">★</span>' : ''}
       </div>`);
     }
     const nextStamp = info.stamps + (claimable ? 1 : 0);
-    const monthNow = Events.monthlyLoginReward(Math.max(1, nextStamp));
+    const monthNow = Events.calendarDayReward(now.getFullYear(), now.getMonth(), today);
+    const nextMilestone = Events.LOGIN_MONTH_MILESTONES[nextStamp];
     const milestones = Object.entries(Events.LOGIN_MONTH_MILESTONES)
       .map(([n, r]) => `<span class="login-milestone${info.stamps >= Number(n) ? ' login-done' : ''}">
-        Stamp ${n}: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
+        ${n} logins: ${r.label}${info.stamps >= Number(n) ? ' ✓' : ''}</span>`)
       .join('');
     const missed = GameState.loginMissedDays();
     const cost = GameState.loginCatchUpCost();
@@ -203,7 +206,8 @@ class QuestsScreen {
           <div class="login-calendar">${cells.join('')}</div>
           <div class="login-month">
             <div class="login-month-line">${claimable
-              ? `Today's stamp (stamp ${nextStamp}) adds <b>${monthNow.label}</b>.`
+              ? `Today's stamp (stamp ${nextStamp}) adds <b>${monthNow.label}</b>${nextMilestone
+                  ? ` — plus the ${nextStamp}-login bonus: <b>${nextMilestone.label}</b>` : ''}.`
               : 'Today is stamped — the calendar rolls on tomorrow.'}</div>
             <div class="login-milestones">${milestones}</div>
           </div>

@@ -1001,6 +1001,10 @@ const GameState = (() => {
       if (r.whetstones) state.whetstones += r.whetstones;
       if (r.arcana) state.arcana += r.arcana;
       if (r.diamonds) state.diamonds += r.diamonds;
+      if (r.elements) {
+        this.addElements(r.elements.el, { small: r.elements.small || 0,
+          medium: r.elements.medium || 0, large: r.elements.large || 0 });
+      }
     },
     // Roll the calendar to the current month, wiping a stale page.
     _loginMonth() {
@@ -1039,14 +1043,20 @@ const GameState = (() => {
     claimMonthly() {
       if (!this.monthlyClaimable() || typeof Events === 'undefined') return null;
       this._loginMonth();
-      const dayOfMonth = new Date().getDate();
+      const now = new Date();
+      const dayOfMonth = now.getDate();
       state.login.stamps++;
       state.login.stampedDays.push(dayOfMonth);
-      const reward = Events.monthlyLoginReward(state.login.stamps);
+      // The date's weekday sets the stamp's reward; crossing a login
+      // milestone pays its bonus on top.
+      const reward = Events.calendarDayReward(
+        now.getFullYear(), now.getMonth(), dayOfMonth);
       this.grantLoginReward(reward);
+      const milestone = Events.LOGIN_MONTH_MILESTONES[state.login.stamps] || null;
+      if (milestone) this.grantLoginReward(milestone);
       state.login.monthDay = Quests.periodKey('daily');
       save();
-      return { reward, stamps: state.login.stamps, dayOfMonth };
+      return { reward, milestone, stamps: state.login.stamps, dayOfMonth };
     },
 
     // Either claim still open? (feeds the quest-tab dot)
@@ -1092,13 +1102,17 @@ const GameState = (() => {
       const cost = missedList.length * this.LOGIN_CATCHUP_COST;
       if (!this.spendDiamonds(cost)) return { error: 'diamonds', cost, missed: missedList.length };
       this._loginMonth();
+      const now = new Date();
       const rewards = [];
       for (const dayOfMonth of missedList) {
         state.login.stamps++;
         state.login.stampedDays.push(dayOfMonth);
-        const r = Events.monthlyLoginReward(state.login.stamps);
+        const r = Events.calendarDayReward(
+          now.getFullYear(), now.getMonth(), dayOfMonth);
         this.grantLoginReward(r);
         rewards.push({ n: state.login.stamps, label: r.label });
+        const milestone = Events.LOGIN_MONTH_MILESTONES[state.login.stamps];
+        if (milestone) this.grantLoginReward(milestone);
       }
       save();
       return { bought: missedList.length, cost, stamps: state.login.stamps, rewards };
