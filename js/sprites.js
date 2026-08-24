@@ -281,16 +281,22 @@ const Sprites = (() => {
       for (const [name, strip] of strips) {
         const img = images.get(name);
         if (!img) continue; // strip not delivered yet — skip it
+        // frames: 'auto' measures the count off the delivered image
+        // (hero strips are square frames), so a def can be wired before
+        // its art lands and still slice correctly when it does.
+        const sheetFrames = strip.frames === 'auto'
+          ? Math.max(1, Math.round(img.width / img.height))
+          : strip.frames;
         animations[name] = {
           image: img,
           row: 0,
           // Custom playback order (1-based sheet frames) lets a pose be
           // revisited, e.g. holding an airborne frame during descent.
           order: strip.order || null,
-          frames: strip.order ? strip.order.length : strip.frames,
+          frames: strip.order ? strip.order.length : sheetFrames,
           fps: strip.fps,
           loop: !!strip.loop,
-          frameW: Math.floor(img.width / strip.frames),
+          frameW: Math.floor(img.width / sheetFrames),
           frameH: img.height,
           variantOf: strip.variantOf || null,
           every: strip.every || null,

@@ -367,6 +367,22 @@ const POSITIONALS = (() => {
     hooks: { overhealBoost: 0.25 },
   });
 
+  def('hearthblood', {
+    position: POSITION.FRONT,
+    name: 'Hearthblood',
+    description: 'Front hex: regenerates 5% max HP at the start of his turn — the hearth keeps its keeper warm.',
+    hooks: {
+      onTurnStart(unit) {
+        if (unit.hp >= unit.maxHp) return null;
+        const healed = unit.heal(Math.round(unit.maxHp * 0.05), unit);
+        if (!healed) return null;
+        return { label: 'Hearthblood',
+          message: `${unit.name} knits back ${healed} HP by the hearth.`,
+          floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }] };
+      },
+    },
+  });
+
   def('pyre_sight', {
     position: POSITION.BACK,
     name: 'Pyre Sight',

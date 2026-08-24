@@ -2598,6 +2598,78 @@ test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls',
   });
 });
 
+test("Franz's kit: HP-scaled bonks, wounded fury, and the hearth's regen", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Elements: E, POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const franz = new U(H.franz, T.PLAYER, { level: 30, stars: 4 });
+  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const frontIdx = battle.playerSlots.findIndex((s) => s.position === P.FRONT);
+  battle.placeUnit(franz, frontIdx);
+  battle.placeUnit(foe, 1);
+  foe.hp = foe.maxHp = 10 ** 6;
+  foe.hookSources = () => [];
+  foe.dodgeChance = () => 0;
+  franz.baseCritChance = -1; // no crits: the sums must be exact
+
+  // Bonk deals exactly 20% of FRANZ's max HP, through the one damage
+  // pipeline (element multiplier in, mitigated by the victim's DEF).
+  const elem = E.mult('fire', foe.element);
+  const expect = (mult, hpFrac) => Math.round(A.damageFormula(
+    franz.maxHp * mult * (1 + 0.30 * (1 - hpFrac)) * elem,
+    foe.effectiveStat('def')));
+  let hp0 = foe.hp;
+  A.execute(franz.abilities[0].def, franz, foe, battle);
+  const atFull = hp0 - foe.hp;
+  assert(Math.abs(atFull - expect(0.20, 1)) <= 1,
+    `full-HP Bonk dealt ${atFull}, expected ~${expect(0.20, 1)}`);
+
+  // Showman's Blood: the same swing grows with his missing health —
+  // +15% at half, +30% on his last sliver.
+  franz.hp = franz.maxHp / 2;
+  hp0 = foe.hp;
+  A.execute(franz.abilities[0].def, franz, foe, battle);
+  const atHalf = hp0 - foe.hp;
+  assert(Math.abs(atHalf - expect(0.20, 0.5)) <= 1,
+    `half-HP Bonk dealt ${atHalf}, expected ~${expect(0.20, 0.5)}`);
+  assert(atHalf > atFull, 'a wounded strongman must hit harder');
+  franz.hp = 1;
+  hp0 = foe.hp;
+  A.execute(franz.abilities[0].def, franz, foe, battle);
+  const atSliver = hp0 - foe.hp;
+  assert(Math.abs(atSliver - expect(0.20, 1 / franz.maxHp)) <= 1,
+    `sliver Bonk dealt ${atSliver}`);
+
+  // Tent Collapse reaches the whole enemy team at 15%.
+  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(foeB, 5);
+  foeB.hp = foeB.maxHp = 10 ** 6;
+  foeB.hookSources = () => [];
+  foeB.dodgeChance = () => 0;
+  franz.hp = franz.maxHp;
+  const a0 = foe.hp, b0 = foeB.hp;
+  A.execute(franz.abilities[2].def, franz, null, battle);
+  assert(a0 - foe.hp > 0 && b0 - foeB.hp > 0, 'the tent missed someone');
+  const eB = Math.round(A.damageFormula(franz.maxHp * 0.15 *
+    E.mult('fire', foeB.element), foeB.effectiveStat('def')));
+  assert(Math.abs((b0 - foeB.hp) - eB) <= 1,
+    `collapse dealt ${b0 - foeB.hp} to the back, expected ~${eB}`);
+
+  // Hearthblood: on the front hex his turn opens with 5% max HP back;
+  // parked elsewhere the hearth goes cold.
+  franz.hp = Math.round(franz.maxHp * 0.5);
+  let before = franz.hp;
+  franz.startTurn(battle);
+  assert(franz.hp === before + Math.round(franz.maxHp * 0.05),
+    `front-hex regen read ${franz.hp - before}`);
+  franz.slot = battle.playerSlots.find((s) => s.position === P.BACK);
+  before = franz.hp;
+  franz.startTurn(battle);
+  assert(franz.hp === before, 'the hearth followed him off the front row');
+});
+
 test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M } = w;
