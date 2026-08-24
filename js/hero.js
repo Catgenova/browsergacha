@@ -94,7 +94,7 @@ class Unit {
     this.synergyOpeningFreeze = 0;
     this.synergyFreezeChance = 0;
     // Firetroupe sect pack: chance for landed hits to Oilslick the
-    // victim (fire attacks against the oiled deal +50%).
+    // victim (burns tick twice as hard on the oiled).
     this.synergyOilOnHit = 0;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
@@ -309,8 +309,8 @@ class Unit {
 
   // Incoming damage multiplier from vulnerability marks ('damageTaken'
   // status effects) and defensive passives.
-  damageTakenMult() {
-    return this.damageTakenBreakdown().total;
+  damageTakenMult(attacker) {
+    return this.damageTakenBreakdown(attacker).total;
   }
 
   // The same multiplier, plus who is responsible for it.
@@ -323,7 +323,7 @@ class Unit {
   //
   // `contributors` lists sourced reductions as { source, mult }; anything
   // the unit does for itself is left out and falls to the unit.
-  damageTakenBreakdown() {
+  damageTakenBreakdown(attacker) {
     let total = this.synergyTakenMult || 1;
     const contributors = [];
     for (const fx of this.statusEffects) {
@@ -337,7 +337,9 @@ class Unit {
     }
     for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.damageTakenMult;
-      if (hook) total *= hook(this) || 1;
+      // Hooks may read who is swinging (Lin shrugs off burning or
+      // taunted attackers); most ignore the second argument.
+      if (hook) total *= hook(this, attacker) || 1;
     }
     return { total, contributors };
   }
@@ -350,7 +352,7 @@ class Unit {
   // rather than a real hit, where crediting the unit would inflate its
   // own numbers with something no enemy ever dealt.
   blunt(raw, opts = {}) {
-    const { total, contributors } = this.damageTakenBreakdown();
+    const { total, contributors } = this.damageTakenBreakdown(opts.attacker);
     const through = Math.round(raw * total);
     const prevented = raw - through;
     if (prevented <= 0 || typeof Meter === 'undefined') return through;
@@ -945,7 +947,7 @@ class Unit {
         // whatever buffs the caster carries NOW did not buy it: no assist
         // split on this one.
         ? Abilities.strike(fx.source, this, tick,
-            { dodge: false, reflect: false, assist: false }).amount
+            { dodge: false, reflect: false, assist: false, redirect: false }).amount
         : this.takeDamage(tick); // sourceless tick: nobody to credit
       // strike() books the meter itself; crediting it again here would
       // count every tick twice.

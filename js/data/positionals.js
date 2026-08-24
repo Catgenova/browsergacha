@@ -374,6 +374,18 @@ const POSITIONALS = (() => {
     hooks: { overhealBoost: 0.25 },
   });
 
+  def('limelight', {
+    position: POSITION.FRONT,
+    name: 'Limelight',
+    description: 'Front hex: takes 15% less damage from taunted enemies — they swing half-blinded by the spotlight.',
+    hooks: {
+      damageTakenMult(unit, attacker) {
+        return attacker && attacker.statusEffects &&
+          attacker.statusEffects.some((fx) => fx.stat === 'taunted') ? 0.85 : 1;
+      },
+    },
+  });
+
   def('knifes_edge', {
     position: POSITION.FRONT,
     name: "Knife's Edge",

@@ -210,6 +210,11 @@ class Battle {
     // Freeze is the ice-flavored stun and skips the turn the same way.
     const stunned = unit.statusEffects.some((fx) => fx.stat === 'stun');
     const frozen = !stunned && unit.statusEffects.some((fx) => fx.stat === 'freeze');
+    // Blocker (Lin's planted guard): the stance costs the turn, checked
+    // here for the same reason as stun — the buff must cover this turn
+    // even as startTurn ticks it down.
+    const blocking = !stunned && !frozen &&
+      unit.statusEffects.some((fx) => fx.stat === 'blocker');
 
     // Alert stance while it's this unit's turn (falls back to idle if the
     // hero has no ready animation).
@@ -240,12 +245,17 @@ class Battle {
     }
 
     // Stunned or frozen: the turn is spent recovering — no action.
-    if (stunned || frozen) {
+    // A Blocker spends it holding the line instead.
+    if (stunned || frozen || blocking) {
       unit.turnMeter = 0;
-      this.addFloatingText(unit, frozen ? '❄ FROZEN' : 'STUNNED', '#8ee8ff', true);
-      this.log(frozen
-        ? `${unit.name} is frozen solid and loses the turn!`
-        : `${unit.name} is stunned and loses the turn!`, 'log-system');
+      this.addFloatingText(unit, blocking ? '▣ BLOCKING'
+        : frozen ? '❄ FROZEN' : 'STUNNED',
+        blocking ? '#ffd76a' : '#8ee8ff', true);
+      this.log(blocking
+        ? `${unit.name} holds the line — the front row's hits land on them.`
+        : frozen
+          ? `${unit.name} is frozen solid and loses the turn!`
+          : `${unit.name} is stunned and loses the turn!`, 'log-system');
       if (unit.animator && unit.animator.current === 'ready') {
         unit.animator.play('idle');
       }
@@ -649,6 +659,14 @@ class Battle {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
+        } else if (res.stat === 'taunted') {
+          this.addFloatingText(res.target, '‼ TAUNTED', '#ff9a5a');
+          this.log(`${res.target.name} is drawn out — its next turn must ` +
+            `answer ${caster.name}!`, cls);
+        } else if (res.stat === 'blocker') {
+          this.addFloatingText(res.target, '▣ BLOCKER', '#ffd76a');
+          this.log(`${res.target.name} plants the guard — front-row allies ` +
+            `are covered while it holds (${res.turns} turns).`, cls);
         } else if (res.stat === 'oilslicked') {
           this.addFloatingText(res.target, '≋ OILSLICKED', '#d8b04a');
           this.log(`${res.target.name} is slicked in oil — burns tick ` +
@@ -734,6 +752,21 @@ class Battle {
 
   autoAct(unit) {
     if (this.state === BattleState.ENDED || !unit.alive) return;
+
+    // Taunted (Lin's spotlight): the victim's turn belongs to whoever
+    // drew it out — its basic skill, thrown at the taunter, nothing
+    // else. Falls through to a normal turn if the taunter is gone or
+    // the basic skill cannot reach an enemy.
+    const tauntFx = unit.statusEffects.find((fx) => fx.stat === 'taunted');
+    if (tauntFx && tauntFx.source && tauntFx.source.alive &&
+        tauntFx.source.team !== unit.team) {
+      const basic = unit.abilities[0];
+      if (basic && basic.cooldownRemaining === 0 &&
+          ['enemy', 'enemy-row'].includes(basic.def.targeting)) {
+        this.performAbility(unit, basic, tauntFx.source);
+        return;
+      }
+    }
 
     const ready = unit.readyAbilities();
     if (ready.length === 0) {

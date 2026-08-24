@@ -3153,4 +3153,95 @@ test("Samuels's kit: triple strikes, crit riders, and the center toss", () => {
   }
 });
 
+test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const lin = new U(H.lin, T.PLAYER, { level: 30, stars: 4 });
+  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const backMate = new U(H.rat_archer, T.PLAYER, { level: 30, stars: 3 });
+  const foeFront = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(lin, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(mate, battle.playerSlots.findIndex((s, i) =>
+    s.position === P.FRONT && !battle.playerSlots[i].unit));
+  battle.placeUnit(backMate, battle.playerSlots.findIndex((s) => s.position === P.BACK));
+  battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeBack, battle.enemySlots.findIndex((s) => s.position === P.BACK));
+  for (const u of [mate, backMate, foeFront, foeBack]) {
+    u.hp = u.maxHp = 10 ** 6;
+    u.hookSources = () => [];
+    u.dodgeChance = () => 0;
+  }
+  lin.baseCritChance = -1;
+  lin.gearDodge = 0;
+
+  // Center of Attention marks the BACK row, not the front.
+  A.execute(lin.abilities[0].def, lin, null, battle);
+  const taunt = foeBack.statusEffects.find((fx) => fx.stat === 'taunted');
+  assert(taunt && taunt.turns === 2 && taunt.source === lin,
+    'the back row was not drawn out');
+  assert(!foeFront.statusEffects.some((fx) => fx.stat === 'taunted'),
+    'the taunt spilled onto the front row');
+
+  // The taunted victim's turn: basic skill, thrown at Lin, nothing else.
+  const calls = [];
+  const realPerform = battle.performAbility;
+  battle.performAbility = (u, a, t) => calls.push({ u, a, t });
+  battle.autoAct(foeBack);
+  battle.performAbility = realPerform;
+  assert(calls.length === 1 && calls[0].a === foeBack.abilities[0] &&
+    calls[0].t === lin, 'the taunt did not command the turn');
+
+  // Blazing Ball: TWO separate burns on each front-row enemy.
+  A.execute(lin.abilities[1].def, lin, null, battle);
+  const burns = foeFront.statusEffects.filter(
+    (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+  assert(burns.length === 2 &&
+    burns.every((fx) => fx.amount === Math.round(foeFront.maxHp * 0.03)),
+    `the ball rolled ${burns.length} burns`);
+  assert(!foeBack.statusEffects.some((fx) => fx.kind === 'dot'),
+    'the ball reached the back row');
+
+  // Ball Barricade: Lin absorbs a front-row ally's hit at 25% off...
+  A.execute(lin.abilities[2].def, lin, lin, battle);
+  assert(lin.statusEffects.some((fx) => fx.stat === 'blocker'), 'no stance');
+  B.active = battle;
+  try {
+    const raw = 5000;
+    const linHp0 = lin.hp;
+    const mateHp0 = mate.hp;
+    A.strike(foeFront, mate, raw);
+    assert(mate.hp === mateHp0, 'the guarded ally was still hit');
+    // The redirected hit still rides Lin's own defences: foeFront is
+    // burning from Blazing Ball, so Used to the Heat shaves 15% more.
+    const expect = Math.round(
+      Math.round(A.damageFormula(raw * 0.75, lin.effectiveStat('def'))) * 0.85);
+    assert(linHp0 - lin.hp === expect,
+      `the guard took ${linHp0 - lin.hp}, expected ${expect}`);
+    // ...but not a BACK-row ally's, and never a DoT tick.
+    const backHp0 = backMate.hp;
+    A.strike(foeFront, backMate, raw);
+    assert(backMate.hp < backHp0, 'the barricade covered the back row');
+    const mateHp1 = mate.hp;
+    A.strike(foeFront, mate, raw, { redirect: false });
+    assert(mate.hp < mateHp1, 'a non-redirectable hit was redirected');
+  } finally {
+    B.active = null;
+  }
+
+  // Used to the Heat + Limelight: 15% less from burning attackers, 15%
+  // less from taunted ones, stacking multiplicatively from the front hex.
+  lin.statusEffects = [];
+  assert(Math.abs(lin.damageTakenMult(foeFront) - 0.85) < 1e-9,
+    'a burning attacker hit full-weight');
+  assert(Math.abs(lin.damageTakenMult(foeBack) - 0.85) < 1e-9,
+    'a taunted attacker hit full-weight');
+  foeBack.addStatusEffect({ kind: 'dot', amount: 1, turns: 2, flavor: 'burn', source: lin });
+  assert(Math.abs(lin.damageTakenMult(foeBack) - 0.85 * 0.85) < 1e-9,
+    'burning + taunted did not stack');
+});
+
 report();
