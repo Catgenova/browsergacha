@@ -2282,4 +2282,88 @@ Object.assign(HEROES, {
     positional: POSITIONALS.center_ring,
   },
 
+  samuels: {
+    id: 'samuels',
+    element: 'fire',
+    name: 'Samuels',
+    title: 'Stabby Triplets of the Firetroupe',
+    rarity: 3,
+    // Front-line DPS who is three brothers in a stack: every skill is
+    // THREE separate strikes, each rolling its own crit — the art is a
+    // three-high knife-acrobat tower, and the death is it toppling.
+    stats: { hp: 1600, atk: 160, def: 105, speed: 106 },
+    tint: { body: '#8a4a2a', helm: '#3a2418', weapon: '#c8ccd8', skin: '#e8a878' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Samuels/samuelsidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Samuels/samuelsidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Samuels/samuelsidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // Three knives flash in quick succession mid-strip.
+        attack: { src: 'assets/heroes/Samuels/samuelsskill1.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 4 },
+        // The middle brother throws — the blade leaves on the flash.
+        skill2: { src: 'assets/heroes/Samuels/samuelsskill2.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 5 },
+        skill3: { src: 'assets/heroes/Samuels/samuelsskill3.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 5 },
+        // The tower comes down.
+        death: { src: 'assets/heroes/Samuels/samuelsdeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'samuels_stab_stab_stab', name: 'Stab, Stab, Stab',
+        icon: 'assets/icons/fc1042.png',
+        description: 'One knife from each brother: 3 separate strikes of ' +
+          '35% ATK, each with 15% extra chance to crit.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.35, critAdd: 0.15 },
+          { type: 'damage', mult: 0.35, critAdd: 0.15 },
+          { type: 'damage', mult: 0.35, critAdd: 0.15 },
+        ],
+      },
+      {
+        id: 'samuels_aim_for_the_middle', name: 'Aim for the Middle',
+        icon: 'assets/icons/fc1043.png',
+        description: 'Three thrown blades of 40% ATK each — a target on ' +
+          'the center tile takes double from every one.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
+          { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
+          { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
+        ],
+      },
+      {
+        id: 'samuels_triplet_flurry', name: 'Triplet Flurry',
+        icon: 'assets/icons/fc1044.png',
+        description: 'All three brothers commit: 3 separate strikes of ' +
+          '55% ATK, each with 20% extra chance to crit.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.55, critAdd: 0.20 },
+          { type: 'damage', mult: 0.55, critAdd: 0.20 },
+          { type: 'damage', mult: 0.55, critAdd: 0.20 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Not a Scratch',
+      icon: 'assets/icons/fc1060.png',
+      description: 'At full HP the triplets deal 30% extra damage — ' +
+        'untouched, they are unbearable.',
+      hooks: {
+        damageDealtMult(unit) {
+          return unit.hp >= unit.maxHp ? 1.30 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.knifes_edge,
+  },
+
 });

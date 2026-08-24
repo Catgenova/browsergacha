@@ -183,7 +183,10 @@ class Unit {
     }
 
     if (this.positionalActive() && this.positional.stat === stat) {
-      value *= this.positional.mult;
+      // mult scales (HP, SPD); add is flat, for the crit stats that are
+      // already fractions (Knife's Edge crit damage).
+      if (this.positional.mult) value *= this.positional.mult;
+      if (this.positional.add) value += this.positional.add;
     }
 
     // Status effects: `add` is a flat bonus (crit stats), `mult` scales.

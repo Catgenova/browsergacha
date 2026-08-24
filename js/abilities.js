@@ -74,7 +74,11 @@ const Abilities = (() => {
       target.effectiveStat('def') * (1 - (opts.ignoreDef || 0)));
     let crit = false;
     if (opts.crit) {
-      crit = Math.random() < caster.effectiveStat('critChance');
+      // critAdd: a per-hit crit-chance rider (Samuels's knives), on top
+      // of whatever the caster's own chance already is.
+      const chance = Math.min(1,
+        caster.effectiveStat('critChance') + (opts.critAdd || 0));
+      crit = Math.random() < chance;
       if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
     }
     if (dodged) {
@@ -239,7 +243,8 @@ const Abilities = (() => {
         }
         if (hpFrac > 0) raw += target.maxHp * hpFrac;
         return { ...strike(caster, target, raw,
-          { crit: true, ignoreDef: effect.ignoreDef }), elem: elemMult };
+          { crit: true, critAdd: effect.critAdd, ignoreDef: effect.ignoreDef }),
+          elem: elemMult };
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);

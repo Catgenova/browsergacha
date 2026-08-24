@@ -374,6 +374,13 @@ const POSITIONALS = (() => {
     hooks: { overhealBoost: 0.25 },
   });
 
+  def('knifes_edge', {
+    position: POSITION.FRONT,
+    name: "Knife's Edge",
+    description: 'Front hex: +30% Crit Damage — the points go in first.',
+    stat: 'critDamage', add: 0.30,
+  });
+
   def('strongman', {
     position: POSITION.FRONT,
     name: 'Strongman',
