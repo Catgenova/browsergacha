@@ -101,28 +101,36 @@ const Events = (() => {
     { hero: 'sawyer', label: 'Sawyer — 5★ hero 🌙' },
   ];
 
-  // The monthly calendar: a reward for your Nth login day of the month
-  // (not consecutive — every stamped day counts). Milestones land on
-  // 7/14/21/28 so any month can complete the card; days past 28 draw
-  // from the small rotation.
-  const LOGIN_MONTH_MILESTONES = {
-    7:  { rare: 1, diamonds: 25, label: '1 Rare Scroll ✨ + 25 Diamonds 💎' },
-    14: { rare: 3, label: '3 Rare Scrolls ✨' },
-    21: { temporal: 1, label: '1 Temporal Scroll 🌀' },
-    28: { temporal: 2, diamonds: 100, label: '2 Temporal Scrolls 🌀 + 100 Diamonds 💎' },
-  };
-  const LOGIN_MONTH_FILLER = [
-    { diamonds: 10, label: '10 Diamonds 💎' },
-    { whetstones: 15, label: '15 Whetstones 🪨' },
-    { common: 1, label: '1 Common Scroll 📜' },
-    { arcana: 10, label: '10 Arcana ✦' },
+  // The monthly calendar pays BY WEEKDAY — every date's stamp brings
+  // that day-of-week's reward, repeating across the whole month:
+  //   Sun: Rare Scroll · Mon-Fri: 5 Large Elements (fire, water, wind,
+  //   light, dark in weekday order) · Sat: a Temporal Scroll.
+  // Indexed by Date.getDay() (0 Sunday .. 6 Saturday).
+  const LOGIN_CAL_WEEKDAY = [
+    { rare: 1, label: '1 Rare Scroll ✨' },
+    { elements: { el: 'fire', large: 5 }, label: '5 Large Fire Elements 🔥' },
+    { elements: { el: 'water', large: 5 }, label: '5 Large Water Elements 💧' },
+    { elements: { el: 'wind', large: 5 }, label: '5 Large Wind Elements 🍃' },
+    { elements: { el: 'light', large: 5 }, label: '5 Large Light Elements ☀️' },
+    { elements: { el: 'dark', large: 5 }, label: '5 Large Dark Elements 🌙' },
+    { temporal: 1, label: '1 Temporal Scroll 🌀' },
   ];
-  function monthlyLoginReward(n) {
-    return LOGIN_MONTH_MILESTONES[n] || LOGIN_MONTH_FILLER[n % 4];
+  // The reward the given calendar date pays when stamped.
+  function calendarDayReward(year, monthIndex, day) {
+    return LOGIN_CAL_WEEKDAY[new Date(year, monthIndex, day).getDay()];
   }
+
+  // On top of the daily stamps: milestone bonuses for TOTAL logins
+  // claimed in the month, paid the moment the count is reached.
+  const LOGIN_MONTH_MILESTONES = {
+    7:  { temporal: 1, label: '1 Temporal Scroll 🌀' },
+    14: { temporal: 2, label: '2 Temporal Scrolls 🌀' },
+    21: { temporal: 3, label: '3 Temporal Scrolls 🌀' },
+    28: { temporal: 5, label: '5 Temporal Scrolls 🌀' },
+  };
 
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
     SUMMON_BANNERS, currentBanner, bannerWeight, bannerLabel,
-    LOGIN_WEEK, LOGIN_MONTH_MILESTONES, monthlyLoginReward };
+    LOGIN_WEEK, LOGIN_CAL_WEEKDAY, calendarDayReward, LOGIN_MONTH_MILESTONES };
 })();

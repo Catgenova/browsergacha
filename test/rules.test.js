@@ -1897,19 +1897,63 @@ test('login bonuses: two separate claims, a real calendar, catch-up buys days', 
   assert(!G.firstSevenClaimable(), 'hero claim still open');
   assert(G.monthlyClaimable(), 'the hero claim swallowed the stamp');
 
-  // The stamp records today\'s actual calendar day.
-  const whetBefore = G.whetstones;
+  // The weekday menu: Sun rare scroll, Mon-Fri five large elements in
+  // fire/water/wind/light/dark order, Sat temporal.
+  const wk = E.LOGIN_CAL_WEEKDAY;
+  assert(wk[0].rare === 1 && wk[6].temporal === 1, 'weekend scrolls off the menu');
+  ['fire', 'water', 'wind', 'light', 'dark'].forEach((el, i) => {
+    const r = wk[i + 1].elements;
+    assert(r && r.el === el && r.large === 5,
+      `weekday ${i + 1} pays ${JSON.stringify(wk[i + 1])}, wanted 5 large ${el}`);
+  });
+  assert([7, 14, 21, 28].every((n, i) =>
+    E.LOGIN_MONTH_MILESTONES[n].temporal === [1, 2, 3, 5][i]),
+    'milestone scroll counts drifted');
+
+  // Bookkeeping for the payouts below: tally scrolls and large
+  // elements, and build expectations straight off the tables.
+  const snap = () => {
+    const s = { rare: G.scrollsRare, temporal: G.scrollsTemporal };
+    for (const el of ['fire', 'water', 'wind', 'light', 'dark']) {
+      s[el] = G.elementsOf(el).large;
+    }
+    return s;
+  };
+  const expected = (base, rewards) => {
+    const want = { ...base };
+    for (const r of rewards) {
+      if (r.rare) want.rare += r.rare;
+      if (r.temporal) want.temporal += r.temporal;
+      if (r.elements) want[r.elements.el] += r.elements.large || 0;
+    }
+    return want;
+  };
+  const check = (got, want, tag) => {
+    for (const k of Object.keys(want)) {
+      assert(got[k] === want[k], `${tag}: ${k} read ${got[k]}, wanted ${want[k]}`);
+    }
+  };
+
+  // The stamp records today's actual calendar day and pays that
+  // weekday's reward.
+  const now = new Date();
+  const today = now.getDate();
+  const todayReward = E.calendarDayReward(now.getFullYear(), now.getMonth(), today);
+  const before = snap();
   const stampGot = G.claimMonthly();
-  const today = new Date().getDate();
   assert(stampGot && stampGot.dayOfMonth === today && stampGot.stamps === 1,
     `stamp reported ${JSON.stringify(stampGot)}`);
-  assert(G.whetstones === whetBefore + 15, 'stamp 1 skipped the filler');
+  assert(stampGot.reward.label === todayReward.label,
+    `stamp paid ${stampGot.reward.label}, the weekday says ${todayReward.label}`);
+  check(snap(), expected(before, [todayReward]), 'first stamp');
   assert(G.loginInfo().stampedDays.join() === String(today),
     `stamped days read ${G.loginInfo().stampedDays}`);
   assert(G.claimMonthly() === null && G.claimFirstSeven() === null,
     'a double claim went through');
 
-  // Catch-up: buys exactly the unstamped PRIOR days of the month.
+  // Catch-up: buys exactly the unstamped PRIOR days of the month, each
+  // paying its own weekday reward, with milestone bonuses landing as
+  // the stamp count crosses 7/14/21/28.
   const missedList = G.loginMissedList();
   assert(missedList.length === today - 1, `missed ${missedList.length} of ${today - 1}`);
   assert(G.loginCatchUpCost() === missedList.length * 20, 'cost off the menu');
@@ -1919,8 +1963,15 @@ test('login bonuses: two separate claims, a real calendar, catch-up buys days', 
     const broke = G.buyLoginCatchUp();
     assert(broke && broke.error === 'diamonds', 'a broke catch-up went through');
     G.addDiamonds(G.loginCatchUpCost());
+    const base = snap();
     const bought = G.buyLoginCatchUp();
     assert(bought && bought.bought === missedList.length, 'the buy came up short');
+    const paid = missedList.map((d) =>
+      E.calendarDayReward(now.getFullYear(), now.getMonth(), d));
+    for (const [n, m] of Object.entries(E.LOGIN_MONTH_MILESTONES)) {
+      if (Number(n) > 1 && Number(n) <= 1 + missedList.length) paid.push(m);
+    }
+    check(snap(), expected(base, paid), 'catch-up');
     assert(G.loginMissedDays() === 0, 'days still missing after the buy');
     const days = G.loginInfo().stampedDays;
     assert(days.length === today, `calendar shows ${days.length} of ${today} days`);
