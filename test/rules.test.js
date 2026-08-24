@@ -2645,6 +2645,61 @@ test('the Firetroupe sect set: accuracy tiers and the Oilslick mark', () => {
     `non-fire vs oil dealt ${hp0 - foe.hp}, expected ~${vexRaw(1)}`);
 });
 
+test("Carl's kit: pole swings, Iron Appetite, and the tentpole", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Elements: E, POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const carl = new U(H.carl, T.PLAYER, { level: 30, stars: 3 });
+  const builtMax = carl.maxHp;
+  const frontIdx = battle.playerSlots.findIndex((s) => s.position === P.FRONT);
+  battle.placeUnit(carl, frontIdx);
+  // Tentpole: +15% max HP, applied once at placement on the front hex.
+  assert(carl.maxHp === Math.round(builtMax * 1.15),
+    `tentpole read ${carl.maxHp} vs built ${builtMax}`);
+
+  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeBack, battle.enemySlots.findIndex((s) => s.position === P.BACK));
+  for (const f of [foeFront, foeBack]) {
+    f.hp = f.maxHp = 10 ** 6;
+    f.hookSources = () => [];
+    f.dodgeChance = () => 0;
+  }
+  carl.baseCritChance = -1;
+
+  const exp = (mult, foe, extra = 1) => Math.round(A.damageFormula(
+    carl.maxHp * mult * E.mult('fire', foe.element) * extra,
+    foe.effectiveStat('def')));
+  // Clobber: exactly 15% of his (tentpoled) max HP through the pipeline.
+  let hp0 = foeBack.hp;
+  A.execute(carl.abilities[0].def, carl, foeBack, battle);
+  assert(Math.abs((hp0 - foeBack.hp) - exp(0.15, foeBack)) <= 1,
+    `Clobber dealt ${hp0 - foeBack.hp}, expected ~${exp(0.15, foeBack)}`);
+  // Bring Down the Pole: a FRONT-row victim takes 50% more.
+  hp0 = foeFront.hp;
+  A.execute(carl.abilities[2].def, carl, foeFront, battle);
+  assert(Math.abs((hp0 - foeFront.hp) - exp(0.25, foeFront, 1.5)) <= 1,
+    `front-row Pole dealt ${hp0 - foeFront.hp}, expected ~${exp(0.25, foeFront, 1.5)}`);
+  hp0 = foeBack.hp;
+  A.execute(carl.abilities[2].def, carl, foeBack, battle);
+  assert(Math.abs((hp0 - foeBack.hp) - exp(0.25, foeBack)) <= 1,
+    `back-row Pole dealt ${hp0 - foeBack.hp}, expected ~${exp(0.25, foeBack)}`);
+
+  // Iron Appetite: 10% of damage received becomes max HP, capped at
+  // +50% of the pool as the first blow found it.
+  const max0 = carl.maxHp;
+  carl.takeDamage(1000);
+  assert(carl.maxHp === max0 + 100,
+    `1000 damage grew ${carl.maxHp - max0} max HP`);
+  carl.hp = 10 ** 9; // survive the flood that proves the cap
+  carl.takeDamage(10 ** 7);
+  assert(carl.maxHp === max0 + Math.round(max0 * 0.5),
+    `the appetite ran to ${carl.maxHp} vs cap ${max0 + Math.round(max0 * 0.5)}`);
+});
+
 test("Franz's kit: HP-scaled bonks, wounded fury, and the hearth's regen", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
