@@ -1,10 +1,12 @@
-// Gear: six equipment slots per hero, every piece belongs to a Set, and
-// wearing enough pieces of one set grants its bonuses (tiers stack).
+// Gear: eight equipment slots per hero, every piece belongs to a Set,
+// and wearing enough pieces of one set grants its bonuses (tiers
+// stack).
 //
 // Every item has:
-//   - a LEVEL that linearly scales its slot-fixed base stat (a level 1
-//     weapon gives ~5 ATK; level 90 gives 500). Levels are bought with
-//     Whetstones (polishing), costing more each level.
+//   - a MAIN stat rolled at drop from its slot's pool (see
+//     MAIN_POOLS), and a LEVEL that linearly scales it between the
+//     stat's v1 and v90 anchors. Levels are bought with Whetstones
+//     (polishing), costing more each level.
 //   - a RARITY (normal/uncommon/rare/epic/legendary) that sets its max
 //     level and substat count (1/2/3/4/5). Items drop with their full
 //     count of distinct substats.
@@ -12,20 +14,22 @@
 //     one EXISTING substat eats another roll from its own range — the
 //     line grows (marked with an arrow per boost), no new line appears.
 //
-// Base stats per slot: weapon raw ATK, gloves raw DEF, chest raw HP,
-// boots raw SPD, ring ATK% (caps at 100%), amulet HP% (caps at 100%).
-// Raw substats cap at 50% of the slot base-stat maximum.
+// Main pools: helm/gloves/belt roll flat ATK/HP/DEF or ATK%/DEF%/
+// Accuracy/Resistance; weapon/chest/ring/amulet roll Crit Rate/Crit
+// DMG/HP%; boots are always flat SPD.
 
 const Gear = (() => {
-  const SLOTS = ['weapon', 'gloves', 'chest', 'boots', 'ring', 'amulet'];
+  const SLOTS = ['weapon', 'helm', 'chest', 'gloves', 'belt', 'boots', 'ring', 'amulet'];
 
   const SLOT_LABELS = {
-    weapon: 'Weapon', gloves: 'Gloves', chest: 'Chest',
-    boots: 'Boots', ring: 'Ring', amulet: 'Amulet',
+    weapon: 'Weapon', helm: 'Helm', chest: 'Chest', gloves: 'Gloves',
+    belt: 'Belt', boots: 'Boots', ring: 'Ring', amulet: 'Amulet',
   };
 
   const SLOT_ICONS = {
     dragon: {
+      helm: 'assets/icons/fc2053.png',
+      belt: 'assets/icons/fc2068.png',
       weapon: 'assets/icons/fc1590.png',
       gloves: 'assets/icons/fc1568.png',
       chest: 'assets/icons/fc1815.png',
@@ -34,6 +38,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2181.png',
     },
     rat: {
+      helm: 'assets/icons/fc1951.png',
+      belt: 'assets/icons/fc2069.png',
       weapon: 'assets/icons/fc1443.png',
       gloves: 'assets/icons/fc1488.png',
       chest: 'assets/icons/fc1921.png',
@@ -42,6 +48,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2190.png',
     },
     avian: {
+      helm: 'assets/icons/fc2052.png',
+      belt: 'assets/icons/fc2067.png',
       weapon: 'assets/icons/fc1609.png',
       gloves: 'assets/icons/fc1648.png',
       chest: 'assets/icons/fc1817.png',
@@ -50,6 +58,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2177.png',
     },
     minotaur: {
+      helm: 'assets/icons/fc2054.png',
+      belt: 'assets/icons/fc2069.png',
       weapon: 'assets/icons/fc1467.png',
       gloves: 'assets/icons/fc1486.png',
       chest: 'assets/icons/fc1925.png',
@@ -58,6 +68,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2183.png',
     },
     snake: {
+      helm: 'assets/icons/fc1953.png',
+      belt: 'assets/icons/fc2067.png',
       weapon: 'assets/icons/fc1689.png',
       gloves: 'assets/icons/fc1487.png',
       chest: 'assets/icons/fc1826.png',
@@ -66,6 +78,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2065.png',
     },
     wolf: {
+      helm: 'assets/icons/fc1950.png',
+      belt: 'assets/icons/fc2069.png',
       weapon: 'assets/icons/fc1600.png',
       gloves: 'assets/icons/fc1489.png',
       chest: 'assets/icons/fc1920.png',
@@ -74,6 +88,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2178.png',
     },
     boar: {
+      helm: 'assets/icons/fc2077.png',
+      belt: 'assets/icons/fc2068.png',
       weapon: 'assets/icons/fc1601.png',
       gloves: 'assets/icons/fc1490.png',
       chest: 'assets/icons/fc1922.png',
@@ -82,6 +98,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2179.png',
     },
     bear: {
+      helm: 'assets/icons/fc2078.png',
+      belt: 'assets/icons/fc2069.png',
       weapon: 'assets/icons/fc1602.png',
       gloves: 'assets/icons/fc1491.png',
       chest: 'assets/icons/fc1923.png',
@@ -90,6 +108,8 @@ const Gear = (() => {
       amulet: 'assets/icons/fc2180.png',
     },
     cat: {
+      helm: 'assets/icons/fc1956.png',
+      belt: 'assets/icons/fc2067.png',
       weapon: 'assets/icons/fc1603.png',
       gloves: 'assets/icons/fc1492.png',
       chest: 'assets/icons/fc1924.png',
@@ -193,25 +213,62 @@ const Gear = (() => {
     },
   };
 
-  // Slot-fixed base stat, scaling linearly from v1 (level 1) to v90
-  // (level 90). Percent bases cap at 100%.
-  const BASE_SCALE = {
-    weapon: { stat: 'atkFlat', v1: 5, v90: 500 },
-    gloves: { stat: 'defFlat', v1: 3, v90: 300 },
-    chest:  { stat: 'hpFlat',  v1: 30, v90: 3000 },
-    boots:  { stat: 'spdFlat', v1: 2, v90: 50 },
-    ring:   { stat: 'atkPct',  v1: 0.02, v90: 1.0 },
-    amulet: { stat: 'hpPct',   v1: 0.02, v90: 1.0 },
+  // Main-stat rulebook: every main scales linearly from v1 (level 1) to
+  // v90 (level 90). Fractional stats are stored as fractions (0.45 =
+  // 45%).
+  const MAIN_STATS = {
+    atkFlat:    { v1: 5,    v90: 500 },
+    hpFlat:     { v1: 25,   v90: 2500 },
+    defFlat:    { v1: 5,    v90: 500 },
+    spdFlat:    { v1: 3,    v90: 30 },
+    atkPct:     { v1: 0.05, v90: 0.45, pct: true },
+    defPct:     { v1: 0.05, v90: 0.45, pct: true },
+    hpPct:      { v1: 0.05, v90: 0.45, pct: true },
+    accuracy:   { v1: 0.05, v90: 0.45, pct: true },
+    resistance: { v1: 0.05, v90: 0.45, pct: true },
+    critChance: { v1: 0.05, v90: 0.45, pct: true },
+    critDamage: { v1: 0.10, v90: 0.80, pct: true },
   };
 
+  // What each slot's main stat can ROLL as when the piece drops. The
+  // armor slots (helm/gloves/belt) roll raw stats or utility percents;
+  // the striking slots (weapon/chest/ring/amulet) roll the crit book and
+  // HP%; boots are always flat SPD.
+  const MAIN_POOLS = {
+    weapon: ['critChance', 'critDamage', 'hpPct'],
+    helm:   ['atkFlat', 'hpFlat', 'defFlat', 'atkPct', 'defPct', 'accuracy', 'resistance'],
+    chest:  ['critChance', 'critDamage', 'hpPct'],
+    gloves: ['atkFlat', 'hpFlat', 'defFlat', 'atkPct', 'defPct', 'accuracy', 'resistance'],
+    belt:   ['atkFlat', 'hpFlat', 'defFlat', 'atkPct', 'defPct', 'accuracy', 'resistance'],
+    boots:  ['spdFlat'],
+    ring:   ['critChance', 'critDamage', 'hpPct'],
+    amulet: ['critChance', 'critDamage', 'hpPct'],
+  };
+
+  // Pieces minted before mains rolled carry no `main`; they keep the
+  // stat their slot used to fix, on the new value curve.
+  const LEGACY_MAIN = {
+    weapon: 'atkFlat', gloves: 'defFlat', chest: 'hpFlat',
+    boots: 'spdFlat', ring: 'atkPct', amulet: 'hpPct',
+  };
+
+  function rollMain(slot, rand = Math.random) {
+    const pool = MAIN_POOLS[slot] || ['atkFlat'];
+    return pool[Math.floor(rand() * pool.length)];
+  }
+
+  function mainStatOf(piece) {
+    return piece.main || LEGACY_MAIN[piece.slot] || MAIN_POOLS[piece.slot][0];
+  }
+
   function baseStat(piece) {
-    const t = BASE_SCALE[piece.slot];
+    const stat = mainStatOf(piece);
+    const t = MAIN_STATS[stat];
     const f = (piece.level - 1) / 89;
     const raw = t.v1 + (t.v90 - t.v1) * f;
-    const pct = t.stat.endsWith('Pct');
     return {
-      stat: t.stat,
-      value: pct ? Math.min(1, Math.round(raw * 100) / 100) : Math.round(raw),
+      stat,
+      value: t.pct ? Math.round(raw * 100) / 100 : Math.round(raw),
     };
   }
 
@@ -296,9 +353,11 @@ const Gear = (() => {
   // substats — Normal 1 up to Legendary 5, all distinct stats.
   function drop(setId, stage) {
     const rarity = rollRarity(stage);
+    const slot = SLOTS[Math.floor(Math.random() * SLOTS.length)];
     const piece = {
       set: setId,
-      slot: SLOTS[Math.floor(Math.random() * SLOTS.length)],
+      slot,
+      main: rollMain(slot),
       rarity,
       level: 1,
       plus: 0,
@@ -475,6 +534,7 @@ const Gear = (() => {
 
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
+    MAIN_POOLS, MAIN_STATS, rollMain,
     baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
     rollSub, boostSub,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,

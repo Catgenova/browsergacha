@@ -3482,4 +3482,47 @@ test("Artur's kit: annotations, the page turn, and permanent ink", () => {
   }
 });
 
+test('gear mains: eight slots, per-slot roll pools, and the value book', () => {
+  const G = g.Gear;
+  assert(G.SLOTS.length === 8 && G.SLOTS.includes('helm') && G.SLOTS.includes('belt'),
+    `the rack holds ${G.SLOTS.length}`);
+
+  // Every drop's main comes from its slot's pool; boots are always SPD.
+  for (let i = 0; i < 200; i++) {
+    const p = G.drop('dragon', 10);
+    assert(G.MAIN_POOLS[p.slot].includes(p.main),
+      `${p.slot} rolled a ${p.main} main`);
+    if (p.slot === 'boots') assert(p.main === 'spdFlat', 'boots rolled off-book');
+  }
+  const armor = ['atkFlat', 'hpFlat', 'defFlat', 'atkPct', 'defPct', 'accuracy', 'resistance'];
+  const strike = ['critChance', 'critDamage', 'hpPct'];
+  for (const s of ['helm', 'gloves', 'belt']) {
+    assert(JSON.stringify(G.MAIN_POOLS[s]) === JSON.stringify(armor), `${s} pool drifted`);
+  }
+  for (const s of ['weapon', 'chest', 'ring', 'amulet']) {
+    assert(JSON.stringify(G.MAIN_POOLS[s]) === JSON.stringify(strike), `${s} pool drifted`);
+  }
+
+  // The value book: level 1 pays the min, level 90 the max, exactly.
+  const at = (slot, main, level) =>
+    G.baseStat({ slot, main, level }).value;
+  assert(at('helm', 'atkFlat', 1) === 5 && at('helm', 'atkFlat', 90) === 500, 'flat ATK book');
+  assert(at('belt', 'hpFlat', 1) === 25 && at('belt', 'hpFlat', 90) === 2500, 'flat HP book');
+  assert(at('gloves', 'defFlat', 1) === 5 && at('gloves', 'defFlat', 90) === 500, 'flat DEF book');
+  assert(at('boots', 'spdFlat', 1) === 3 && at('boots', 'spdFlat', 90) === 30, 'SPD book');
+  assert(at('ring', 'critChance', 1) === 0.05 && at('ring', 'critChance', 90) === 0.45, 'crit book');
+  assert(at('weapon', 'critDamage', 1) === 0.10 && at('weapon', 'critDamage', 90) === 0.80, 'crit DMG book');
+  assert(at('amulet', 'hpPct', 1) === 0.05 && at('amulet', 'hpPct', 90) === 0.45, 'HP% book');
+  assert(at('helm', 'accuracy', 90) === 0.45 && at('belt', 'resistance', 90) === 0.45, 'ACC/RES book');
+
+  // A pre-rework piece (no `main`) keeps the stat its slot used to fix.
+  const legacy = { slot: 'weapon', rarity: 'rare', level: 90, plus: 0, subs: [] };
+  assert(G.baseStat(legacy).stat === 'atkFlat', 'legacy weapon lost its ATK');
+
+  // The main feeds battle stats: an accuracy helm reaches debuffAccuracy.
+  const stats = G.applyToStats({ hp: 1000, atk: 100, def: 100, speed: 100 },
+    [{ set: 'dragon', slot: 'helm', main: 'accuracy', rarity: 'rare', level: 90, plus: 0, subs: [] }]);
+  assert(Math.abs(stats.accuracy - 0.45) < 1e-9, 'the accuracy main went nowhere');
+});
+
 report();
