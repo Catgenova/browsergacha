@@ -3082,4 +3082,75 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
     'the attacker came away clean');
 });
 
+test("Samuels's kit: triple strikes, crit riders, and the center toss", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Elements: E, POSITION: P } = w;
+  M.resetBattle();
+  const battle = new B();
+  const sam = new U(H.samuels, T.PLAYER, { level: 30, stars: 3 });
+  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeCenter = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(sam, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(foeCenter, battle.enemySlots.findIndex((s) => s.position === P.CENTER));
+  for (const f of [foeFront, foeCenter]) {
+    f.hp = f.maxHp = 10 ** 6;
+    f.hookSources = () => [];
+    f.dodgeChance = () => 0;
+  }
+  sam.baseCritChance = -1; // clamps to 0: only the knives' riders crit
+
+  // Knife's Edge: +30% crit damage, flat, from the front hex.
+  assert(Math.abs(sam.effectiveStat('critDamage') - 1.8) < 1e-9,
+    `edge read ${sam.effectiveStat('critDamage')}`);
+
+  const Math2 = w.Math;
+  const realRandom = Math2.random;
+  const hit = (ability, foe) => {
+    const hp0 = foe.hp;
+    A.execute(ability.def, sam, foe, battle);
+    return hp0 - foe.hp;
+  };
+  try {
+    // No crits (0.99 clears every rider): Stab, Stab, Stab is exactly
+    // three 35% knives, each carrying the full-HP +30% passive.
+    Math2.random = () => 0.99;
+    const raw = (mult) => sam.effectiveStat('atk') * mult * 1.30 *
+      E.mult('fire', foeFront.element);
+    const one = Math.round(A.damageFormula(raw(0.35), foeFront.effectiveStat('def')));
+    assert(hit(sam.abilities[0], foeFront) === 3 * one,
+      'three knives did not sum to three knives');
+
+    // Rider proof: at 0.10 the 15% rider crits every knife (0.10 < 0.15)
+    // while a riderless blade cannot crit at all.
+    Math2.random = () => 0.10;
+    const critOne = Math.round(one * 1.8);
+    assert(hit(sam.abilities[0], foeFront) === 3 * critOne,
+      'the crit rider did not fire');
+    const thrown = Math.round(A.damageFormula(raw(0.40), foeFront.effectiveStat('def')));
+    assert(hit(sam.abilities[1], foeFront) === 3 * thrown,
+      'a riderless blade crit anyway');
+
+    // Aim for the Middle: the center tile eats double from every blade.
+    const thrownC = Math.round(A.damageFormula(
+      raw(0.40) * 2 * E.mult('fire', foeCenter.element) /
+      E.mult('fire', foeFront.element),
+      foeCenter.effectiveStat('def')));
+    assert(hit(sam.abilities[1], foeCenter) === 3 * thrownC,
+      'the center toss did not double');
+
+    // Not a Scratch: one scratch and the +30% is gone.
+    Math2.random = () => 0.99;
+    sam.hp -= 1;
+    const oneHurt = Math.round(A.damageFormula(
+      sam.effectiveStat('atk') * 0.35 * E.mult('fire', foeFront.element),
+      foeFront.effectiveStat('def')));
+    assert(hit(sam.abilities[0], foeFront) === 3 * oneHurt,
+      'the passive survived a scratch');
+  } finally {
+    Math2.random = realRandom;
+  }
+});
+
 report();

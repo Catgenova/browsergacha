@@ -25,7 +25,7 @@ const RACES = (() => {
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl', 'esmerelda', 'slick',
+    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels',
   ]);
 
   const NAMES = {
@@ -70,7 +70,7 @@ const RACES = (() => {
                  members: ['sawyer'] },
     // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
-                 members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick'] },
+                 members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
