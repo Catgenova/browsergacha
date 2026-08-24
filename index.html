@@ -224,7 +224,12 @@
       </div>
 
       <div id="battle-wrap">
-        <canvas id="battle-canvas" width="960" height="540"></canvas>
+        <!-- On mobile the crop wrapper clips the tall sky and spare
+             ground off the board, leaving the action band. Desktop
+             renders it display:contents (no effect). -->
+        <div id="battle-canvas-crop">
+          <canvas id="battle-canvas" width="960" height="540"></canvas>
+        </div>
 
         <div id="battle-controls-row">
           <button id="auto-btn" class="panel-btn" title="Let your heroes fight automatically">Auto: OFF</button>

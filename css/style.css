@@ -232,6 +232,10 @@ body {
   position: relative;
 }
 
+/* Desktop: the crop wrapper does not exist as a box — the mobile
+   media block turns it into a real clipping frame. */
+#battle-canvas-crop { display: contents; }
+
 #battle-canvas {
   display: block;
   width: 960px;
@@ -2133,7 +2137,34 @@ body {
     flex-direction: column;
     gap: 8px;
   }
-  html.is-mobile #battle-canvas { order: 1; }
+  /* ---- Crop the board to the action band ----
+     The 16:9 canvas is mostly sky and spare grass on a phone. The crop
+     wrapper clips it to the strip the fight actually happens in
+     (logical y 130-465 of 540), scrolling nothing: the canvas keeps its
+     full box inside, so pointer-to-canvas math stays true. Big-boss
+     fights (js sets .boss-arena on #battle-wrap) open the band upward —
+     boss art stands ~230px tall and would lose its head to the tight
+     crop. */
+  html.is-mobile #battle-canvas-crop {
+    order: 1;
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 960 / 335;
+    border: 2px solid #3a3450;
+    border-radius: 6px;
+  }
+  html.is-mobile #battle-canvas-crop > #battle-canvas {
+    border: none;
+    border-radius: 0;
+    margin-top: -13.54%; /* 130/960 of the width */
+  }
+  html.is-mobile #battle-wrap.boss-arena #battle-canvas-crop {
+    aspect-ratio: 960 / 390; /* logical y 70-460 */
+  }
+  html.is-mobile #battle-wrap.boss-arena #battle-canvas-crop > #battle-canvas {
+    margin-top: -7.29%; /* 70/960 */
+  }
   /* The panels that used to float over the board: banner, legend,
      tactics. Same order, so they stack in DOM order between the canvas
      and the controls. */
