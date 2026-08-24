@@ -21,8 +21,8 @@ def b64(path, maxw=None):
 def font64(path):
     return 'data:font/ttf;base64,' + base64.b64encode(open(path, 'rb').read()).decode()
 
-FACE_LEFT = {'lucian', 'esmerelda', 'koe', 'samuels', 'angelica', 'florence',
-             'javarious', 'cleo', 'artur', 'carl', 'franz', 'lin', 'slick',
+FACE_LEFT = {'lucian', 'esmerelda', 'koe', 'angelica', 'florence',
+             'javarious', 'artur', 'franz', 'lin', 'slick',
              'andrew', 'cain', 'catherine'}
 IDLE = {
     'carl': 'Carl/carlidle.png', 'lin': 'Lin/linidle.png',
