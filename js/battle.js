@@ -89,21 +89,35 @@ class Battle {
         // while the unit carries that status and would otherwise idle,
         // it holds the strip's final frame instead (Silas stays
         // crouched and drawn for as long as Aiming Stance lasts).
+        // A hold is sticky: once engaged, `animator.holding` names the
+        // strip, and the hold keeps owning the animator while it is
+        // still showing that strip with nothing pending. Without the
+        // stickiness the held strip fails the idle check next tick,
+        // update() completes it back to idle, and the hold re-engages a
+        // frame later — a visible flicker between crouch and idle. An
+        // action re-taking the animator (play() clears the flag) or the
+        // status expiring releases it.
         let held = false;
-        if (u.alive &&
-            ['idle', 'idle2', 'idle3', 'ready'].includes(u.animator.current)) {
+        const idling = ['idle', 'idle2', 'idle3', 'ready'].includes(u.animator.current);
+        const holding = u.animator.holding &&
+          u.animator.holding === u.animator.current && !u.animator.onComplete;
+        if (u.alive && (idling || holding)) {
           for (const [name, a] of Object.entries(u.animator.sheet.animations)) {
             if (a.stanceHold &&
                 u.statusEffects.some((fx) => fx.stat === a.stanceHold)) {
               u.animator.current = name;
               u.animator.frame = a.frames - 1;
               u.animator.elapsed = 0;
+              u.animator.holding = name;
               held = true;
               break;
             }
           }
         }
-        if (!held) u.animator.update(dt);
+        if (!held) {
+          u.animator.holding = null;
+          u.animator.update(dt);
+        }
       }
       if (u.hitFlash > 0) u.hitFlash = Math.max(0, u.hitFlash - dt);
     }

@@ -49,6 +49,7 @@ class AnimationPlayer {
     this.elapsed = 0;
     this.onComplete = null;
     this.onFrameChange = null; // (frameNumber1Based) => void, fires per frame
+    this.holding = null; // stance-hold strip currently pinned (see battle.js)
     this.variantTimer = this.rollVariantDelay();
   }
 
@@ -102,6 +103,8 @@ class AnimationPlayer {
     this.frame = 0;
     this.elapsed = 0;
     this.onComplete = onComplete;
+    // An explicit play always breaks a stance hold (see battle.js).
+    this.holding = null;
   }
 
   update(dt) {
