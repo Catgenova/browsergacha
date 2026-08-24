@@ -472,6 +472,8 @@ class Renderer {
                      note: 'loses its next turn entirely' },
       dot:         { glyph: '☠', color: '#a8e85a', title: 'Poisoned',
                      note: 'takes damage at the start of each turn' },
+      burn:        { glyph: '♨', color: '#ff9a5a', title: 'Burning',
+                     note: 'fire eats a share of max HP each turn' },
       hot:         { glyph: '✚', color: '#7ae87a', title: 'Regenerating',
                      note: 'heals at the start of each turn' },
       damageTaken: { glyph: '▼', color: '#d78aff', title: 'Vulnerable',
@@ -502,9 +504,11 @@ class Renderer {
       // Shields are a pool, not a flag: the plate shows what is LEFT of
       // it, added once below rather than one pip per stack.
       if (fx.kind === 'shield') continue;
-      // Poisons and regens are keyed by kind; everything else by stat.
-      const key = fx.kind === 'dot' || fx.kind === 'hot' || fx.kind === 'bubble'
-        ? fx.kind : fx.stat;
+      // Poisons and regens are keyed by kind (burns by their flavor);
+      // everything else by stat.
+      const key = fx.kind === 'dot'
+        ? (fx.flavor === 'burn' ? 'burn' : 'dot')
+        : fx.kind === 'hot' || fx.kind === 'bubble' ? fx.kind : fx.stat;
       const icon = ICONS[key];
       if (!icon) continue;
       // Buffs read green-ish, debuffs purple, unless the status has a

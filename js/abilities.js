@@ -332,18 +332,67 @@ const Abilities = (() => {
       case 'dot': {
         // Poison / damage-over-time: locked in at cast off the caster's
         // ATK, amplified by DoT boosts, resisted like any debuff.
+        // `targetHpPct` scales the tick off the VICTIM's max HP instead
+        // (Lucian's burn), and `flavor` names the debuff for anything
+        // that asks who is burning.
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
-        const amount = Math.round(caster.effectiveStat('atk') * effect.pct *
-          power * (1 + caster.dotBoost()));
+        const amount = effect.targetHpPct
+          ? Math.round(target.maxHp * effect.targetHpPct * power *
+              (1 + caster.dotBoost()))
+          : Math.round(caster.effectiveStat('atk') * effect.pct *
+              power * (1 + caster.dotBoost()));
         // Clinging-flame passives can extend inflicted DoT durations.
         let dotTurns = effect.turns;
         for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
         }
-        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns, source: caster });
-        return { kind: 'dot', target, amount, turns: dotTurns };
+        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
+          flavor: effect.flavor || null, source: caster });
+        return { kind: 'dot', target, amount, turns: dotTurns,
+          flavor: effect.flavor || null };
+      }
+      case 'atkPerDebuff': {
+        // Forge heat (Lucian): permanent flat ATK for each enemy
+        // carrying the named DoT flavor right now, banked up to a
+        // per-battle cap — the fight itself is the fuel.
+        const b = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        const foes = b
+          ? b.livingUnits().filter((u) => u.team !== caster.team) : [];
+        const count = foes.filter((u) => u.statusEffects.some((fx) =>
+          fx.kind === 'dot' && fx.flavor === effect.flavor)).length;
+        const banked = caster.forgeBanked || 0;
+        const gain = Math.max(0, Math.min(effect.cap - banked, count * effect.per));
+        if (gain > 0) {
+          caster.forgeBanked = banked + gain;
+          caster.baseAtk += gain;
+        }
+        return { kind: 'forge', target: caster, amount: gain, count,
+          banked: caster.forgeBanked || 0, cap: effect.cap };
+      }
+      case 'bounce': {
+        // A ricochet (Lucian): hit, then `chance` to leap to another
+        // enemy and hit again, indefinitely. With one enemy standing it
+        // bounces back into them. Each hop is a full ordinary strike.
+        const b = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        const results = [];
+        let mark = target;
+        for (let hops = 0; hops < 30; hops++) { // runaway guard: p(30)≈2e-4
+          results.push(applyEffect(
+            { type: 'damage', mult: effect.mult }, caster, mark, power));
+          if (Math.random() >= (effect.chance ?? 0.75)) break;
+          const foes = b
+            ? b.livingUnits().filter((u) => u.team !== caster.team)
+            : (mark.alive ? [mark] : []);
+          if (!foes.length) break;
+          const others = foes.filter((u) => u !== mark);
+          mark = others.length
+            ? others[Math.floor(Math.random() * others.length)] : foes[0];
+        }
+        return results;
       }
       case 'stun': {
         // Stun: the target skips its next turn(s). `chance` gates the

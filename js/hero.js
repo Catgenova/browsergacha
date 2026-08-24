@@ -133,6 +133,12 @@ class Unit {
     this.hitFlash = 0; // seconds of white flash remaining after taking damage
   }
 
+  // Carrying a burn (Lucian's fire DoT)? His whole kit asks this.
+  burning() {
+    return this.statusEffects.some((fx) =>
+      fx.kind === 'dot' && fx.flavor === 'burn');
+  }
+
   get alive() {
     return this.hp > 0;
   }
@@ -915,11 +921,14 @@ class Unit {
         : this.takeDamage(fx.amount); // sourceless tick: nobody to credit
       // strike() books the meter itself; crediting it again here would
       // count every tick twice.
+      const burn = fx.flavor === 'burn';
       results.push({
-        label: 'Poison',
-        message: `${this.name} suffers ${dealt} poison damage.` +
+        label: burn ? 'Burn' : 'Poison',
+        message: `${this.name} ${burn ? 'burns for' : 'suffers'} ${dealt}` +
+          ` ${burn ? 'fire' : 'poison'} damage.` +
           (this.alive ? '' : ` ${this.name} succumbs!`),
-        floats: [{ target: this, text: `-${dealt}`, color: '#a8e85a' }],
+        floats: [{ target: this, text: `-${dealt}`,
+          color: burn ? '#ff9a5a' : '#a8e85a' }],
       });
     }
 

@@ -25,6 +25,7 @@ const RACES = (() => {
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
+    'lucian',
   ]);
 
   const NAMES = {
@@ -63,10 +64,13 @@ const RACES = (() => {
                  members: ['vex', 'vivian', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily'] },
-    // Sawyer's order; no sect bonuses are wired for anyone yet, so a
-    // one-member sect costs nothing and claims the name.
+    // Sawyer's order; a one-member sect costs nothing and claims the
+    // name until its pack is specced.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
                  members: ['sawyer'] },
+    // Lucian's order — its first and so far only member.
+    firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
+                 members: ['lucian'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
