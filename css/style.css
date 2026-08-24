@@ -2148,31 +2148,39 @@ body {
   }
   /* ---- Crop the board to the action band ----
      The 16:9 canvas is mostly sky and spare grass on a phone. The crop
-     wrapper clips it to the strip the fight actually happens in
-     (logical y 130-465 of 540), scrolling nothing: the canvas keeps its
-     full box inside, so pointer-to-canvas math stays true. Big-boss
-     fights (js sets .boss-arena on #battle-wrap) open the band upward —
-     boss art stands ~230px tall and would lose its head to the tight
+     wrapper clips it to the window the fight actually happens in —
+     logical x 104-856 (the hex flowers span 120-840) by y 130-465 of
+     960x540 — scrolling nothing: the canvas keeps its full box inside,
+     so pointer-to-canvas math stays true. The canvas is drawn at
+     960/752 of the wrapper width so the kept window fills it edge to
+     edge, which is what makes the fight read LARGER, not just tighter.
+     Margins are percentages of the wrapper width: left 104/752, top
+     130/752 (crop-top / kept-width, since % margins resolve against
+     the containing block's width). Big-boss fights (js sets
+     .boss-arena on #battle-wrap) open the band upward to y 70 — boss
+     art stands ~230px tall and would lose its head to the tight
      crop. */
   html.is-mobile #battle-canvas-crop {
     order: 1;
     display: block;
     width: 100%;
     overflow: hidden;
-    aspect-ratio: 960 / 335;
+    aspect-ratio: 752 / 335;
     border: 2px solid #3a3450;
     border-radius: 6px;
   }
   html.is-mobile #battle-canvas-crop > #battle-canvas {
     border: none;
     border-radius: 0;
-    margin-top: -13.54%; /* 130/960 of the width */
+    width: 127.66%; /* 960/752 */
+    margin-left: -13.83%; /* 104/752 */
+    margin-top: -17.287%; /* 130/752 */
   }
   html.is-mobile #battle-wrap.boss-arena #battle-canvas-crop {
-    aspect-ratio: 960 / 390; /* logical y 70-460 */
+    aspect-ratio: 752 / 390; /* logical y 70-460 */
   }
   html.is-mobile #battle-wrap.boss-arena #battle-canvas-crop > #battle-canvas {
-    margin-top: -7.29%; /* 70/960 */
+    margin-top: -9.309%; /* 70/752 */
   }
   /* The panels that used to float over the board: banner, legend,
      tactics. Same order, so they stack in DOM order between the canvas
