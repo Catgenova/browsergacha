@@ -279,24 +279,21 @@ class UI {
       ? this.legendEl.classList.contains('hidden') : force;
     if (show) {
       const rows = document.getElementById('legend-rows');
-      const icons = Renderer.STATUS_ICONS;
-      const buffable = new Set(['atk', 'def', 'speed', 'critChance', 'critDamage']);
-      rows.innerHTML = Object.entries(icons).map(([key, ic]) => {
-        const glyph = ic.color ? ic.glyph : `${ic.glyph}▲/${ic.glyph}▼`;
-        const color = ic.color || '#8ecbff';
-        const note = buffable.has(key)
-          ? '▲ raised, ▼ lowered' : (ic.note || ic.title);
+      // The same plates the battlefield draws, rendered at legend size.
+      const img = (key, variant) =>
+        `<img class="legend-icon" src="${StatusIcons.dataURL(key, variant, 18)}"
+           width="18" height="18" alt="">`;
+      rows.innerHTML = StatusIcons.LEGEND.map((key) => {
+        const def = StatusIcons.DEFS[key];
+        const plates = def.stat ? img(key, 'buff') + img(key, 'debuff') : img(key, 'buff');
+        const note = def.stat
+          ? 'green raised, red lowered' : (def.note || def.title);
         return `<div class="legend-row">
-          <span class="legend-glyph" style="color:${color}">${glyph}</span>
-          <span class="legend-name">${ic.title}</span>
+          <span class="legend-glyph">${plates}</span>
+          <span class="legend-name">${def.title}</span>
           <span class="legend-note">${note}</span>
         </div>`;
       }).join('') + `
-        <div class="legend-row">
-          <span class="legend-glyph" style="color:#8ee8ff">◆n</span>
-          <span class="legend-name">Crystal mirrors</span>
-          <span class="legend-note">charges remaining</span>
-        </div>
         <div class="legend-row">
           <span class="legend-glyph" style="color:#ff9a5a">⚠</span>
           <span class="legend-name">Charging</span>
