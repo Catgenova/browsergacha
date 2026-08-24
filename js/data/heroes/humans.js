@@ -2416,7 +2416,9 @@ Object.assign(HEROES, {
     stats: { hp: 2300, atk: 115, def: 165, speed: 96 },
     tint: { body: '#a83232', helm: '#3a1c18', weapon: '#e84a3a', skin: '#e8b088' },
     sprite: {
-      displayH: 96,
+      // Drawn taller than the troupe's 96: she stands ON the ball, so
+      // the figure itself reads small without the extra height.
+      displayH: 125,
       // Authored facing left, like the rest of the Firetroupe — flagged,
       // not mirrored into the files; Sprites.facesLeft() flips it right.
       faceLeft: true,
