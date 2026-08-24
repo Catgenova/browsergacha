@@ -278,7 +278,7 @@ class SummonScreen {
       if (b) {
         const tag = document.createElement('div');
         tag.className = `card-blessing-tag blessing-${blessing}`;
-        tag.textContent = `${b.icon} ${b.name.toUpperCase()}`;
+        tag.innerHTML = `${Blessing.markHtml(blessing)} ${b.name.toUpperCase()}`;
         tag.title = `${b.name} — ${b.blurb}`;
         front.appendChild(tag);
       }

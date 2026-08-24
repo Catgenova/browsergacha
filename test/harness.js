@@ -17,7 +17,7 @@ const FILES = [
   // way: load order is load-bearing (ACHIEVEMENTS reads the campaign's
   // tier list while it is being defined), so a harness that loads the
   // files in a different order tests an order the browser never runs.
-  'js/meter.js', 'js/config.js', 'js/hex.js', 'js/elements.js', 'js/events.js', 'js/races.js', 'js/blessing.js', 'js/tags.js',
+  'js/meter.js', 'js/config.js', 'js/hex.js', 'js/elements.js', 'js/events.js', 'js/races.js', 'js/icons.js', 'js/blessing.js', 'js/tags.js',
   'js/abilities.js', 'js/progression.js', 'js/attune.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
   'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/rats.js',
   'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',

@@ -242,6 +242,9 @@ const App = {
   App.updateCurrencies();
   updateQuestBadge();
   updateCampaignBadge();
+  // Emoji-to-SVG upgrader: one initial pass over the static page, then
+  // a MutationObserver keeps every future render emoji-free.
+  if (typeof Icons !== 'undefined') Icons.install();
   App.showScreen('team');
 
   // First-run tour. It points at controls on the team screen, so it waits

@@ -614,7 +614,7 @@ class Unit {
       this.statusEffects = [];
       this.hp = Math.max(1, Math.round(this.maxHp * 0.30));
       if (typeof Battle !== 'undefined' && Battle.active) {
-        Battle.active.addFloatingText(this, '✨ RESURRECTED', '#ffd76a');
+        Battle.active.addFloatingText(this, '✶ RESURRECTED', '#ffd76a');
         Battle.active.log(
           `A blessing holds — ${this.name} resurrects at 30% HP!`, 'log-system');
       }

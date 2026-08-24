@@ -634,12 +634,12 @@ class Battle {
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
         } else if (res.stat === 'crystalline') {
           // Polarus's mantle: attackers risk freezing on contact.
-          this.addFloatingText(res.target, '💠 CRYSTALLINE', '#8ee8ff');
+          this.addFloatingText(res.target, '◈ CRYSTALLINE', '#8ee8ff');
           this.log(`${res.target.name} takes on Crystalline form — strike it and freeze (${res.turns} turns).`, cls);
         } else if (res.stat === 'aiming') {
           // Silas's stance: held until spent by a shot or broken by a
           // landed single-target hit — not a timed buff.
-          this.addFloatingText(res.target, '🎯 AIMING', '#ffe8a8');
+          this.addFloatingText(res.target, '◎ AIMING', '#ffe8a8');
           this.log(`${res.target.name} settles into Aiming Stance — the next shot strikes double.`, cls);
         } else {
           const label = statLabel[res.stat] || res.stat.toUpperCase();

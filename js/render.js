@@ -605,9 +605,19 @@ class Renderer {
     const named = roomy || unit === this.hoveredUnit ||
       (this.battle && unit === this.battle.activeUnit);
     const label = named
-      ? `${Elements.badge(unit.element)} Lv${unit.level} ${unit.name}`
-      : `${Elements.badge(unit.element)} Lv${unit.level}`;
-    ctx.fillText(label.trim(), x, top - 5);
+      ? `Lv${unit.level} ${unit.name}`
+      : `Lv${unit.level}`;
+    ctx.fillText(label, x, top - 5);
+    // Element mark: a dot in the element's color where the emoji badge
+    // used to sit — the canvas draws its own icons.
+    const elInfo = unit.element && Elements.info(unit.element);
+    if (elInfo) {
+      const r = 2.4 * Math.min(1.6, this.uiScale());
+      ctx.beginPath();
+      ctx.fillStyle = elInfo.color;
+      ctx.arc(x - ctx.measureText(label).width / 2 - r - 4, top - 8.5, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
