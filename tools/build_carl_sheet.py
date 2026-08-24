@@ -33,7 +33,7 @@ def clip(fname, frames, fps):
 
 IMG = {name: clip(f, n, fps) for f, n, fps, name in STRIPS}
 
-html = r'''<title>Carl, Tentpole of the Firetroupe</title>
+html = r'''<title>Carl, Strongman of the Firetroupe</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
   /* A committed single-theme sheet: tent canvas by torchlight. Ochre
@@ -189,7 +189,7 @@ html = r'''<title>Carl, Tentpole of the Firetroupe</title>
     <div class="hero-id">
       <div class="stars">&#x2605;&#x2605;&#x2605;<span class="rank">RARITY 3</span></div>
       <h1>CARL</h1>
-      <div class="title-line">Tentpole of the Firetroupe</div>
+      <div class="title-line">Strongman of the Firetroupe</div>
       <div class="badges">
         <span class="badge fire">Fire</span>
         <span class="badge">Front-line tank</span>
@@ -215,7 +215,7 @@ html = r'''<title>Carl, Tentpole of the Firetroupe</title>
   only asks the enemy to keep doing what they were doing anyway.</p>
   <div class="engine-box">
     <div class="engine-step"><b>Stand there.</b> On the front hex the
-      Tentpole carries <b>+15% max HP</b> before anything happens.</div>
+      Strongman carries <b>+15% max HP</b> before anything happens.</div>
     <div class="engine-arrow">&#x2192;</div>
     <div class="engine-step"><b>Get hit.</b> Iron Appetite converts
       <b>10% of damage received into max HP</b>, up to +50% of his
@@ -258,7 +258,7 @@ html = r'''<title>Carl, Tentpole of the Firetroupe</title>
     </div>
     <div class="ability passive-card">
       <div class="slot">Positional &middot; Front hex</div>
-      <h3>Tentpole</h3>
+      <h3>Strongman</h3>
       <div class="meta">Front row &middot; <b>+15% max HP</b></div>
       <p>The whole show leans on him &#x2014; placed up front, the pole
       stands <b>15% taller</b>, and every swing with it.</p>
