@@ -3244,4 +3244,86 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
     'burning + taunted did not stack');
 });
 
+test("Koe's kit: the remedy, the rope, the wall, and the silent alarm", () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    POSITION: P, CONFIG: C } = w;
+  M.resetBattle();
+  const battle = new B();
+  const koe = new U(H.koe, T.PLAYER, { level: 30, stars: 4 });
+  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const backMate = new U(H.rat_archer, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(koe, battle.playerSlots.findIndex((s) => s.position === P.BACK));
+  battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
+  battle.placeUnit(backMate, battle.playerSlots.findIndex((s, i) =>
+    s.position === P.BACK && !battle.playerSlots[i].unit));
+  battle.placeUnit(foe, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
+  for (const u of [mate, backMate, foe]) {
+    u.hookSources = () => [];
+    u.dodgeChance = () => 0;
+  }
+  foe.hp = foe.maxHp = 10 ** 6;
+
+  // Vanishing Act: +15% dodge from the back hex.
+  assert(Math.abs(koe.dodgeChance() - 0.15) < 1e-9,
+    `the mime dodges at ${koe.dodgeChance()}`);
+
+  // Something From Nothing: 15% of the ALLY's pool, and exactly two
+  // debuffs lifted — oldest first, the third stays.
+  mate.hp = Math.round(mate.maxHp * 0.4);
+  mate.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.75, turns: 2 });
+  mate.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.75, turns: 2 });
+  mate.addStatusEffect({ kind: 'dot', amount: 50, turns: 2, flavor: 'burn', source: foe });
+  const hp0 = mate.hp;
+  A.execute(koe.abilities[0].def, koe, mate, battle);
+  assert(mate.hp - hp0 === Math.round(mate.maxHp * 0.15),
+    `the remedy restored ${mate.hp - hp0}`);
+  const left = mate.statusEffects.filter(
+    (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+  assert(left.length === 1 && left[0].kind === 'dot',
+    'the cleanse did not lift exactly two');
+
+  // Pull the Rope: the FRONT line only — speed up, meter up.
+  mate.statusEffects = [];
+  mate.turnMeter = 0;
+  backMate.turnMeter = 0;
+  const spd0 = mate.effectiveStat('speed');
+  A.execute(koe.abilities[1].def, koe, null, battle);
+  assert(mate.effectiveStat('speed') === Math.round(spd0 * 1.30),
+    'the rope did not quicken the line');
+  assert(mate.turnMeter === 0.20 * C.TURN_METER_MAX,
+    `the rope pulled ${mate.turnMeter} meter`);
+  assert(backMate.turnMeter === 0 &&
+    !backMate.statusEffects.some((fx) => fx.stat === 'speed'),
+    'the rope reached the back row');
+
+  // The Invisible Wall: a Bubble that eats one WHOLE hit.
+  A.execute(koe.abilities[2].def, koe, null, battle);
+  assert(mate.statusEffects.some((fx) => fx.kind === 'bubble'), 'no wall');
+  mate.hp = mate.maxHp;
+  const res = A.strike(foe, mate, 5000);
+  assert(res.amount === 0 && res.bubbled && mate.hp === mate.maxHp,
+    'the wall let the hit through');
+  assert(!mate.statusEffects.some((fx) => fx.kind === 'bubble'),
+    'the wall survived the hit it ate');
+
+  // Silent Alarm: a BURNING attacker's blow is answered with the remedy;
+  // a clean attacker's is not.
+  B.active = battle;
+  try {
+    mate.hp = Math.round(mate.maxHp * 0.4);
+    let before = mate.hp;
+    let dealt = A.strike(foe, mate, 1000).amount;
+    assert(mate.hp === before - dealt, 'the alarm rang for a clean attacker');
+    foe.addStatusEffect({ kind: 'dot', amount: 50, turns: 3, flavor: 'burn', source: koe });
+    before = mate.hp;
+    dealt = A.strike(foe, mate, 1000).amount;
+    assert(mate.hp === before - dealt + Math.round(mate.maxHp * 0.15),
+      `the alarm paid ${mate.hp - before + dealt}`);
+  } finally {
+    B.active = null;
+  }
+});
+
 report();

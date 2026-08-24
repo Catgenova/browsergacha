@@ -768,6 +768,15 @@ class Unit {
         const hook = p.hooks && p.hooks.onStruck;
         if (hook) hook(this, { amount, attacker, battle });
       }
+      // Teammates can answer a blow that landed on this unit (Koe's
+      // Silent Alarm). Fired inside the retaliation guard, so a
+      // reaction can never chain into another reaction.
+      for (const mate of battle.livingUnits(this.team)) {
+        for (const p of mate.hookSources()) {
+          const hook = p.hooks && p.hooks.onAllyStruck;
+          if (hook) hook(mate, { ally: this, amount, attacker, battle });
+        }
+      }
     } finally {
       Unit.retaliating = false;
       Unit.hookOwner = prevOwner;
