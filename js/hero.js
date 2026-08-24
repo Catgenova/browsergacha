@@ -961,6 +961,17 @@ class Unit {
       // strike() books the meter itself; crediting it again here would
       // count every tick twice.
       const burn = fx.flavor === 'burn';
+      // Fire tells the other side something: units opposing the burn
+      // victim may answer each tick (Cleo reads the flames and heals).
+      if (burn && battle) {
+        for (const watcher of battle.livingUnits(
+          this.team === TEAM.PLAYER ? TEAM.ENEMY : TEAM.PLAYER)) {
+          for (const p of watcher.hookSources()) {
+            const hook = p.hooks && p.hooks.onEnemyBurnTick;
+            if (hook) hook(watcher, { victim: this, amount: dealt, battle });
+          }
+        }
+      }
       results.push({
         label: burn ? 'Burn' : 'Poison',
         message: `${this.name} ${burn ? 'burns for' : 'suffers'} ${dealt}` +

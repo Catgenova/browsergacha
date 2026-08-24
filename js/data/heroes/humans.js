@@ -2573,4 +2573,97 @@ Object.assign(HEROES, {
     positional: POSITIONALS.vanishing_act,
   },
 
+  cleo: {
+    id: 'cleo',
+    element: 'fire',
+    name: 'Cleo',
+    title: 'Fortune Teller of the Firetroupe',
+    rarity: 5,
+    // Back-line support who reads the whole fight in her crystal ball:
+    // triage healing that finds the lowest bars on its own, a strip
+    // that tears blessings off the enemy team, and a passive drip that
+    // pays out every single time an enemy burns — the Firetroupe's
+    // burn economy made into a healing engine.
+    stats: { hp: 2050, atk: 155, def: 145, speed: 110 },
+    tint: { body: '#c83a3a', helm: '#8a2a2a', weapon: '#ffb04a', skin: '#e8b898' },
+    sprite: {
+      displayH: 92,
+      // Authored facing left, like the rest of the Firetroupe — flagged,
+      // not mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
+      strips: {
+        idle:  { src: 'assets/heroes/Cleo/cleoidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Cleo/cleoidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Cleo/cleoidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The ball glows gold — a kind reading.
+        attack: { src: 'assets/heroes/Cleo/cleoskill1.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // The flame swirls higher — two fates read at once.
+        skill2: { src: 'assets/heroes/Cleo/cleoskill2.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 5 },
+        // Wisps fly out of the ball and come back with stolen luck.
+        skill3: { src: 'assets/heroes/Cleo/cleoskill3.png', frames: 'auto', fps: 10,
+                  loop: false, hitFrame: 6 },
+        // The ball flares, bursts, and the reading ends.
+        death: { src: 'assets/heroes/Cleo/cleodeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cleo_kind_fortune', name: 'A Kind Fortune',
+        icon: 'assets/icons/fc1051.png',
+        description: 'The ball finds whoever needs it most: heals the ' +
+          'lowest-HP ally for 20% of their max HP.',
+        cooldown: 0, targeting: 'lowest-allies', allyCount: 1, animation: 'attack',
+        effects: [
+          { type: 'healHpPct', targetPct: 0.20 },
+        ],
+      },
+      {
+        id: 'cleo_twin_fates', name: 'Twin Fates',
+        icon: 'assets/icons/fc1052.png',
+        description: 'Two readings at once: heals the 2 lowest-HP allies ' +
+          'for 25% of their max HP each and lifts one debuff from each.',
+        cooldown: 3, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
+        effects: [
+          { type: 'healHpPct', targetPct: 0.25 },
+          { type: 'cleanse', count: 1 },
+        ],
+      },
+      {
+        id: 'cleo_fortunes_reversed', name: 'Fortunes Reversed',
+        icon: 'assets/icons/fc1053.png',
+        description: 'The wisps fly out and come back with stolen luck: ' +
+          'strips one buff from every enemy.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        effects: [
+          { type: 'stripBuffs', count: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Read the Flames',
+      icon: 'assets/icons/fc1063.png',
+      description: 'Every fire tells her something: each time an enemy ' +
+        'takes burn damage, the lowest-HP ally is healed for 5% of ' +
+        'their max HP.',
+      hooks: {
+        onEnemyBurnTick(unit, { battle }) {
+          if (!unit.alive || !battle) return;
+          const low = battle.livingUnits(unit.team)
+            .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+          if (!low || low.hp >= low.maxHp) return;
+          const healed = low.heal(Math.round(low.maxHp * 0.05), unit);
+          if (healed > 0) {
+            battle.addFloatingText(low, `+${healed}`, '#8ae88a');
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.cruel_fortune,
+  },
+
 });

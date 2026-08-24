@@ -508,6 +508,33 @@ const Abilities = (() => {
         target.addStatusEffect({ kind: 'bubble', turns, source: caster });
         return { kind: 'bubble', target, turns };
       }
+      case 'stripBuffs': {
+        // Tear buffs OFF an enemy — the hostile mirror of cleanse:
+        // oldest first, up to `count`. A caster with a stripBurnChance
+        // hook (Cleo's Cruel Fortune) may replace each torn buff with a
+        // 2-turn burn — the roll is the whole gate, like the sect oil.
+        let left = effect.count || 1;
+        let removed = 0;
+        target.statusEffects = target.statusEffects.filter((fx) => {
+          if (fx.kind !== 'buff' || left <= 0) return true;
+          left--; removed++;
+          return false;
+        });
+        if (removed === 0) return { kind: 'stripBuff', target, count: 0 };
+        let burnChance = 0;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.stripBurnChance) burnChance += p.hooks.stripBurnChance;
+        }
+        let burned = 0;
+        for (let i = 0; i < removed; i++) {
+          if (burnChance > 0 && Math.random() < burnChance) {
+            target.addStatusEffect({ kind: 'dot', turns: 2, flavor: 'burn',
+              amount: Math.round(target.maxHp * 0.03), source: caster });
+            burned++;
+          }
+        }
+        return { kind: 'stripBuff', target, count: removed, burned };
+      }
       case 'removeStatus': {
         // Strip every status matching `stat` off the target — Polarus's
         // shatter melting the ice he just profited from.
