@@ -1161,6 +1161,15 @@ body {
   color: #d78aff;
 }
 
+/* Free roster slots readout: quiet until space runs low. */
+#summon-roster-space {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #9a92b8;
+}
+#summon-roster-space.roster-low { color: #e8c84a; }
+#summon-roster-space.roster-full { color: #ff7a6a; font-weight: bold; }
+
 #summon-actions {
   margin-top: 12px;
   display: flex;
