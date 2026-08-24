@@ -2195,4 +2195,91 @@ Object.assign(HEROES, {
     positional: POSITIONALS.vanguard_press,
   },
 
+  slick: {
+    id: 'slick',
+    element: 'fire',
+    name: 'Slick',
+    title: 'Barrel Man of the Firetroupe',
+    rarity: 3,
+    // Center support who deals no damage at all: he is the troupe's
+    // oil supply. His whole kit paints Oilslicked (burns tick twice as
+    // hard) onto the enemy team, and anyone who hits the barrel gets
+    // splashed for their trouble. The art is a living barrel of pitch.
+    stats: { hp: 1800, atk: 110, def: 140, speed: 100 },
+    tint: { body: '#5a3018', helm: '#241418', weapon: '#d8b04a', skin: '#c8863a' },
+    sprite: {
+      displayH: 90,
+      strips: {
+        // The pitch never stops bubbling over the rim.
+        idle:  { src: 'assets/heroes/Slick/slickidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Slick/slickidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Slick/slickidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        // The splash arcs out at the front row mid-strip.
+        attack: { src: 'assets/heroes/Slick/slickskill1.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 6 },
+        skill2: { src: 'assets/heroes/Slick/slickskill2.png', frames: 'auto', fps: 10,
+                  loop: false },
+        // The whole barrel goes over.
+        skill3: { src: 'assets/heroes/Slick/slickskill3.png', frames: 'auto', fps: 12,
+                  loop: false, hitFrame: 6 },
+        death: { src: 'assets/heroes/Slick/slickdeath.png', frames: 'auto', fps: 8,
+                 loop: false, freeze: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'slick_splash_zone', name: 'Splash Zone',
+        icon: 'assets/icons/fc1039.png',
+        description: 'Slop a wave of pitch over the enemy front row, ' +
+          'leaving them Oilslicked for 3 turns — burns tick twice as ' +
+          'hard on an oiled target.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack',
+        effects: [
+          { type: 'debuff', stat: 'oilslicked', turns: 3 },
+        ],
+      },
+      {
+        id: 'slick_fresh_coat', name: 'Fresh Coat',
+        icon: 'assets/icons/fc1040.png',
+        description: 'Slick his own staves with a fresh coat of oil: ' +
+          '+30% SPD and +30% debuff Accuracy for 2 turns.',
+        cooldown: 3, targeting: 'self', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
+          { type: 'buff', stat: 'accuracy', add: 0.30, turns: 2 },
+        ],
+      },
+      {
+        id: 'slick_the_big_spill', name: 'The Big Spill',
+        icon: 'assets/icons/fc1041.png',
+        description: 'Tip the whole barrel: every enemy is Oilslicked ' +
+          'for 3 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        effects: [
+          { type: 'debuff', stat: 'oilslicked', turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Backsplash',
+      icon: 'assets/icons/fc1059.png',
+      description: 'Hit the barrel, wear the barrel: any enemy who ' +
+        'strikes Slick is Oilslicked for 2 turns.',
+      hooks: {
+        onStruck(unit, { attacker, battle }) {
+          if (!attacker || !attacker.alive || attacker.team === unit.team) return;
+          attacker.addStatusEffect({ kind: 'debuff', stat: 'oilslicked', turns: 2, source: unit });
+          if (battle) {
+            battle.addFloatingText(attacker, '≋ OILSLICKED', '#d8b04a');
+            battle.log(`${attacker.name} is splashed on the follow-through — ` +
+              'burns tick twice as hard (2 turns).', 'log-system');
+          }
+        },
+      },
+    },
+    positional: POSITIONALS.center_ring,
+  },
+
 });

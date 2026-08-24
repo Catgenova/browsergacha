@@ -649,6 +649,10 @@ class Battle {
           // Vulnerability mark: more damage taken.
           this.addFloatingText(res.target, 'VULN ▲', '#d78aff');
           this.log(`${res.target.name} is marked vulnerable for ${res.turns} turns.`, cls);
+        } else if (res.stat === 'oilslicked') {
+          this.addFloatingText(res.target, '≋ OILSLICKED', '#d8b04a');
+          this.log(`${res.target.name} is slicked in oil — burns tick ` +
+            `twice as hard (${res.turns} turns).`, cls);
         } else if (res.stat === 'crystalline') {
           // Polarus's mantle: attackers risk freezing on contact.
           this.addFloatingText(res.target, '◈ CRYSTALLINE', '#8ee8ff');
