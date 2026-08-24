@@ -45,38 +45,46 @@ const Events = (() => {
   }
 
   // ---- Summon banners ----
-  // A rotating rate-up: while a banner runs, its sect's heroes draw at
-  // `mult` weight WITHIN whatever star band a pull rolls — the band
-  // rates themselves never move, only the contest inside the band.
+  // Rate-ups: while a banner runs, its sect's heroes draw at `mult`
+  // weight WITHIN whatever star band a pull rolls — the band rates
+  // themselves never move, only the contest inside the band.
+  //
+  // ONE banner per scroll kind, and they can run CONCURRENTLY — each
+  // scroll's elective pull tilts only its own banner's sect. A banner
+  // sect has to be summonable from its scroll's pool (Cryst is
+  // all-water, so it can never ride the light/dark-only Temporal
+  // banner — its home is the Rare scroll).
   //
   // `from`/`until` are [year, monthIndex, day] local midnights; `until`
-  // is exclusive — the day the next banner takes over.
-  // `scroll` is the scroll kind a banner pull spends: the banner is an
-  // ELECTIVE summon — pull on it and the sect draws at 2× weight inside
-  // whatever star band the roll lands; pull the plain scroll instead
-  // and the pool stays flat.
+  // is exclusive. No `until` = the banner runs until further notice.
   const SUMMON_BANNERS = [
+    { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
+      scroll: 'rare', mult: 2, // until further notice
+      label: 'Cryst Sect heroes at 2× draw weight within their star band.' },
     { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence',
       scroll: 'temporal', mult: 2, until: [2026, 7, 30],
-      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 29, then the Court of Cryst takes the banner.' },
-    { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
-      scroll: 'rare', mult: 2, from: [2026, 7, 30],
-      label: 'Cryst Sect heroes at 2× draw weight within their star band.' },
+      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 29.' },
   ];
 
-  function currentBanner(date = new Date()) {
-    for (const b of SUMMON_BANNERS) {
-      if (b.from && date < new Date(...b.from)) continue;
-      if (b.until && date >= new Date(...b.until)) continue;
-      return b;
-    }
-    return null;
+  // Every banner in its window right now.
+  function activeBanners(date = new Date()) {
+    return SUMMON_BANNERS.filter((b) =>
+      !(b.from && date < new Date(...b.from)) &&
+      !(b.until && date >= new Date(...b.until)));
+  }
+
+  // The running banner — for `scroll`, when given; the first one
+  // otherwise (legacy callers that predate concurrent banners).
+  function currentBanner(date = new Date(), scroll = null) {
+    return activeBanners(date).find((b) => !scroll || b.scroll === scroll)
+      || null;
   }
 
   // The draw weight this hero carries in a summon pool today (1 or the
-  // running banner's mult).
-  function bannerWeight(def, date = new Date()) {
-    const b = currentBanner(date);
+  // elected banner's mult). `scroll` names the scroll being pulled so
+  // the weight comes off THAT banner, not whichever runs first.
+  function bannerWeight(def, date = new Date(), scroll = null) {
+    const b = currentBanner(date, scroll);
     if (!b || !def) return 1;
     const sect = typeof RACES !== 'undefined' ? RACES.sectOf(def) : null;
     return sect && sect.id === b.sect ? b.mult : 1;
@@ -131,6 +139,6 @@ const Events = (() => {
 
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
-    SUMMON_BANNERS, currentBanner, bannerWeight, bannerLabel,
+    SUMMON_BANNERS, activeBanners, currentBanner, bannerWeight, bannerLabel,
     LOGIN_WEEK, LOGIN_CAL_WEEKDAY, calendarDayReward, LOGIN_MONTH_MILESTONES };
 })();
