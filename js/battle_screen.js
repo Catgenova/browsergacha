@@ -419,6 +419,17 @@ class BattleScreen {
         nextLabel: 'Next Floor',
       };
     }
+    if (this.attuneFight) {
+      // Elemental boss: same ladder shape as a gear boss — refight the
+      // stage, or climb as far as one past the highest clear.
+      const cleared = GameState.attuneStageCleared(this.attuneFight.element);
+      const next = this.attuneFight.stage + 1;
+      return {
+        retry: true,
+        next: next <= Math.min(Progression.BOSS_MAX_STAGE, cleared + 1),
+        nextLabel: 'Next Stage',
+      };
+    }
     if (!this.bossFight) return {};
     const cleared = GameState.bossStageCleared(this.bossFight.bossId);
     const next = this.bossFight.stage + 1;
