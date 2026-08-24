@@ -461,112 +461,84 @@ class Renderer {
     }
   }
 
-  // What each status looks like on the nameplate. Ordered by how much
-  // the player needs to know about it: control first, then damage over
-  // time, then the buffs and debuffs, then unit-specific resources.
-  static get STATUS_ICONS() {
-    return {
-      taunt:       { glyph: '⚑', color: '#ffd76a', title: 'Taunting',
-                     note: 'enemies must attack this hero' },
-      stun:        { glyph: '✶', color: '#8ee8ff', title: 'Stunned',
-                     note: 'loses its next turn entirely' },
-      dot:         { glyph: '☠', color: '#a8e85a', title: 'Poisoned',
-                     note: 'takes damage at the start of each turn' },
-      burn:        { glyph: '♨', color: '#ff9a5a', title: 'Burning',
-                     note: 'fire eats a share of max HP each turn' },
-      hot:         { glyph: '✚', color: '#7ae87a', title: 'Regenerating',
-                     note: 'heals at the start of each turn' },
-      damageTaken: { glyph: '▼', color: '#d78aff', title: 'Vulnerable',
-                     note: 'taking extra damage' },
-      methane:     { glyph: '☁', color: '#b8e85a', title: 'Methane fog',
-                     note: 'ignites — fire attacks hit double' },
-      oilslicked:  { glyph: '≋', color: '#d8b04a', title: 'Oilslicked',
-                     note: 'burns tick twice as hard on this unit' },
-      taunted:     { glyph: '‼', color: '#ff9a5a', title: 'Taunted',
-                     note: 'must spend its next turn on skill 1 at the taunter' },
-      blocker:     { glyph: '▣', color: '#ffd76a', title: 'Blocker',
-                     note: 'cannot act; absorbs front-row allies’ hits at 25% less' },
-      veil:        { glyph: '≈', color: '#8ee8ff', title: 'Veiled',
-                     note: 'much harder to hit this turn' },
-      slag:        { glyph: '▨', color: '#ff9a5a', title: 'Slag plating',
-                     note: 'hardened armour, stacking' },
-      shield:      { glyph: '▣', color: '#7ae8d8', title: 'Shielded',
-                     note: 'absorbs damage before HP; the pip is what is left' },
-      bubble:      { glyph: '○', color: '#5ec2f0', title: 'Bubbled',
-                     note: 'the next hit pops the bubble harmlessly' },
-      atk:         { glyph: 'A', color: null, title: 'ATK' },
-      def:         { glyph: 'D', color: null, title: 'DEF' },
-      speed:       { glyph: 'S', color: null, title: 'SPD' },
-      critChance:  { glyph: 'C', color: null, title: 'CRIT' },
-      critDamage:  { glyph: 'X', color: null, title: 'CRIT DMG' },
-    };
-  }
-
-  // The distinct pips a unit is currently showing.
-  statusPips(unit) {
-    const ICONS = Renderer.STATUS_ICONS;
+  // The distinct status icons a unit is currently showing, in the
+  // order the effects landed. Stat modifiers split by buff/debuff;
+  // shields and mirrors arrive as one icon with a number beside it.
+  statusIcons(unit) {
     const seen = new Map();
     for (const fx of unit.statusEffects || []) {
-      // Shields are a pool, not a flag: the plate shows what is LEFT of
-      // it, added once below rather than one pip per stack.
+      // Shields are a pool, not a flag: shown once below with what is
+      // LEFT of them, not one icon per stack.
       if (fx.kind === 'shield') continue;
-      // Poisons and regens are keyed by kind (burns by their flavor);
-      // everything else by stat.
-      const key = fx.kind === 'dot'
-        ? (fx.flavor === 'burn' ? 'burn' : 'dot')
-        : fx.kind === 'hot' || fx.kind === 'bubble' ? fx.kind : fx.stat;
-      const icon = ICONS[key];
-      if (!icon) continue;
-      // Buffs read green-ish, debuffs purple, unless the status has a
-      // color of its own (poison, stun...).
-      const buff = fx.kind === 'buff' || fx.kind === 'hot';
-      const color = icon.color || (buff ? '#8ecbff' : '#d78aff');
-      const id = `${key}:${buff}`;
+      let key;
+      if (fx.kind === 'dot') key = fx.flavor === 'burn' ? 'burn' : 'dot';
+      else if (fx.kind === 'hot' || fx.kind === 'bubble') key = fx.kind;
+      else if (fx.stat === 'damageTaken') key = fx.kind === 'buff' ? 'ward' : 'vulnerable';
+      else key = fx.stat;
+      const def = StatusIcons.DEFS[key];
+      if (!def) continue;
+      const variant = (fx.kind === 'buff' || fx.kind === 'hot') ? 'buff' : 'debuff';
+      const id = def.stat ? `${key}:${variant}` : key;
       const prev = seen.get(id);
-      if (prev) { prev.count++; prev.turns = Math.max(prev.turns, fx.turns || 0); continue; }
-      seen.set(id, {
-        glyph: icon.glyph + (icon.color ? '' : (buff ? '▲' : '▼')),
-        color, count: 1, turns: fx.turns || 0,
-      });
+      if (prev) { prev.count++; continue; }
+      seen.set(id, { key, variant, count: 1, label: '' });
     }
     const shield = unit.shieldTotal ? unit.shieldTotal() : 0;
     if (shield > 0) {
       const shown = shield >= 1000 ? `${(shield / 1000).toFixed(1)}k` : String(shield);
-      seen.set('shield', { glyph: `▣${shown}`, color: '#7ae8d8', count: 1, turns: 0 });
+      seen.set('shield', { key: 'shield', variant: 'buff', count: 1, label: shown });
     }
     // Crystal mirrors are a resource, not a status, but they belong on
     // the plate for the same reason: they change what the hit does.
     if (unit.mirrorMax > 0 && unit.mirrors > 0) {
-      seen.set('mirrors', { glyph: `◆${unit.mirrors}`, color: '#8ee8ff', count: 1, turns: 0 });
+      seen.set('mirrors', { key: 'mirrors', variant: 'buff', count: 1,
+        label: String(unit.mirrors) });
     }
     return [...seen.values()];
   }
 
-  statusRowH(unit) {
-    return this.statusPips(unit).length > 0 ? 9 : 0;
+  statusRowH() {
+    return Math.round(11 * Math.min(1.5, this.uiScale())) + 2;
   }
 
-  drawStatusPips(unit, x, top, w) {
-    const pips = this.statusPips(unit);
-    if (pips.length === 0) return;
+  // The icon row, laid out centered above the health bar.
+  drawStatusIcons(unit, x, top, w) {
+    const icons = this.statusIcons(unit);
+    if (icons.length === 0) return false;
     const { ctx } = this;
+    const s = this.statusRowH() - 2;
     ctx.save();
-    ctx.font = this.uiFont(8);
-    ctx.textBaseline = 'top';
+    ctx.font = this.uiFont(7, 'bold ');
     ctx.textAlign = 'left';
-    // Lay the row out centered on the bar.
-    const labels = pips.map((p) => p.glyph + (p.count > 1 ? `x${p.count}` : ''));
-    const widths = labels.map((l) => ctx.measureText(l).width + 4);
-    const totalW = widths.reduce((a, b) => a + b, 0);
-    let cx = x - Math.min(totalW, w * 1.6) / 2;
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
-    ctx.shadowBlur = 3;
-    pips.forEach((p, i) => {
-      ctx.fillStyle = p.color;
-      ctx.fillText(labels[i], cx, top);
+    ctx.textBaseline = 'alphabetic';
+    const widths = icons.map((ic) =>
+      s + 1 + (ic.label ? ctx.measureText(ic.label).width + 2 : 0));
+    const totalW = widths.reduce((a, b) => a + b, 0) - 1;
+    let cx = x - Math.min(totalW, w * 1.8) / 2;
+    for (let i = 0; i < icons.length; i++) {
+      const ic = icons[i];
+      const cv = StatusIcons.canvas(ic.key, ic.variant, s);
+      if (cv) ctx.drawImage(cv, Math.round(cx), Math.round(top));
+      // Stack count, tucked into the plate corner.
+      if (ic.count > 1) {
+        ctx.shadowColor = 'rgba(0,0,0,0.95)';
+        ctx.shadowBlur = 2;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(String(ic.count), cx + s - 4, top + s - 1);
+        ctx.shadowBlur = 0;
+      }
+      // Shield / mirror amounts read beside their icon.
+      if (ic.label) {
+        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+        ctx.shadowBlur = 3;
+        ctx.fillStyle = '#7ae8d8';
+        ctx.fillText(ic.label, cx + s + 2, top + s - 2);
+        ctx.shadowBlur = 0;
+      }
       cx += widths[i];
-    });
+    }
     ctx.restore();
+    return true;
   }
 
   // spriteTop: the y of the unit sprite's top edge; bars stack above it.
@@ -577,6 +549,14 @@ class Renderer {
     const h = Math.round(CONFIG.BAR_H * this.uiScale());
     const top = spriteTop - 16;
 
+    // Status icons: what's actually on this unit right now (stuns,
+    // poisons, buffs, wards, Aniani's mirrors), drawn as pictograph
+    // plates in a row directly above the health bar. The name slides up
+    // to make room whenever the row is showing.
+    const rowH = this.statusRowH();
+    const hasIcons = this.drawStatusIcons(unit, x, top - rowH, w);
+    const nameY = hasIcons ? top - rowH - 4 : top - 5;
+
     // Health bar
     const hpFrac = unit.hp / unit.maxHp;
     ctx.fillStyle = '#0e0c14';
@@ -586,13 +566,8 @@ class Renderer {
     ctx.fillStyle = hpFrac > 0.5 ? '#4ad46a' : hpFrac > 0.25 ? '#e8c84a' : '#e85a4a';
     ctx.fillRect(x - w / 2, top, w * hpFrac, h);
 
-    // Status pips: what's actually on this unit right now (stuns,
-    // poisons, buffs, wards, Aniani's mirrors). Sits between the health
-    // and turn-meter bars so it reads as part of the nameplate.
-    this.drawStatusPips(unit, x, top + h + 2, w);
-
     // Turn meter bar
-    const tmTop = top + h + 2 + (this.statusRowH(unit) || 0);
+    const tmTop = top + h + 2;
     const tmFrac = Math.min(1, unit.turnMeter / CONFIG.TURN_METER_MAX);
     ctx.fillStyle = '#0e0c14';
     ctx.fillRect(x - w / 2 - 1, tmTop - 1, w + 2, h - 1 + 2);
@@ -617,7 +592,7 @@ class Renderer {
     const label = named
       ? `Lv${unit.level} ${unit.name}`
       : `Lv${unit.level}`;
-    ctx.fillText(label, x, top - 5);
+    ctx.fillText(label, x, nameY);
     // Element mark: a dot in the element's color where the emoji badge
     // used to sit — the canvas draws its own icons.
     const elInfo = unit.element && Elements.info(unit.element);
@@ -625,7 +600,7 @@ class Renderer {
       const r = 2.4 * Math.min(1.6, this.uiScale());
       ctx.beginPath();
       ctx.fillStyle = elInfo.color;
-      ctx.arc(x - ctx.measureText(label).width / 2 - r - 4, top - 8.5, r, 0, Math.PI * 2);
+      ctx.arc(x - ctx.measureText(label).width / 2 - r - 4, nameY - 3.5, r, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

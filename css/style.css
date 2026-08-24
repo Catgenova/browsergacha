@@ -1743,6 +1743,7 @@ body {
   font-size: 11px;
 }
 .legend-glyph { min-width: 58px; font-weight: bold; }
+.legend-icon { image-rendering: pixelated; vertical-align: -4px; margin-right: 3px; }
 .legend-name { min-width: 108px; color: #e8e4d8; }
 .legend-note { color: #9a92b8; }
 
