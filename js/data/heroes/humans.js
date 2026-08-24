@@ -1947,11 +1947,13 @@ Object.assign(HEROES, {
     id: 'franz',
     element: 'fire',
     name: 'Franz',
-    title: 'Strongman of the Firetroupe',
+    title: 'Juggler of the Firetroupe',
     rarity: 4,
-    // Front-line bruiser whose every swing scales off his OWN max HP —
+    // Front-line bruiser whose every throw scales off his OWN max HP —
     // the ATK line is stage dressing; the HP line IS the weapon. Hurt
-    // him and he hits harder still (Showman's Blood).
+    // him and he throws harder still (Showman's Blood). The art is a
+    // big juggler in showman's stripes: weights, a wheel, and a finale
+    // of flaming juggling balls.
     stats: { hp: 2100, atk: 130, def: 135, speed: 98 },
     tint: { body: '#6a2a1a', helm: '#e8a83a', weapon: '#c8c2cc', skin: '#e8b088' },
     // frames: 'auto' — the def is wired ahead of the spritesheets; the
@@ -1965,13 +1967,16 @@ Object.assign(HEROES, {
                  variantOf: 'idle', every: [8, 15] },
         idle3: { src: 'assets/heroes/Franz/franzidle2.png', frames: 'auto', fps: 7, loop: false,
                  variantOf: 'idle', every: [8, 15] },
+        // The weight leaves his hand around frame 7.
         attack: { src: 'assets/heroes/Franz/franzskill1.png', frames: 'auto', fps: 12,
-                  loop: false, hitFrame: 6 },
+                  loop: false, hitFrame: 7 },
+        // The wheel is raised mid-strip and released at frame 7.
         skill2: { src: 'assets/heroes/Franz/franzskill2.png', frames: 'auto', fps: 11,
-                  loop: false, hitFrame: 6 },
-        // The finisher runs 14 frames — the collapse lands late.
+                  loop: false, hitFrame: 7 },
+        // 14 frames: the juggle ignites around frame 8 and the burning
+        // volley flies on the final beats.
         skill3: { src: 'assets/heroes/Franz/franzskill3.png', frames: 'auto', fps: 12,
-                  loop: false, hitFrame: 11 },
+                  loop: false, hitFrame: 12 },
         death: { src: 'assets/heroes/Franz/franzdeath.png', frames: 'auto', fps: 7,
                  loop: false, freeze: true },
       },
@@ -1980,29 +1985,29 @@ Object.assign(HEROES, {
       {
         id: 'franz_bonk', name: 'Bonk',
         icon: 'assets/icons/fc1030.png',
-        description: 'Bring the hammer down on one enemy for 20% of ' +
-          "Franz's own max HP as damage.",
-        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        description: 'Hurl a juggling weight square off one enemy\'s ' +
+          "head for 20% of Franz's own max HP as damage.",
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
         ],
       },
       {
-        id: 'franz_row_flattener', name: 'Row Flattener',
+        id: 'franz_wagon_wheel', name: 'Wagon Wheel',
         icon: 'assets/icons/fc1031.png',
-        description: 'Sweep the enemy front row for 20% of his own max ' +
-          'HP as damage to each.',
-        cooldown: 3, targeting: 'front-enemies', animation: 'skill2', impact: 'slash',
+        description: 'Send a wagon wheel rolling through the enemy ' +
+          'front row for 20% of his own max HP as damage to each.',
+        cooldown: 3, targeting: 'front-enemies', animation: 'skill2', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
         ],
       },
       {
-        id: 'franz_tent_collapse', name: 'Tent Collapse',
+        id: 'franz_flaming_finale', name: 'Flaming Finale',
         icon: 'assets/icons/fc1032.png',
-        description: 'Bring the whole show down: 15% of his own max HP ' +
-          'as damage to the entire enemy team.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
+        description: 'Set the juggle alight and pelt the entire enemy ' +
+          'team with burning weights for 15% of his own max HP each.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'strike',
         effects: [
           { type: 'damageHp', mult: 0.15 },
         ],
@@ -2012,7 +2017,7 @@ Object.assign(HEROES, {
       name: "Showman's Blood",
       icon: 'assets/icons/fc1056.png',
       description: 'Deals up to 30% extra damage in proportion to his ' +
-        'missing health — the crowd loves a wounded strongman.',
+        'missing health — the crowd loves a wounded showman.',
       hooks: {
         damageDealtMult(unit) {
           return 1 + 0.30 * (1 - unit.hp / unit.maxHp);
