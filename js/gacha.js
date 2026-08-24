@@ -18,6 +18,7 @@
 const Gacha = (() => {
   const PITY_LIMIT = 100;
   const BANNER_PITY_EVERY = 50;
+  const WISHLIST_MULT = 2; // wishlisted heroes' weight in plain pulls
 
   const RATES = {
     common: [
@@ -69,11 +70,22 @@ const Gacha = (() => {
   // player actually elected (`true` falls back to the first running
   // banner, for callers that predate concurrency).
   function weightedDraw(pool, banner, date) {
-    if (!banner || typeof Events === 'undefined' || !Events.bannerWeight) {
+    // Two tilts, never stacked: an elective banner pull runs the
+    // banner's sect weighting; a PLAIN pull runs the player's wishlist
+    // (up to three characters at double weight inside the rolled band).
+    let weights = null;
+    if (banner && typeof Events !== 'undefined' && Events.bannerWeight) {
+      const scroll = typeof banner === 'string' ? banner : null;
+      weights = pool.map((h) => Events.bannerWeight(h, date, scroll));
+    } else if (!banner && typeof GameState !== 'undefined' && GameState.wishlist) {
+      const wish = new Set(GameState.wishlist());
+      if (wish.size > 0) {
+        weights = pool.map((h) => (wish.has(h.id) ? WISHLIST_MULT : 1));
+      }
+    }
+    if (!weights || weights.every((w) => w === 1)) {
       return pool[Math.floor(Math.random() * pool.length)];
     }
-    const scroll = typeof banner === 'string' ? banner : null;
-    const weights = pool.map((h) => Events.bannerWeight(h, date, scroll));
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
     for (let i = 0; i < pool.length; i++) {
@@ -192,5 +204,5 @@ const Gacha = (() => {
   }
 
   return { pull, pickHero, PITY_LIMIT, RATES,
-    BANNER_PITY_EVERY, bannerPityInfo };
+    BANNER_PITY_EVERY, bannerPityInfo, WISHLIST_MULT };
 })();

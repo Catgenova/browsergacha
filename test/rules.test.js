@@ -1982,6 +1982,57 @@ test('pity ladders: plain rare breaks at 100, banner pity claims the featured st
   assert(G.bannerPity(banner.id).count === 49, 'a spent pity kept counting');
 });
 
+test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const pool3 = Object.values(w.HEROES).filter((h) =>
+    h.rarity === 3 && ['water', 'fire', 'wind'].includes(h.element));
+  // Sectless picks, so the running Cryst banner can't muddy the
+  // banners-unaffected check below.
+  const picks = pool3.filter((h) => !w.RACES.sectOf(h)).slice(0, 4);
+
+  // Three slots, toggling on and off.
+  assert(G.toggleWishlist(picks[0].id).on && G.toggleWishlist(picks[1].id).on &&
+    G.toggleWishlist(picks[2].id).on, 'wishing failed');
+  assert(G.toggleWishlist(picks[3].id).error === 'full', 'a fourth slot opened');
+  assert(G.toggleWishlist(picks[2].id).on === false && G.wishlist().length === 2,
+    'toggle-off failed');
+  G.toggleWishlist(picks[2].id);
+  assert(G.isWishlisted(picks[0].id) && !G.isWishlisted(picks[3].id),
+    'membership reads wrong');
+
+  // Plain 3★ draws land on wishlisted characters at ~2x their
+  // per-capita share; the band itself never moved.
+  const wish = new Set(G.wishlist());
+  const draws = 6000;
+  let hits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = w.Gacha.pickHero(3, ['water', 'fire', 'wind'], false);
+    if (wish.has(def.id)) hits++;
+  }
+  const flat = 3 / pool3.length;
+  const tilted = 6 / (pool3.length + 3);
+  const seen = hits / draws;
+  assert(seen > flat * 1.4 && seen < tilted * 1.35,
+    `wishlist share ${seen.toFixed(4)} vs flat ${flat.toFixed(4)} / tilted ${tilted.toFixed(4)}`);
+
+  // A banner pull runs the banner's tilt, not the wishlist's: the
+  // wishlisted trio (none of them Cryst) stays at or below flat share.
+  assert(picks.slice(0, 3).every((h) => {
+    const s = w.RACES.sectOf(h);
+    return !s || s.id !== 'cryst';
+  }), 'test picks collide with the running banner sect');
+  let bHits = 0;
+  for (let i = 0; i < draws; i++) {
+    const def = w.Gacha.pickHero(3, null, 'rare');
+    if (wish.has(def.id)) bHits++;
+  }
+  const all3 = Object.values(w.HEROES).filter((h) => h.rarity === 3).length;
+  const bFlat = 3 / all3;
+  assert(bHits / draws < bFlat * 1.35,
+    `banner pulls honored the wishlist (${(bHits / draws).toFixed(4)} vs flat ${bFlat.toFixed(4)})`);
+});
+
 test('login bonuses: two separate claims, a real calendar, catch-up buys days', () => {
   const w = loadGame();
   const G = w.GameState;
