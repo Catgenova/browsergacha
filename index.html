@@ -3,8 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#14121a" />
   <title>Browser Gacha — Hero Battler</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
   <link rel="stylesheet" href="css/style.css?v=__BUILD__" />
+  <script>
+    // Installable app shell: registered only over https (the deployed
+    // site), so local dev and test servers never fight a cached build.
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', () =>
+        navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
 </head>
 <body>
   <div id="game-root">
