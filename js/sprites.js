@@ -567,8 +567,16 @@ const Sprites = (() => {
   // (idle + action strips — wind-ups mislead, strikes don't): the
   // species packs and most named heroes are authored facing right;
   // the left-authored defs carry sprite.faceLeft explicitly.
-  function facesLeft(def) {
-    return !!(def && def.sprite && def.sprite.faceLeft);
+  // `anim` narrows the question to one strip: a sheet where a single
+  // animation was authored the other way round (Lin's skill3 plants the
+  // ball to the right while the rest of her kit faces left) carries
+  // faceLeft on that strip, overriding the sheet-wide flag.
+  function facesLeft(def, anim) {
+    const sp = def && def.sprite;
+    if (!sp) return false;
+    const strip = anim && sp.strips && sp.strips[anim];
+    if (strip && strip.faceLeft !== undefined) return !!strip.faceLeft;
+    return !!sp.faceLeft;
   }
 
   // Portrait bitmaps, rendered once per hero and reused. The roster
