@@ -89,6 +89,10 @@ class Unit {
     // applyParty) and shields off every blow dealt.
     this.synergyStartShield = 0;
     this.synergyShieldOnDeal = 0;
+    // Cryst sect pack: one free freeze attempt as the battle opens
+    // (fired by the battle screen) and a flat bonus on freeze rolls.
+    this.synergyOpeningFreeze = 0;
+    this.synergyFreezeChance = 0;
 
     // Crystal mirrors (Echo): charges that halve incoming hits, breaking
     // one per hit. Sprite variants per count live in unit.mirrorSheets.

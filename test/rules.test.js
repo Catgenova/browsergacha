@@ -2410,6 +2410,50 @@ test('the Reverence sect set: a DEF floor, an opening shield, shields off every 
   });
 });
 
+test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls', () => {
+  const tiers = RACES.SECT_BONUSES.cryst;
+  assert(tiers.length === 3 && tiers[0].mods.atkPct === 0.10 &&
+    tiers[1].mods.openingFreeze === 1 && tiers[2].mods.freezeChance === 0.15,
+    'the Cryst table drifted');
+
+  const battle = makeBattle();
+  const members = ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit'];
+  const units = members.map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
+  const atkBefore = units.map((u) => u.baseAtk);
+  const entry = RACES.applyParty(units).find((s) => s.title === 'Cryst sect');
+  assert(entry && entry.count === 7 && entry.labels.length === 3,
+    `sect pack read ${JSON.stringify(entry)}`);
+  units.forEach((u, i) => {
+    assert(u.baseAtk === Math.round(atkBefore[i] * 1.10), 'the ATK floor was not paid');
+    assert(u.synergyOpeningFreeze === 1, 'no opening freeze armed');
+    assert(Math.abs(u.synergyFreezeChance - 0.15) < 1e-9, 'freeze rolls no colder');
+  });
+
+  // The 7pc bonus makes an 85% freeze roll a certainty (0.85 + 0.15):
+  // a hundred casts must all pass the chance gate (frozen or resisted,
+  // never a silent miss).
+  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const caster = units[4]; // Ari
+  for (let i = 0; i < 100; i++) {
+    foe.statusEffects = [];
+    const r = Abilities.applyEffect(
+      { type: 'freeze', chance: 0.85, turns: 2 }, caster, foe);
+    assert(r !== null, `cast ${i + 1} missed a guaranteed freeze roll`);
+  }
+
+  // Three fielded: the ATK tier alone.
+  const b2 = makeBattle();
+  const trio = ['florence', 'ari', 'cain'].map((id, i) => place(b2, HEROES[id], TEAM.PLAYER, i));
+  const atks = trio.map((u) => u.baseAtk);
+  const e2 = RACES.applyParty(trio).find((s) => s.title === 'Cryst sect');
+  assert(e2 && e2.labels.length === 1, 'three members should pay one tier');
+  trio.forEach((u, i) => {
+    assert(u.baseAtk === Math.round(atks[i] * 1.10), 'trio ATK off');
+    assert(u.synergyOpeningFreeze === 0 && u.synergyFreezeChance === 0,
+      'higher tiers paid early');
+  });
+});
+
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;

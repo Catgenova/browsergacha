@@ -129,7 +129,7 @@ const Abilities = (() => {
     if (!Unit.retaliating && dealt > 0 && caster.alive &&
         caster.team !== target.team &&
         target.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'crystalline') &&
-        Math.random() < 0.30) {
+        Math.random() < 0.30 + (target.synergyFreezeChance || 0)) {
       Unit.retaliating = true;
       try {
         const r = freeze(target, caster);
@@ -390,9 +390,11 @@ const Abilities = (() => {
         return { kind: effect.type, target, stat: effect.stat, turns };
       }
       case 'freeze': {
-        // `chance` gates the roll (default always); resistance applies
-        // like any debuff inside freeze() itself.
-        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+        // `chance` gates the roll (default always); the Cryst sect pack
+        // sharpens every freeze roll; resistance applies like any
+        // debuff inside freeze() itself.
+        if (effect.chance !== undefined &&
+            Math.random() >= effect.chance + (caster.synergyFreezeChance || 0)) {
           return null; // no trigger, no log noise
         }
         return freeze(caster, target, effect.turns || 2);
@@ -664,5 +666,6 @@ const Abilities = (() => {
   // through the same pipeline instead of calling takeDamage directly,
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
-  return { execute, resolveTargets, damageFormula, strike, freeze, sideOf, needsTarget };
+  return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
+    sideOf, needsTarget };
 })();
