@@ -25,6 +25,9 @@ class BattleScreen {
       } else if (this.dungeonFight) {
         this.requestBattle('dungeon');
         this.enter();
+      } else if (this.riftFight) {
+        this.requestBattle('worldrift');
+        this.enter();
       } else {
         this.launchBossStage(this.bossFight ? this.bossFight.stage : 1);
       }
@@ -243,6 +246,11 @@ class BattleScreen {
           ? `${this.bossFight.name}, stage ${this.bossFight.stage}`
         : this.towerFight
           ? `Endless Tower, floor ${this.towerFight.floor}`
+        : this.riftFight
+          ? (() => {
+            const info = Elements.info(this.riftFight.element);
+            return `World Rift — ${info ? info.name : this.riftFight.element} week`;
+          })()
           : `${CONFIG.LOCATION_NAMES[GameState.waveSettings.location] || 'Hunt'}` +
             ` — stage ${GameState.waveSettings.stage}`;
     this.lastResult = {
@@ -421,6 +429,30 @@ class BattleScreen {
     };
   }
 
+  // The World Rift never falls — when the run ends, by clock or by
+  // wipe, the damage total IS the result: record it, pay whatever
+  // milestones the new weekly best crossed, and say so.
+  endWorldRift(winner) {
+    const score = Meter.rows('damage', 'battle').total;
+    const r = GameState.recordWorldRift(score);
+    const sub = [
+      `Damage dealt: ${r.score.toLocaleString()}.`,
+      r.newBest
+        ? `A new weekly best${r.prevBest ? ` (was ${r.prevBest.toLocaleString()})` : ''}!`
+        : `The weekly best stands at ${r.best.toLocaleString()}.`,
+      ...r.crossed.map((m) =>
+        `Milestone ${m.score.toLocaleString()} reached — ${m.label}!`),
+    ];
+    if (winner !== TEAM.PLAYER) {
+      sub.unshift('Your team was wiped out — the score still counts.');
+    }
+    this.cancelChain();
+    this.recordResult(winner, sub);
+    this.ui.showBanner(winner, sub.join('<br>'),
+      { retry: true, title: 'RIFT CLOSED' });
+    if (this.app.active !== this) this.finishedUnseen = true;
+  }
+
   // Start a boss fight at a specific stage (banner Retry / Next Stage).
   launchBossStage(stage) {
     GameState.setBossSettings({ stage });
@@ -568,8 +600,9 @@ class BattleScreen {
     const campNode = mode === 'campaign' ? Campaign.node(this.campaignNodeId) : null;
     if (mode === 'campaign' && !campNode) mode = 'wave';
 
-    // Cleared once for every mode; only the dungeon branch sets it.
+    // Cleared once for every mode; only their own branches set these.
     this.dungeonFight = null;
+    this.riftFight = null;
 
     let bgPin = null;
     if (mode === 'campaign') {
@@ -731,6 +764,29 @@ class BattleScreen {
         this.rewardArcana = 1 + Math.floor(totalLevels / 15);
         this.introLog = `Tower floor ${floor} — enemies at Lv ~${level}.`;
       }
+    } else if (mode === 'worldrift') {
+      // The World Rift: a weekly damage race. This week's elemental
+      // beast, unkillable on purpose, on the battle's turn clock — the
+      // score is the damage dealt when the rift closes (endWorldRift).
+      this.campaignFight = null;
+      this.bossFight = null;
+      this.attuneFight = null;
+      this.towerFight = null;
+      const element = Events.worldRiftElement();
+      const def = ELEMENTAL_BOSSES[element] || ELEMENTAL_BOSSES.fire;
+      const level = Events.WORLD_RIFT.level;
+      const beast = new Unit(def, TEAM.ENEMY, { level, stars: def.rarity || 5 });
+      beast.maxHp = beast.hp = 10 ** 9; // the rift does not fall; it closes
+      battle.placeUnit(beast, 0);
+      battle.turnLimit = Events.WORLD_RIFT.turns;
+      this.riftFight = { element, week: Events.worldRiftWeekKey() };
+      // The race pays through its milestones, not per-fight loot.
+      this.rewardXp = 0;
+      this.rewardWhetstones = 0;
+      this.rewardArcana = 0;
+      bgPin = def.background || null;
+      this.introLog = `The World Rift tears open — ${def.name} looms beyond! ` +
+        `${Events.WORLD_RIFT.turns} turns before it closes. Deal everything you can!`;
     } else {
       // Hunt: the player picks a location (backdrop) and a stage that
       // sets enemy levels (stage N -> level ~5N), independent of the
@@ -798,7 +854,7 @@ class BattleScreen {
     // tight action-band crop would behead, so they flag the wrap and
     // the CSS opens the band upward. Hero-sized fights stay tight.
     const bigBoss = !!(this.bossFight || this.dungeonFight || this.attuneFight ||
-      (this.towerFight && this.towerFight.isBossFloor) ||
+      this.riftFight || (this.towerFight && this.towerFight.isBossFloor) ||
       (campNode && campNode.type === 'boss'));
     const wrapEl = document.getElementById('battle-wrap');
     if (wrapEl) wrapEl.classList.toggle('boss-arena', bigBoss);
@@ -811,6 +867,12 @@ class BattleScreen {
     battle.onAutoTakeover = () => this.ui.hideAbilityBar();
 
     battle.onBattleEnd = (winner) => {
+      // The World Rift is a race, not a hunt: no loot table, no chain —
+      // the run's damage total is the whole result.
+      if (this.riftFight) {
+        this.endWorldRift(winner);
+        return;
+      }
       if (winner === TEAM.PLAYER) {
         // The whole party earns XP, fallen members included.
         const levelUps = [];

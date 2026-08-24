@@ -2005,6 +2005,48 @@ test('auto star up: higher targets forge further up the ladder', () => {
   assert(fours() > before, 'no new 4-star hero was forged');
 });
 
+test('the World Rift: weekly rotation, score ledger, milestones pay once', () => {
+  const w = loadGame();
+  const E = w.Events, G = w.GameState;
+
+  // The element rotates weekly and holds steady inside a week
+  // (2026-08-24 is a Monday; the 30th is that week's Sunday).
+  const els = [0, 1, 2, 3, 4].map((k) =>
+    E.worldRiftElement(new Date(2026, 7, 24 + 7 * k)));
+  assert(new Set(els).size === 5, `five weeks drew ${new Set(els).size} elements`);
+  assert(E.worldRiftElement(new Date(2026, 7, 24, 1)) ===
+    E.worldRiftElement(new Date(2026, 7, 30, 23)), 'the element changed mid-week');
+  assert(E.worldRiftWeekKey(new Date(2026, 7, 24)) !==
+    E.worldRiftWeekKey(new Date(2026, 7, 31)), 'two weeks shared a ledger key');
+
+  // First run: best recorded, the 25k and 60k milestones pay together.
+  const before = { whet: G.whetstones, arcana: G.arcana, rare: G.scrollsRare,
+    temporal: G.scrollsTemporal, dia: G.diamonds };
+  const r1 = G.recordWorldRift(70000);
+  assert(r1.newBest && r1.best === 70000 && r1.crossed.length === 2,
+    `first run reported ${JSON.stringify({ best: r1.best, crossed: r1.crossed.length })}`);
+  assert(G.whetstones === before.whet + 30 && G.arcana === before.arcana + 10 &&
+    G.scrollsRare === before.rare + 1 && G.diamonds === before.dia + 100,
+    'the crossed milestones paid wrong');
+
+  // A worse run neither moves the best nor re-pays anything.
+  const r2 = G.recordWorldRift(50000);
+  assert(!r2.newBest && r2.best === 70000 && r2.crossed.length === 0,
+    'a worse run moved the ledger');
+
+  // A better run pays exactly the newly crossed marks — including the
+  // week-element large elements at 120k.
+  const el = E.worldRiftElement();
+  const largeBefore = G.elementsOf(el).large;
+  const r3 = G.recordWorldRift(260000);
+  assert(r3.newBest && r3.crossed.length === 2,
+    `the better run crossed ${r3.crossed.length} marks`);
+  assert(G.elementsOf(el).large === largeBefore + 5, 'the element milestone unpaid');
+  assert(G.scrollsTemporal === before.temporal + 1, 'the 250k temporal unpaid');
+  assert(G.worldRiftInfo().best === 260000 &&
+    G.worldRiftInfo().claimed.length === 4, 'the ledger read back wrong');
+});
+
 test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
   const w = loadGame();
   const G = w.GameState;

@@ -62,7 +62,8 @@ class BattleSelect {
       // no challengers -- same rule the old picker enforced.
       if (this.mode === 'boss' && !Campaign.bossUnlocked(GameState.bossSettings.boss)) return;
       const battleMode = {
-        hunt: 'wave', boss: 'boss', rift: 'attune', dungeon: 'dungeon', tower: 'tower',
+        hunt: 'wave', boss: 'boss', rift: 'attune', dungeon: 'dungeon',
+        tower: 'tower', worldrift: 'worldrift',
       }[this.mode];
       this.app.screens.battle.requestBattle(battleMode);
       this.app.showScreen('battle');
@@ -120,6 +121,11 @@ class BattleSelect {
         runsLeft: GameState.dungeonRunsLeft(def.id),
       };
     }
+    if (this.mode === 'worldrift') {
+      const element = Events.worldRiftElement();
+      return { element, def: ELEMENTAL_BOSSES[element] || ELEMENTAL_BOSSES.fire,
+        info: GameState.worldRiftInfo() };
+    }
     return { next: GameState.towerBest + 1 };
   }
 
@@ -148,6 +154,7 @@ class BattleSelect {
       { id: 'rift', label: 'Elemental Rift' },
       { id: 'dungeon', label: 'Dungeon' },
       { id: 'tower', label: 'Tower' },
+      { id: 'worldrift', label: 'World Rift' },
     ];
     return modes.map((m) =>
       `<button class="bs-mode${m.id === this.mode ? ' active' : ''}"
@@ -177,6 +184,15 @@ class BattleSelect {
           ${word} ${st} <span class="bs-lv">Lv ${Progression.bossLevel(st)}</span>
           ${st <= cur.cleared ? '<span class="bs-mark">✓</span>'
             : locked ? '<span class="bs-mark">🔒</span>' : ''}</button>`);
+      }
+    } else if (this.mode === 'worldrift') {
+      // The milestone ladder IS the stage list: nothing to pick, just
+      // how far this week's best has climbed.
+      for (const m of Events.WORLD_RIFT_MILESTONES) {
+        const paid = cur.info.claimed.includes(m.score);
+        rows.push(`<button class="bs-stage${paid ? ' cleared' : ' locked'}" disabled>
+          ${m.score.toLocaleString()} dmg <span class="bs-lv">${m.label}</span>
+          ${paid ? '<span class="bs-mark">✓</span>' : ''}</button>`);
       }
     } else {
       // Tower: the last twenty floors greyed out (the climb never goes
@@ -315,6 +331,29 @@ class BattleSelect {
             ${Quests.formatCountdown(Quests.timeToReset('daily'))}.`}</div>`;
         })() : ''}`;
     }
+    if (this.mode === 'worldrift') {
+      const def = cur.def;
+      const elInfo = Elements.info(cur.element);
+      const best = cur.info.best;
+      return `
+        <div class="bs-title">${Elements.badge(cur.element)} World Rift
+          — ${def.name}
+          <span class="bs-stagechip">Lv ${Events.WORLD_RIFT.level}
+            · ${Events.WORLD_RIFT.turns} turns</span></div>
+        <div class="bs-line">A weekly damage race. The rift beast cannot
+          be slain — deal everything you can before the rift closes; the
+          damage meter is the score. Runs are free and unlimited, and a
+          wipe still counts its damage.</div>
+        <div class="bs-sub">This week</div>
+        <div class="bs-line">${elInfo ? elInfo.name : cur.element} holds
+          the rift — the element rotates every Monday.</div>
+        <div class="bs-sub">Your weekly best</div>
+        <div class="bs-line"><b>${best.toLocaleString()}</b> damage${best
+          ? '' : ' — no run yet this week'}.</div>
+        <div class="bs-sub">Milestones</div>
+        <div class="bs-line">Each mark on the ladder pays once per week,
+          the moment your best crosses it.</div>`;
+    }
     const next = cur.next;
     const lv = Math.max(2, Math.ceil(next * 1.5));
     return `
@@ -333,10 +372,12 @@ class BattleSelect {
     const size = GameState.teamSize();
     const bossLocked = this.mode === 'boss' && !Campaign.bossUnlocked(cur.boss);
     const spent = this.mode === 'dungeon' && cur.runsLeft <= 0;
-    const labels = { hunt: 'Fight!', boss: 'Boss!', rift: 'Attune!', dungeon: 'Delve!', tower: 'Climb!' };
-    // Repeats only for cleared content; the tower chains on its own.
+    const labels = { hunt: 'Fight!', boss: 'Boss!', rift: 'Attune!',
+      dungeon: 'Delve!', tower: 'Climb!', worldrift: 'Assault!' };
+    // Repeats only for cleared content; the tower chains on its own and
+    // the World Rift is one run at a time.
     let repeat = '';
-    if (this.mode !== 'tower') {
+    if (this.mode !== 'tower' && this.mode !== 'worldrift') {
       const uncleared = (this.mode !== 'hunt') && cur.stage > cur.cleared;
       const val = this.mode === 'hunt' ? GameState.waveSettings.repeat
         : this.mode === 'boss' ? GameState.bossSettings.repeat
