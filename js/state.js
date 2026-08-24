@@ -567,6 +567,13 @@ const GameState = (() => {
       // The blessing roll: this COPY may arrive Blessed or Godtouched.
       const blessing = typeof Blessing !== 'undefined' ? Blessing.roll() : null;
       if (blessing) entry.blessing = blessing;
+      // Keepers pin themselves: a 5★, a Dark/Light 4★, or any blessed
+      // copy arrives favourited — top of the roster, safe from fodder.
+      const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
+      if (blessing || (def && (def.rarity >= 5 ||
+          (def.rarity === 4 && ['light', 'dark'].includes(def.element))))) {
+        entry.favorite = true;
+      }
       state.roster[uid] = entry;
       // NEW! means new to the COLLECTION, not to the current roster: a
       // character once held and since spent is a dupe, not a discovery.

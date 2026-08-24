@@ -2047,6 +2047,34 @@ test('the World Rift: weekly rotation, score ledger, milestones pay once', () =>
     G.worldRiftInfo().claimed.length === 4, 'the ledger read back wrong');
 });
 
+test('keepers favourite themselves on arrival', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const H = w.HEROES;
+  const pick = (fn) => Object.values(H).find(fn);
+
+  const five = G.addHero(pick((h) => h.rarity === 5).id);
+  assert(G.isFavorite(five.uid), 'a 5-star arrived unpinned');
+  const four = G.addHero(pick((h) => h.rarity === 4 &&
+    ['light', 'dark'].includes(h.element)).id);
+  assert(G.isFavorite(four.uid), 'a Dark/Light 4-star arrived unpinned');
+  const plain4 = G.addHero(pick((h) => h.rarity === 4 &&
+    !['light', 'dark'].includes(h.element)).id);
+  assert(!G.isFavorite(plain4.uid), 'an ordinary 4-star pinned itself');
+  const plain3 = G.addHero(pick((h) => h.rarity === 3).id);
+  assert(!G.isFavorite(plain3.uid), 'a 3-star pinned itself');
+
+  // Any blessed copy pins, whatever its stars.
+  const realRoll = w.Blessing.roll;
+  w.Blessing.roll = () => 'blessed';
+  const bl = G.addHero(pick((h) => h.rarity === 1).id);
+  w.Blessing.roll = realRoll;
+  assert(G.isFavorite(bl.uid), 'a blessed 1-star arrived unpinned');
+  // And the pin is an ordinary favourite — the player can lift it.
+  assert(G.toggleFavorite(bl.uid) === false && !G.isFavorite(bl.uid),
+    'the automatic pin refused to come off');
+});
+
 test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
   const w = loadGame();
   const G = w.GameState;
