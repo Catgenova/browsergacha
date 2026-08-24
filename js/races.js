@@ -59,7 +59,7 @@ const RACES = (() => {
   // Aniani, 'florence' is Tide (the Crystal Blade wears Cryst blue).
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
-                 members: ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit', 'tanner'] },
+                 members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
                  members: ['vex', 'vivian', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,

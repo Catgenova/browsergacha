@@ -222,6 +222,9 @@ Object.assign(HEROES, {
     tint: { body: '#e8e4dc', helm: '#f0ece0', weapon: '#c8b88a', skin: '#e8c0a0' },
     sprite: {
       displayH: 90,
+      // Authored facing left (see the facing audit) — flagged, not
+      // mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Catherine/catherineidle.png', frames: 9, fps: 5, loop: true },
         // Timed fidgets while she idles: flail adjust, then a short prayer.
@@ -794,6 +797,9 @@ Object.assign(HEROES, {
     // filename carries an upstream capital A, kept as uploaded.)
     sprite: {
       displayH: 90,
+      // Authored facing left (see the facing audit) — flagged, not
+      // mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Andrew/andrewidle.png', frames: 9, fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Andrew/andrewidle1.png', frames: 9, fps: 6, loop: false,
@@ -1058,6 +1064,9 @@ Object.assign(HEROES, {
     // stooped sway and two beard-and-staff fidgets.
     sprite: {
       displayH: 92,
+      // Authored facing left (see the facing audit) — flagged, not
+      // mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       strips: {
         idle:  { src: 'assets/heroes/Cain/cainidle.png', frames: 9, fps: 5, loop: true },
         idle2: { src: 'assets/heroes/Cain/cainidle1.png', frames: 9, fps: 6, loop: false,
@@ -1330,6 +1339,9 @@ Object.assign(HEROES, {
     tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#3a5ac8' },
     sprite: {
       displayH: 88,
+      // Authored facing left (see the facing audit) — flagged, not
+      // mirrored into the files; Sprites.facesLeft() flips it right.
+      faceLeft: true,
       // Manual: her body is in the right half of the frame, and the low
       // sword blade fools the automatic feet-centroid measurement.
       shadowOffsetX: 12,
