@@ -3037,11 +3037,11 @@ Object.assign(HEROES, {
     // enemy's debuffing against them: every hex laid on her side hands
     // her the meter to answer it.
     stats: { hp: 1900, atk: 105, def: 135, speed: 110 },
-    tint: { body: '#4a7a6a', helm: '#e8e4d8', weapon: '#a8d8c8', skin: '#e8c8a8' },
+    tint: { body: '#6b8a3a', helm: '#f2ede0', weapon: '#d88ab8', skin: '#e8c8a8' },
     sprite: {
       displayH: 96,
-      // Wired ahead of the art: these are the strips her upload will
-      // land as. Placeholder art stands in until then.
+      // Authored facing right (her cast reaches to the right of
+      // frame) — no flag. Seven strips, nine frames each.
       strips: {
         idle:  { src: 'assets/heroes/Ilyra/ilyraidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Ilyra/ilyraidle1.png', frames: 'auto', fps: 6, loop: false,
