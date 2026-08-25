@@ -3087,3 +3087,6 @@ svg.icon {
 .imp-purse b { color: #e8e4d8; }
 #imp-attune { margin-top: 8px; width: 100%; }
 .star-attuned { text-shadow: 0 0 5px currentColor; }
+
+/* Journey chain rung marker beside the quest name. */
+.quest-tier { font-size: 10px; color: #9a92b8; font-weight: normal; }

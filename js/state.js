@@ -1549,12 +1549,17 @@ const GameState = (() => {
     stat(counter) { return (state.stats && state.stats[counter]) || 0; },
 
     // Claim a completed quest's reward. Returns the reward or null.
+    // The Journey board reads the LIFETIME totals — grinding done before
+    // a rung was visible still counts — where the timed boards read the
+    // period counters that reset with them.
     claimQuest(type, id) {
       const def = (Quests.DEFS[type] || []).find((d) => d.id === id);
       if (!def) return null;
       const q = this.questState(type);
       if (q.claimed[id]) return null;
-      if ((q.counters[def.counter] || 0) < def.goal) return null;
+      const have = type === 'journey'
+        ? this.stat(def.counter) : (q.counters[def.counter] || 0);
+      if (have < def.goal) return null;
       q.claimed[id] = true;
       Quests.grant(def.reward);
       save();
@@ -1565,10 +1570,12 @@ const GameState = (() => {
     claimableQuestCount() {
       if (typeof Quests === 'undefined') return 0;
       let n = 0;
-      for (const type of ['daily', 'weekly', 'monthly']) {
+      for (const type of ['daily', 'weekly', 'monthly', 'journey']) {
         const q = this.questState(type);
         for (const def of Quests.DEFS[type]) {
-          if (!q.claimed[def.id] && (q.counters[def.counter] || 0) >= def.goal) n++;
+          const have = type === 'journey'
+            ? this.stat(def.counter) : (q.counters[def.counter] || 0);
+          if (!q.claimed[def.id] && have >= def.goal) n++;
         }
       }
       return n;
