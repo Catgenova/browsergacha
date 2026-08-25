@@ -64,7 +64,8 @@ test('no two abilities are mechanically identical', () => {
   const named = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
     'sawyer', 'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur']);
+    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
+    'tumble', 'posie', 'galen', 'ilyra', 'ryn']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
@@ -161,7 +162,7 @@ test('human sects hold real humans, once each, with their numbers', () => {
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: [] },
-    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra'] },
+    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

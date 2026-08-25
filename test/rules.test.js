@@ -4136,4 +4136,71 @@ test("Ilyra's kit: the same mercy at three widths, paid for by the enemy", () =>
   }
 });
 
+test("Ryn's kit: speed is the damage stat", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.ryn;
+  assert(def && def.element === 'wind' && def.rarity === 4, 'Ryn drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Ryn left the Whisperchime');
+  assert(def.role === 'dps', 'Ryn is not binned as damage');
+  assert(def.sprite.faceLeft === true, 'Ryn lost her facing flag');
+
+  // ---- Terminal Velocity: 20% per FULL 50 SPD, read as fought ----
+  {
+    const b = makeBattle();
+    const ryn = place(b, def, TEAM.PLAYER, 5);      // a back hex: no front bonus
+    const steps = [[49, 1.0], [50, 1.2], [99, 1.2], [100, 1.4], [149, 1.4], [150, 1.6]];
+    for (const [spd, want] of steps) {
+      ryn.effectiveStat = (stat) => (stat === 'speed' ? spd : 100);
+      const got = ryn.damageDealtMult(null);
+      assert(Math.abs(got - want) < 1e-9,
+        `at ${spd} SPD the passive paid ${got}, expected ${want}`);
+    }
+  }
+
+  // A tempo buff can carry her over the next breakpoint mid-fight.
+  {
+    const b = makeBattle();
+    const ryn = place(b, def, TEAM.PLAYER, 5);
+    ryn.speed = 130;                                 // one step short of 150
+    const before = ryn.damageDealtMult(null);
+    ryn.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.30, turns: 2 });
+    const after = ryn.damageDealtMult(null);
+    assert(ryn.effectiveStat('speed') >= 150 && after > before,
+      `a 30% tempo buff took her ${before} -> ${after} at ${ryn.effectiveStat('speed')} SPD`);
+  }
+
+  // ---- The front hex pays speed, which pays damage ----
+  {
+    assert(def.positional.name === 'Headwind' && def.positional.mult === 1.10 &&
+      def.positional.stat === 'speed', 'the front-hex bonus drifted');
+    const b = makeBattle();
+    const front = place(b, def, TEAM.PLAYER, 1);
+    const back = place(b, def, TEAM.PLAYER, 5);
+    assert(front.slot.position === POSITION.FRONT, 'slot 1 is not a front hex');
+    assert(front.effectiveStat('speed') === Math.round(back.effectiveStat('speed') * 1.10),
+      `front ${front.effectiveStat('speed')} vs back ${back.effectiveStat('speed')}`);
+  }
+
+  // ---- The three swings: single, single, front row ----
+  {
+    const b = makeBattle();
+    const ryn = place(b, def, TEAM.PLAYER, 1);
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) { f.hp = f.maxHp = 10 ** 7; f.dodgeChance = () => 0; }
+    ryn.baseCritChance = -1;
+    const one = A.execute(def.abilities[0], ryn, foes[0], b).filter((r) => r.kind === 'damage');
+    const two = A.execute(def.abilities[1], ryn, foes[0], b).filter((r) => r.kind === 'damage');
+    assert(one.length === 1 && two.length === 1, 'a single-target swing spread out');
+    assert(two[0].amount > one[0].amount, `140% (${two[0].amount}) did not beat 100% (${one[0].amount})`);
+    assert(Math.abs(two[0].amount / one[0].amount - 1.4) < 0.02,
+      `the two swings sit at ${(two[0].amount / one[0].amount).toFixed(2)}x, expected 1.4x`);
+
+    const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
+    const swept = A.execute(def.abilities[2], ryn, null, b)
+      .filter((r) => r.kind === 'damage').map((r) => r.target);
+    assert(swept.length === front.length && swept.every((u) => front.includes(u)),
+      'Scything Gale reached outside the enemy front row');
+  }
+});
+
 report();
