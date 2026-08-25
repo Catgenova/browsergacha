@@ -15,8 +15,6 @@ const Quests = (() => {
   //   salvages      item salvaged
   //   flawless      battle won with nobody down
   //   sacrifices    hero spent on another hero
-  //   synergyWins   battle won with any party bonus (pack/resonance) active
-  //   fullSynergyWins  won with a 7-strong pack or resonance active
   const DEFS = {
     daily: [
       { id: 'd_hunts', name: 'Win 5 hunts', counter: 'huntWins', goal: 5,
@@ -35,8 +33,6 @@ const Quests = (() => {
         reward: { diamonds: 40 } },
       { id: 'd_tower', name: 'Climb 3 tower floors', counter: 'towerFloors', goal: 3,
         reward: { diamonds: 40 } },
-      { id: 'd_synergy', name: 'Win 3 battles with a party bonus active',
-        counter: 'synergyWins', goal: 3, reward: { diamonds: 50 } },
     ],
     weekly: [
       { id: 'w_wins', name: 'Win 40 battles', counter: 'wins', goal: 40,
@@ -57,10 +53,6 @@ const Quests = (() => {
         reward: { diamonds: 250 } },
       { id: 'w_starup', name: 'Star up 3 heroes', counter: 'starUps', goal: 3,
         reward: { scrollsCommon: 8 } },
-      { id: 'w_synergy', name: 'Win 15 battles with a party bonus active',
-        counter: 'synergyWins', goal: 15, reward: { diamonds: 200 } },
-      { id: 'w_full_synergy', name: 'Win 5 battles with a 7-strong party bonus',
-        counter: 'fullSynergyWins', goal: 5, reward: { scrollsRare: 2 } },
     ],
     monthly: [
       { id: 'm_wins', name: 'Win 150 battles', counter: 'wins', goal: 150,
@@ -83,10 +75,6 @@ const Quests = (() => {
         reward: { scrollsRare: 4 } },
       { id: 'm_starup', name: 'Star up 10 heroes', counter: 'starUps', goal: 10,
         reward: { scrollsRare: 4 } },
-      { id: 'm_synergy', name: 'Win 60 battles with a party bonus active',
-        counter: 'synergyWins', goal: 60, reward: { scrollsRare: 4 } },
-      { id: 'm_full_synergy', name: 'Win 25 battles with a 7-strong party bonus',
-        counter: 'fullSynergyWins', goal: 25, reward: { scrollsTemporal: 1 } },
     ],
   };
 
@@ -102,21 +90,19 @@ const Quests = (() => {
   (() => {
     const CHAINS = [
       // [counter, phrasing, first goal, tiers]
-      ['wins', (g) => `Win ${g} battles`, 15, 67],
-      ['huntWins', (g) => `Win ${g} hunts`, 15, 67],
-      ['bossWins', (g) => `Clear ${g} boss stages`, 5, 67],
-      ['campaignWins', (g) => `Clear ${g} campaign nodes`, 5, 67],
-      ['towerFloors', (g) => `Climb ${g} tower floors`, 5, 67],
-      ['summons', (g) => `Summon ${g} heroes`, 5, 67],
-      ['polishes', (g) => `Polish items ${g} times`, 10, 67],
-      ['enchants', (g) => `Attempt ${g} enchants`, 5, 67],
-      ['salvages', (g) => `Salvage ${g} items`, 5, 67],
-      ['flawless', (g) => `Win ${g} battles without losing a hero`, 5, 67],
-      ['synergyWins', (g) => `Win ${g} battles with a party bonus`, 10, 66],
-      ['fullSynergyWins', (g) => `Win ${g} battles with a 7-strong bonus`, 3, 66],
-      ['starUps', (g) => `Star up ${g} heroes`, 2, 66],
-      ['sacrifices', (g) => `Spend ${g} heroes on star-ups`, 3, 66],
-      ['attunements', (g) => `Attune heroes ${g} times`, 3, 66],
+      ['wins', (g) => `Win ${g} battles`, 15, 77],
+      ['huntWins', (g) => `Win ${g} hunts`, 15, 77],
+      ['bossWins', (g) => `Clear ${g} boss stages`, 5, 77],
+      ['campaignWins', (g) => `Clear ${g} campaign nodes`, 5, 77],
+      ['towerFloors', (g) => `Climb ${g} tower floors`, 5, 77],
+      ['summons', (g) => `Summon ${g} heroes`, 5, 77],
+      ['polishes', (g) => `Polish items ${g} times`, 10, 77],
+      ['enchants', (g) => `Attempt ${g} enchants`, 5, 77],
+      ['salvages', (g) => `Salvage ${g} items`, 5, 77],
+      ['flawless', (g) => `Win ${g} battles without losing a hero`, 5, 77],
+      ['starUps', (g) => `Star up ${g} heroes`, 2, 77],
+      ['sacrifices', (g) => `Spend ${g} heroes on star-ups`, 3, 77],
+      ['attunements', (g) => `Attune heroes ${g} times`, 3, 76],
     ];
     // Two significant digits, so ladders read as 150 / 170 / 200 rather
     // than 149 / 171 / 196.

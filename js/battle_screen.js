@@ -601,10 +601,6 @@ class BattleScreen {
       if (progress) progress.gear = GameState.equippedPieces(heroId);
       battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
-    // Race synergy: 3/5/7 heroes of one race empower each other.
-    this.raceBonuses = RACES.applyParty(
-      battle.units.filter((u) => u.team === TEAM.PLAYER));
-
     // A campaign node whose id no longer resolves (chapter data moved
     // under an old save) falls back to a hunt rather than fielding an
     // empty enemy side.
@@ -904,15 +900,6 @@ class BattleScreen {
             battle.units.filter((u) => u.team === TEAM.PLAYER).length) {
           GameState.questBump('flawless');
         }
-        // Party bonuses: raceBonuses is the applyParty summary from this
-        // battle's build -- any active pack/resonance counts, and a
-        // seven-strong group counts as a full one.
-        if ((this.raceBonuses || []).length > 0) {
-          GameState.questBump('synergyWins');
-          if (this.raceBonuses.some((b) => b.count >= 7)) {
-            GameState.questBump('fullSynergyWins');
-          }
-        }
         // Campaign nodes bump their own counter below, by node type.
         if (!this.campaignFight) {
           const asBoss = this.bossFight || this.dungeonFight ||
@@ -1090,34 +1077,7 @@ class BattleScreen {
     };
 
     if (this.introLog) battle.log(this.introLog, 'log-system');
-    for (const b of this.raceBonuses || []) {
-      battle.log(`${b.title} ×${b.count}: ${b.labels.join(' · ')}`, 'log-system');
-    }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
-
-    // Cryst sect (5pc): ONE free freeze attempt on a random enemy as
-    // the battle opens — fired here because applyParty runs before the
-    // enemy side exists. Cast by a random fielded Cryst member, so
-    // onFroze hooks (the Frost Throne) get their due; resistance
-    // applies inside Abilities.freeze like any debuff.
-    const openers = battle.units.filter((u) =>
-      u.team === TEAM.PLAYER && u.alive && u.synergyOpeningFreeze > 0);
-    if (openers.length > 0) {
-      const caster = openers[Math.floor(Math.random() * openers.length)];
-      const foes = battle.livingUnits(TEAM.ENEMY);
-      if (foes.length > 0) {
-        const mark = foes[Math.floor(Math.random() * foes.length)];
-        const r = Abilities.freeze(caster, mark, 2, battle);
-        if (r && !r.resisted) {
-          battle.addFloatingText(mark, '❄ FROZEN', '#8ee8ff', true);
-          battle.log(`The court's cold arrives first — ${mark.name} ` +
-            `freezes solid for ${r.turns} turns!`, 'log-system');
-        } else {
-          battle.log(`The court's opening cold rolls over ${mark.name}, ` +
-            'who shrugs it off.', 'log-system');
-        }
-      }
-    }
   }
 
   update(dt) {
