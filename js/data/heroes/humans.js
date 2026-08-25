@@ -2512,9 +2512,7 @@ Object.assign(HEROES, {
     tint: { body: '#e8e4de', helm: '#241f22', weapon: '#c83a3a', skin: '#f0e8e0' },
     sprite: {
       displayH: 92,
-      // Authored facing left, like the rest of the Firetroupe — flagged,
-      // not mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Displayed unflipped on the hero side — no faceLeft flag.
       strips: {
         idle:  { src: 'assets/heroes/Koe/koeidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Koe/koeidle1.png', frames: 'auto', fps: 6, loop: false,
