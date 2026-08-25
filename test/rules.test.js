@@ -3908,4 +3908,119 @@ test("Posie's kit: two pools, a bough that keeps swinging, a summer ward", () =>
     `the overflow left a ${full.shieldTotal()} shield, expected ${Math.round(p5.maxHp * 0.20)}`);
 });
 
+test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => {
+  const A = Abilities, H = HEROES, R = g.Math;
+  const def = H.galen;
+  assert(def && def.element === 'wind' && def.rarity === 3, 'Galen drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Galen left the Whisperchime');
+  assert(def.role === 'dps', 'Galen is not binned as damage');
+
+  const arena = () => {
+    const b = makeBattle();
+    const galen = place(b, def, TEAM.PLAYER, 5);      // a back hex
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;                   // isolate from the resist roll
+    }
+    galen.baseCritChance = -1;                        // no crits in the arithmetic
+    return { b, galen, foes };
+  };
+
+  // ---- Skill 1 lands on ONE enemy, and not always the same one ----
+  {
+    const { b, galen, foes } = arena();
+    const seen = new Set();
+    for (let i = 0; i < 60; i++) {
+      const hit = A.execute(def.abilities[0], galen, null, b)
+        .filter((r) => r.kind === 'damage');
+      assert(hit.length === 1, `Gust hit ${hit.length} enemies`);
+      seen.add(hit[0].target);
+    }
+    assert(seen.size > 1, 'the random gust always chose the same enemy');
+  }
+
+  // ---- Skill 2: one enemy, 140% ATK, two blessings gone ----
+  {
+    const { b, galen, foes } = arena();
+    const mark = foes[0];
+    for (let i = 0; i < 3; i++) {
+      mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    }
+    const res = A.execute(def.abilities[1], galen, mark, b);
+    const stripped = res.find((r) => r.kind === 'stripBuff');
+    assert(stripped && stripped.count === 2, `Stripwind tore ${stripped && stripped.count}`);
+    assert(mark.statusEffects.filter((fx) => fx.kind === 'buff').length === 1,
+      'the wrong number of blessings survived');
+    assert(res.filter((r) => r.kind === 'damage').length === 1, 'Stripwind spread out');
+  }
+
+  // ---- Skill 3: the BACK row only, one blessing each ----
+  {
+    const { b, galen, foes } = arena();
+    for (const f of foes) f.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 5 });
+    const back = foes.filter((f) => f.slot.position === POSITION.BACK);
+    assert(back.length > 0, 'nobody is holding the enemy back row');
+    const res = A.execute(def.abilities[2], galen, null, b);
+    const hit = res.filter((r) => r.kind === 'damage').map((r) => r.target);
+    assert(hit.length === back.length && hit.every((u) => back.includes(u)),
+      'Squall reached outside the back row');
+    for (const f of back) {
+      assert(!f.statusEffects.some((fx) => fx.kind === 'buff'),
+        'a back-row blessing survived the squall');
+    }
+    for (const f of foes.filter((x) => !back.includes(x))) {
+      assert(f.statusEffects.some((fx) => fx.kind === 'buff'),
+        'the squall stripped somebody it never hit');
+    }
+  }
+
+  // ---- Bare Branches: 25% more into a target with nothing on it ----
+  {
+    const { b, galen, foes } = arena();
+    const bare = foes[0], blessed = foes[1];
+    blessed.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    // Same defence on both, so the only difference is the passive.
+    blessed.effectiveStat = bare.effectiveStat.bind(bare);
+    // The multiplier lives in the damage EFFECT, so measure it there.
+    const hit = (foe) => {
+      const before = foe.hp;
+      A.applyEffect({ type: 'damage', mult: 1.0 }, galen, foe, 1);
+      return before - foe.hp;
+    };
+    const onBare = hit(bare);
+    const onBlessed = hit(blessed);
+    assert(onBare > onBlessed, `bare ${onBare} vs blessed ${onBlessed}`);
+    assert(Math.abs(onBare / onBlessed - 1.25) < 0.02,
+      `the passive paid ${(onBare / onBlessed).toFixed(3)}x, expected 1.25x`);
+  }
+
+  // ---- The back hex sharpens him ----
+  {
+    assert(def.positional.name === 'Weathervane' &&
+      def.positional.hooks.accuracyAdd === 0.20, 'the back-hex bonus drifted');
+    const b = makeBattle();
+    const back = place(b, def, TEAM.PLAYER, 5);
+    const front = place(b, def, TEAM.PLAYER, 1);
+    assert(back.slot.position === POSITION.BACK, 'slot 5 is not a back hex');
+    assert(Math.abs(back.debuffAccuracy() - front.debuffAccuracy() - 0.20) < 1e-9,
+      'the back hex paid the wrong accuracy');
+  }
+
+  // ---- And his strips answer to resistance, like every taking ----
+  {
+    const { b, galen, foes } = arena();
+    const stubborn = foes[0];
+    stubborn.debuffResistance = () => 0.60;
+    stubborn.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    R.random = () => 0.95;
+    const res = A.execute(def.abilities[1], galen, stubborn, b);
+    delete R.random;
+    const strip = res.find((r) => r.kind === 'stripBuff');
+    assert(strip && strip.resisted, 'a stubborn target lost its blessing anyway');
+    assert(res.some((r) => r.kind === 'damage'), 'a resisted strip ate the damage too');
+  }
+});
+
 report();

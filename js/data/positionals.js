@@ -453,6 +453,14 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Galen's hex: back where he can watch the whole field turn.
+  def('weathervane', {
+    position: POSITION.BACK,
+    name: 'Weathervane',
+    description: 'Back hex: +20% debuff Accuracy — he reads the wind before he swings.',
+    hooks: { accuracyAdd: 0.20 },
+  });
+
   def('pyre_sight', {
     position: POSITION.BACK,
     name: 'Pyre Sight',
