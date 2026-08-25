@@ -2943,4 +2943,84 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.bough_bearer,
   },
+
+  galen: {
+    id: 'galen',
+    element: 'wind',
+    name: 'Galen',
+    title: 'Pinwheel of the Whisperchime',
+    rarity: 3,
+    // Back-line damage on a pinwheel staff. The sect takes things away;
+    // Galen is the one who profits from having taken them. Two of his
+    // three skills tear blessings off, and everything he throws lands
+    // harder on an enemy already stripped bare.
+    stats: { hp: 1450, atk: 175, def: 95, speed: 114 },
+    tint: { body: '#3a6a4a', helm: '#e8e4d8', weapon: '#c8b45a', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      // Authored facing right — the pinwheel swings that way. No flag.
+      strips: {
+        idle:  { src: 'assets/heroes/Galen/galenidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Galen/galenidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Galen/galenidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Galen/galenskill1.png', frames: 'auto', fps: 12,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Galen/galenskill2.png', frames: 'auto', fps: 12,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Galen/galenskill3.png', frames: 'auto', fps: 12,
+                  loop: false },
+        death:  { src: 'assets/heroes/Galen/galendeath.png', frames: 'auto', fps: 10,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'galen_gust', name: 'Gust',
+        icon: 'assets/icons/fc1190.png',
+        description: 'Let the pinwheel choose: 125% ATK to a RANDOM enemy.',
+        cooldown: 0, targeting: 'random-enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+        ],
+      },
+      {
+        id: 'galen_stripwind', name: 'Stripwind',
+        icon: 'assets/icons/fc1191.png',
+        description: 'A cutting pass on one enemy: 140% ATK, and two ' +
+          'blessings are torn away.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.40 },
+          { type: 'stripBuffs', count: 2 },
+        ],
+      },
+      {
+        id: 'galen_squall', name: 'Squall',
+        icon: 'assets/icons/fc1192.png',
+        description: 'The wind reaches over the wall: 120% ATK to the ' +
+          'enemy BACK row, tearing one blessing off each of them.',
+        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.20 },
+          { type: 'stripBuffs', count: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bare Branches',
+      icon: 'assets/icons/fc1200.png',
+      description: 'Deals 25% extra damage to enemies carrying no buffs — ' +
+        'what the wind has already stripped, it breaks.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target) return 1;
+          return target.statusEffects.some((fx) => fx.kind === 'buff') ? 1 : 1.25;
+        },
+      },
+    },
+    positional: POSITIONALS.weathervane,
+  },
 });
