@@ -2739,12 +2739,12 @@ test("Carl's kit: pole swings, Iron Appetite, and the strongman", () => {
   const exp = (mult, foe, extra = 1) => Math.round(A.damageFormula(
     carl.maxHp * mult * E.mult('fire', foe.element) * extra,
     foe.effectiveStat('def')));
-  // Clobber: exactly 15% of his (strongman-built) max HP through the pipeline.
+  // Opening Act: exactly 15% of his (strongman-built) max HP through the pipeline.
   let hp0 = foeBack.hp;
   A.execute(carl.abilities[0].def, carl, foeBack, battle);
   assert(Math.abs((hp0 - foeBack.hp) - exp(0.15, foeBack)) <= 1,
-    `Clobber dealt ${hp0 - foeBack.hp}, expected ~${exp(0.15, foeBack)}`);
-  // Bring Down the Pole: a FRONT-row victim takes 50% more.
+    `Opening Act dealt ${hp0 - foeBack.hp}, expected ~${exp(0.15, foeBack)}`);
+  // Main Event: a FRONT-row victim takes 50% more.
   hp0 = foeFront.hp;
   A.execute(carl.abilities[2].def, carl, foeFront, battle);
   assert(Math.abs((hp0 - foeFront.hp) - exp(0.25, foeFront, 1.5)) <= 1,
