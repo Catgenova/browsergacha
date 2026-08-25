@@ -1271,7 +1271,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const e of battle.livingUnits(unit.enemyTeam())) {
-            e.turnMeter = Math.max(0, e.turnMeter - CONFIG.TURN_METER_MAX * 0.01);
+            Abilities.drainMeter(unit, e, 0.01);
           }
           unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.06, turns: 1 });
           return null; // silent — small rolling gale

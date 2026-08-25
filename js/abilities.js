@@ -60,6 +60,32 @@ const Abilities = (() => {
     return Math.random() < chance;
   }
 
+  // Anything TAKEN from an unwilling target is the same contest: laying
+  // a debuff on them, tearing a blessing off them, or draining their
+  // turn meter all roll the caster's accuracy against their resistance.
+  // Giving something away (a buff, a heal, meter handed to an ally)
+  // never rolls — nobody resists a gift.
+  const takeLands = debuffLands;
+
+  // Drain turn meter from an unwilling target, honouring both the guard
+  // (Artur's Permanent Ink refuses the drain outright) and the
+  // resistance contest. `frac` is the positive share of the bar to
+  // remove. Exported so the ~dozen passives that reach for an enemy's
+  // meter directly all obey the same rule.
+  function drainMeter(caster, target, frac) {
+    if (!target || !target.alive || !(frac > 0)) return null;
+    if (meterGuarded(target)) {
+      return { kind: 'meter', target, amount: 0, guarded: true };
+    }
+    if (caster && caster !== target && !takeLands(caster, target)) {
+      return { kind: 'meter', target, amount: 0, resisted: true };
+    }
+    const before = target.turnMeter;
+    target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * frac);
+    return { kind: 'meter', target,
+      amount: (target.turnMeter - before) / CONFIG.TURN_METER_MAX };
+  }
+
   // Resolve one effect against one unit. Returns a log-friendly result.
   // ---- The damage pipeline ----------------------------------------------
   // ONE path from a raw figure to HP actually lost, so nothing can score
@@ -378,8 +404,10 @@ const Abilities = (() => {
         // Push the target's action bar by a fraction of max (negative cuts).
         // A cut is refused outright while a meterGuard ally stands
         // (Artur's Permanent Ink).
-        if (effect.amount < 0 && meterGuarded(target)) {
-          return { kind: 'meter', target, amount: 0, guarded: true };
+        if (effect.amount < 0) {
+          // Taking meter is a contest; the helper owns the guard and
+          // the resistance roll alike.
+          return drainMeter(caster, target, -effect.amount);
         }
         const before = target.turnMeter;
         target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
@@ -533,6 +561,12 @@ const Abilities = (() => {
         // reaches for anything.
         if (effect.chance !== undefined && Math.random() >= effect.chance) {
           return { kind: 'stripBuff', target, count: 0, rolled: true };
+        }
+        // Tearing a blessing off is taking something from an unwilling
+        // target, so it answers to accuracy against resistance like any
+        // debuff would.
+        if (!takeLands(caster, target)) {
+          return { kind: 'stripBuff', target, count: 0, resisted: true };
         }
         let left = effect.count || 1;
         let removed = 0;
@@ -795,12 +829,8 @@ const Abilities = (() => {
       }
       for (const victim of damaged) {
         if (Math.random() < drainChance) {
-          if (meterGuarded(victim)) {
-            results.push({ kind: 'meter', target: victim, amount: 0, guarded: true });
-            continue;
-          }
-          victim.turnMeter = Math.max(0, victim.turnMeter - CONFIG.TURN_METER_MAX * 0.20);
-          results.push({ kind: 'meter', target: victim, amount: -0.20 });
+          const drained = drainMeter(caster, victim, 0.20);
+          if (drained) results.push(drained);
         }
       }
     }
@@ -880,5 +910,5 @@ const Abilities = (() => {
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
   return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
-    sideOf, needsTarget };
+    sideOf, needsTarget, takeLands, drainMeter };
 })();

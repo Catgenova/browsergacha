@@ -361,8 +361,8 @@ Object.assign(HEROES, {
           const foes = battle.livingUnits().filter((u) => u.team !== unit.team);
           if (!foes.length) return null;
           const target = foes.sort((a, b) => b.turnMeter - a.turnMeter)[0];
-          target.turnMeter = Math.max(0,
-            target.turnMeter - CONFIG.TURN_METER_MAX * 0.2);
+          const took = Abilities.drainMeter(unit, target, 0.20);
+          if (!took || took.amount === 0) return null;
           return {
             label: 'Exalted Rebuke',
             message: `${unit.name}'s rebuke stalls ${target.name} — 20% turn meter lost.`,

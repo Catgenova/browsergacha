@@ -3699,4 +3699,113 @@ test("Tumble's kit: the whirl strips, the carousel turns the field", () => {
     'the middle hex paid the wrong accuracy');
 });
 
+test('taking is contested: strips and AP drains roll accuracy vs resistance', () => {
+  const A = Abilities, H = HEROES;
+  const R = g.Math;
+  const mk = () => {
+    const b = makeBattle();
+    const caster = place(b, H.cleo, TEAM.PLAYER, 0);
+    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    foe.hp = foe.maxHp = 10 ** 6;
+    foe.dodgeChance = () => 0;
+    foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
+    foe.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
+    return { b, caster, foe };
+  };
+  const strip = { type: 'stripBuffs', count: 1 };
+  const drain = { type: 'turnMeter', amount: -0.20 };
+
+  // An unresisting target loses both, every time — the rule only bites
+  // where there is resistance to bite on.
+  {
+    const { caster, foe } = mk();
+    assert(A.applyEffect(strip, caster, foe, 1).count === 1, 'a bare target kept its buff');
+    assert(A.applyEffect(drain, caster, foe, 1).amount < 0, 'a bare target kept its meter');
+  }
+
+  // Half resistance, and a roll that fails: both are refused, and both
+  // say so rather than silently doing nothing.
+  {
+    const { caster, foe } = mk();
+    foe.gearResistance = 0.50;
+    R.random = () => 0.90;
+    const s1 = A.applyEffect(strip, caster, foe, 1);
+    const d1 = A.applyEffect(drain, caster, foe, 1);
+    delete R.random;
+    assert(s1.resisted && s1.count === 0, 'the strip went through resistance');
+    assert(foe.statusEffects.some((fx) => fx.kind === 'buff'), 'the blessing was torn anyway');
+    assert(d1.resisted && d1.amount === 0, 'the drain went through resistance');
+    assert(foe.turnMeter === CONFIG.TURN_METER_MAX * 0.8, 'meter moved on a resist');
+  }
+
+  // Same resistance, a roll that lands: both take hold.
+  {
+    const { caster, foe } = mk();
+    foe.gearResistance = 0.50;
+    R.random = () => 0.10;
+    const s2 = A.applyEffect(strip, caster, foe, 1);
+    const d2 = A.applyEffect(drain, caster, foe, 1);
+    delete R.random;
+    assert(s2.count === 1 && !s2.resisted, 'the strip was refused on a good roll');
+    assert(d2.amount < 0 && !d2.resisted, 'the drain was refused on a good roll');
+  }
+
+  // Accuracy is the answer to resistance: the same 0.9 roll that failed
+  // above lands once the caster out-accuracies the target.
+  {
+    const { caster, foe } = mk();
+    foe.gearResistance = 0.50;
+    caster.gearAccuracy = 0.50;
+    R.random = () => 0.90;
+    const s3 = A.applyEffect(strip, caster, foe, 1);
+    const d3 = A.applyEffect(drain, caster, foe, 1);
+    delete R.random;
+    assert(s3.count === 1, 'accuracy did not cancel resistance for the strip');
+    assert(d3.amount < 0, 'accuracy did not cancel resistance for the drain');
+  }
+
+  // Nothing is unhittable: past the floor, 15% still gets through.
+  {
+    const { caster, foe } = mk();
+    foe.gearResistance = 5;
+    R.random = () => 0.10;
+    const s4 = A.applyEffect(strip, caster, foe, 1);
+    delete R.random;
+    assert(s4.count === 1, 'the 15% floor was lost');
+  }
+
+  // Handing meter to an ALLY is a gift, not a taking — never rolled.
+  {
+    const b = makeBattle();
+    const giver = place(b, H.artur, TEAM.PLAYER, 0);
+    const ally = place(b, H.cain, TEAM.PLAYER, 2);
+    ally.gearResistance = 5;
+    ally.turnMeter = 0;
+    R.random = () => 0.99;
+    const gift = A.applyEffect({ type: 'turnMeter', amount: 0.30 }, giver, ally, 1);
+    delete R.random;
+    assert(gift.amount > 0 && !gift.resisted, 'an ally resisted a gift of meter');
+  }
+
+  // The guard outranks the contest: Permanent Ink refuses the drain
+  // before any roll is taken.
+  {
+    const b = makeBattle();
+    const caster = place(b, H.cleo, TEAM.PLAYER, 0);
+    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const scribe = place(b, H.artur, TEAM.ENEMY, 2);
+    assert(scribe.hookSources().some((p) => p.hooks && p.hooks.meterGuard),
+      'sanity: Artur still guards meters');
+    foe.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
+    // meterGuarded reads the LIVE battle to find the guard's teammates.
+    const prevActive = Battle.active;
+    Battle.active = b;
+    R.random = () => 0.10;              // a roll that would otherwise land
+    const guarded = A.applyEffect(drain, caster, foe, 1);
+    delete R.random;
+    Battle.active = prevActive;
+    assert(guarded.guarded && guarded.amount === 0, 'the ink let the drain through');
+  }
+});
+
 report();

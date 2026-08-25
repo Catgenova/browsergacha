@@ -595,6 +595,9 @@ class Battle {
           this.addFloatingText(res.target, '✎ INKED', '#ffe8a8');
           this.log(`${res.target.name}'s place is written in permanent ` +
             'ink — the drain is refused.', cls);
+        } else if (res.resisted) {
+          this.addFloatingText(res.target, 'RESIST', '#c8c2da');
+          this.log(`${res.target.name} holds its footing — the drain is resisted!`, cls);
         } else if (res.amount >= 0) {
           this.addFloatingText(res.target, 'METER ▲', '#8ecbff');
           this.log(`${res.target.name}'s action bar surges by ${Math.round(res.amount * 100)}%.`, cls);
@@ -661,6 +664,9 @@ class Battle {
         if (res.rolled) {
           // The rider missed its roll — say nothing rather than
           // reporting an absence of blessings that were never checked.
+        } else if (res.resisted) {
+          this.addFloatingText(res.target, 'RESIST', '#c8c2da');
+          this.log(`${res.target.name} keeps its blessing — the strip is resisted!`, cls);
         } else if (res.count === 0) {
           this.log(`${res.target.name} carries no blessing to tear away.`, cls);
         } else {
