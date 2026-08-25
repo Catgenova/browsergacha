@@ -408,18 +408,6 @@ const ACHIEVEMENTS = (() => {
     { n: 1000, name: 'Nothing Wasted', reward: { temporal: 4 } },
   ]);
 
-  ladder('Command', 'cmd_synergy', stat('synergyWins'),
-    (n) => `Win ${fmt(n)} battles with a party bonus active.`, [
-    { n: 25, name: 'Strength in Numbers', reward: { whetstones: 400 } },
-    { n: 100, name: 'Doctrine of the Pack', reward: { rare: 4 } },
-    { n: 500, name: 'Nothing Fights Alone', reward: { temporal: 4 } },
-  ]);
-  ladder('Command', 'cmd_full_synergy', stat('fullSynergyWins'),
-    (n) => `Win ${fmt(n)} battles with a 7-strong party bonus.`, [
-    { n: 10, name: 'Seven as One', reward: { rare: 3 } },
-    { n: 50, name: 'The Unbroken Circle', reward: { rare: 8 } },
-    { n: 250, name: 'A Single Will', reward: { temporal: 6 } },
-  ]);
 
   // Collection: shelves upon shelves. (12)
   ladder('Collection', 'collect', () => owned().length, (n) => `Own ${n} different heroes.`, [
@@ -633,7 +621,6 @@ const ACHIEVEMENTS = (() => {
     polishes: ['Polishes', [2500, 5000, 10000, 25000, 50000]],
     enchants: ['Enchants', [2500, 5000, 10000, 25000, 50000]],
     salvages: ['Salvages', [2500, 5000, 10000, 25000, 50000]],
-    synergyWins: ['Synergy Wins', [1000, 2500, 5000, 10000, 25000]],
   };
   const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
   const BEYOND_REWARD = [{ temporal: 5 }, { temporal: 8 }, { temporal: 12 },

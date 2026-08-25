@@ -384,26 +384,15 @@ class CompendiumScreen {
         <div class="comp-ability-desc">${def.positional.description}</div>
       </div>` : '';
 
-    // Party synergies this hero counts toward.
+    // Sect membership: who stands together (informational — party
+    // bonuses are gone from the game).
     const synergyRows = [];
     const sect = RACES.sectOf(def);
     if (sect) {
       const names = sect.members.map((id) =>
         HEROES[id] ? HEROES[id].name : id.charAt(0).toUpperCase() + id.slice(1));
-      const sectTiers = RACES.SECT_BONUSES[sect.id];
       synergyRows.push(`<div class="comp-syn"><b>${sect.name} Sect (No. ${sect.number})</b>` +
-        `<span>${names.join(', ')}</span>` +
-        (sectTiers && sectTiers.length
-          ? sectTiers.map((t) => `<span>${t.label}</span>`).join('')
-          : '<span>Sect bonuses to come.</span>') + '</div>');
-    }
-    if (race && RACES.BONUSES[race] && RACES.BONUSES[race].length) {
-      synergyRows.push(`<div class="comp-syn"><b>${RACES.NAMES[race]} pack</b>` +
-        RACES.BONUSES[race].map((t) => `<span>${t.label}</span>`).join('') + '</div>');
-    }
-    if (def.element && RACES.ELEMENT_BONUSES[def.element]) {
-      synergyRows.push(`<div class="comp-syn"><b>${RACES.ELEMENT_NAMES[def.element]} resonance</b>` +
-        RACES.ELEMENT_BONUSES[def.element].map((t) => `<span>${t.label}</span>`).join('') + '</div>');
+        `<span>${names.join(', ')}</span></div>`);
     }
 
     const sources = this.summonSources(def);
@@ -447,7 +436,7 @@ class CompendiumScreen {
       ${passiveHtml}
       ${posHtml}
 
-      ${synergyRows.length ? `<div class="comp-section">Party synergy</div>${synergyRows.join('')}` : ''}
+      ${synergyRows.length ? `<div class="comp-section">Sect</div>${synergyRows.join('')}` : ''}
 
       <div class="comp-section">Where to find</div>
       ${sourceHtml}

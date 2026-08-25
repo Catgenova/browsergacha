@@ -151,37 +151,6 @@ test('every hero belongs to a race', () => {
   assert(raceless.length === 0, `raceless: ${raceless.slice(0, 6).join(', ')}`);
 });
 
-test('every race pack mirrors its gear set, tier for tier', () => {
-  const races = new Set(heroes.map((h) => RACES.of(h)));
-  for (const r of races) {
-    assert(RACES.NAMES[r], `race ${r} has no display name`);
-    const tiers = RACES.BONUSES[r] || [];
-    if (r === 'human') {
-      assert(tiers.length === 0, 'humans should have sects, not a race pack');
-      continue;
-    }
-    assert(tiers.length >= 3, `race ${r} lacks tiers`);
-    for (const t of tiers) {
-      assert([3, 5, 7].includes(t.count), `${r}: tier at odd count ${t.count}`);
-      assert(t.label && Object.keys(t.mods).length, `${r}: empty tier`);
-    }
-    // Humans have no gear set and no pack (they group into sects
-    // instead); every other race's 3/5/7 tiers must be its set's
-    // 2/4/6-piece bonuses exactly.
-    if (r === 'human') continue;
-    const set = Gear.SETS[r === 'drake' ? 'dragon' : r];
-    assert(set, `race ${r} has no gear set to mirror`);
-    assert(tiers.length === set.bonuses.length,
-      `${r}: ${tiers.length} tiers vs ${set.bonuses.length} set bonuses`);
-    set.bonuses.forEach((b, i) => {
-      assert(tiers[i].count === b.pieces + 1,
-        `${r}: tier ${i} at ${tiers[i].count}, set at ${b.pieces} pieces`);
-      assert(tiers[i].mods[b.stat] === b.add,
-        `${r}: tier ${i} ${b.stat} ${tiers[i].mods[b.stat]} != set ${b.add}`);
-    });
-  }
-});
-
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
     cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
@@ -607,7 +576,7 @@ test('ability descriptions quote the numbers the ability actually applies', () =
 test('every quest names a real counter and pays something', () => {
   const COUNTERS = new Set(['wins', 'huntWins', 'bossWins', 'campaignWins',
     'towerFloors', 'summons', 'starUps', 'polishes', 'enchants', 'salvages',
-    'flawless', 'synergyWins', 'fullSynergyWins',
+    'flawless',
     // Bumped by sacrifice() and recordAttuneClear() in state.js.
     'sacrifices', 'attunements']);
   const seen = new Set();

@@ -1328,32 +1328,6 @@ test('auto star up forges the 1-2 star shelf into 3-star heroes', () => {
   assert(G.planAutoStarUp().length === 0, 'a second pass should plan nothing');
 });
 
-test('element resonance tiers land on the numbers on the tin', () => {
-  const w = loadGame();
-  const R = w.RACES;
-  // Additive channels step 15% -> 20% exactly.
-  const totals = {};
-  for (const [el, tiers] of Object.entries(R.ELEMENT_BONUSES)) {
-    totals[el] = tiers;
-    assert(tiers.length === 3, `${el}: expected 3 tiers`);
-    assert(tiers.map((t) => t.count).join() === '3,5,7', `${el}: tier counts`);
-  }
-  const sum = (el, key) => R.ELEMENT_BONUSES[el]
-    .reduce((n, t) => n + (t.mods[key] || 0), 0);
-  assert(Math.abs(sum('fire', 'critChance') - 0.20) < 1e-9, 'fire crit total');
-  assert(Math.abs(sum('dark', 'accuracy') - 0.20) < 1e-9, 'dark accuracy total');
-  assert(Math.abs(sum('light', 'healBoost') - 0.20) < 1e-9, 'light healing total');
-  assert(Math.abs(R.ELEMENT_BONUSES.fire[2].mods.critDamage - 0.80) < 1e-9, 'fire crit damage');
-  assert(Math.abs(R.ELEMENT_BONUSES.water[2].mods.reflect - 0.15) < 1e-9, 'water reflect');
-  // Multiplicative channels: the product of the two steps is ~1.20.
-  for (const [el, key] of [['wind', 'spdPct'], ['water', 'defPct']]) {
-    const [t3, t5] = R.ELEMENT_BONUSES[el];
-    const product = (1 + t3.mods[key]) * (1 + t5.mods[key]);
-    assert(Math.abs(product - 1.20) < 0.005, `${el} ${key} total ${product}`);
-  }
-  assert(R.ELEMENT_BONUSES.light[2].mods.takenMult === 0.85, 'light 7pc damage cut');
-});
-
 test('wind resonance feeds AP only off enemy turns', () => {
   const battle = makeBattle();
   const hero = place(battle, HEROES.florence, TEAM.PLAYER, 0);
@@ -1393,24 +1367,6 @@ test('dark resonance can stretch a debuff by one turn', () => {
   hero.synergyDebuffExtraChance = 0;
   assert(roll(0.01) === base, 'no resonance, no extension');
   Math.random = origRandom;
-});
-
-test('race packs pay the gear set to the whole party and stack with gear', () => {
-  const battle = makeBattle();
-  const rats = ['rat_warrior', 'rat_brawler', 'rat_duelist']
-    .map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
-  const human = place(battle, HEROES.florence, TEAM.PLAYER, 3);
-  // One rat already wears dodge from actual gear; the pack adds on top.
-  rats[0].gearDodge = 0.10;
-  const twoPc = Gear.SETS.rat.bonuses[0]; // the 2pc bonus = the 3-hero tier
-  assert(twoPc.stat === 'dodge', 'rat set 2pc is expected to be dodge');
-  const active = RACES.applyParty(battle.units.filter((u) => u.team === TEAM.PLAYER));
-  const pack = active.find((a) => a.title === 'Rat pack');
-  assert(pack && pack.count === 3, 'three rats should light the pack');
-  assert(Math.abs(human.gearDodge - twoPc.add) < 1e-9,
-    `the non-rat should get the party-wide dodge, got ${human.gearDodge}`);
-  assert(Math.abs(rats[0].gearDodge - (0.10 + twoPc.add)) < 1e-9,
-    `worn gear and the pack should stack, got ${rats[0].gearDodge}`);
 });
 
 test('hero storage: gear comes off on deposit, play resumes on withdraw', () => {
@@ -2399,42 +2355,7 @@ test("Silas's Aiming Stance gates, doubles, spends, and breaks correctly", () =>
   assert(inStance(), 'a dodged hit must not break the stance');
 });
 
-test('prismatic accord and motley company pay the party', () => {
-  const battle = makeBattle();
-  // One hero of every element, each from a different race/sect group.
-  const picks = [];
-  const used = new Set();
-  for (const el of Object.keys(RACES.ELEMENT_NAMES)) {
-    const def = Object.values(HEROES).find((h) => h.element === el &&
-      RACES.groupOf(h) && !used.has(RACES.groupOf(h)));
-    assert(def, `no hero found for element ${el}`);
-    used.add(RACES.groupOf(def));
-    picks.push(def);
-  }
-  const units = picks.map((d, i) => place(battle, d, TEAM.PLAYER, i));
-  const before = units.map((u) => ({ crit: u.baseCritChance, dodge: u.gearDodge,
-    spd: u.speed, acc: u.gearAccuracy, res: u.gearResistance, taken: u.synergyTakenMult }));
-  const titles = RACES.applyParty(units).map((s) => s.title);
-  assert(titles.includes('Prismatic accord'), 'the rainbow did not light');
-  assert(titles.includes('Motley company'), 'the motley bonus did not fire');
-  units.forEach((u, i) => {
-    assert(Math.abs(u.baseCritChance - before[i].crit - 0.15) < 1e-9, 'crit not paid');
-    assert(Math.abs(u.gearDodge - before[i].dodge - 0.10) < 1e-9, 'dodge not paid');
-    assert(u.speed === Math.round(before[i].spd * 1.15), 'speed not paid');
-    assert(Math.abs(u.gearAccuracy - before[i].acc - 0.30) < 1e-9, 'accuracy not paid');
-    assert(Math.abs(u.gearResistance - before[i].res - 0.40) < 1e-9, 'resistance not paid');
-    assert(u.synergyTakenMult === before[i].taken,
-      'five groups must not grant the seven-group tier');
-  });
-  // Sect grouping: two Reverence members are ONE motley group; a
-  // Reverence hero beside a Hedge hero are two.
-  assert(RACES.diversityCount([HEROES.catherine, HEROES.toll]) === 1, 'sect-mates split');
-  assert(RACES.diversityCount([HEROES.catherine, HEROES.vex]) === 2, 'sects merged');
-  // A party missing an element lights no rainbow.
-  assert(!RACES.prismActive([HEROES.catherine, HEROES.toll]), 'rainbow from one color');
-});
-
-test('blessed and godtouched: the summon lottery, stat lifts, packs and resurrection', () => {
+test('blessed and godtouched: the summon lottery, stat lifts and resurrection', () => {
   const B = g.Blessing;
 
   // The roll owns exact slices: 1/10,000 Godtouched at the bottom,
@@ -2468,39 +2389,6 @@ test('blessed and godtouched: the summon lottery, stat lifts, packs and resurrec
   assert(w.GameState.progressOf(added.uid).blessing === 'godtouched',
     'the roster entry lost its blessing');
 
-  // Packs pay everyone fielded, against a like-for-like control team.
-  const party = (blessings) => blessings.map((kind) => mk(kind));
-  const run = (team) => { RACES.applyParty(team); return team; };
-  const ctrl3 = run(party([null, null, null, null]));
-  const ble3 = run(party(['blessed', 'blessed', 'blessed', null]));
-  ble3.forEach((u, i) => {
-    assert(Math.abs(u.baseCritDamage - ctrl3[i].baseCritDamage - 0.25) < 1e-9,
-      '3 blessed must pay +25% crit damage to everyone');
-    assert(u.resurrectChance === 0, '3 blessed paid the 5-pack tier');
-  });
-  const ctrl5 = run(party([null, null, null, null, null]));
-  const ble5 = run(party(['blessed', 'blessed', 'blessed', 'blessed', 'blessed']));
-  ble5.forEach((u, i) => {
-    assert(Math.abs(u.resurrectChance - 0.15) < 1e-9, '5 blessed must pay 15% resurrect');
-    // Only the copies' own +20% base lift — no 7-pack HP at five.
-    assert(u.maxHp === Math.round(ctrl5[i].maxHp * 1.2), '5 blessed paid the 7-pack HP');
-  });
-  const ctrl7 = run(party(Array(7).fill(null)));
-  const god7 = run(party(Array(7).fill('godtouched')));
-  god7.forEach((u, i) => {
-    assert(Math.abs(u.baseCritDamage - ctrl7[i].baseCritDamage - 0.50) < 1e-9,
-      '7 godtouched must pay +50% crit damage');
-    assert(Math.abs(u.resurrectChance - 0.30) < 1e-9, '7 godtouched must pay 30% resurrect');
-    // The copies' own +40% base lift, then the 7-pack's +40% on top.
-    assert(u.maxHp === Math.round(Math.round(ctrl7[i].maxHp * 1.4) * 1.4),
-      '7 godtouched must pay +40% HP on top of the base lift');
-  });
-  // Strict counts: godtouched copies do not feed the Blessed pack.
-  const titles = RACES.applyParty(party(['godtouched', 'godtouched', 'godtouched']))
-    .filter((s) => s.title.endsWith('company')).map((s) => s.title);
-  assert(titles.includes('Godtouched company') && !titles.includes('Blessed company'),
-    `3 godtouched lit: ${titles.join(', ')}`);
-
   // Resurrection: the killing blow may not stick — once per battle.
   const u = mk(null);
   u.resurrectChance = 1;
@@ -2512,105 +2400,9 @@ test('blessed and godtouched: the summon lottery, stat lifts, packs and resurrec
   assert(!u.alive, 'a second resurrection went through');
 });
 
-test('the Reverence sect set: a DEF floor, an opening shield, shields off every blow', () => {
-  const tiers = RACES.SECT_BONUSES.reverence;
-  assert(tiers.length === 3 && tiers[0].mods.defPct === 0.10 &&
-    tiers[1].mods.startShield === 0.15 && tiers[2].mods.shieldOnDeal === 0.10,
-    'the Reverence table drifted');
-
-  const battle = makeBattle();
-  const members = ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli'];
-  const units = members.map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
-  const before = units.map((u) => ({ def: u.baseDef }));
-  const active = RACES.applyParty(units);
-  const entry = active.find((s) => s.title === 'Reverence sect');
-  assert(entry && entry.count === 7 && entry.labels.length === 3,
-    `sect pack read ${JSON.stringify(entry)}`);
-  units.forEach((u, i) => {
-    assert(u.baseDef === Math.round(before[i].def * 1.10), 'the DEF floor was not paid');
-    assert(u.shieldTotal() === Math.round(u.maxHp * 0.15),
-      `opening shield reads ${u.shieldTotal()} of ${u.maxHp}`);
-    assert(Math.abs(u.synergyShieldOnDeal - 0.10) < 1e-9, 'no shield off blows');
-  });
-  // The 7pc in motion: landing a 500 blow banks 50 shield on the dealer.
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const dealer = units[0];
-  dealer.hookSources = () => []; // isolate the synergy from kit hooks
-  const held = dealer.shieldTotal();
-  dealer.dealt(500, foe);
-  assert(dealer.shieldTotal() === held + 50,
-    `a 500 blow banked ${dealer.shieldTotal() - held} shield`);
-
-  // Three fielded: the DEF tier alone — no shields yet.
-  const b2 = makeBattle();
-  const trio = ['catherine', 'toll', 'oak'].map((id, i) => place(b2, HEROES[id], TEAM.PLAYER, i));
-  const defs = trio.map((u) => u.baseDef);
-  const e2 = RACES.applyParty(trio).find((s) => s.title === 'Reverence sect');
-  assert(e2 && e2.labels.length === 1, 'three members should pay one tier');
-  trio.forEach((u, i) => {
-    assert(u.baseDef === Math.round(defs[i] * 1.10), 'trio DEF off');
-    assert(u.shieldTotal() === 0 && u.synergyShieldOnDeal === 0,
-      'higher tiers paid early');
-  });
-});
-
-test('the Cryst sect set: an ATK floor, an opening freeze, colder freeze rolls', () => {
-  const tiers = RACES.SECT_BONUSES.cryst;
-  assert(tiers.length === 3 && tiers[0].mods.atkPct === 0.10 &&
-    tiers[1].mods.openingFreeze === 1 && tiers[2].mods.freezeChance === 0.15,
-    'the Cryst table drifted');
-
-  const battle = makeBattle();
-  const members = ['polarus', 'echo', 'florence', 'andrew', 'ari', 'cain', 'bit'];
-  const units = members.map((id, i) => place(battle, HEROES[id], TEAM.PLAYER, i));
-  const atkBefore = units.map((u) => u.baseAtk);
-  const entry = RACES.applyParty(units).find((s) => s.title === 'Cryst sect');
-  assert(entry && entry.count === 7 && entry.labels.length === 3,
-    `sect pack read ${JSON.stringify(entry)}`);
-  units.forEach((u, i) => {
-    assert(u.baseAtk === Math.round(atkBefore[i] * 1.10), 'the ATK floor was not paid');
-    assert(u.synergyOpeningFreeze === 1, 'no opening freeze armed');
-    assert(Math.abs(u.synergyFreezeChance - 0.15) < 1e-9, 'freeze rolls no colder');
-  });
-
-  // The 7pc bonus makes an 85% freeze roll a certainty (0.85 + 0.15):
-  // a hundred casts must all pass the chance gate (frozen or resisted,
-  // never a silent miss).
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const caster = units[4]; // Ari
-  for (let i = 0; i < 100; i++) {
-    foe.statusEffects = [];
-    const r = Abilities.applyEffect(
-      { type: 'freeze', chance: 0.85, turns: 2 }, caster, foe);
-    assert(r !== null, `cast ${i + 1} missed a guaranteed freeze roll`);
-  }
-
-  // Three fielded: the ATK tier alone.
-  const b2 = makeBattle();
-  const trio = ['florence', 'ari', 'cain'].map((id, i) => place(b2, HEROES[id], TEAM.PLAYER, i));
-  const atks = trio.map((u) => u.baseAtk);
-  const e2 = RACES.applyParty(trio).find((s) => s.title === 'Cryst sect');
-  assert(e2 && e2.labels.length === 1, 'three members should pay one tier');
-  trio.forEach((u, i) => {
-    assert(u.baseAtk === Math.round(atks[i] * 1.10), 'trio ATK off');
-    assert(u.synergyOpeningFreeze === 0 && u.synergyFreezeChance === 0,
-      'higher tiers paid early');
-  });
-});
-
-test('the Firetroupe sect set: accuracy tiers and the Oilslick mark', () => {
-  const tiers = RACES.SECT_BONUSES.firetroupe;
-  assert(tiers.length === 3 && tiers[0].mods.accuracy === 0.15 &&
-    tiers[1].mods.accuracy === 0.05 && tiers[2].mods.oilOnHit === 0.10,
-    'the Firetroupe table drifted');
-
-  // Two members fielded is below every tier: no pack fires.
-  const b0 = makeBattle();
-  const duo = ['lucian', 'franz'].map((id, i) => place(b0, HEROES[id], TEAM.PLAYER, i));
-  assert(!RACES.applyParty(duo).some((s) => s.title === 'Firetroupe sect'),
-    'two performers lit the whole pack');
-
-  // The 7pc channel: a landed hit slicks the victim for 2 turns.
+test('the Oilslick mark: burns tick double, direct hits gain nothing', () => {
+  // The oil-on-hit engine channel: a landed hit slicks the victim for
+  // 2 turns. (Set directly — nothing grants it party-wide any more.)
   const w = loadGame();
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Elements: E } = w;
   const franz = new U(H.franz, T.PLAYER, { level: 30, stars: 4 });

@@ -207,77 +207,6 @@ class TeamScreen {
     const size = GameState.teamSize();
     this.teamCountEl.textContent = `${size}/7 heroes placed`;
 
-    // Party synergy readout: its own panel, one row per group, so each
-    // active buff reads separately instead of running together on one
-    // line. Active tiers light up; locked tiers stay visible (dimmed,
-    // with their threshold) so the next unlock is always in sight.
-    const raceEl = document.getElementById('race-bonuses');
-    if (raceEl) {
-      const defs = Object.values(GameState.getTeam())
-        .map((id) => GameState.defOf(id)).filter(Boolean);
-      const rows = [];
-      const row = (title, color, count, tiers) => {
-        const chips = tiers.map((t) => {
-          const live = count >= t.count;
-          const text = t.label.replace(/^\d+: /, '');
-          return `<span class="syn-tier${live ? ' live' : ''}"
-            title="${live ? 'Active' : `Unlocks at ${t.count} heroes`}">${
-            live ? '' : `${t.count}: `}${text}</span>`;
-        }).join('');
-        rows.push(`<div class="syn-row">
-          <span class="syn-name"${color ? ` style="color:${color}"` : ''}>${title} &times;${count}</span>
-          ${chips}</div>`);
-      };
-      for (const [race, count] of Object.entries(RACES.counts(defs))) {
-        if (count < 2) continue;
-        const tiers = RACES.BONUSES[race] || [];
-        if (!tiers.length) continue; // humans: sects, not a pack
-        row(`${RACES.NAMES[race]} pack`, null, count, tiers);
-      }
-      // Human sects: shown as soon as a member is fielded. A sect with
-      // a wired pack (Reverence, Cryst) shows its real tiers like any
-      // other row; the rest still say who stands together and that
-      // their bonuses are to come.
-      for (const sect of Object.values(RACES.SECTS)) {
-        const fielded = defs.filter((d) => RACES.sectOf(d) === sect).length;
-        if (fielded < 1) continue;
-        const tiers = RACES.SECT_BONUSES[sect.id];
-        if (tiers && tiers.length) {
-          row(`${sect.name} sect`, null, fielded, tiers);
-        } else {
-          rows.push(`<div class="syn-row">
-            <span class="syn-name">${sect.name} sect &times;${fielded}</span>
-            <span class="syn-tier">No. ${sect.number}</span>
-            <span class="syn-tier">${fielded}/${sect.members.length} known members</span>
-            <span class="syn-tier">bonuses to come</span></div>`);
-        }
-      }
-      for (const [el, count] of Object.entries(RACES.elementCounts(defs))) {
-        if (count < 2) continue;
-        const info = Elements.info(el);
-        row(`${Elements.badge(el)} ${RACES.ELEMENT_NAMES[el]} resonance`,
-          info && info.color, count, RACES.ELEMENT_BONUSES[el] || []);
-      }
-      // Prismatic accord: one hero of every element. Shown from 3
-      // distinct elements up so the goal is visible while assembling.
-      const distinctEls = Object.keys(RACES.elementCounts(defs)).length;
-      if (distinctEls >= 3) {
-        rows.push(`<div class="syn-row">
-          <span class="syn-name">🌈 Prismatic accord &times;${distinctEls}/5</span>
-          <span class="syn-tier${RACES.prismActive(defs) ? ' live' : ''}"
-            title="${RACES.prismActive(defs) ? 'Active' : 'Field one hero of every element'}">${
-            RACES.PRISM_BONUS.label.replace(/^all 5 elements: /, '')}</span></div>`);
-      }
-      // Motley company: distinct races/sects, tiered 3/5/7.
-      const motley = RACES.diversityCount(defs);
-      if (motley >= 2) {
-        row('🎭 Motley company', null, motley, RACES.DIVERSITY_BONUSES);
-      }
-      raceEl.innerHTML = rows.length
-        ? `<div class="syn-head">Party synergy</div>${rows.join('')}`
-        : '';
-      raceEl.classList.toggle('hidden', rows.length === 0);
-    }
   }
 
   // ---- Roster panel ------------------------------------------------------
@@ -660,7 +589,8 @@ class TeamScreen {
         </div>
         <div class="report-card">
           <div class="report-title">Best per element</div>
-          ${bestBy((r) => r.def.element, (k) => `${Elements.badge(k)} ${RACES.ELEMENT_NAMES[k] || k}`)}
+          ${bestBy((r) => r.def.element, (k) =>
+    `${Elements.badge(k)} ${(Elements.info(k) || {}).name || k}`)}
           <div class="report-title" style="margin-top:10px">Best per race</div>
           ${bestBy((r) => RACES.of(r.def), (k) => RACES.NAMES[k] || k)}
         </div>
