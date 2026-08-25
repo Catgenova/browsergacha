@@ -418,7 +418,7 @@ Object.assign(HEROES, {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
-          target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * 0.03);
+          Abilities.drainMeter(unit, target, 0.03);
           return null; // silent — small rolling toll
         },
       },
@@ -1829,7 +1829,7 @@ Object.assign(HEROES, {
       hooks: {
         onTurnStart(unit, battle) {
           for (const e of battle.livingUnits(unit.enemyTeam())) {
-            e.turnMeter = Math.max(0, e.turnMeter - CONFIG.TURN_METER_MAX * 0.025);
+            Abilities.drainMeter(unit, e, 0.025);
           }
           return null; // silent — small rolling dread
         },

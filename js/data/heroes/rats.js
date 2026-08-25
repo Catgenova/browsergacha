@@ -1384,7 +1384,8 @@ Object.assign(HEROES, {
           const enemies = battle.livingUnits(unit.enemyTeam());
           if (enemies.length === 0) return null;
           const target = enemies[Math.floor(Math.random() * enemies.length)];
-          target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * 0.10);
+          const took = Abilities.drainMeter(unit, target, 0.10);
+          if (!took || took.amount === 0) return null;
           return {
             label: 'Undertow',
             message: `${unit.name}'s undertow drags at ${target.name}.`,
