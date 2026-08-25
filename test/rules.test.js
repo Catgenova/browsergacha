@@ -3808,4 +3808,104 @@ test('taking is contested: strips and AP drains roll accuracy vs resistance', ()
   }
 });
 
+test("Posie's kit: two pools, a bough that keeps swinging, a summer ward", () => {
+  const A = Abilities, H = HEROES, R = g.Math;
+  const def = H.posie;
+  assert(def && def.element === 'wind' && def.rarity === 5, 'Posie drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Posie left the Whisperchime');
+
+  // ---- Skill 1 heals off HER pool; skill 2 heals off THEIRS ----
+  const b = makeBattle();
+  const posie = place(b, def, TEAM.PLAYER, 5);       // a back hex
+  const big = place(b, H.franz, TEAM.PLAYER, 1);     // a bigger pool than hers
+  posie.healingBoost = () => 0;
+  big.hp = 1;
+  A.applyEffect({ type: 'healHpPct', pct: 0.20 }, posie, big, 1);
+  assert(big.hp - 1 === Math.round(posie.maxHp * 0.20),
+    `Bloom healed ${big.hp - 1}, expected 20% of Posie's ${posie.maxHp}`);
+  big.hp = 1;
+  A.applyEffect({ type: 'healHpPct', targetPct: 0.20 }, posie, big, 1);
+  assert(big.hp - 1 === Math.round(big.maxHp * 0.20),
+    `Windfall healed ${big.hp - 1}, expected 20% of the patient's ${big.maxHp}`);
+
+  // ---- The bough swings on to whoever is worst off ----
+  const b2 = makeBattle();
+  const p2 = place(b2, def, TEAM.PLAYER, 5);
+  const hurt = place(b2, H.cain, TEAM.PLAYER, 1);
+  const fine = place(b2, H.oak, TEAM.PLAYER, 2);
+  p2.healingBoost = () => 0;
+  hurt.hp = 1; fine.hp = fine.maxHp;
+  const windfall = def.abilities[1];
+  assert(windfall.chain && windfall.chain.to === 'lowest-ally' &&
+    windfall.chain.id === windfall.id, 'Windfall stopped chaining into itself');
+  R.random = () => 0.99;                    // every jump roll fails
+  const once = A.execute(windfall, p2, fine, b2).filter((r) => r.kind === 'heal');
+  delete R.random;
+  assert(once.length === 1, `a cold roll still swung ${once.length} times`);
+
+  hurt.hp = 1; fine.hp = fine.maxHp;
+  R.random = () => 0.01;                    // every jump roll lands
+  const many = A.execute(windfall, p2, fine, b2).filter((r) => r.kind === 'heal');
+  delete R.random;
+  assert(many.length === 1 + windfall.chain.maxDepth,
+    `a hot run swung ${many.length}, expected ${1 + windfall.chain.maxDepth}`);
+  // The first jump goes to the ally who was worst off — and it keeps
+  // re-choosing, so once that ally is topped up the bough moves on
+  // rather than pouring the rest into a full bar.
+  assert(many[1].target === hurt, 'the first jump missed the lowest ally');
+  assert(hurt.hp === hurt.maxHp, 'the chain never finished the job');
+  assert(many.some((r) => r.target !== hurt),
+    'the bough kept swinging at an ally who no longer needed it');
+
+  // ---- The back hex widens the channel ----
+  assert(def.positional.name === 'Bough Bearer' &&
+    def.positional.hooks.chainChanceAdd === 0.15, 'the back-hex bonus drifted');
+  const b3 = makeBattle();
+  const back = place(b3, def, TEAM.PLAYER, 5);
+  const front = place(b3, def, TEAM.PLAYER, 1);
+  const mate = place(b3, H.cain, TEAM.PLAYER, 2);
+  mate.hp = 1;
+  assert(back.slot.position === POSITION.BACK && front.slot.position !== POSITION.BACK,
+    'sanity: the two Posies are not in different rows');
+  // A roll of 0.60 clears 0.50 + 0.15 but not 0.50 alone.
+  R.random = () => 0.60;
+  const fromBack = A.execute(windfall, back, mate, b3).filter((r) => r.kind === 'heal');
+  const fromFront = A.execute(windfall, front, mate, b3).filter((r) => r.kind === 'heal');
+  delete R.random;
+  assert(fromBack.length > 1, 'the back hex did not widen the channel');
+  assert(fromFront.length === 1, 'the front hex chained anyway');
+
+  // ---- High Summer: a team heal and a real resistance buff ----
+  const b4 = makeBattle();
+  const p4 = place(b4, def, TEAM.PLAYER, 5);
+  const ally = place(b4, H.cain, TEAM.PLAYER, 1);
+  p4.healingBoost = () => 0;
+  ally.hp = 1;
+  const before = ally.debuffResistance();
+  A.execute(def.abilities[2], p4, null, b4);
+  assert(ally.hp - 1 === Math.round(p4.maxHp * 0.25),
+    `High Summer healed ${ally.hp - 1}, expected 25% of ${p4.maxHp}`);
+  assert(Math.abs(ally.debuffResistance() - before - 0.30) < 1e-9,
+    `resistance went ${before} -> ${ally.debuffResistance()}`);
+  // And that resistance has to actually do something: it is the stat
+  // the contested-take rule reads.
+  const foe = place(b4, H.rat_knight, TEAM.ENEMY, 1);
+  ally.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
+  R.random = () => 0.85;                   // beats 1 - 0.30 = 0.70
+  const drained = A.applyEffect({ type: 'turnMeter', amount: -0.20 }, foe, ally, 1);
+  delete R.random;
+  assert(drained.resisted, 'the summer ward bought no resistance at all');
+
+  // ---- Nothing Falls Far: the overflow settles as a shield ----
+  const b5 = makeBattle();
+  const p5 = place(b5, def, TEAM.PLAYER, 5);
+  const full = place(b5, H.cain, TEAM.PLAYER, 1);
+  p5.healingBoost = () => 0;
+  full.hp = full.maxHp;                    // nothing to heal: all overflow
+  assert(full.shieldTotal() === 0, 'sanity: the ally already had a shield');
+  A.applyEffect({ type: 'healHpPct', pct: 0.20 }, p5, full, 1);
+  assert(full.shieldTotal() === Math.round(p5.maxHp * 0.20),
+    `the overflow left a ${full.shieldTotal()} shield, expected ${Math.round(p5.maxHp * 0.20)}`);
+});
+
 report();

@@ -166,6 +166,14 @@ const POSITIONALS = (() => {
     hooks: { healBoostAdd: 0.25 },
   });
 
+  // Posie's hex: standing back, the bough finds its own way onward.
+  def('bough_bearer', {
+    position: POSITION.BACK,
+    name: 'Bough Bearer',
+    description: 'Back hex: +15% chance for a healing chain to swing on again.',
+    hooks: { chainChanceAdd: 0.15 },
+  });
+
   def('windrunner', {
     position: POSITION.BACK,
     name: 'Windrunner',

@@ -161,7 +161,7 @@ test('human sects hold real humans, once each, with their numbers', () => {
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: [] },
-    whisperchime: { number: 7, members: ['tumble'] },
+    whisperchime: { number: 7, members: ['tumble', 'posie'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

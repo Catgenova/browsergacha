@@ -246,6 +246,11 @@ class Unit {
     for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.resistanceAdd) r += p.hooks.resistanceAdd;
     }
+    // Timed resistance buffs (Posie's High Summer) ride the status
+    // list, the same way accuracy buffs do above.
+    for (const fx of this.statusEffects) {
+      if (fx.stat === 'resistance' && fx.add) r += fx.add;
+    }
     return r;
   }
 
