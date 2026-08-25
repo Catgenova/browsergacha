@@ -3639,4 +3639,38 @@ test('the rolling backup survives and restores', () => {
     'the live save is not the backup');
 });
 
+test('the Journey holds exactly one thousand well-formed quests', () => {
+  const w = loadGame();
+  const defs = w.Quests.DEFS.journey;
+  assert(defs.length === 1000, `the Journey holds ${defs.length} quests`);
+  const ids = new Set(defs.map((d) => d.id));
+  assert(ids.size === 1000, 'journey quest ids collide');
+  // Ladders climb strictly, and every rung pays something.
+  const prev = {};
+  for (const d of defs) {
+    assert(d.goal > (prev[d.counter] || 0),
+      `${d.id} does not climb past its predecessor`);
+    prev[d.counter] = d.goal;
+    assert(Object.keys(d.reward).length > 0, `${d.id} pays nothing`);
+  }
+});
+
+test('Journey rungs claim off lifetime totals and never reset', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const first = w.Quests.DEFS.journey.find((d) => d.counter === 'wins');
+  // Not there yet: the claim refuses.
+  assert(G.claimQuest('journey', first.id) === null, 'claimed early');
+  G.questBump('wins', first.goal);
+  const before = G.diamonds;
+  const reward = G.claimQuest('journey', first.id);
+  assert(reward && G.diamonds === before + (reward.diamonds || 0),
+    'the first rung did not pay');
+  assert(G.claimQuest('journey', first.id) === null, 'double-claimed');
+  // The claim survives a save/load round trip — no period ever rolls it.
+  const G2 = loadGame({ save: w.savedState() }).GameState;
+  assert(G2.claimQuest('journey', first.id) === null,
+    'the claim was forgotten across a reload');
+});
+
 report();

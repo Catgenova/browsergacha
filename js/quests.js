@@ -90,9 +90,66 @@ const Quests = (() => {
     ],
   };
 
+  // ---- The Journey: one thousand quests that never reset ---------------
+  // A fourth board beside the timed three. Every lifetime counter the
+  // game tracks becomes a chain of escalating milestones — a thousand
+  // rungs in all — checked against the lifetime totals (the same
+  // numbers the achievements read), so progress earned before a rung
+  // was ever visible still counts. Goals grow ~14.5% per tier, rounded
+  // to two significant digits; rewards escalate with the tier, with a
+  // scroll beat every 5th, a rare beat every 10th, and a Temporal
+  // Scroll every 25th.
+  (() => {
+    const CHAINS = [
+      // [counter, phrasing, first goal, tiers]
+      ['wins', (g) => `Win ${g} battles`, 15, 67],
+      ['huntWins', (g) => `Win ${g} hunts`, 15, 67],
+      ['bossWins', (g) => `Clear ${g} boss stages`, 5, 67],
+      ['campaignWins', (g) => `Clear ${g} campaign nodes`, 5, 67],
+      ['towerFloors', (g) => `Climb ${g} tower floors`, 5, 67],
+      ['summons', (g) => `Summon ${g} heroes`, 5, 67],
+      ['polishes', (g) => `Polish items ${g} times`, 10, 67],
+      ['enchants', (g) => `Attempt ${g} enchants`, 5, 67],
+      ['salvages', (g) => `Salvage ${g} items`, 5, 67],
+      ['flawless', (g) => `Win ${g} battles without losing a hero`, 5, 67],
+      ['synergyWins', (g) => `Win ${g} battles with a party bonus`, 10, 66],
+      ['fullSynergyWins', (g) => `Win ${g} battles with a 7-strong bonus`, 3, 66],
+      ['starUps', (g) => `Star up ${g} heroes`, 2, 66],
+      ['sacrifices', (g) => `Spend ${g} heroes on star-ups`, 3, 66],
+      ['attunements', (g) => `Attune heroes ${g} times`, 3, 66],
+    ];
+    // Two significant digits, so ladders read as 150 / 170 / 200 rather
+    // than 149 / 171 / 196.
+    const nice = (x) => {
+      const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(x)) - 1));
+      return Math.round(x / mag) * mag;
+    };
+    const rewardFor = (tier) => {
+      if (tier % 25 === 0) return { scrollsTemporal: Math.ceil(tier / 25) };
+      if (tier % 10 === 0) return { scrollsRare: 2 + Math.floor(tier / 10) };
+      if (tier % 5 === 0) return { scrollsCommon: 3 + Math.floor(tier / 5) };
+      return { diamonds: 40 + tier * 10 };
+    };
+    const journey = [];
+    for (const [counter, phrase, base, tiers] of CHAINS) {
+      let prev = 0;
+      for (let t = 1; t <= tiers; t++) {
+        const goal = Math.max(prev + 1, nice(base * Math.pow(1.145, t - 1)));
+        prev = goal;
+        journey.push({
+          id: `j_${counter}_${t}`, name: phrase(goal.toLocaleString()),
+          counter, goal, reward: rewardFor(t), tier: t, tiers,
+        });
+      }
+    }
+    DEFS.journey = journey;
+  })();
+
   // Period keys in local time: daily 'YYYY-MM-DD', weekly the date of
-  // that week's Monday prefixed 'w', monthly 'YYYY-MM'.
+  // that week's Monday prefixed 'w', monthly 'YYYY-MM'. The Journey
+  // never rolls over — its "period" is a constant.
   function periodKey(type) {
+    if (type === 'journey') return 'forever';
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');

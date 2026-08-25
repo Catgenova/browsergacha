@@ -33,6 +33,7 @@ class QuestsScreen {
     const boards = [
       ...this.guardedBoards('Login', () => this.loginBoard()),
       ...this.guardedBoards('Quests', () => this.questBoards()),
+      ...this.guardedBoards('Journey', () => this.journeyBoard()),
       ...this.guardedBoards('Achievements', () => this.achievementBoards()),
     ].map((b, i) => ({ ...b, i }));
     boards.sort((a, b) => ((b.claimable > 0) - (a.claimable > 0)) || (a.i - b.i));
@@ -285,6 +286,54 @@ class QuestsScreen {
           ${rows}
         </div>` };
     });
+  }
+
+  // The Journey: a thousand lifetime quests that never reset. Each
+  // counter is a chain of escalating rungs, and only the NEXT unclaimed
+  // rung of each chain is shown — the board stays fifteen rows tall no
+  // matter how deep the ladders run. Progress reads the lifetime
+  // totals, so play from before the board existed already counts.
+  journeyBoard() {
+    const q = GameState.questState('journey');
+    const defs = Quests.DEFS.journey;
+    const clearedTotal = defs.reduce((n, d) => n + (q.claimed[d.id] ? 1 : 0), 0);
+    const claimable = defs.reduce((n, d) =>
+      n + (!q.claimed[d.id] && GameState.stat(d.counter) >= d.goal ? 1 : 0), 0);
+    // The lowest unclaimed rung of each chain (defs are in tier order).
+    const nextRung = new Map();
+    for (const def of defs) {
+      if (!q.claimed[def.id] && !nextRung.has(def.counter)) nextRung.set(def.counter, def);
+    }
+    const rank = (def) => (GameState.stat(def.counter) >= def.goal ? 0 : 1);
+    const rows = [...nextRung.values()].sort((a, b) => rank(a) - rank(b))
+      .map((def) => {
+        const raw = GameState.stat(def.counter);
+        const have = Math.min(raw, def.goal);
+        const done = raw >= def.goal;
+        const pct = Math.round((have / def.goal) * 100);
+        return `
+          <div class="quest-row ${done ? 'quest-done' : ''}">
+            <div class="quest-info">
+              <div class="quest-name">${def.name}
+                <span class="quest-tier">· rung ${def.tier}/${def.tiers}</span></div>
+              <div class="quest-bar"><div class="quest-fill" style="width:${pct}%"></div></div>
+              <div class="quest-progress">${have.toLocaleString()} / ${def.goal.toLocaleString()}</div>
+            </div>
+            <div class="quest-reward">${Quests.rewardLabel(def.reward)}</div>
+            <button class="panel-btn quest-claim ${done ? 'gold' : ''}"
+              data-type="journey" data-id="${def.id}"
+              ${done ? '' : 'disabled'}>Claim</button>
+          </div>`;
+      }).join('');
+    return [{ claimable, html: `
+      <div class="quest-board">
+        <div class="quest-board-header">
+          <h3>The Journey</h3>
+          <span class="quest-reset">${claimable
+            ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}${clearedTotal.toLocaleString()} / ${defs.length.toLocaleString()} quests cleared · never resets</span>
+        </div>
+        ${rows}
+      </div>` }];
   }
 
   // Achievements: one-time goals, grouped, that never reset. These are
