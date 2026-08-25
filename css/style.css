@@ -691,6 +691,13 @@ body {
   color: #b8b2cc;
 }
 
+/* Secondary stats line: crit, accuracy, resistance, dodge. */
+.detail-stats-sub {
+  margin-top: 0;
+  font-size: 11px;
+  color: #9a92b8;
+}
+
 .detail-section {
   margin-top: 10px;
   padding-bottom: 2px;

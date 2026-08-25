@@ -740,6 +740,29 @@ class TeamScreen {
 
   // ---- Details panel -----------------------------------------------------
 
+  // The full stat block for a hero detail panel: the four primaries,
+  // then the secondaries every build actually turns on — crit, crit
+  // damage, accuracy, resistance, dodge. `stats` may or may not have
+  // been through Gear.applyToStats; bare scaled stats fall back to the
+  // engine's baselines (15% crit, 150% crit damage, 0 for the rest).
+  fullStatsHtml(stats) {
+    const pct = (v) => {
+      const n = Math.round((v || 0) * 1000) / 10;
+      return `${Number.isInteger(n) ? n : n.toFixed(1)}%`;
+    };
+    return `
+      <div class="detail-stats">
+        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
+      </div>
+      <div class="detail-stats detail-stats-sub">
+        CRIT ${pct(stats.critChance ?? 0.15)} ·
+        CRIT DMG ${pct(stats.critDamage ?? 1.5)} ·
+        ACC ${pct(stats.accuracy)} ·
+        RES ${pct(stats.resistance)} ·
+        DODGE ${pct(stats.dodge)}
+      </div>`;
+  }
+
   updateDetails() {
     if (!this.selection) {
       this.detailsEl.innerHTML =
@@ -873,9 +896,7 @@ class TeamScreen {
         <span class="xp-text">${atCap ? 'Star up to raise the cap' : `XP ${progress.xp} / ${xpNeed}`}</span>
       </div>
       <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
-      <div class="detail-stats">
-        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
-      </div>
+      ${this.fullStatsHtml(stats)}
       <div class="detail-section">Gear</div>
       ${gearLocked ? '' : `<button id="auto-equip-btn" class="panel-btn gear-auto-btn"
         title="Fit the best unworn pieces to this hero. Locked gear stays put; nobody else is undressed.">⚙ Auto-equip</button>`}
@@ -994,9 +1015,7 @@ class TeamScreen {
         <span class="xp-text">${atCap ? 'Star up to raise the cap' : `XP ${e.xp} / ${xpNeed}`}</span>
       </div>
       <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
-      <div class="detail-stats">
-        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
-      </div>
+      ${this.fullStatsHtml(stats)}
       <div class="detail-stats">🏛 In storage — out of play, holding no gear.</div>
       <div class="detail-section">Abilities <span class="cd">(raised in Improve)</span></div>
       ${abilitiesHtml}
