@@ -58,12 +58,27 @@ const Events = (() => {
   // `from`/`until` are [year, monthIndex, day] local midnights; `until`
   // is exclusive. No `until` = the banner runs until further notice.
   const SUMMON_BANNERS = [
+    // The opening pair close together at midnight ending Sunday Aug 30
+    // (until is exclusive, so Aug 31 00:00 is that midnight), and each
+    // scroll's successor opens the moment they do.
     { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
-      scroll: 'rare', mult: 2, // until further notice
-      label: 'Cryst Sect heroes at 2× draw weight within their star band.' },
+      scroll: 'rare', mult: 2, until: [2026, 7, 31],
+      label: 'Cryst Sect heroes at 2× draw weight within their star band — through Aug 30.' },
     { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence',
-      scroll: 'temporal', mult: 2, until: [2026, 7, 30],
-      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 29.' },
+      scroll: 'temporal', mult: 2, until: [2026, 7, 31],
+      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 30.' },
+    // The Firetroupe takes the Rare scroll: nine performers, all fire,
+    // which the Rare pool draws from freely.
+    { id: 'firetroupe_rateup', name: 'The Firetroupe', sect: 'firetroupe',
+      scroll: 'rare', mult: 2, from: [2026, 7, 31], // until further notice
+      label: 'Firetroupe Sect heroes at 2× draw weight within their star band.' },
+    // The Nightflowers take the Temporal scroll. That pool is Dark and
+    // Light only, so the tilt reaches a Nightflower only once she is
+    // wired as a dark or light hero — the sect stands empty until then
+    // and the banner rides flat.
+    { id: 'nightflower_rateup', name: 'The Nightflowers', sect: 'nightflower',
+      scroll: 'temporal', mult: 2, from: [2026, 7, 31], // until further notice
+      label: 'Nightflower Sect heroes at 2× draw weight within their star band.' },
   ];
 
   // Every banner in its window right now.

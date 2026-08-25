@@ -71,6 +71,11 @@ const RACES = (() => {
     // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
                  members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo'] },
+    // The Nightflowers hold their number and their name ahead of their
+    // roster — the same courtesy Shadowflower got. Members land as the
+    // heroes themselves are wired.
+    nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
+                 members: [] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
