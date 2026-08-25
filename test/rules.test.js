@@ -4023,4 +4023,117 @@ test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => 
   }
 });
 
+test("Ilyra's kit: the same mercy at three widths, paid for by the enemy", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.ilyra;
+  assert(def && def.element === 'wind' && def.rarity === 3, 'Ilyra drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Ilyra left the Whisperchime');
+
+  const hex = (u, n = 1) => {
+    for (let i = 0; i < n; i++) {
+      u.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.8, turns: 3 });
+    }
+  };
+
+  // ---- Skill 1: one ally, 15% of HER pool, one curse lifted ----
+  {
+    const b = makeBattle();
+    const ilyra = place(b, def, TEAM.PLAYER, 5);
+    const mate = place(b, H.franz, TEAM.PLAYER, 1);
+    ilyra.healingBoost = () => 0;
+    mate.hp = 1;
+    hex(mate, 3);
+    A.execute(def.abilities[0], ilyra, mate, b);
+    assert(mate.hp - 1 === Math.round(ilyra.maxHp * 0.15),
+      `Clear Sky healed ${mate.hp - 1}, expected 15% of ${ilyra.maxHp}`);
+    assert(mate.statusEffects.filter((fx) => fx.kind === 'debuff').length === 2,
+      'Clear Sky lifted the wrong number of curses');
+  }
+
+  // ---- Skill 2 is the FRONT row at 20%; skill 3 is everyone at 15% ----
+  {
+    const b = makeBattle();
+    const ilyra = place(b, def, TEAM.PLAYER, 5);
+    ilyra.healingBoost = () => 0;
+    const mates = [1, 2, 3, 4, 6].map((i) => place(b, H.franz, TEAM.PLAYER, i));
+    for (const m of mates) { m.hp = 1; hex(m, 2); }
+    const front = mates.filter((m) => m.slot.position === POSITION.FRONT);
+    const rest = mates.filter((m) => !front.includes(m));
+    assert(front.length > 0 && rest.length > 0, 'sanity: the party is all one row');
+    A.execute(def.abilities[1], ilyra, null, b);
+    for (const m of front) {
+      assert(m.hp - 1 === Math.round(ilyra.maxHp * 0.20),
+        `a front ally got ${m.hp - 1}, expected 20% of ${ilyra.maxHp}`);
+      assert(m.statusEffects.filter((fx) => fx.kind === 'debuff').length === 1,
+        'a front ally kept both curses');
+    }
+    for (const m of rest) {
+      assert(m.hp === 1, 'Following Wind reached past the front row');
+    }
+
+    // Now the team-wide one, at the smaller number, for everybody.
+    for (const m of mates) m.hp = 1;
+    ilyra.hp = 1;
+    A.execute(def.abilities[2], ilyra, null, b);
+    for (const m of mates) {
+      assert(m.hp - 1 === Math.round(ilyra.maxHp * 0.15),
+        `Changing Weather gave ${m.hp - 1}, expected 15% of ${ilyra.maxHp}`);
+    }
+    assert(ilyra.hp > 1, 'Changing Weather left the caster out');
+  }
+
+  // ---- Kindly Hours: every hex on her side pays her 10 meter ----
+  {
+    const b = makeBattle();
+    const ilyra = place(b, def, TEAM.PLAYER, 5);
+    const mate = place(b, H.franz, TEAM.PLAYER, 1);
+    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const prevActive = Battle.active;
+    Battle.active = b;                   // the ring reads the live battle
+    try {
+      ilyra.turnMeter = 0;
+      hex(mate, 1);
+      assert(Math.abs(ilyra.turnMeter - CONFIG.TURN_METER_MAX * 0.10) < 1e-6,
+        `one ally hex paid ${ilyra.turnMeter}`);
+      hex(mate, 2);
+      assert(Math.abs(ilyra.turnMeter - CONFIG.TURN_METER_MAX * 0.30) < 1e-6,
+        'three hexes did not pay three times');
+      // A poison counts as a curse; a blessing does not, and neither
+      // does anything landing on the ENEMY side.
+      ilyra.turnMeter = 0;
+      mate.addStatusEffect({ kind: 'dot', amount: 10, turns: 2 });
+      assert(ilyra.turnMeter > 0, 'a poison paid nothing');
+      ilyra.turnMeter = 0;
+      mate.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 2 });
+      assert(ilyra.turnMeter === 0, 'a blessing paid her');
+      hex(foe, 3);
+      assert(ilyra.turnMeter === 0, 'the enemy being cursed paid her');
+      // And it pays for her own misfortune too — she is on her own side.
+      ilyra.turnMeter = 0;
+      hex(ilyra, 1);
+      assert(ilyra.turnMeter > 0, 'her own curse paid nothing');
+    } finally { Battle.active = prevActive; }
+  }
+
+  // ---- Still Air: the back hex is 30% resistance, and it bites ----
+  {
+    assert(def.positional.name === 'Still Air' &&
+      def.positional.hooks.resistanceAdd === 0.30, 'the back-hex bonus drifted');
+    const b = makeBattle();
+    const back = place(b, def, TEAM.PLAYER, 5);
+    const front = place(b, def, TEAM.PLAYER, 1);
+    assert(Math.abs(back.debuffResistance() - front.debuffResistance() - 0.30) < 1e-9,
+      'the back hex paid the wrong resistance');
+    // 30% resistance refuses a taking on a roll that would beat 0%.
+    const thief = place(b, H.galen, TEAM.ENEMY, 1);
+    thief.debuffAccuracy = () => 0;
+    back.turnMeter = CONFIG.TURN_METER_MAX * 0.5;
+    const R = g.Math;
+    R.random = () => 0.85;               // beats 1 - 0.30 = 0.70
+    const drained = A.applyEffect({ type: 'turnMeter', amount: -0.20 }, thief, back, 1);
+    delete R.random;
+    assert(drained.resisted, 'Still Air bought nothing against a drain');
+  }
+});
+
 report();

@@ -883,6 +883,24 @@ class Unit {
       e.source = Unit.hookOwner;
     }
     this.statusEffects.push(e);
+    // A hostile status landing rings through the victim's OWN side:
+    // passives that answer their team's misfortune (Ilyra's Kindly
+    // Hours) hear it here, which is the one place every debuff passes
+    // through — ability, passive hook or set bonus alike. The guard
+    // keeps a hook that answers by applying another status from
+    // setting itself off.
+    if ((e.kind !== 'debuff' && e.kind !== 'dot') || Unit.debuffRinging) return;
+    const battle = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (!battle) return;
+    Unit.debuffRinging = true;
+    try {
+      for (const ally of battle.livingUnits(this.team)) {
+        for (const p of (ally.hookSources ? ally.hookSources() : [])) {
+          const hook = p.hooks && p.hooks.onAllyDebuffed;
+          if (hook) hook(ally, { victim: this, effect: e, battle });
+        }
+      }
+    } finally { Unit.debuffRinging = false; }
   }
 
   tickStatusEffects() {

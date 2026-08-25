@@ -3023,4 +3023,91 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.weathervane,
   },
+
+  ilyra: {
+    id: 'ilyra',
+    element: 'wind',
+    name: 'Ilyra',
+    title: 'Windward of the Whisperchime',
+    rarity: 3,
+    // Back-line cleanser. Every skill she has does the same two things
+    // at a widening scope — a measure of healing off her own pool, and
+    // one curse lifted — so the question with Ilyra is never WHAT she
+    // does, only how many people she does it to. Her passive turns the
+    // enemy's debuffing against them: every hex laid on her side hands
+    // her the meter to answer it.
+    stats: { hp: 1900, atk: 105, def: 135, speed: 110 },
+    tint: { body: '#4a7a6a', helm: '#e8e4d8', weapon: '#a8d8c8', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      // Wired ahead of the art: these are the strips her upload will
+      // land as. Placeholder art stands in until then.
+      strips: {
+        idle:  { src: 'assets/heroes/Ilyra/ilyraidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Ilyra/ilyraidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Ilyra/ilyraidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Ilyra/ilyraskill1.png', frames: 'auto', fps: 10,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Ilyra/ilyraskill2.png', frames: 'auto', fps: 10,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Ilyra/ilyraskill3.png', frames: 'auto', fps: 10,
+                  loop: false },
+        death:  { src: 'assets/heroes/Ilyra/ilyradeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'ilyra_clear_sky', name: 'Clear Sky',
+        icon: 'assets/icons/fc1210.png',
+        description: "One ally is aired out: heals for 15% of Ilyra's own " +
+          'max HP and lifts one debuff.',
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.15 },
+          { type: 'cleanse', count: 1 },
+        ],
+      },
+      {
+        id: 'ilyra_following_wind', name: 'Following Wind',
+        icon: 'assets/icons/fc1211.png',
+        description: "The front rank gets the weather at its back: heals " +
+          "the FRONT row for 20% of Ilyra's max HP each and lifts one " +
+          'debuff from each.',
+        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+          { type: 'cleanse', count: 1 },
+        ],
+      },
+      {
+        id: 'ilyra_changing_weather', name: 'Changing Weather',
+        icon: 'assets/icons/fc1212.png',
+        description: "The whole field turns over: heals EVERY ally for 15% " +
+          "of Ilyra's max HP and lifts one debuff from each.",
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        effects: [
+          { type: 'healHpPct', pct: 0.15 },
+          { type: 'cleanse', count: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Kindly Hours',
+      icon: 'assets/icons/fc1220.png',
+      description: 'Every debuff laid on her side hands Ilyra 10 turn ' +
+        'meter — the more the enemy curses her team, the sooner she is ' +
+        'up to undo it.',
+      hooks: {
+        onAllyDebuffed(unit) {
+          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+        },
+      },
+    },
+    positional: POSITIONALS.still_air,
+  },
 });
