@@ -1342,9 +1342,7 @@ Object.assign(HEROES, {
     tint: { body: '#8d9bb8', helm: '#c8d0e0', weapon: '#8ad8ff', shield: '#3a5ac8' },
     sprite: {
       displayH: 88,
-      // Authored facing left (see the facing audit) — flagged, not
-      // mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Displayed unflipped on the hero side — no faceLeft flag.
       // Manual: her body is in the right half of the frame, and the low
       // sword blade fools the automatic feet-centroid measurement.
       shadowOffsetX: 12,
