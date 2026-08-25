@@ -2856,4 +2856,91 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.eye_of_the_ring,
   },
+
+  posie: {
+    id: 'posie',
+    element: 'wind',
+    name: 'Posie',
+    title: 'Boughbearer of the Whisperchime',
+    rarity: 5,
+    // Back-line healer who carries a flowering bough taller than she is
+    // and swings it from one wounded ally to the next. Two of her heals
+    // are measured off HER pool, so investing in her HP feeds the whole
+    // party; the third is measured off the patient, so it lands hardest
+    // on whoever has the most to lose. The bough does not stop where it
+    // is pointed: it keeps swinging while the wind is with it.
+    stats: { hp: 2350, atk: 120, def: 150, speed: 112 },
+    tint: { body: '#4a7a3a', helm: '#e8dcc0', weapon: '#f0e8b8', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      // Authored facing right, like the species packs — no flag.
+      strips: {
+        idle:  { src: 'assets/heroes/Posie/posieidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Posie/posieidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Posie/posieidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Posie/posieskill1.png', frames: 'auto', fps: 10,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Posie/posieskill2.png', frames: 'auto', fps: 10,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Posie/posieskill3.png', frames: 'auto', fps: 8,
+                  loop: false },
+        death:  { src: 'assets/heroes/Posie/posiedeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'posie_bloom', name: 'Bloom',
+        icon: 'assets/icons/fc1170.png',
+        description: "Tip the bough over one ally: heals them for 20% of " +
+          "Posie's own max HP.",
+        cooldown: 0, targeting: 'ally', animation: 'attack',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+        ],
+      },
+      {
+        id: 'posie_windfall', name: 'Windfall',
+        icon: 'assets/icons/fc1171.png',
+        description: 'Heal one ally for 20% of THEIR own max HP — and the ' +
+          'bough has a 50% chance to swing on to the lowest-HP ally and ' +
+          'heal again, over and over while the rolls hold.',
+        cooldown: 3, targeting: 'ally', animation: 'skill2',
+        effects: [
+          { type: 'healHpPct', targetPct: 0.20 },
+        ],
+        // The swing is the skill: it re-casts ITSELF on whoever is worst
+        // off, and keeps going. The rail is set far past where a run of
+        // coin flips realistically reaches (12 links is one in 4,096).
+        chain: { id: 'posie_windfall', chance: 0.50, to: 'lowest-ally', maxDepth: 12 },
+      },
+      {
+        id: 'posie_high_summer', name: 'High Summer',
+        icon: 'assets/icons/fc1172.png',
+        description: "The whole bough opens at once: heal every ally for " +
+          "25% of Posie's max HP and raise their Resistance by 30% for 2 turns.",
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        effects: [
+          { type: 'healHpPct', pct: 0.25 },
+          { type: 'buff', stat: 'resistance', add: 0.30, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Falls Far',
+      icon: 'assets/icons/fc1180.png',
+      description: 'Healing past full is not spilled: the overflow settles ' +
+        'on that ally as a shield for 2 turns.',
+      hooks: {
+        onOverheal(unit, { overflow, target }) {
+          if (!target || overflow <= 0) return;
+          target.addShield(overflow, 2, unit);
+        },
+      },
+    },
+    positional: POSITIONALS.bough_bearer,
+  },
 });

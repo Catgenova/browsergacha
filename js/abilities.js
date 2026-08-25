@@ -878,20 +878,37 @@ const Abilities = (() => {
     // free cast that touches no cooldown and rides the same animation
     // beat. It follows the same victim while they stand, else finds
     // whoever is left; depth is capped at 4 links.
-    if (ability.chain && caster.alive && chainDepth < 4 &&
-        Math.random() < ability.chain.chance) {
+    // A hook can widen the channel (Posie's back hex makes her bough
+    // jump more often), and a kit can raise its own depth rail: hers is
+    // meant to run "indefinitely", which in practice means long enough
+    // that the rail is never the thing that stops it.
+    let chainChance = ability.chain ? ability.chain.chance : 0;
+    if (ability.chain) {
+      for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+        if (p.hooks && p.hooks.chainChanceAdd) chainChance += p.hooks.chainChanceAdd;
+      }
+    }
+    const chainCap = (ability.chain && ability.chain.maxDepth) || 4;
+    if (ability.chain && caster.alive && chainDepth < chainCap &&
+        Math.random() < chainChance) {
       const next = (caster.def.abilities || []).find((a) => a.id === ability.chain.id);
+      // Which way the link points: a healing chain hunts the ally who
+      // needs it most, everything else follows the victim it started on.
+      const allies = battle ? battle.livingUnits(caster.team) : [];
       const foes = battle
         ? battle.livingUnits().filter((u) => u.team !== caster.team) : [];
-      const mark = chosenTarget && chosenTarget.alive
-        ? chosenTarget
-        : foes[Math.floor(Math.random() * foes.length)];
+      const mark = ability.chain.to === 'lowest-ally'
+        ? allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]
+        : (chosenTarget && chosenTarget.alive
+          ? chosenTarget
+          : foes[Math.floor(Math.random() * foes.length)]);
       if (next && mark) {
         if (battle && battle.addFloatingText) {
           battle.addFloatingText(caster, `⛓ ${next.name}!`, '#ffd76a');
         }
         if (battle && battle.log) {
-          battle.log(`${caster.name}'s fervor chains into ${next.name}!`,
+          battle.log(`${caster.name}'s ${ability.chain.to === 'lowest-ally'
+            ? 'bough swings on' : 'fervor chains'} into ${next.name}!`,
             caster.team === TEAM.PLAYER ? 'log-player' : 'log-enemy');
         }
         chainDepth++;
