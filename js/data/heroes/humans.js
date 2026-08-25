@@ -2770,4 +2770,90 @@ Object.assign(HEROES, {
     positional: POSITIONALS.shorthand,
   },
 
+  tumble: {
+    id: 'tumble',
+    element: 'wind',
+    name: 'Tumble',
+    title: 'Acrobat of the Whisperchime',
+    rarity: 4,
+    // Center-hex support who fights by never stopping. He owns exactly
+    // two poses — a spin and a fall — so every skill he throws is the
+    // same whirl seen from a different distance. What the whirl does is
+    // take things away: blessings off the front rank, then the ground
+    // itself, turning the enemy formation a hex at a time so their wall
+    // ends up in the back and their casters end up in front.
+    stats: { hp: 1750, atk: 130, def: 120, speed: 118 },
+    tint: { body: '#5a8a3a', helm: '#8a6a3a', weapon: '#e8e4d8', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      // Two strips, and only two: the spin and the death. Every action
+      // animation points AT THE SPIN on purpose — he is mid-tumble for
+      // everything he does, so a skill is one full revolution and then
+      // back to idling. (The idle file ships as 'tumbeidle.png'.)
+      strips: {
+        idle:   { src: 'assets/heroes/Tumble/tumbeidle.png', frames: 'auto', fps: 10, loop: true },
+        attack: { src: 'assets/heroes/Tumble/tumbeidle.png', frames: 'auto', fps: 16, loop: false },
+        skill2: { src: 'assets/heroes/Tumble/tumbeidle.png', frames: 'auto', fps: 14, loop: false },
+        skill3: { src: 'assets/heroes/Tumble/tumbeidle.png', frames: 'auto', fps: 18, loop: false },
+        death:  { src: 'assets/heroes/Tumble/tumbledeath.png', frames: 'auto', fps: 10,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'tumble_passing_whirl', name: 'Passing Whirl',
+        icon: 'assets/icons/fc1140.png',
+        description: 'Whirl through the enemy front row for 50% ATK each, ' +
+          'with a 50% chance to tear one blessing off each of them.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.50 },
+          { type: 'stripBuffs', count: 1, chance: 0.50 },
+        ],
+      },
+      {
+        id: 'tumble_quickstep', name: 'Quickstep',
+        icon: 'assets/icons/fc1141.png',
+        description: 'The whole troupe picks up his tempo: +30% Speed to ' +
+          'every ally for 2 turns.',
+        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
+        ],
+      },
+      {
+        id: 'tumble_carousel', name: 'Carousel',
+        icon: 'assets/icons/fc1142.png',
+        description: 'A spin wide enough to catch both outer rows for 50% ' +
+          'ATK, and the whole enemy formation turns one hex clockwise ' +
+          'around its middle — front ranks swung to the back, casters ' +
+          'dragged to the front.',
+        cooldown: 5, targeting: 'flank-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 0.50 },
+        ],
+        // The spin itself lands once, after the sweep — not once per
+        // fighter it clipped on the way round.
+        selfEffects: [
+          { type: 'rotateFormation', side: 'enemies', dir: 'cw' },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Chime Tax',
+      icon: 'assets/icons/fc1160.png',
+      description: 'Every blessing Tumble tears away pays him 10 turn ' +
+        'meter — a busy front row spins him back around that much sooner.',
+      hooks: {
+        onStripBuff(unit, { count }) {
+          if (!count || count <= 0) return null;
+          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.10 * count);
+          return null; // the strip line already says what happened
+        },
+      },
+    },
+    positional: POSITIONALS.eye_of_the_ring,
+  },
 });
