@@ -152,6 +152,16 @@
             <option value="legendary">below Legendary</option>
           </select>
           <button id="bs-bulk-salvage" class="panel-btn danger">Salvage all</button>
+          <label id="bs-auto-label" title="A standing rule: gear below this rarity is melted down the moment it drops">
+            Auto-salvage drops
+            <select id="bs-auto-salvage">
+              <option value="none">off</option>
+              <option value="uncommon">below Uncommon</option>
+              <option value="rare">below Rare</option>
+              <option value="epic">below Epic</option>
+              <option value="legendary">below Legendary</option>
+            </select>
+          </label>
           <span id="bs-toolbar-msg"></span>
         </div>
       </div>
@@ -262,6 +272,12 @@
         <div id="tactics-panel" class="hidden">
           <div class="legend-head">Auto-battle tactics<button id="tactics-close">✕</button></div>
           <div id="tactics-rows"></div>
+        </div>
+
+        <!-- Unit inspector: click any fighter to read its sheet -->
+        <div id="inspect-panel" class="hidden">
+          <div class="legend-head"><span id="inspect-title">Unit</span><button id="inspect-close">✕</button></div>
+          <div id="inspect-body"></div>
         </div>
 
         <!-- Status legend: what the nameplate pips mean -->

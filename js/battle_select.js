@@ -368,6 +368,32 @@ class BattleSelect {
         long as you keep winning.</div>`;
   }
 
+  // "Can I beat this yet?" — the formation's power beside the fight's,
+  // wherever the fight is a known single enemy (bosses, elemental
+  // bosses, dungeon floors). Hunts roll a random wave, so they get the
+  // team's number alone rather than a made-up comparison.
+  powerHtml(cur) {
+    const mine = GameState.teamPower();
+    if (!mine) return '';
+    let theirs = 0;
+    if (['boss', 'rift', 'dungeon'].includes(this.mode) && cur && cur.def) {
+      const s = Progression.bossScaledStats(cur.def, Progression.bossLevel(cur.stage));
+      theirs = Progression.power(s);
+    }
+    if (!theirs) {
+      return `<span class="bs-power" title="Your fielded team's combined power">
+        Team ${mine.toLocaleString()}</span>`;
+    }
+    // A boss stands alone against a whole formation, so parity is not
+    // the bar — a team at or above the boss's own number is comfortable.
+    const ratio = mine / theirs;
+    const verdict = ratio >= 1 ? ['ok', 'favoured']
+      : ratio >= 0.6 ? ['warn', 'close'] : ['bad', 'outmatched'];
+    return `<span class="bs-power power-${verdict[0]}"
+      title="Your team's combined power against this enemy's — a rough guide, not a promise">
+      Team ${mine.toLocaleString()} vs ${theirs.toLocaleString()} · ${verdict[1]}</span>`;
+  }
+
   launchHtml(cur) {
     const size = GameState.teamSize();
     const bossLocked = this.mode === 'boss' && !Campaign.bossUnlocked(cur.boss);
@@ -392,6 +418,7 @@ class BattleSelect {
       </select>`;
     }
     return `<div class="bs-launch">
+      ${this.powerHtml(cur)}
       ${repeat}
       <button class="panel-btn gold" data-act="launch" ${size === 0 || bossLocked || spent ? 'disabled' : ''}
         title="${size === 0 ? 'Place a team on the Team screen first'

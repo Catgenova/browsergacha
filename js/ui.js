@@ -31,6 +31,13 @@ class UI {
       document.getElementById('legend-close')
         .addEventListener('click', () => this.toggleLegend(false));
     }
+    // Unit inspector: the sheet behind any fighter on the field.
+    this.inspectEl = document.getElementById('inspect-panel');
+    this.inspected = null;
+    const inspectClose = document.getElementById('inspect-close');
+    if (inspectClose) {
+      inspectClose.addEventListener('click', () => this.showInspect(null));
+    }
     this.bannerEl = document.getElementById('battle-banner');
     this.bannerTitle = document.getElementById('banner-title');
     this.bannerSub = document.getElementById('banner-sub');
@@ -204,28 +211,124 @@ class UI {
   // ---- Canvas interaction ------------------------------------------------
 
   onCanvasClick(e) {
-    if (!this.battle || !this.selectedAbility || !this.renderer.targetingMode) return;
+    if (!this.battle) return;
     const mode = this.renderer.targetingMode;
     const { x, y } = this.canvasPoint(e);
-    const unit = this.battle.unitAt(x, y, mode === 'dead-ally');
-    if (!unit) return;
+    const unit = this.battle.unitAt(x, y, !mode || mode === 'dead-ally');
 
-    const valid =
-      (mode === 'enemy' && unit.team === TEAM.ENEMY && unit.alive) ||
-      (mode === 'ally' && unit.team === TEAM.PLAYER && unit.alive) ||
-      (mode === 'dead-ally' && unit.team === TEAM.PLAYER && !unit.alive);
-    if (valid) this.commit(unit);
+    // Picking a target comes first — mid-cast, a click is an order.
+    if (this.selectedAbility && mode) {
+      if (!unit) return;
+      const valid =
+        (mode === 'enemy' && unit.team === TEAM.ENEMY && unit.alive) ||
+        (mode === 'ally' && unit.team === TEAM.PLAYER && unit.alive) ||
+        (mode === 'dead-ally' && unit.team === TEAM.PLAYER && !unit.alive);
+      if (valid) this.commit(unit);
+      return;
+    }
+    // Otherwise a click is a question: who is this, and what is on it?
+    this.showInspect(unit && unit === this.inspected ? null : unit);
   }
 
   onCanvasMove(e) {
-    if (!this.battle || !this.renderer.targetingMode) {
+    if (!this.battle) {
       this.canvas.style.cursor = 'default';
       return;
     }
     const { x, y } = this.canvasPoint(e);
-    const unit = this.battle.unitAt(x, y, this.renderer.targetingMode === 'dead-ally');
+    const mode = this.renderer.targetingMode;
+    const unit = this.battle.unitAt(x, y, !mode || mode === 'dead-ally');
+    // Hovering names a unit whether or not an ability is up: the plate
+    // spells out who it is, and the cursor says it can be inspected.
     this.renderer.hoveredUnit = unit;
     this.canvas.style.cursor = unit ? 'pointer' : 'default';
+  }
+
+  // ---- Unit inspector ----------------------------------------------------
+
+  // The full sheet for one fighter: what it is, what it is carrying
+  // right now (with turns left and who put it there), and its kit with
+  // live cooldowns. Passing null closes the panel.
+  showInspect(unit) {
+    this.inspected = unit && unit.alive !== undefined ? unit : null;
+    if (!this.inspectEl) return;
+    if (!this.inspected) {
+      this.inspectEl.classList.add('hidden');
+      return;
+    }
+    // Stand on the far side of whoever is being read: your side holds
+    // the left of the field and the enemy the right, so the panel never
+    // covers its own subject (nor the click that would close it).
+    const onLeft = unit.team === TEAM.ENEMY;
+    this.inspectEl.classList.toggle('on-left', onLeft);
+    this.inspectEl.classList.toggle('on-right', !onLeft);
+    document.getElementById('inspect-title').textContent =
+      `${unit.name}${unit.level ? ` · Lv ${unit.level}` : ''}`;
+    document.getElementById('inspect-body').innerHTML = this.inspectHtml(unit);
+    this.inspectEl.classList.remove('hidden');
+  }
+
+  inspectHtml(unit) {
+    const n = (v) => Math.round(v || 0).toLocaleString();
+    const pct = (v) => `${Math.round((v || 0) * 1000) / 10}%`;
+    const elInfo = unit.element && typeof Elements !== 'undefined'
+      ? Elements.info(unit.element) : null;
+    const side = unit.team === TEAM.PLAYER ? 'Your side' : 'Enemy';
+    const hpPct = Math.max(0, Math.round((unit.hp / unit.maxHp) * 100));
+    const shield = unit.shieldTotal ? unit.shieldTotal() : 0;
+
+    // Statuses, with the turns left and the hand behind them — the
+    // nameplate icons say WHAT is on; this says how long and from whom.
+    const fx = (unit.statusEffects || []).map((f) => {
+      const key = f.kind === 'dot' ? (f.flavor === 'burn' ? 'burn' : 'dot')
+        : f.kind === 'hot' || f.kind === 'bubble' ? f.kind
+        : f.stat === 'damageTaken' ? (f.kind === 'buff' ? 'ward' : 'vulnerable')
+        : f.stat;
+      const def = typeof StatusIcons !== 'undefined' ? StatusIcons.DEFS[key] : null;
+      const good = f.kind === 'buff' || f.kind === 'hot' || f.kind === 'bubble' ||
+        f.kind === 'shield';
+      const name = def ? def.title : (f.stat || f.kind);
+      const amount = f.mult ? ` ×${f.mult}` : f.amount ? ` ${n(f.amount)}` : '';
+      const turns = f.turns > 0 ? `${f.turns} turn${f.turns > 1 ? 's' : ''}` : '—';
+      const from = f.source && f.source.name && f.source !== unit
+        ? ` · from ${f.source.name}` : '';
+      return `<div class="insp-fx ${good ? 'fx-good' : 'fx-bad'}">
+        ${name}${amount} <span class="insp-dim">${turns}${from}</span></div>`;
+    }).join('');
+
+    const kit = (unit.abilities || []).map((a) => {
+      const d = a.def || a;
+      const cd = a.cooldownRemaining > 0
+        ? `<span class="insp-cd">${a.cooldownRemaining} turn${a.cooldownRemaining > 1 ? 's' : ''}</span>`
+        : '<span class="insp-ready">ready</span>';
+      return `<div class="insp-skill"><b>${d.name}</b> ${cd}
+        <div class="insp-dim">${d.description || ''}</div></div>`;
+    }).join('');
+
+    return `
+      <div class="insp-head">
+        ${side}${elInfo ? ` · <span style="color:${elInfo.color}">${elInfo.name}</span>` : ''}
+        ${unit.def && unit.def.title ? ` · ${unit.def.title}` : ''}
+      </div>
+      <div class="insp-hp">
+        <div class="insp-hp-bar"><div class="insp-hp-fill" style="width:${hpPct}%"></div></div>
+        <span>${n(unit.hp)} / ${n(unit.maxHp)} HP${shield ? ` (+${n(shield)} shield)` : ''}</span>
+      </div>
+      <div class="insp-stats">
+        ATK ${n(unit.effectiveStat('atk'))} · DEF ${n(unit.effectiveStat('def'))} ·
+        SPD ${n(unit.effectiveStat('speed'))}
+      </div>
+      <div class="insp-stats insp-dim">
+        CRIT ${pct(unit.effectiveStat('critChance'))} ·
+        CRIT DMG ${pct(unit.effectiveStat('critDamage'))} ·
+        ACC ${pct(unit.debuffAccuracy ? unit.debuffAccuracy() : 0)} ·
+        RES ${pct(unit.debuffResistance ? unit.debuffResistance() : 0)} ·
+        DODGE ${pct(unit.dodgeChance ? unit.dodgeChance() : 0)}
+      </div>
+      <div class="insp-sub">Status${fx ? '' : ' — none'}</div>
+      ${fx}
+      <div class="insp-sub">Kit</div>
+      ${kit}`;
   }
 
   // ---- Log & banner ------------------------------------------------------

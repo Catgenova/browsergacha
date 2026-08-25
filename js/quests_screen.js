@@ -42,7 +42,12 @@ class QuestsScreen {
     // along with the moved content. Rebuild, then put the scroll back
     // exactly where the player left it.
     const sx = window.scrollX, sy = window.scrollY;
-    this.boardsEl.innerHTML = boards.map((b) => b.html).join('');
+    // A Claim All sweep says what it collected — the rows it paid out
+    // vanish into "Claimed", so without this the reward is invisible.
+    this.boardsEl.innerHTML =
+      (this.flash ? `<div class="quest-flash">✔ ${this.flash}</div>` : '') +
+      boards.map((b) => b.html).join('');
+    this.flash = null;
     window.scrollTo(sx, sy);
 
     const first7Btn = this.boardsEl.querySelector('.first7-claim:not([disabled])');
@@ -82,6 +87,20 @@ class QuestsScreen {
     this.boardsEl.querySelectorAll('.quest-claim:not([disabled])').forEach((btn) => {
       btn.addEventListener('click', () => {
         GameState.claimQuest(btn.dataset.type, btn.dataset.id);
+        this.refresh();
+      });
+    });
+
+    // Claim All: one board's worth of finished quests in a single
+    // press. On the Journey that means every rung a lifetime counter
+    // has already passed, not merely the next one.
+    this.boardsEl.querySelectorAll('.claim-all').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const { claimed, reward } = GameState.claimAllQuests(btn.dataset.type);
+        if (claimed && typeof Sound !== 'undefined') Sound.play('claim');
+        this.flash = claimed
+          ? `Claimed ${claimed} quest${claimed > 1 ? 's' : ''}: ${Quests.rewardLabel(reward)}`
+          : null;
         this.refresh();
       });
     });
@@ -282,6 +301,8 @@ class QuestsScreen {
             <h3>${title}</h3>
             <span class="quest-reset">${claimable
               ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}Resets in ${countdown}</span>
+            ${claimable ? `<button class="panel-btn gold claim-all"
+              data-type="${type}">Claim all (${claimable})</button>` : ''}
           </div>
           ${rows}
         </div>` };
@@ -331,6 +352,8 @@ class QuestsScreen {
           <h3>The Journey</h3>
           <span class="quest-reset">${claimable
             ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}${clearedTotal.toLocaleString()} / ${defs.length.toLocaleString()} quests cleared · never resets</span>
+          ${claimable ? `<button class="panel-btn gold claim-all"
+            data-type="journey">Claim all (${claimable})</button>` : ''}
         </div>
         ${rows}
       </div>` }];

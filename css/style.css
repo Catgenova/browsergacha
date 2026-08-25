@@ -3090,3 +3090,69 @@ svg.icon {
 
 /* Journey chain rung marker beside the quest name. */
 .quest-tier { font-size: 10px; color: #9a92b8; font-weight: normal; }
+
+/* Claim All: the sweep button in a quest board header, and the line
+   that reports what it collected. */
+.quest-board-header .claim-all { margin-left: auto; font-size: 11px; padding: 3px 10px; }
+.quest-flash {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border: 1px solid #4a7a4a;
+  border-radius: 6px;
+  background: #16241a;
+  color: #9ae89a;
+  font-size: 12px;
+}
+
+/* Team power against the selected fight, in the launch row. */
+.bs-power { font-size: 11px; color: #9a92b8; margin-right: 8px; }
+.bs-power.power-ok { color: #7ae87a; }
+.bs-power.power-warn { color: #e8c84a; }
+.bs-power.power-bad { color: #ff7a6a; }
+
+/* Gear loadouts: the per-hero kit picker under Auto-equip. */
+.loadout-row { display: flex; align-items: center; gap: 4px; margin: 6px 0 4px; flex-wrap: wrap; }
+.loadout-row select { flex: 1 1 90px; min-width: 0; }
+.loadout-row .panel-btn { padding: 2px 8px; font-size: 11px; }
+.loadout-label { font-size: 11px; color: #9a92b8; }
+
+/* Unit inspector: the sheet behind a fighter, opened by clicking it. */
+#inspect-panel {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  width: 320px;
+  max-height: 78%;
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: rgba(20, 18, 30, 0.97);
+  border: 2px solid #5a5078;
+  border-radius: 8px;
+  z-index: 6;
+  font-size: 12px;
+}
+.insp-head { color: #9a92b8; font-size: 11px; margin: 6px 0; }
+.insp-hp { margin: 6px 0; color: #b8b2cc; }
+.insp-hp-bar { height: 6px; background: #3a3450; border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
+.insp-hp-fill { height: 100%; background: #4ad46a; }
+.insp-stats { color: #b8b2cc; margin: 3px 0; line-height: 1.5; }
+.insp-dim { color: #9a92b8; font-size: 11px; }
+.insp-sub {
+  margin: 9px 0 4px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffd76a;
+  border-bottom: 1px solid #3a3450;
+}
+.insp-fx { padding: 2px 0; }
+.insp-fx.fx-good { color: #8ee89a; }
+.insp-fx.fx-bad { color: #ff8a92; }
+.insp-skill { padding: 3px 0; color: #d8d2e8; }
+.insp-cd { color: #e8c84a; font-size: 11px; }
+.insp-ready { color: #7ae87a; font-size: 11px; }
+
+/* The inspector sits opposite its subject: enemies read from the left
+   of the field, your own heroes from the right. */
+#inspect-panel.on-left { left: 12px; right: auto; }
+#inspect-panel.on-right { right: 12px; left: auto; }
