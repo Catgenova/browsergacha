@@ -52,6 +52,20 @@ class BlacksmithScreen {
       this.refresh();
       this.message(`Salvaged ${r.count} items for ${r.whetstones} 🪨${r.arcana ? ` and ${r.arcana} ✦` : ''}.`);
     });
+
+    // The standing rule for incoming loot. Set once; every drop after
+    // it obeys, so low-rarity pieces never reach the inventory at all.
+    this.autoSalvageEl = document.getElementById('bs-auto-salvage');
+    if (this.autoSalvageEl) {
+      this.autoSalvageEl.value = GameState.autoSalvage;
+      this.autoSalvageEl.addEventListener('change', () => {
+        const set = GameState.setAutoSalvage(this.autoSalvageEl.value);
+        this.autoSalvageEl.value = set;
+        this.message(set === 'none'
+          ? 'Auto-salvage off — every drop is kept.'
+          : `Auto-salvage on: drops below ${Gear.RARITIES[set].name} melt on arrival.`);
+      });
+    }
   }
 
   message(text) {

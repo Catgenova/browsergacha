@@ -205,7 +205,9 @@ class TeamScreen {
 
   updateButtons() {
     const size = GameState.teamSize();
-    this.teamCountEl.textContent = `${size}/7 heroes placed`;
+    const power = GameState.teamPower();
+    this.teamCountEl.textContent = `${size}/7 heroes placed` +
+      (size ? ` · ${power.toLocaleString()} power` : '');
 
   }
 
@@ -680,9 +682,10 @@ class TeamScreen {
       const n = Math.round((v || 0) * 1000) / 10;
       return `${Number.isInteger(n) ? n : n.toFixed(1)}%`;
     };
+    const n = (v) => Math.round(v || 0).toLocaleString();
     return `
       <div class="detail-stats">
-        HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.speed}
+        HP ${n(stats.hp)} · ATK ${n(stats.atk)} · DEF ${n(stats.def)} · SPD ${n(stats.speed)}
       </div>
       <div class="detail-stats detail-stats-sub">
         CRIT ${pct(stats.critChance ?? 0.15)} ·
@@ -691,6 +694,62 @@ class TeamScreen {
         RES ${pct(stats.resistance)} ·
         DODGE ${pct(stats.dodge)}
       </div>`;
+  }
+
+  // Gear loadouts: named snapshots of a hero's eight slots, in the same
+  // shape as the formation presets above the roster, because they solve
+  // the same problem one level down.
+  loadoutHtml(uid) {
+    const saved = GameState.loadoutsOf(uid);
+    const options = saved.length
+      ? saved.map((l) =>
+        `<option value="${l.name}">${l.name} (${l.pieces})</option>`).join('')
+      : '<option value="">No saved loadouts</option>';
+    return `
+      <div class="loadout-row">
+        <span class="loadout-label" title="Save this hero's whole kit under a name and put it back on in one click">Kit:</span>
+        <select id="loadout-select" ${saved.length ? '' : 'disabled'}>${options}</select>
+        <button id="loadout-load" class="panel-btn" ${saved.length ? '' : 'disabled'}
+          title="Wear this saved kit">Wear</button>
+        <button id="loadout-save" class="panel-btn"
+          title="Save the eight slots as they stand (up to ${GameState.MAX_LOADOUTS} per hero)">Save…</button>
+        <button id="loadout-delete" class="panel-btn danger" ${saved.length ? '' : 'disabled'}
+          title="Delete this saved kit">✕</button>
+      </div>`;
+  }
+
+  wireLoadouts(uid) {
+    const sel = document.getElementById('loadout-select');
+    const on = (id, fn) => {
+      const btn = document.getElementById(id);
+      if (btn && !btn.disabled) btn.addEventListener('click', fn);
+    };
+    on('loadout-save', () => {
+      const suggested = (sel && sel.value) || `Kit ${GameState.loadoutsOf(uid).length + 1}`;
+      const name = prompt('Name this loadout:', suggested);
+      if (name === null) return;
+      const saved = GameState.saveLoadout(uid, name);
+      this.gearMsg = saved
+        ? `Saved loadout "${saved}".`
+        : `All ${GameState.MAX_LOADOUTS} loadout slots are full — delete one first.`;
+      this.refresh();
+    });
+    on('loadout-load', () => {
+      if (!sel || !sel.value) return;
+      const r = GameState.applyLoadout(uid, sel.value);
+      this.gearMsg = !r ? 'That loadout could not be worn.'
+        : r.missing
+          ? `Wore "${sel.value}" — ${r.equipped} pieces on, ${r.missing} gone or in use.`
+          : `Wore "${sel.value}" — ${r.equipped} pieces on.`;
+      this.refresh();
+    });
+    on('loadout-delete', () => {
+      if (!sel || !sel.value) return;
+      if (!confirm(`Delete the loadout "${sel.value}"?`)) return;
+      GameState.deleteLoadout(uid, sel.value);
+      this.gearMsg = 'Loadout deleted.';
+      this.refresh();
+    });
   }
 
   updateDetails() {
@@ -830,6 +889,7 @@ class TeamScreen {
       <div class="detail-section">Gear</div>
       ${gearLocked ? '' : `<button id="auto-equip-btn" class="panel-btn gear-auto-btn"
         title="Fit the best unworn pieces to this hero. Locked gear stays put; nobody else is undressed.">⚙ Auto-equip</button>`}
+      ${gearLocked ? '' : this.loadoutHtml(uid)}
       ${gearRows}
       ${this.gearMsg ? `<div class="gear-auto-msg">${this.gearMsg}</div>` : ''}
       ${gearDetailHtml}
@@ -865,6 +925,7 @@ class TeamScreen {
         this.refresh();
       });
     }
+    this.wireLoadouts(uid);
 
     const depositBtn = document.getElementById('deposit-btn');
     if (depositBtn && !depositBtn.disabled) {

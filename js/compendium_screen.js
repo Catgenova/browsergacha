@@ -347,7 +347,7 @@ class CompendiumScreen {
       ownedHtml = `
         <div class="comp-owned-row">
           <b>Yours</b> — Lv ${progress.level} · ${pStars}${mine.length > 1 ? ` · ${mine.length} in roster` : ''}
-          <span class="comp-note">HP ${scaled.hp} · ATK ${scaled.atk} · DEF ${scaled.def} · SPD ${scaled.speed}</span>
+          <span class="comp-note">HP ${scaled.hp.toLocaleString()} · ATK ${scaled.atk.toLocaleString()} · DEF ${scaled.def.toLocaleString()} · SPD ${scaled.speed.toLocaleString()}</span>
         </div>`;
     }
 

@@ -3487,4 +3487,113 @@ test('Journey rungs claim off lifetime totals and never reset', () => {
     'the claim was forgotten across a reload');
 });
 
+test('Claim All sweeps a board, including rungs it uncovers', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  // Three dailies' worth of progress, claimed in one press.
+  G.questBump('wins', 10);
+  G.questBump('huntWins', 5);
+  const before = G.diamonds;
+  const got = G.claimAllQuests('daily');
+  assert(got.claimed >= 2, `Claim All took only ${got.claimed} dailies`);
+  assert(G.diamonds > before || got.reward.scrollsCommon,
+    'Claim All paid nothing');
+  assert(G.claimAllQuests('daily').claimed === 0, 'a second sweep double-paid');
+
+  // The Journey reads lifetime totals, so ONE sweep takes every rung a
+  // long-standing counter has already earned — not just the next one.
+  const w2 = loadGame();
+  const G2 = w2.GameState;
+  G2.questBump('wins', 100);
+  const first = G2.claimAllQuests('journey');
+  assert(first.claimed > 5, `one journey sweep took only ${first.claimed} rungs`);
+  assert(G2.claimAllQuests('journey').claimed === 0, 'the sweep left rungs behind');
+});
+
+test('auto-salvage melts drops below the bar and keeps the rest', () => {
+  const w = loadGame();
+  const G = w.GameState, Gear = w.Gear;
+  assert(G.autoSalvage === 'none', 'auto-salvage should start off');
+  const grey = { set: 'wolf', slot: 'ring', main: 'critChance',
+    rarity: 'normal', level: 1, plus: 0, subs: [] };
+  const gold = { ...grey, rarity: 'legendary' };
+
+  // Off: everything is kept.
+  const kept = G.grantGear({ ...grey });
+  assert(kept.uid && G.gearById(kept.uid), 'a drop vanished with the rule off');
+
+  G.setAutoSalvage('rare');
+  const held = G.allGear().length;
+  const melted = G.grantGear({ ...grey });
+  assert(melted.salvaged && melted.salvaged.whetstones > 0,
+    'the grey drop was not melted');
+  assert(G.allGear().length === held, 'the melted piece stayed in the bag');
+  const legendary = G.grantGear({ ...gold });
+  assert(legendary.uid && G.gearById(legendary.uid),
+    'the rule ate a legendary it should have kept');
+
+  // The setting rides the save.
+  assert(loadGame({ save: w.savedState() }).GameState.autoSalvage === 'rare',
+    'the rule was forgotten on reload');
+});
+
+test('gear loadouts: save a kit, lose a piece, wear what is left', () => {
+  const w = loadGame();
+  const G = w.GameState, Gear = w.Gear;
+  const uid = G.addHero('cain').uid;
+  const mk = (slot) => G.addGear({ set: 'wolf', slot,
+    main: slot === 'boots' ? 'spdFlat' : 'critChance',
+    rarity: 'epic', level: 1, plus: 0, subs: [] });
+  const ring = mk('ring'), boots = mk('boots');
+  G.equipGear(uid, ring);
+  G.equipGear(uid, boots);
+  assert(G.saveLoadout(uid, 'Boss kit') === 'Boss kit', 'the kit would not save');
+  assert(G.loadoutsOf(uid)[0].pieces === 2, 'the kit saved the wrong count');
+
+  // Strip the hero, then put the kit back on.
+  G.unequipGear(uid, 'ring');
+  G.unequipGear(uid, 'boots');
+  assert(Object.keys(G.equipmentOf(uid)).length === 0, 'the hero is still dressed');
+  const worn = G.applyLoadout(uid, 'Boss kit');
+  assert(worn.equipped === 2 && worn.missing === 0,
+    `wore ${worn.equipped}, missed ${worn.missing}`);
+
+  // A piece salvaged since the snapshot is simply gone; the rest lands.
+  G.unequipGear(uid, 'ring');
+  G.salvageGear(ring);
+  G.unequipGear(uid, 'boots');
+  const partial = G.applyLoadout(uid, 'Boss kit');
+  assert(partial.equipped === 1 && partial.missing === 1,
+    `after salvage: wore ${partial.equipped}, missed ${partial.missing}`);
+
+  // The book is capped, and delete frees a slot again.
+  for (let i = 0; i < 10; i++) G.saveLoadout(uid, `Kit ${i}`);
+  assert(G.loadoutsOf(uid).length === G.MAX_LOADOUTS,
+    `the book holds ${G.loadoutsOf(uid).length}`);
+  assert(G.deleteLoadout(uid, 'Boss kit'), 'delete failed');
+  assert(G.saveLoadout(uid, 'One more') === 'One more', 'the freed slot was not reused');
+});
+
+test('team power adds up the fielded heroes and moves with gear', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  G.clearTeam();
+  assert(G.teamPower() === 0, 'an empty formation has power');
+  const a = G.addHero('cain').uid;
+  G.setTeamSlot(0, a);
+  const solo = G.teamPower();
+  assert(solo > 0, 'a fielded hero counts for nothing');
+  const b = G.addHero('oak').uid;
+  G.setTeamSlot(1, b);
+  assert(G.teamPower() > solo, 'the second hero added nothing');
+  // Gear lifts it; the bench never counts.
+  const bench = G.addHero('emily').uid;
+  const withBench = G.teamPower();
+  assert(withBench === G.teamPower() && bench, 'the bench moved the number');
+  const piece = G.addGear({ set: 'wolf', slot: 'weapon', main: 'critDamage',
+    rarity: 'legendary', level: 90, plus: 0, subs: [] });
+  G.equipGear(a, piece);
+  assert(G.teamPower() > withBench, 'gear did not raise team power');
+});
+
 report();

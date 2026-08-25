@@ -241,6 +241,7 @@ const GameState = (() => {
     waveSettings: { location: 0, stage: 1, repeat: 1 }, // hunt picker
     bossSettings: { boss: 'dragon', stage: 1, repeat: 1 }, // boss picker
     gear: {},                            // uid -> gear piece
+    autoSalvage: 'none',                 // melt drops below this rarity
     quests: {},                          // { daily, monthly } progress
     achievements: {},                    // achievementId -> true once claimed
     tower: { best: 0 },                  // Endless Tower highest floor
@@ -486,6 +487,7 @@ const GameState = (() => {
       if (entry && entry.attune === undefined) entry.attune = 0;
     }
     if (!loaded.gear) loaded.gear = {};
+    if (!loaded.autoSalvage) loaded.autoSalvage = 'none';
     if (!loaded.nextGearUid) loaded.nextGearUid = 1;
     if (!loaded.whetstones) loaded.whetstones = 0;
     if (!loaded.arcana) loaded.arcana = 0;
@@ -1008,6 +1010,21 @@ const GameState = (() => {
       save();
     },
     teamSize() { return Object.keys(state.team).length; },
+    // One number for "how strong is the formation right now": every
+    // fielded hero's power, gear included, added up. The fight picker
+    // holds it against what it is about to send you into.
+    teamPower() {
+      if (typeof Progression === 'undefined' || typeof Gear === 'undefined') return 0;
+      let total = 0;
+      for (const uid of Object.values(state.team)) {
+        const def = this.defOf(uid);
+        const pr = this.progressOf(uid);
+        if (!def || !pr) continue;
+        total += Progression.power(Gear.applyToStats(
+          Progression.scaledStats(def, pr.level, pr.stars), this.equippedPieces(uid)));
+      }
+      return total;
+    },
 
     // ---- Team presets ----
     // Campaign, boss, tower and hunt all want different formations, and
@@ -1379,6 +1396,37 @@ const GameState = (() => {
       return total;
     },
 
+    // ---- Auto-salvage ----
+    // A standing rule for incoming loot: anything BELOW this rarity is
+    // turned straight into materials as it drops, so the inventory
+    // stops filling with grey pieces nobody was ever going to wear.
+    // 'none' (the default) keeps everything.
+    get autoSalvage() { return state.autoSalvage || 'none'; },
+    setAutoSalvage(rarity) {
+      const ok = rarity === 'none' || Gear.RARITY_ORDER.includes(rarity);
+      state.autoSalvage = ok ? rarity : 'none';
+      save();
+      return state.autoSalvage;
+    },
+    autoSalvages(piece) {
+      const bar = this.autoSalvage;
+      if (!piece || bar === 'none' || typeof Gear === 'undefined') return false;
+      const rank = Gear.RARITY_ORDER.indexOf(bar);
+      return rank > 0 && Gear.RARITY_ORDER.indexOf(piece.rarity) < rank;
+    },
+
+    // Every drop enters the save through here, so the standing rule
+    // cannot be routed around. Returns { uid } for a piece that was
+    // kept, or { salvaged: { whetstones, arcana } } for one melted on
+    // arrival. (It is added and then salvaged rather than skipped, so
+    // the yield and the salvage counter follow the ordinary path.)
+    grantGear(piece) {
+      const uid = this.addGear(piece);
+      if (!this.autoSalvages(piece)) return { uid };
+      const got = this.salvageGear(uid);
+      return got ? { salvaged: got } : { uid };
+    },
+
     // ---- Gear ----
     // Add a dropped piece to the inventory; returns its uid.
     addGear(piece) {
@@ -1479,6 +1527,61 @@ const GameState = (() => {
       return changed;
     },
 
+    // ---- Gear loadouts ----
+    // A named snapshot of one hero's eight slots, kept on the hero.
+    // Formations have presets; this is the same idea for kit, so
+    // re-gearing between a boss team and a hunt team is one click
+    // instead of eight. Pieces are remembered by uid: anything since
+    // salvaged, or worn by someone who is mid-fight, simply does not
+    // come back, and the rest of the loadout still lands.
+    MAX_LOADOUTS: 4,
+    loadoutsOf(heroId) {
+      const entry = state.roster[heroId];
+      const book = (entry && entry.loadouts) || {};
+      return Object.entries(book).map(([name, slots]) => ({
+        name, pieces: Object.keys(slots).length,
+      }));
+    },
+    saveLoadout(heroId, name) {
+      const entry = state.roster[heroId];
+      if (!entry) return null;
+      const clean = String(name || '').trim().slice(0, 24);
+      if (!clean) return null;
+      if (!entry.loadouts) entry.loadouts = {};
+      if (!entry.loadouts[clean] &&
+          Object.keys(entry.loadouts).length >= this.MAX_LOADOUTS) return null;
+      entry.loadouts[clean] = { ...(entry.equipment || {}) };
+      save();
+      return clean;
+    },
+    deleteLoadout(heroId, name) {
+      const entry = state.roster[heroId];
+      if (!entry || !entry.loadouts || !entry.loadouts[name]) return false;
+      delete entry.loadouts[name];
+      save();
+      return true;
+    },
+    // Wear a saved loadout. Slots the loadout does not name are left
+    // alone rather than stripped — it is a kit to put on, not a rule
+    // about what the hero may not wear.
+    applyLoadout(heroId, name) {
+      const entry = state.roster[heroId];
+      const slots = entry && entry.loadouts && entry.loadouts[name];
+      if (!slots || this.heroGearLocked(heroId)) return null;
+      let equipped = 0, missing = 0;
+      for (const uid of Object.values(slots)) {
+        if (!state.gear[uid]) { missing++; continue; }
+        if (entry.equipment && Object.values(entry.equipment).includes(uid)) {
+          equipped++; // already worn: the slot is right where it should be
+          continue;
+        }
+        if (this.equipGear(heroId, uid)) equipped++;
+        else missing++;
+      }
+      save();
+      return { equipped, missing };
+    },
+
     unequipGear(heroId, slot) {
       const entry = state.roster[heroId];
       if (!entry || !entry.equipment) return false;
@@ -1564,6 +1667,25 @@ const GameState = (() => {
       Quests.grant(def.reward);
       save();
       return def.reward;
+    },
+
+    // Claim every finished quest on one board (or every board, with no
+    // argument). Returns what was collected: a count and the merged
+    // reward, so the screen can say what just landed in one line.
+    claimAllQuests(type = null) {
+      if (typeof Quests === 'undefined') return { claimed: 0, reward: {} };
+      const types = type ? [type] : ['daily', 'weekly', 'monthly', 'journey'];
+      const total = {};
+      let claimed = 0;
+      for (const t of types) {
+        for (const def of Quests.DEFS[t] || []) {
+          const got = this.claimQuest(t, def.id);
+          if (!got) continue;
+          claimed++;
+          for (const [k, v] of Object.entries(got)) total[k] = (total[k] || 0) + v;
+        }
+      }
+      return { claimed, reward: total };
     },
 
     // Number of completed-but-unclaimed quests across all boards.

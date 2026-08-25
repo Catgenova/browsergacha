@@ -1043,8 +1043,12 @@ class BattleScreen {
           }
           // Bosses drop a piece of THEIR set; higher stages drop rarer.
           const piece = Gear.drop(this.bossFight.gearSet, this.bossFight.stage);
-          GameState.addGear(piece);
-          sub.push(`Loot: ${Gear.describe(piece)}`);
+          const got = GameState.grantGear(piece);
+          sub.push(got.salvaged
+            ? `Loot: ${Gear.describe(piece)} — auto-salvaged for ` +
+              `${got.salvaged.whetstones} 🪨` +
+              (got.salvaged.arcana ? ` and ${got.salvaged.arcana} ✦` : '')
+            : `Loot: ${Gear.describe(piece)}`);
         }
         // Battle chaining (hunts and cleared boss stages): keep fighting
         // until the count runs out, pausing briefly on the banner.
