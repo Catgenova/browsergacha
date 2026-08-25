@@ -455,6 +455,14 @@ const POSITIONALS = (() => {
 
   // Galen's hex: back where he can watch the whole field turn.
   // Ilyra's hex: standing back, the wind bends around her.
+  // Ryn's hex: out front, where the wind is already moving.
+  def('headwind', {
+    position: POSITION.FRONT,
+    name: 'Headwind',
+    description: 'Front hex: +10% SPD — she meets the charge already running.',
+    stat: 'speed', mult: 1.10,
+  });
+
   def('still_air', {
     position: POSITION.BACK,
     name: 'Still Air',

@@ -3110,4 +3110,88 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.still_air,
   },
+
+  ryn: {
+    id: 'ryn',
+    element: 'wind',
+    name: 'Ryn',
+    title: 'Crosswind of the Whisperchime',
+    rarity: 4,
+    // Front-line damage with no utility at all and no apology for it.
+    // Her whole kit is three swings of the same pair of chakrams; what
+    // makes her frightening is the passive underneath them, which reads
+    // her SPEED and pays it back as damage in steps. Every point of
+    // haste on this hero — gear, her own hex, an ally's tempo buff — is
+    // damage waiting for the next breakpoint.
+    stats: { hp: 1900, atk: 180, def: 125, speed: 128 },
+    tint: { body: '#4a6a3a', helm: '#c8b45a', weapon: '#e8c86a', skin: '#8a5a3a' },
+    sprite: {
+      displayH: 96,
+      // Authored facing left (every blade sweep runs left of frame) —
+      // flagged, not mirrored into the files.
+      faceLeft: true,
+      strips: {
+        idle:  { src: 'assets/heroes/Ryn/rynidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Ryn/rynidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Ryn/rynidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Ryn/rynskill1.png', frames: 'auto', fps: 14,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Ryn/rynskill2.png', frames: 'auto', fps: 14,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Ryn/rynskill3.png', frames: 'auto', fps: 14,
+                  loop: false },
+        death:  { src: 'assets/heroes/Ryn/ryndeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'ryn_crosscut', name: 'Crosscut', 
+        icon: 'assets/icons/fc1230.png',
+        description: 'One clean pass of both chakrams: 100% ATK to a single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.00 },
+        ],
+      },
+      {
+        id: 'ryn_shear', name: 'Shear',
+        icon: 'assets/icons/fc1231.png',
+        description: 'Both blades through the same gap: 140% ATK to a single enemy.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.40 },
+        ],
+      },
+      {
+        id: 'ryn_scything_gale', name: 'Scything Gale',
+        icon: 'assets/icons/fc1232.png',
+        description: 'A running cut down the whole line: 130% ATK to the ' +
+          'enemy FRONT row.',
+        cooldown: 5, targeting: 'front-enemies', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.30 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Terminal Velocity',
+      icon: 'assets/icons/fc1240.png',
+      description: 'Deals 20% more damage for every full 50 SPD she has — ' +
+        '+40% at 100, +60% at 150. Speed is her damage stat.',
+      hooks: {
+        damageDealtMult(unit) {
+          // Read her speed AS FOUGHT: gear, her front hex and any ally's
+          // tempo buff all count, so a Quickstep can carry her over the
+          // next breakpoint mid-fight.
+          const spd = unit.effectiveStat ? unit.effectiveStat('speed') : 0;
+          return 1 + 0.20 * Math.floor(spd / 50);
+        },
+      },
+    },
+    positional: POSITIONALS.headwind,
+  },
 });
