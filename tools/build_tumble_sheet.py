@@ -33,12 +33,12 @@ IMG, NF = {}, {}
 for f, fps, name in STRIPS:
     IMG[name], NF[name] = clip(f, fps)
 
-html = r'''<title>Tumble, Acrobat of the Whisperchime</title>
+html = r'''<title>Tumble, Whirling Dervish of the Whisperchime</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Righteous&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
-  /* A committed single-theme sheet: the scriptorium. Candle-dark sepia
-     under parchment cream and gold leaf, set in Uncial Antiqua's
-     manuscript hand. Every color painted explicitly. */
+  /* A committed single-theme sheet: the open air. Night-green ground
+     under leaf green and bleached wood, set in Righteous' leaning
+     display face. Every color painted explicitly. */
   :root {
     --ground: #0c1210;
     --panel: #0d1411;
@@ -131,12 +131,12 @@ html = r'''<title>Tumble, Acrobat of the Whisperchime</title>
   <div class="hero">
     <div class="hero-art">
       <span class="tag">Idle &middot; the spin</span>
-      <img src="%%idle%%" alt="Tumble idle animation, a bearded acrobat spinning in a skirt of leaves and wood slats, wind and petals trailing" width="280" height="280">
+      <img src="%%idle%%" alt="Tumble idle animation, a bearded dervish spinning in a skirt of leaves and wood slats, wind and petals trailing" width="280" height="280">
     </div>
     <div class="hero-id">
       <div class="stars">&#x2605;&#x2605;&#x2605;&#x2605;<span class="rank">RARITY 4</span></div>
       <h1>TUMBLE</h1>
-      <div class="title-line">Acrobat of the Whisperchime</div>
+      <div class="title-line">Whirling Dervish of the Whisperchime</div>
       <div class="badges">
         <span class="badge light">Wind</span>
         <span class="badge">Center Support</span>
