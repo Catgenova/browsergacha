@@ -2774,7 +2774,7 @@ Object.assign(HEROES, {
     id: 'tumble',
     element: 'wind',
     name: 'Tumble',
-    title: 'Acrobat of the Whisperchime',
+    title: 'Whirling Dervish of the Whisperchime',
     rarity: 4,
     // Center-hex support who fights by never stopping. He owns exactly
     // two poses — a spin and a fall — so every skill he throws is the
