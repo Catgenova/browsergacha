@@ -454,6 +454,14 @@ const POSITIONALS = (() => {
   });
 
   // Galen's hex: back where he can watch the whole field turn.
+  // Ilyra's hex: standing back, the wind bends around her.
+  def('still_air', {
+    position: POSITION.BACK,
+    name: 'Still Air',
+    description: 'Back hex: +30% Resistance — debuffs, strips and drains all break on her.',
+    hooks: { resistanceAdd: 0.30 },
+  });
+
   def('weathervane', {
     position: POSITION.BACK,
     name: 'Weathervane',
