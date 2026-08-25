@@ -231,24 +231,24 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
   <div class="abilities">
     <div class="ability">
       <div class="slot">Skill 1 &middot; No cooldown</div>
-      <h3>Clobber</h3>
+      <h3>Opening Act</h3>
       <div class="meta">Single enemy &middot; <b>15% max HP</b></div>
-      <p>Clobber one enemy for <b>15% of Carl's own max HP</b> as damage.
-      No wind-up, no apology.</p>
+      <p>The show opens: one clean bare-knuckle punch for <b>15% of
+      Carl's own max HP</b> as damage. No wind-up, no apology.</p>
     </div>
     <div class="ability">
       <div class="slot">Skill 2 &middot; Cooldown 3</div>
-      <h3>Pole Swing</h3>
+      <h3>Crowd-Pleaser</h3>
       <div class="meta">Single enemy &middot; <b>20% max HP</b></div>
-      <p>Bring the tentpole around on one enemy for <b>20% of his own max
-      HP</b> as damage.</p>
+      <p>Wind up and lay one enemy out for <b>20% of his own max HP</b>
+      as damage, then flex for the crowd.</p>
     </div>
     <div class="ability">
       <div class="slot">Skill 3 &middot; Cooldown 5</div>
-      <h3>Bring Down the Pole</h3>
+      <h3>Main Event</h3>
       <div class="meta">Single enemy &middot; <b>25% max HP &middot; +50% vs front row</b></div>
-      <p>Drive the pole into one enemy for <b>25% of his own max HP</b>
-      &#x2014; a <b>FRONT-row</b> victim takes 50% more. Tanks first.</p>
+      <p>The headline act: a two-fisted drive for <b>25% of his own max
+      HP</b> &#x2014; a <b>FRONT-row</b> victim takes 50% more. Tanks first.</p>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -262,8 +262,8 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
       <div class="slot">Positional &middot; Front hex</div>
       <h3>Strongman</h3>
       <div class="meta">Front row &middot; <b>+15% max HP</b></div>
-      <p>The whole show leans on him &#x2014; placed up front, the pole
-      stands <b>15% taller</b>, and every swing with it.</p>
+      <p>The whole show leans on him &#x2014; placed up front he stands
+      <b>15% taller</b>, and every punch swings with it.</p>
     </div>
   </div>
 
@@ -271,9 +271,9 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
     <table>
       <thead><tr><th>Swing (base max HP 2000)</th><th>Backfield</th><th>Front hex (+15%)</th><th>Front hex, appetite full (+50%)</th></tr></thead>
       <tbody>
-        <tr><th>Clobber (15%)</th><td>300</td><td>345</td><td>518</td></tr>
-        <tr><th>Pole Swing (20%)</th><td>400</td><td>460</td><td>690</td></tr>
-        <tr><th>Bring Down the Pole (25%)</th><td>500</td><td>575</td><td>863</td></tr>
+        <tr><th>Opening Act (15%)</th><td>300</td><td>345</td><td>518</td></tr>
+        <tr><th>Crowd-Pleaser (20%)</th><td>400</td><td>460</td><td>690</td></tr>
+        <tr><th>Main Event (25%)</th><td>500</td><td>575</td><td>863</td></tr>
         <tr><th>&#x2026;against a front-row victim (&#xd7;1.5)</th><td>750</td><td>863</td><td class="max">1294</td></tr>
       </tbody>
     </table>
@@ -288,9 +288,9 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
     <div class="clip"><img src="%%idle%%" alt="Idle sway"><div class="cap"><b>Idle</b> &middot; 9f</div><div class="note">Holding the roof up.</div></div>
     <div class="clip"><img src="%%fidget1%%" alt="Idle fidget one"><div class="cap"><b>Fidget I</b> &middot; 9f</div><div class="note">A stretch between shows.</div></div>
     <div class="clip"><img src="%%fidget2%%" alt="Idle fidget two"><div class="cap"><b>Fidget II</b> &middot; 9f</div><div class="note">Knuckles, cracked.</div></div>
-    <div class="clip"><img src="%%clobber%%" alt="Clobber attack"><div class="cap"><b>Clobber</b> &middot; 9f</div><div class="note">The no-apology swing.</div></div>
-    <div class="clip"><img src="%%swing%%" alt="Pole Swing"><div class="cap"><b>Pole Swing</b> &middot; 9f</div><div class="note">The pole comes around.</div></div>
-    <div class="clip"><img src="%%poledrive%%" alt="Bring Down the Pole"><div class="cap"><b>Bring Down the Pole</b> &middot; 9f</div><div class="note">Tanks first.</div></div>
+    <div class="clip"><img src="%%clobber%%" alt="Opening Act attack"><div class="cap"><b>Opening Act</b> &middot; 9f</div><div class="note">The no-apology punch.</div></div>
+    <div class="clip"><img src="%%swing%%" alt="Crowd-Pleaser"><div class="cap"><b>Crowd-Pleaser</b> &middot; 9f</div><div class="note">Lay them out, then flex.</div></div>
+    <div class="clip"><img src="%%poledrive%%" alt="Main Event"><div class="cap"><b>Main Event</b> &middot; 9f</div><div class="note">Tanks first.</div></div>
     <div class="clip"><img src="%%death%%" alt="Death"><div class="cap"><b>Death</b> &middot; 9f</div><div class="note">The tent comes down with him.</div></div>
   </div>
 

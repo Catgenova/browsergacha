@@ -2083,30 +2083,30 @@ Object.assign(HEROES, {
     },
     abilities: [
       {
-        id: 'carl_clobber', name: 'Clobber',
+        id: 'carl_clobber', name: 'Opening Act',
         icon: 'assets/icons/fc1033.png',
-        description: "Clobber one enemy for 15% of Carl's own max HP as damage.",
+        description: "The show opens: one clean bare-knuckle punch for 15% of Carl's own max HP as damage.",
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.15 },
         ],
       },
       {
-        id: 'carl_pole_swing', name: 'Pole Swing',
+        id: 'carl_pole_swing', name: 'Crowd-Pleaser',
         icon: 'assets/icons/fc1034.png',
-        description: 'Bring the tentpole around on one enemy for 20% of ' +
-          'his own max HP as damage.',
+        description: 'Wind up and lay one enemy out for 20% of his own ' +
+          'max HP as damage, then flex for the crowd.',
         cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.20 },
         ],
       },
       {
-        id: 'carl_bring_down_the_pole', name: 'Bring Down the Pole',
+        id: 'carl_bring_down_the_pole', name: 'Main Event',
         icon: 'assets/icons/fc1035.png',
-        description: 'Drive the pole into one enemy for 25% of his own ' +
-          'max HP as damage — a FRONT-row target takes 50% more. Tanks ' +
-          'first.',
+        description: 'The headline act: a two-fisted drive for 25% of his ' +
+          'own max HP as damage — a FRONT-row target takes 50% more. ' +
+          'Tanks first.',
         cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.25,
