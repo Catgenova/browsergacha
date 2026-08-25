@@ -27,6 +27,11 @@ function makeBattle() {
       }
     },
     playerSlots: slots, enemySlots: eslots,
+    // The real Battle exposes its hexes this way, and effects that move
+    // fighters between them (Tumble's Carousel) read it.
+    slotsFor(team) {
+      return team === TEAM.PLAYER ? battle.playerSlots : battle.enemySlots;
+    },
   };
   return battle;
 }
@@ -3594,6 +3599,104 @@ test('team power adds up the fielded heroes and moves with gear', () => {
     rarity: 'legendary', level: 90, plus: 0, subs: [] });
   G.equipGear(a, piece);
   assert(G.teamPower() > withBench, 'gear did not raise team power');
+});
+
+test("Tumble's kit: the whirl strips, the carousel turns the field", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.tumble;
+  assert(def && def.element === 'wind' && def.rarity === 4, 'Tumble drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Tumble left the Whisperchime');
+
+  // ---- Skill 1: the front row only, damage plus a rolled strip ----
+  const b = makeBattle();
+  const tum = place(b, def, TEAM.PLAYER, 0);
+  const foes = [1, 2, 3].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+  const front = foes.filter((u) => u.slot.position === POSITION.FRONT);
+  assert(front.length > 0, 'nobody is holding the enemy front row');
+  for (const f of foes) {
+    f.hp = f.maxHp = 10 ** 6;
+    f.dodgeChance = () => 0;
+    f.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
+  }
+  const R = g.Math;                     // the sandbox's own Math
+  R.random = () => 0.01;                // every rider roll lands
+  tum.turnMeter = 0;
+  A.execute(def.abilities[0], tum, foes[0], b);
+  delete R.random;
+  const stripped = front.filter((f) =>
+    !f.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'atk'));
+  assert(stripped.length === front.length,
+    `the whirl stripped ${stripped.length} of ${front.length}`);
+  for (const f of front) assert(f.hp < f.maxHp, 'the whirl dealt no damage');
+  // Chime Tax: 10 meter per blessing torn away.
+  const want = CONFIG.TURN_METER_MAX * 0.10 * front.length;
+  assert(Math.abs(tum.turnMeter - want) < 1e-6,
+    `Chime Tax paid ${tum.turnMeter}, expected ${want}`);
+
+  // A failed roll takes nothing and pays nothing.
+  const b2 = makeBattle();
+  const tum2 = place(b2, def, TEAM.PLAYER, 0);
+  const foe2 = place(b2, H.rat_knight, TEAM.ENEMY, 1);
+  foe2.hp = foe2.maxHp = 10 ** 6;
+  foe2.dodgeChance = () => 0;
+  foe2.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
+  tum2.turnMeter = 0;
+  R.random = () => 0.99;
+  A.execute(def.abilities[0], tum2, foe2, b2);
+  delete R.random;
+  assert(foe2.statusEffects.some((fx) => fx.kind === 'buff'),
+    'a missed roll still tore the blessing off');
+  assert(tum2.turnMeter === 0, 'a missed roll still paid Chime Tax');
+
+  // ---- Skill 2: the whole party picks up the tempo ----
+  const b3 = makeBattle();
+  const tum3 = place(b3, def, TEAM.PLAYER, 0);
+  const mate = place(b3, H.cain, TEAM.PLAYER, 2);
+  const before = mate.effectiveStat('speed');
+  A.execute(def.abilities[1], tum3, null, b3);
+  assert(Math.abs(mate.effectiveStat('speed') - Math.round(before * 1.3)) <= 1,
+    `ally speed went ${before} -> ${mate.effectiveStat('speed')}`);
+  assert(tum3.statusEffects.some((fx) => fx.stat === 'speed'),
+    'Tumble left himself out of his own tempo');
+
+  // ---- Skill 3: both outer rows, and the field turns ----
+  const b4 = makeBattle();
+  const tum4 = place(b4, def, TEAM.PLAYER, 0);
+  const ring = [1, 2, 3, 4, 5, 6].map((i) => place(b4, H.rat_knight, TEAM.ENEMY, i));
+  const mid = place(b4, H.rat_archer, TEAM.ENEMY, 0);
+  for (const u of [...ring, mid]) { u.hp = u.maxHp = 10 ** 6; u.dodgeChance = () => 0; }
+  // The sweep spares the middle hex.
+  const hit = A.execute(def.abilities[2], tum4, ring[0], b4)
+    .filter((r) => r.kind === 'damage').map((r) => r.target);
+  assert(!hit.includes(mid), 'the carousel clipped the centre hex');
+  assert(hit.length === ring.length, `the carousel caught ${hit.length} of ${ring.length}`);
+
+  // Everyone on the ring moved exactly one hex clockwise ON SCREEN:
+  // ascending atan2 about the ring's own centre.
+  const slots = b4.slotsFor(TEAM.ENEMY).filter((sl) => sl.position !== POSITION.CENTER);
+  const cx = slots.reduce((a, sl) => a + sl.x, 0) / slots.length;
+  const cy = slots.reduce((a, sl) => a + sl.y, 0) / slots.length;
+  const cw = [...slots].sort((a, b) =>
+    Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+  ring.forEach((u, i) => {
+    const from = cw.indexOf(b4.enemySlots[i + 1]);
+    assert(u.slot === cw[(from + 1) % cw.length],
+      `${u.name} did not land one hex clockwise`);
+  });
+  assert(mid.slot === b4.enemySlots[0], 'the pivot moved');
+  // And the point of it: standing changes with the ground.
+  assert(ring.some((u) => u.slot.position !== b4.enemySlots[ring.indexOf(u) + 1].position),
+    'the spin left every fighter in the same kind of hex');
+
+  // ---- The centre hex pays him accuracy ----
+  assert(def.positional && def.positional.name === 'Eye of the Ring' &&
+    def.positional.hooks.accuracyAdd === 0.35, 'the centre bonus drifted');
+  const b5 = makeBattle();
+  const mid5 = place(b5, def, TEAM.PLAYER, 0);
+  const off5 = place(b5, def, TEAM.PLAYER, 1);
+  assert(mid5.slot.position === POSITION.CENTER, 'slot 0 is not the middle hex');
+  assert(Math.abs(mid5.debuffAccuracy() - off5.debuffAccuracy() - 0.35) < 1e-9,
+    'the middle hex paid the wrong accuracy');
 });
 
 report();

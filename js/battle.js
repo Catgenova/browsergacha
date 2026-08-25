@@ -651,8 +651,17 @@ class Battle {
             ? `${res.target.name} finds no fires to draw from.`
             : `${res.target.name}'s forge is already at full heat.`, cls);
         }
+      } else if (res.kind === 'rotate') {
+        this.addFloatingText(caster, '↻ SPIN', '#8ee8ff', true);
+        this.log(`The whirl takes hold — the enemy formation turns one hex ` +
+          `${res.dir === 'ccw' ? 'anticlockwise' : 'clockwise'}, ` +
+          `${res.count} fighter${res.count > 1 ? 's' : ''} carried to new ground!`,
+          'log-system');
       } else if (res.kind === 'stripBuff') {
-        if (res.count === 0) {
+        if (res.rolled) {
+          // The rider missed its roll — say nothing rather than
+          // reporting an absence of blessings that were never checked.
+        } else if (res.count === 0) {
           this.log(`${res.target.name} carries no blessing to tear away.`, cls);
         } else {
           this.addFloatingText(res.target, 'BUFF ✕', '#d78aff');

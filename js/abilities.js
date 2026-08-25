@@ -529,6 +529,11 @@ const Abilities = (() => {
         // oldest first, up to `count`. A caster with a stripBurnChance
         // hook (Cleo's Cruel Fortune) may replace each torn buff with a
         // 2-turn burn — the roll is the whole gate, like the sect oil.
+        // A rider strip (Tumble's whirl) rolls per target before it
+        // reaches for anything.
+        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+          return { kind: 'stripBuff', target, count: 0, rolled: true };
+        }
         let left = effect.count || 1;
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
@@ -549,7 +554,61 @@ const Abilities = (() => {
             burned++;
           }
         }
+        // Anyone who profits from tearing buffs off hears about it —
+        // Tumble's Chime Tax turns each one into turn meter.
+        const prevOwner = Unit.hookOwner;
+        Unit.hookOwner = caster;
+        try {
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            if (p.hooks && p.hooks.onStripBuff) {
+              p.hooks.onStripBuff(caster, { count: removed, target });
+            }
+          }
+        } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
+      }
+      case 'rotateFormation': {
+        // Spin a whole side one hex around its own middle. The six ring
+        // hexes are ordered by their angle on SCREEN, so "clockwise"
+        // means clockwise as the player sees it — the enemy flower is
+        // drawn mirrored, and reading the geometry rather than the slot
+        // numbering keeps the spin honest on either side of the field.
+        // The middle hex is the pivot and never moves.
+        //
+        // What it costs the victim is position: front-line bruisers are
+        // carried into the back, back-line casters are swung onto the
+        // front, and every positional bonus is recomputed from where
+        // they land.
+        const battle = currentBattle;
+        if (!battle) return null;
+        const side = effect.side === 'allies' ? caster.team : caster.enemyTeam();
+        const slots = (battle.slotsFor ? battle.slotsFor(side) : [])
+          .filter((sl) => sl.position !== POSITION.CENTER);
+        if (slots.length < 2) return null;
+        const cx = slots.reduce((a, sl) => a + sl.x, 0) / slots.length;
+        const cy = slots.reduce((a, sl) => a + sl.y, 0) / slots.length;
+        // Screen y grows downward, so ascending atan2 IS clockwise.
+        const ring = [...slots].sort((a, b) =>
+          Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+        if (effect.dir === 'ccw') ring.reverse();
+        // Who stands where comes off the unit list rather than the
+        // hexes' own back-pointers, so a half-built board (or a corpse
+        // still lying in its hex) cannot desync the spin.
+        const standing = battle.units.filter((u) => u.slot && u.team === side);
+        const riders = ring.map((sl) => standing.find((u) => u.slot === sl) || null);
+        if (!riders.some(Boolean)) return null;
+        let moved = 0;
+        ring.forEach((sl, i) => {
+          const rider = riders[(i - 1 + ring.length) % ring.length];
+          sl.unit = rider || null;
+          if (rider) {
+            if (rider.slot !== sl) moved++;
+            rider.slot = sl;
+          }
+        });
+        return moved > 0
+          ? { kind: 'rotate', target, side, count: moved, dir: effect.dir || 'cw' }
+          : null;
       }
       case 'removeStatus': {
         // Strip every status matching `stat` off the target — Polarus's
@@ -664,6 +723,17 @@ const Abilities = (() => {
         // spans every hex, so it always qualifies).
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => u.isBoss || u.slot.position === POSITION.BACK);
+      case 'flank-enemies': {
+        // Both outer rows at once — the front line and the back line —
+        // leaving whoever holds the middle untouched (Tumble's whirl
+        // passes them by). A boss spans every hex, so it always counts;
+        // if only the centre is standing, the sweep still finds it.
+        const pool = battle.livingUnits(caster.enemyTeam());
+        const flanks = pool.filter((u) => u.isBoss ||
+          u.slot.position === POSITION.FRONT ||
+          u.slot.position === POSITION.BACK);
+        return flanks.length > 0 ? flanks : pool;
+      }
       case 'front-enemies': {
         // Every living enemy in a front-position hex; if nobody holds
         // the front line, the sweep still catches one random enemy.

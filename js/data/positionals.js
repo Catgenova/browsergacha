@@ -263,6 +263,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.20 },
   });
 
+  // Tumble's hex: the middle of the ring, where the whole tent watches.
+  def('eye_of_the_ring', {
+    position: POSITION.CENTER,
+    name: 'Eye of the Ring',
+    description: 'Center hex: +35% debuff Accuracy — nothing slips past the middle.',
+    hooks: { accuracyAdd: 0.35 },
+  });
+
   def('standard_bearer', {
     position: POSITION.CENTER,
     name: 'Standard Bearer',
