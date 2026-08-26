@@ -339,6 +339,25 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('bell_tower', {
+    position: POSITION.CENTER,
+    name: 'Bell Tower',
+    description: 'Center hex: at the start of each of her turns every ally ' +
+      'recovers 5% of her max HP — the bell does not stop ringing.',
+    hooks: {
+      onTurnStart(unit, battle) {
+        if (!battle) return null;
+        const mend = Math.max(1, Math.round(unit.maxHp * 0.05));
+        const floats = [];
+        for (const ally of battle.livingUnits(unit.team)) {
+          const healed = ally.heal(mend, unit);
+          if (healed > 0) floats.push({ target: ally, text: `+${healed}`, color: '#7ae87a' });
+        }
+        return floats.length ? { floats } : null;
+      },
+    },
+  });
+
   def('long_stems', {
     position: POSITION.BACK,
     name: 'Long Stems',

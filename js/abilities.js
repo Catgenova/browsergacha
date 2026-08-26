@@ -401,8 +401,15 @@ const Abilities = (() => {
         // A pool that eats damage before HP. Scaled off the caster's ATK
         // like a heal, and boosted by the same healing modifiers -- both
         // are HP the target does not lose.
+        //
+        // `pct` scales off the caster's own MAX HP instead, the way
+        // healHpPct and hot already do, for a caster whose whole kit is
+        // priced off her pool rather than her attack (Lenore).
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
+        const base = effect.pct !== undefined
+          ? caster.maxHp * effect.pct
+          : caster.effectiveStat('atk') * effect.mult;
+        const amount = Math.round(base * power * boost);
         const gained = target.addShield(amount, effect.turns, caster);
         return { kind: 'shield', target, amount: gained, turns: effect.turns };
       }
