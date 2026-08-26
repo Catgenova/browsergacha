@@ -208,9 +208,9 @@ html = r'''<title>Catherine, White Paladin</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1700</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">200</div><div class="sub">scales her heals too</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">160</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1260</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">148</div><div class="sub">scales her heals too</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">119</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">98</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">×1.5 damage</div></div>
   </div>

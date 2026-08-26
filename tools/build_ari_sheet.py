@@ -232,9 +232,9 @@ html = r'''<title>Ari, Crystquiver</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1080</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">240</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">88</div><div class="sub">the back row is the armor</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">905</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">202</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">74</div><div class="sub">the back row is the armor</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">105</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

@@ -155,9 +155,9 @@ html = r'''<title>Samuels, Stabby Triplets of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1600</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">160</div><div class="sub">split three ways</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">105</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1315</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">132</div><div class="sub">split three ways</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">86</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">106</div><div class="sub">first to the flourish</div></div>
   </div>
 

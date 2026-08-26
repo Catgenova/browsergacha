@@ -175,9 +175,9 @@ html = r'''<title>Sable, Gravetender of the Nightflowers</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1350</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">180</div><div class="sub">every seed is priced off this</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">90</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1135</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">151</div><div class="sub">every seed is priced off this</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">76</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">108</div><div class="sub">poisons tick +30% on a back hex</div></div>
   </div>
 

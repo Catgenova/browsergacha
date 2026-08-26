@@ -240,9 +240,9 @@ html = r'''<title>Andrew, Casualty of Cryst</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1250</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">200</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">120</div><div class="sub">Shore Up counts him too</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1100</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">176</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">106</div><div class="sub">Shore Up counts him too</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">98</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

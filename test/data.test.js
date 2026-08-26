@@ -237,23 +237,43 @@ test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
   }
 });
 
-test('every generic hero shares one base power budget', () => {
-  const EXEMPT = new Set(['coral', 'emily', 'toll', 'echo', 'javarious',
-    'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
-    'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
-    'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur']);
+test('every hero shares one base power budget, with nobody exempt', () => {
+  // There is no exemption list any more. It used to grandfather thirty
+  // named heroes onto their authored statlines, which made rarity mean
+  // two different things depending on when a hero was written — an
+  // exempt 3-star out-hit a balanced 5-star at their respective caps.
+  // Rarity now lives entirely in the star ceiling.
   for (const h of heroes) {
-    if (EXEMPT.has(h.id)) continue;
     const p = Progression.power(h.stats);
     assert(Math.abs(p - 520) <= 15,
       `${h.id}: base power ${p}, expected ~520`);
   }
-  // The named heroes keep their bespoke statlines.
-  for (const id of EXEMPT) {
-    if (!HEROES[id]) continue;
-    assert(Progression.power(HEROES[id].stats) > 540,
-      `${id} should stand above the shared budget`);
+  // Rarity still separates them, just further up: a 5-star climbs to a
+  // level cap a 3-star never reaches, off the same starting numbers.
+  //
+  // Measured as POWER, not as any single stat -- a glass-cannon 3-star
+  // out-hits a wall 5-star on raw ATK by design, and always should.
+  const powerAtCap = (h) => {
+    const u = new g.Unit(h, g.TEAM.PLAYER, { level: Progression.maxLevel(h.rarity),
+      stars: h.rarity });
+    return Progression.power({ hp: u.maxHp, atk: u.effectiveStat('atk'),
+      def: u.effectiveStat('def'), speed: u.effectiveStat('speed') });
+  };
+  // Every hero, held against itself: more stars is strictly more hero.
+  for (const h of heroes.slice(0, 8)) {
+    const lo = new g.Unit(h, g.TEAM.PLAYER, { level: Progression.maxLevel(3), stars: 3 });
+    const hi = new g.Unit(h, g.TEAM.PLAYER, { level: Progression.maxLevel(5), stars: 5 });
+    assert(hi.maxHp > lo.maxHp && hi.effectiveStat('atk') > lo.effectiveStat('atk'),
+      `${h.id} does not grow between a 3-star cap and a 5-star one`);
   }
+  // And across the roster, the bands do not overlap at their caps.
+  const band = (r) => heroes.filter((h) => h.rarity === r).map(powerAtCap);
+  const [three, four, five] = [band(3), band(4), band(5)];
+  const med = (a) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
+  assert(med(three) < med(four) && med(four) < med(five),
+    `median power at cap does not climb: ${med(three)} / ${med(four)} / ${med(five)}`);
+  assert(Math.max(...three) < Math.min(...five),
+    `a 3-star reaches ${Math.max(...three)} at cap, above the weakest 5-star's ${Math.min(...five)}`);
 });
 
 test('elements are real, and Dark/Light are always 3-star or better', () => {

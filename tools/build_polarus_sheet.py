@@ -235,9 +235,9 @@ html = r'''<title>Polarus, King of Cryst</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1800</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">255</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">135</div><div class="sub">the crystal answers for him</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1170</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">166</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">88</div><div class="sub">the crystal answers for him</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">100</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

@@ -156,9 +156,9 @@ html = r'''<title>Ilyra, Windward of the Whisperchime</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1900</div><div class="sub">her pool IS the heal</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">105</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">135</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1645</div><div class="sub">her pool IS the heal</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">91</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">117</div></div>
     <div class="stat spd"><div class="k">SPD</div><div class="v">110</div></div>
   </div>
 

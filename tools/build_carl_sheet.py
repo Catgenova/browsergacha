@@ -206,9 +206,9 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat hp"><div class="k">HP</div><div class="v">2000</div><div class="sub">the weapon itself</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">100</div><div class="sub">stage dressing</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">155</div></div>
+    <div class="stat hp"><div class="k">HP</div><div class="v">1925</div><div class="sub">the weapon itself</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">96</div><div class="sub">stage dressing</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">149</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">95</div></div>
   </div>
 

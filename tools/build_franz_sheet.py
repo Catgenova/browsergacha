@@ -153,9 +153,9 @@ html = r'''<title>Franz, Firebreather of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat hp"><div class="k">HP</div><div class="v">2100</div><div class="sub">the whole act</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">130</div><div class="sub">stage dressing</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">135</div></div>
+    <div class="stat hp"><div class="k">HP</div><div class="v">1750</div><div class="sub">the whole act</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">108</div><div class="sub">stage dressing</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">113</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">98</div></div>
   </div>
 

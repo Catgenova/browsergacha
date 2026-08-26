@@ -179,9 +179,9 @@ html = r'''<title>Asher, Bell Thief of the Whisperchime</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">2000</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">245</div><div class="sub">before anything he steals</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">150</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1185</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">145</div><div class="sub">before anything he steals</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">89</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">106</div><div class="sub">+30% accuracy on a front hex</div></div>
   </div>
 

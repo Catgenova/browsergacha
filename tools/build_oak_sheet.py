@@ -233,9 +233,9 @@ html = r'''<title>Oak, Confessor of Reverence</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1450</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">230</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">130</div><div class="sub">his real armor is the dodge</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1090</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">173</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">98</div><div class="sub">his real armor is the dodge</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">100</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

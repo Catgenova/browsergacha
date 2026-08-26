@@ -34,7 +34,7 @@ def clip(fname, frames, fps):
 
 IMG = {name: clip(f, n, fps) for f, n, fps, name in STRIPS}
 
-html = r'''<title>Sawyer, Blade of Shadowflower</title>
+html = r'''<title>Sawyer, Blade of the Nightflowers</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
   /* A committed single-theme sheet: a night garden. Violet blade-light
@@ -215,7 +215,7 @@ html = r'''<title>Sawyer, Blade of Shadowflower</title>
 </style>
 
 <div class="wrap">
-  <div class="eyebrow">Browser Gacha &middot; Hero Dossier &middot; <b>5&#x2605; Dark &middot; Shadowflower Sect</b></div>
+  <div class="eyebrow">Browser Gacha &middot; Hero Dossier &middot; <b>5&#x2605; Dark &middot; Nightflower &middot; No. 6</b></div>
 
   <div class="hero">
     <div class="hero-art">
@@ -225,25 +225,27 @@ html = r'''<title>Sawyer, Blade of Shadowflower</title>
     <div class="hero-id">
       <div class="stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;<span class="rank">RARITY 5</span></div>
       <h1>SAWYER</h1>
-      <div class="title-line">Blade of Shadowflower</div>
+      <div class="title-line">Blade of the Nightflowers</div>
       <div class="badges">
         <span class="badge dark">&#x1f319; Dark</span>
         <span class="badge">Front-row DPS</span>
         <span class="badge">Debuff engine</span>
-        <span class="badge sect">Shadowflower Sect &middot; No. 2</span>
+        <span class="badge sect">Nightflower &middot; No. 6</span>
       </div>
-      <p class="lede">First bloom of the <b>Shadowflower</b>, the order nobody has
-      met twice. Sawyer tends the enemy line the way a gardener tends a bed:
-      every cut scatters a pair of hexes over the wound, the drooping are cut
-      easier, and the finest bloom &#x2014; whoever holds the <b>center hex</b> &#x2014;
-      is deadheaded first.</p>
+      <p class="lede">He was written as a Nightflower years before the
+      sect existed &#x2014; Petalfall, Night Bloom, Deadheading, a passive
+      called Wilting Garden &#x2014; and has since been recognised as one.
+      Sawyer tends the enemy line the way a gardener tends a bed: every cut
+      scatters a pair of hexes over the wound, <b>the drooping are cut
+      easier</b>, and the finest bloom &#x2014; whoever holds the <b>center
+      hex</b> &#x2014; is deadheaded first.</p>
     </div>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1700</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">265</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">120</div><div class="sub">Night Bloom pays the rent</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1090</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">170</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">77</div><div class="sub">Night Bloom pays the rent</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">104</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>
@@ -262,7 +264,7 @@ html = r'''<title>Sawyer, Blade of Shadowflower</title>
       <div class="seed"><div class="num">+25%</div><div class="what">Damage taken</div></div>
     </div>
     <div class="packet-cap">The hexes are not just disruption &#x2014; they are fertilizer for his
-      passive: <b>Wilting Garden pays +10% damage per debuff on the target</b>, up to +30%.
+      passive: <b>Wilting Garden pays +10% damage per debuff on the target</b>, up to +60%.
       Cut, let it droop, cut again.</div>
   </div>
 
@@ -312,7 +314,7 @@ html = r'''<title>Sawyer, Blade of Shadowflower</title>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
       <h3>Wilting Garden</h3>
-      <p>Deals <b>+10% damage per debuff on the target</b>, up to +30% &#x2014;
+      <p>Deals <b>+10% damage per debuff on the target</b>, up to +60% &#x2014;
       flowers cut easiest once they droop. His own hexes count, and so does
       everyone else's.</p>
     </div>
@@ -361,7 +363,7 @@ html = r'''<title>Sawyer, Blade of Shadowflower</title>
       or 500 &#x1f48e; in the Shop. Pity guarantees a 5&#x2605; by the 40th pull.</div></div>
   </div>
 
-  <div class="foot">Play him now at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a> &middot; first known member of the Shadowflower sect, order No. 2 &#x2014; the rest have not shown themselves yet.</div>
+  <div class="foot">Play him now at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a> &middot; Nightflower, order No. 6 &#x2014; the sect he ends up leading has eight other members, and every one of them exists to hand him a target that has already drooped.</div>
 </div>
 '''
 

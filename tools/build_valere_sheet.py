@@ -173,9 +173,9 @@ html = r'''<title>Valere, Suitor of the Nightflowers</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1700</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">145</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">125</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1310</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">112</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">96</div></div>
     <div class="stat spd"><div class="k">SPD</div><div class="v">114</div><div class="sub">he goes first, on purpose</div></div>
   </div>
 
