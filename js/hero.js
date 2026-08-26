@@ -203,14 +203,17 @@ class Unit {
 
   // Outgoing damage multiplier: positional 'damage' bonuses and passive
   // damageDealtMult hooks (e.g. bonus vs front-row targets) stack here.
-  damageDealtMult(target) {
+  // `ability` is the skill being resolved, for a passive that pays out
+  // on one skill rather than all three; it is absent when damage is
+  // dealt outside an ability (reflects, thorns, a bench probe).
+  damageDealtMult(target, ability = null) {
     let m = 1;
     if (this.positionalActive() && this.positional.stat === 'damage') {
       m *= this.positional.mult;
     }
     for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.damageDealtMult;
-      if (hook) m *= hook(this, target) || 1;
+      if (hook) m *= hook(this, target, ability) || 1;
     }
     return m;
   }

@@ -3280,6 +3280,71 @@ Object.assign(HEROES, {
     positional: POSITIONALS.chime_bar,
   },
 
+  noctelle: {
+    id: 'noctelle',
+    element: 'dark',
+    name: 'Noctelle',
+    title: 'Silent Moth of the Nightflowers',
+    rarity: 3,
+    // The first Nightflower wired, and the sect's thesis in one hero:
+    // nothing she does is free, and everything she does is taken from
+    // someone else. Her damage comes off her OWN pool and lands as
+    // healing on whoever is worst off, so a big HP bar is the whole
+    // kit -- the wound, the mend, and the reason she survives the
+    // back row.
+    stats: { hp: 2100, atk: 95, def: 120, speed: 104 },
+    tint: { body: '#2a2438', helm: '#6a5a8a', weapon: '#b8a8d8', skin: '#e0d0e8' },
+    role: 'support',
+    abilities: [
+      {
+        id: 'noctelle_silent_wing', name: 'Silent Wing',
+        icon: 'assets/icons/fc1276.png',
+        description: "10% of Noctelle's own max HP as damage to one " +
+          'enemy, and the ally in the worst shape is mended for exactly ' +
+          'what the wound cost.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damageHp', mult: 0.10, healDealt: { to: 'lowest-ally', frac: 1 } },
+        ],
+      },
+      {
+        id: 'noctelle_nightbloom', name: 'Nightbloom',
+        icon: 'assets/icons/fc1277.png',
+        description: "Mends one ally for 20% of Noctelle's own max HP " +
+          'and lifts a debuff off them.',
+        cooldown: 3, targeting: 'ally', animation: 'skill2', impact: 'heal_purple',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+          { type: 'cleanse', count: 1 },
+        ],
+      },
+      {
+        id: 'noctelle_moth_dust', name: 'Moth Dust',
+        icon: 'assets/icons/fc1278.png',
+        description: "10% of Noctelle's own max HP as damage to the enemy " +
+          'BACK row, and the dust drags at them: -30% Speed for 2 turns.',
+        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'strike_purple',
+        effects: [
+          { type: 'damageHp', mult: 0.10 },
+          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dust On The Wind',
+      icon: 'assets/icons/fc1282.png',
+      description: 'Moth Dust deals double damage to Wind heroes — the ' +
+        'scales find nothing to cling to on anyone else.',
+      hooks: {
+        damageDealtMult(unit, target, ability) {
+          if (!ability || ability.id !== 'noctelle_moth_dust') return 1;
+          return target && target.element === 'wind' ? 2 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.lamplight,
+  },
+
   asher: {
     id: 'asher',
     element: 'wind',
