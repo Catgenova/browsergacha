@@ -339,6 +339,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('reach', {
+    position: POSITION.FRONT,
+    name: 'Reach',
+    description: 'Front hex: +40% accuracy — a glaive settles the argument ' +
+      'about who is close enough, and nothing he cuts off gets refused.',
+    hooks: { accuracyAdd: 0.40 },
+  });
+
   def('bell_tower', {
     position: POSITION.CENTER,
     name: 'Bell Tower',

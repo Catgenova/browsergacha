@@ -338,6 +338,7 @@ const Abilities = (() => {
         const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
         // ATK-scaled, so an attack buff on the healer multiplied this
         // mend and its granter takes that share of the credit.
+        if (target.healBlocked()) return { kind: 'heal', target, amount: 0, blocked: true };
         const healed = target.heal(amount, caster, { assists: caster.healAssists(true) });
         notifyOverheal(caster, amount - healed, target);
         return { kind: 'heal', target, amount: healed };
@@ -352,6 +353,7 @@ const Abilities = (() => {
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
+        if (target.healBlocked()) return { kind: 'heal', target, amount: 0, blocked: true };
         const healed = target.heal(amount, caster,
           { assists: caster.healAssists(false) }); // max-HP scaled: gifts only
         notifyOverheal(caster, amount - healed, target);
@@ -781,6 +783,24 @@ const Abilities = (() => {
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stealBuff', target, count: taken.length,
           stats: taken.map((fx) => fx.stat) };
+      }
+      case 'healBlock': {
+        // Cut them off from help. An ordinary debuff, so it cleanses,
+        // resists and expires like the rest, and `stat` is a flag
+        // rather than a number the way freeze and the seal are.
+        const turns = effect.turns || 2;
+        if (!debuffLands(caster, target)) {
+          return { kind: 'debuff', target, stat: 'healblock', resisted: true };
+        }
+        const held = target.statusEffects.find(
+          (fx) => fx.kind === 'debuff' && fx.stat === 'healblock');
+        if (held) {
+          held.turns = Math.max(held.turns, turns);
+          return { kind: 'healBlock', target, turns: held.turns, refreshed: true };
+        }
+        target.addStatusEffect({ kind: 'debuff', stat: 'healblock', turns,
+          source: caster });
+        return { kind: 'healBlock', target, turns };
       }
       case 'buffBlock': {
         // Seal the target against every new blessing for a few turns.

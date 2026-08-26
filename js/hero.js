@@ -265,6 +265,15 @@ class Unit {
     return r;
   }
 
+  // A target under a heal-lock cannot be mended by anything that routes
+  // through heal(): a cast, a regen tick, a drain, a lifesteal rider.
+  // Reviving is NOT healing and is deliberately left alone -- Unit.revive
+  // sets HP directly and never comes through here.
+  healBlocked() {
+    return this.statusEffects.some((fx) =>
+      fx.kind === 'debuff' && fx.stat === 'healblock');
+  }
+
   // A sealed target takes no new blessings at all. Asher's Nothing For
   // You writes this flag as an ordinary debuff, so it cleanses, it
   // resists, and it expires like everything else hostile.
@@ -941,6 +950,9 @@ class Unit {
   // the booked healing with the heroes whose buffs multiplied it, the
   // same way bookDamage splits a hit.
   heal(amount, source = null, opts = {}) {
+    // One gate for every kind of mending there is, because every kind
+    // of mending already comes through this method.
+    if (this.healBlocked()) return 0;
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
     const healed = this.hp - before;

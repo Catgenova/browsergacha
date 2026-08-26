@@ -3818,6 +3818,94 @@ Object.assign(HEROES, {
     positional: POSITIONALS.bell_tower,
   },
 
+  dorian: {
+    id: 'dorian',
+    element: 'dark',
+    name: 'Dorian',
+    title: 'Glaive of the Nightflowers',
+    rarity: 5,
+    // A front-line carry who does not out-damage a healer so much as
+    // remove the healer from the argument. Both of his locks are
+    // single-target and both are ORDINARY debuffs -- the seal is the
+    // same one Asher uses, on the same plate -- and his passive pays
+    // him for every one the target is wearing. Against a team with no
+    // sustain he is a plain 5-star; against one built on it he is the
+    // reason it does not work.
+    stats: { hp: 1800, atk: 260, def: 135, speed: 112 },
+    tint: { body: '#241c30', helm: '#e8e4e0', weapon: '#c8c4d8', skin: '#e0c0a0' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Dorian/dorianidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Dorian/dorianidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Dorian/dorianidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Dorian/dorianskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Dorian/dorianskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Dorian/dorianskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Dorian/doriandeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'dorian_low_sweep', name: 'Low Sweep',
+        icon: 'assets/icons/fc1307.png',
+        description: 'The glaive comes across at knee height: 140% ATK to a ' +
+          'single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.40 },
+        ],
+      },
+      {
+        id: 'dorian_nothing_for_the_pain', name: 'Nothing For The Pain',
+        icon: 'assets/icons/fc1308.png',
+        description: '150% ATK to a single enemy, and for 2 turns nothing ' +
+          'can heal them — no mend, no regen, no drain.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.50 },
+          { type: 'healBlock', turns: 2 },
+        ],
+      },
+      {
+        id: 'dorian_no_physician', name: 'No Physician',
+        icon: 'assets/icons/fc1309.png',
+        description: 'The lit blade: 190% ATK to a single enemy, who for 2 ' +
+          'turns can neither be healed NOR take any new blessing.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.90 },
+          { type: 'healBlock', turns: 2 },
+          { type: 'buffBlock', turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Past Helping',
+      icon: 'assets/icons/fc1310.png',
+      description: 'Deals 20% extra damage for each of his two locks the ' +
+        'target is under — 40% against an enemy who can be neither mended ' +
+        'nor blessed.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target) return 1;
+          let locks = 0;
+          if (target.healBlocked && target.healBlocked()) locks++;
+          if (target.buffsSealed && target.buffsSealed()) locks++;
+          return 1 + 0.20 * locks;
+        },
+      },
+    },
+    positional: POSITIONALS.reach,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',
