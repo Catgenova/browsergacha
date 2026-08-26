@@ -365,6 +365,25 @@ class Unit {
       // taunted attackers); most ignore the second argument.
       if (hook) total *= hook(this, attacker) || 1;
     }
+    // Cover: a LIVING ALLY may reduce what this unit takes just by
+    // standing somewhere (Morrow's Mourner's Row shelters the back
+    // hexes from a front one). The reduction is theirs, so it is
+    // credited to them rather than vanishing into the victim's own
+    // defences. Scanned the same way meterGuarded scans for a guard.
+    const cover = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (cover) {
+      for (const ally of cover.livingUnits(this.team)) {
+        if (ally === this) continue;
+        for (const p of (ally.hookSources ? ally.hookSources() : [])) {
+          const hook = p.hooks && p.hooks.coverMult;
+          if (!hook) continue;
+          const m = hook(ally, this) || 1;
+          if (m === 1) continue;
+          total *= m;
+          contributors.push({ source: ally, mult: m });
+        }
+      }
+    }
     return { total, contributors };
   }
 
@@ -701,6 +720,10 @@ class Unit {
       if (!Unit.deathRinging) {
         const b = typeof Battle !== 'undefined' ? Battle.active : null;
         if (b) {
+          // The fight's body count, both sides. Morrow's last swing is
+          // priced off it, so it is kept on the battle rather than
+          // recounted from a field that has already cleared its dead.
+          b.deaths = (b.deaths || 0) + 1;
           Unit.deathRinging = true;
           try {
             for (const watcher of b.livingUnits()) {

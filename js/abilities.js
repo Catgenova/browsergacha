@@ -270,8 +270,16 @@ const Abilities = (() => {
         const scaleBase = effect.type === 'damageHp'
           ? caster.maxHp : caster.effectiveStat(scaleStat);
         // perMirror: extra multiplier per active crystal mirror (Echo).
+        // perDeath: extra multiplier per body already on the field this
+        // fight, either side (Morrow swings the weight of everyone he
+        // has buried). Uncapped on purpose -- it only gets big in a
+        // fight that has already gone badly for somebody.
+        const bodies = (currentBattle && currentBattle.deaths) ||
+          ((typeof Battle !== 'undefined' && Battle.active &&
+            Battle.active.deaths) || 0);
         const mult = effect.mult +
-          (effect.perMirror || 0) * (caster.mirrors || 0);
+          (effect.perMirror || 0) * (caster.mirrors || 0) +
+          (effect.perDeath || 0) * bodies;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;

@@ -5288,4 +5288,160 @@ test("Lysandra's kit: one thread, and their own line kills their carry", () => {
   }
 });
 
+test("Morrow's kit: he volunteers for all of it and is fed by the result", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.morrow;
+  assert(def && def.element === 'dark' && def.rarity === 4, 'Morrow drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Morrow left the Nightflowers');
+  assert(def.role === 'tank', 'Morrow is not binned as a tank');
+  // Everything he throws is priced off DEF, so his gear pulls one way.
+  for (const ab of def.abilities) {
+    for (const e of (ab.effects || [])) {
+      if (/^damage/.test(e.type)) {
+        assert(e.type === 'damageDef', `${ab.id} scales off ${e.type}, not DEF`);
+      }
+    }
+  }
+
+  const arena = (front = true) => {
+    const b = new Battle();
+    const mk = (d, team, slot) => {
+      const u = new Unit(d, team, { level: 30, stars: d.rarity || 3 });
+      b.placeUnit(u, slot);
+      return u;
+    };
+    const mo = mk(def, TEAM.PLAYER, front ? 1 : 0);
+    const backMate = mk(DUMMIES.rat_archer, TEAM.PLAYER, 5);
+    const frontMate = mk(DUMMIES.rat_knight, TEAM.PLAYER, 2);
+    const foes = [1, 2, 3, 4].map((i) => mk(DUMMIES.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    mo.baseCritChance = -1;
+    return { b, mo, backMate, frontMate, foes };
+  };
+  const live = (b, fn) => {
+    const prev = Battle.active; Battle.active = b;
+    try { return fn(); } finally { Battle.active = prev; }
+  };
+
+  // ---- Groundbreak: the front row, off DEF, and something grows ----
+  {
+    const { b, mo, foes } = arena();
+    const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
+    mo.hp = Math.round(mo.maxHp * 0.5);
+    const before = mo.hp;
+    const res = live(b, () => A.execute(def.abilities[0], mo, null, b));
+    assert(res.filter((r) => r.kind === 'damage').length === front.length,
+      'Groundbreak missed part of the front row');
+    assert(mo.hp - before === Math.round(mo.maxHp * 0.08),
+      `the sprout mended ${mo.hp - before}, wanted ${Math.round(mo.maxHp * 0.08)}`);
+  }
+
+  // ---- Wisteria: the WHOLE enemy team, and a wall to survive it ----
+  {
+    const { b, mo, foes } = arena();
+    for (const f of foes) f.debuffResistance = () => 0;
+    const before = mo.effectiveStat('def');
+    live(b, () => A.execute(def.abilities[1], mo, null, b));
+    for (const f of foes) {
+      assert(f.statusEffects.some((fx) => fx.stat === 'taunted' && fx.turns === 1),
+        `${f.def.id} on the ${f.slot.position} hex was not taunted`);
+    }
+    assert(mo.effectiveStat('def') === Math.round(before * 1.50),
+      `DEF ${before} -> ${mo.effectiveStat('def')}, wanted x1.5`);
+    assert(def.abilities[1].cooldown === 5, 'Wisteria drifted off a 5-turn cooldown');
+  }
+
+  // ---- Pallbearer swings the weight of everyone already buried ----
+  {
+    const { b, mo, foes } = arena();
+    const mark = foes[0];
+    const swing = () => {
+      const h = mark.hp;
+      live(b, () => A.applyEffect(def.abilities[2].effects[0], mo, mark, 1));
+      return h - mark.hp;
+    };
+    b.deaths = 0;
+    const cold = swing();
+    b.deaths = 5;
+    const heavy = swing();
+    // 2.00 base, +0.20 a body: five dead is 3.00, exactly 1.5x the base.
+    assert(Math.abs(heavy / cold - 1.5) < 0.02,
+      `five bodies swung ${heavy} against a base of ${cold}`);
+    b.deaths = 0;
+  }
+
+  // ---- ...and the count is real, kept by the battle, both sides ----
+  {
+    const { b, mo, foes, frontMate } = arena();
+    assert(b.deaths === 0, 'a fresh battle started with bodies in it');
+    live(b, () => {
+      foes[0].hp = 1; foes[0].takeDamage(10);
+      assert(b.deaths === 1, `an enemy death counted ${b.deaths}`);
+      frontMate.hp = 1; frontMate.takeDamage(10 ** 7);
+      assert(b.deaths === 2, `an ally death did not count: ${b.deaths}`);
+    });
+  }
+
+  // ---- Grave Soil: fed by any corpse, whoever it belonged to ----
+  {
+    const { b, mo, foes, frontMate } = arena();
+    live(b, () => {
+      mo.hp = Math.round(mo.maxHp * 0.4);
+      const want = Math.max(1, Math.round(mo.maxHp * 0.10));
+      const h0 = mo.hp;
+      foes[0].hp = 1; foes[0].takeDamage(10);
+      assert(mo.hp - h0 === want, `an enemy corpse mended ${mo.hp - h0}, wanted ${want}`);
+      const h1 = mo.hp;
+      frontMate.hp = 1; frontMate.takeDamage(10 ** 7);
+      assert(mo.hp - h1 === want, `an ally corpse mended ${mo.hp - h1}, wanted ${want}`);
+    });
+    // A dead Morrow is not mended by the next corpse.
+    live(b, () => {
+      mo.hp = 1; mo.takeDamage(10 ** 7);
+      assert(!mo.alive, 'sanity: he lived');
+      foes[1].hp = 1; foes[1].takeDamage(10);
+      assert(mo.hp === 0, 'a corpse mended a corpse');
+    });
+  }
+
+  // ---- Mourner's Row shelters the BACK hexes, and is credited for it ----
+  {
+    assert(def.positional.name === "Mourner's Row" &&
+      def.positional.position === POSITION.FRONT, 'the front-hex bonus drifted');
+    const { b, mo, backMate, frontMate } = arena(true);
+    live(b, () => {
+      assert(mo.slot.position === POSITION.FRONT, 'sanity: he is not on a front hex');
+      assert(backMate.slot.position === POSITION.BACK &&
+        frontMate.slot.position === POSITION.FRONT, 'sanity: mates on the wrong hexes');
+      assert(Math.abs(backMate.damageTakenMult() - 0.80) < 1e-9,
+        `the back hex takes ${backMate.damageTakenMult()}, wanted 0.80`);
+      assert(backMate.damageTakenBreakdown().contributors.some((c) => c.source === mo),
+        'the cover was not credited to Morrow');
+      assert(mo.damageTakenMult() === 1, 'he sheltered himself');
+    });
+    // Off a front hex it stops. The front-row mate carries a guard of
+    // its own (the fixture's Bulwark), so what is measured is whether
+    // MORROW moved it, not what it started at.
+    const off = arena(false);
+    live(off.b, () => {
+      assert(off.mo.slot.position !== POSITION.FRONT, 'sanity: same hex twice');
+      assert(off.backMate.damageTakenMult() === 1,
+        'the cover reached from the wrong hex');
+      assert(Math.abs(off.frontMate.damageTakenMult() -
+        live(b, () => frontMate.damageTakenMult())) < 1e-9,
+        'a front-row ally was sheltered too');
+      assert(!live(b, () => frontMate.damageTakenBreakdown().contributors
+        .some((c) => c.source === mo)), 'Morrow was credited for covering the front row');
+    });
+    live(b, () => {
+      mo.hp = 1; mo.takeDamage(10 ** 7);
+      assert(backMate.damageTakenMult() === 1, 'a fallen mourner still sheltered');
+    });
+  }
+});
+
 report();

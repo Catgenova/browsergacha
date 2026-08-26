@@ -25,6 +25,7 @@ class Battle {
     // null = fight to the finish.
     this.turnLimit = null;
     this.turnsTaken = 0;
+    this.deaths = 0;            // bodies this fight, both sides
     this.activeUnit = null;
     this.autoMode = false;      // player heroes act via AI when true
     this.onAutoTakeover = null; // notify UI when auto seizes a pending turn
