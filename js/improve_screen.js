@@ -191,9 +191,10 @@ class ImproveScreen {
 
     const skillsHtml = def.abilities.map((a, i) => {
       const lv = GameState.skillLevel(uid, i);
-      const full = lv >= Progression.MAX_SKILL_LEVEL;
+      const cap = Progression.skillCap(a, i);
+      const full = lv >= cap;
       return `<div class="imp-skill${full ? ' imp-skill-max' : ''}">
-        <span>${a.name}</span><b>Lv ${lv}/${Progression.MAX_SKILL_LEVEL}</b></div>`;
+        <span>${a.name}</span><b>Lv ${lv}/${cap}</b></div>`;
     }).join('');
 
     const rowFor = (o) => {

@@ -50,15 +50,30 @@ level, so the rungs spent on chance have to add up to +50.
 
 ## Level caps by slot
 
-| Slot | Max level | Upgrade rungs |
+| Slot | Upgrade rungs | Max level |
 |---|---|---|
-| Skill 1 | 5 | 4 |
-| Skill 2 | 6 | 5 |
-| Skill 3 | 7 | 6 |
+| Skill 1 | 5 | 6 |
+| Skill 2 | 6 | 7 |
+| Skill 3 | 7 | 8 |
 
-A skill starts at level 1, so the number of rungs is one less than the
-cap. Deeper skills get longer ladders, which is what lets a skill 3
-afford both a damage track and two cooldown reductions.
+The **rung count** is the number that matters: five, six and seven
+upgrades. A skill starts at level 1, so its cap is one above its rungs.
+Deeper skills get longer ladders, which is what lets a skill 3 afford
+both a damage track and two cooldown reductions.
+
+## Scaling terms other than the flat modifier
+
+Some kits price a skill as `flat + something-per-stack` — Aniani's
+mirrors, Morrow's bodies on the field. A rung must raise **both** halves,
+because on those kits the per-stack term is the skill: Aniani's Mirror
+Lance is 60% flat and 30% per mirror, so at six mirrors the flat part is
+a quarter of her damage and a rung that only touched it would be worth a
+fraction of what the same rung is worth on anyone else.
+
+Her rungs are `+10% flat, +5% per mirror`. Readouts list the two halves
+separately, never summed: `+50% power` and `+25%/mirror` is +50% with
+the glass gone and +200% with all six up, so one fused number would be
+true at no mirror count at all.
 
 ## Worked example
 
@@ -89,6 +104,16 @@ We go **hero by hero**. For each:
    rungs available for that slot.
 4. Propose it as numbered points so it can be edited before it is built.
 5. Build, test, verify in-game, commit.
+
+## Migration
+
+The roster is swept hero by hero, so at any moment most abilities have
+no ladder. An ability **without** `levelUps` keeps the legacy blanket
+multiplier and the legacy cap of 5; one **with** a ladder takes its
+slot's cap and its explicit rungs, and is excluded from the blanket
+multiplier so its rungs are not paid twice. Both paths are covered by
+tests, because a half-migrated system that quietly zeroed the unswept
+heroes would be worse than no migration at all.
 
 The proposal step is not optional. These are balance decisions, and the
 numbers are worth arguing about before they are code.

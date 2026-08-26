@@ -1173,14 +1173,38 @@ class Unit {
 
   // Skill-level multiplier for one of this unit's abilities (looked up
   // by def reference, since Abilities.execute receives the def alone).
+  //
+  // A laddered ability returns 1 here: its levels buy explicit deltas
+  // (see skillBonusFor) rather than a blanket multiplier, and applying
+  // both would pay it twice.
   skillPowerFor(abilityDef) {
+    if (abilityDef && abilityDef.levelUps) return 1;
     const st = this.abilities.find((a) => a.def === abilityDef);
     return st ? Progression.skillPower(st.level) : 1;
   }
 
+  // The earned rungs for one ability, as a bag of deltas: mult, perMirror,
+  // cooldown, debuffChance, debuffPower, duration. Empty for an ability
+  // with no ladder, so every consumer can add unconditionally.
+  skillBonusFor(abilityDef) {
+    if (!abilityDef || !abilityDef.levelUps) return {};
+    const st = this.abilities.find((a) => a.def === abilityDef);
+    return Progression.skillLadder(abilityDef, st ? st.level : 1);
+  }
+
+  // A laddered skill's cooldown after its earned -1 rungs. Never drops
+  // a cooldown-free skill into one, and never below 1: a skill 3 that
+  // could reach 0 would fire every turn.
+  cooldownFor(abilityDef) {
+    const base = (abilityDef && abilityDef.cooldown) || 0;
+    if (base <= 0) return 0;
+    const bonus = this.skillBonusFor(abilityDef).cooldown || 0;
+    return Math.max(1, base + bonus);
+  }
+
   useAbility(abilityState) {
     // Cooldown reduction (Wolf set 6pc) shortens every real cooldown.
-    const cd = abilityState.def.cooldown;
+    const cd = this.cooldownFor(abilityState.def);
     abilityState.cooldownRemaining = cd > 0 ? Math.max(0, cd - this.gearCdr) : 0;
     this.turnMeter = 0;
     // Meter refunds a hook can promise (Tanner's second wind): applied
