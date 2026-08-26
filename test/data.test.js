@@ -1,4 +1,4 @@
-// Roster invariants. These are the rules that keep 385 heroes from
+// Roster invariants. These are the rules that keep the roster from
 // quietly collapsing into each other or shipping broken text — the
 // kind of thing that is invisible in review and obvious in play.
 
@@ -7,7 +7,7 @@ const path = require('path');
 const { loadGame, test, assert, report, ROOT, FILES } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, POSITIONALS, RACES, Elements, POSITION, Quests,
-  ACHIEVEMENTS, GameState, ELEMENTS, Gear, Progression } = g;
+  ACHIEVEMENTS, GameState, ELEMENTS, Gear, Progression, DUMMIES } = g;
 
 const heroes = Object.values(HEROES);
 const passivesOf = (d) => d.passives || (d.passive ? [d.passive] : []);
@@ -147,7 +147,12 @@ test('passives never gate on the hero own hex (that is the positional layer)', (
 });
 
 test('every positional archetype is used by someone', () => {
-  const used = new Set(heroes.map((h) => h.positional.id).filter(Boolean));
+  // "Someone" includes the test-only enemy bodies in test/dummies.js:
+  // they are fielded by the rules tests exactly as a hero is, so an
+  // archetype only they wear is still exercised. An archetype nobody
+  // at all wears is dead weight and gets deleted.
+  const used = new Set([...heroes, ...Object.values(DUMMIES)]
+    .map((h) => h.positional && h.positional.id).filter(Boolean));
   const unused = Object.keys(POSITIONALS).filter((k) => !used.has(k));
   assert(unused.length === 0, `unused: ${unused.join(', ')}`);
 });
@@ -338,7 +343,7 @@ test('an old save survives the move from copies to heroes', () => {
     schemaVersion: 6,
     roster: {
       florence: { copies: 3, level: 20, stars: 4, equipment: {}, skills: { 0: 3 } },
-      rat_archer: { copies: 1, level: 5, stars: 1 },
+      silas: { copies: 1, level: 5, stars: 3 },
     },
     team: { 1: 'florence' },
     presets: [{ name: 'Old', team: { 1: 'florence' } }],
@@ -347,7 +352,7 @@ test('an old save survives the move from copies to heroes', () => {
   const S = old.GameState;
   assert(S.countOf('florence') === 3,
     `three Florences expected, got ${S.countOf('florence')}`);
-  assert(S.countOf('rat_archer') === 1, 'the single hero was duplicated');
+  assert(S.countOf('silas') === 1, 'the single hero was duplicated');
 
   // The one that was levelled is still the levelled one.
   const florences = S.uidsOf('florence').map((uid) => S.progressOf(uid));
@@ -630,7 +635,7 @@ test('the campaign difficulty tiers climb the way they are advertised', () => {
       // Every hex filled, and a full set of gear that can hold its level.
       assert(Campaign.sizeFor(waveOf(ch), tierId) === 7,
         `${tierId}: ${ch.id} fields ${Campaign.sizeFor(waveOf(ch), tierId)}, not a full formation`);
-      const worn = Campaign.gearFor(waveOf(ch), tierId, HEROES.rat_archer);
+      const worn = Campaign.gearFor(waveOf(ch), tierId, DUMMIES.rat_archer);
       assert(worn.length === Gear.SLOTS.length, `${tierId}: ${ch.id} gear has ${worn.length} pieces`);
       for (const piece of worn) {
         assert(piece.level <= Gear.RARITIES[piece.rarity].maxLevel,
@@ -641,12 +646,12 @@ test('the campaign difficulty tiers climb the way they are advertised', () => {
 
   // Normal is untouched: the tiers are a re-run, not a re-tuning.
   assert(Campaign.sizeFor(waveOf(first), 'normal') < 7, 'normal now fields a full formation');
-  assert(Campaign.gearFor(waveOf(first), 'normal', HEROES.rat_archer).length === 0,
+  assert(Campaign.gearFor(waveOf(first), 'normal', DUMMIES.rat_archer).length === 0,
     'normal enemies were handed gear');
 
   // Deterministic: the fight you lost to is the fight you come back to.
-  const a = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
-  const b2 = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', HEROES.rat_archer));
+  const a = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', DUMMIES.rat_archer));
+  const b2 = JSON.stringify(Campaign.gearFor(waveOf(first), 'hard', DUMMIES.rat_archer));
   assert(a === b2, 'enemy gear is not stable between reads');
 });
 
@@ -800,6 +805,10 @@ test('the test harness loads game files in the order the page does', () => {
   const inPage = [...html.matchAll(/<script src="(js\/[^?"]+)/g)].map((m) => m[1]);
   let at = -1;
   for (const rel of FILES) {
+    // Fixtures under test/ are test-only bodies (see test/dummies.js);
+    // the page has no business loading them, so they are exempt from
+    // the ordering check rather than smuggled into index.html.
+    if (rel.startsWith('test/')) continue;
     const i = inPage.indexOf(rel);
     assert(i >= 0, `${rel} is loaded by the harness but not by index.html`);
     assert(i > at, `${rel} loads before ${inPage[at]} in the harness ` +

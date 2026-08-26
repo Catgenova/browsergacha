@@ -103,9 +103,13 @@ const Gacha = (() => {
       .some((h) => !elements || elements.includes(h.element));
     const pick = anyInPool ? inPool : (r) => poolByRarity(r);
     let pool = pick(rarity);
-    // A rolled rarity may have no heroes yet (small early pool): fall back
-    // to the highest populated rarity at or below the roll, else the
-    // lowest above it — a lucky roll never downgrades below its floor.
+    // A rolled rarity may have no heroes at all. This is now the normal
+    // case rather than an early-pool edge: retiring the generated
+    // cohorts emptied the 1- and 2-star bands entirely, so every roll
+    // into them promotes. The rule is unchanged — the highest populated
+    // rarity at or below the roll, else the lowest above it — which
+    // means a lucky roll never downgrades below its floor, and a roll
+    // with nothing beneath it rolls UP to the nearest band that exists.
     if (pool.length === 0) {
       const source = Object.values(HEROES).filter(
         (h) => !anyInPool || !elements || elements.includes(h.element));

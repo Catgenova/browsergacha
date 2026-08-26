@@ -19,10 +19,9 @@ const FILES = [
   // files in a different order tests an order the browser never runs.
   'js/meter.js', 'js/config.js', 'js/hex.js', 'js/elements.js', 'js/events.js', 'js/races.js', 'js/icons.js', 'js/blessing.js', 'js/tags.js',
   'js/abilities.js', 'js/progression.js', 'js/attune.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
-  'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/rats.js',
-  'js/data/heroes/avians.js', 'js/data/heroes/minotaurs.js', 'js/data/heroes/snakes.js',
-  'js/data/heroes/wolfs.js', 'js/data/heroes/boars.js', 'js/data/heroes/bears.js',
-  'js/data/heroes/cats.js', 'js/data/heroes/drakes.js', 'js/data/balance.js', 'js/data/enemies.js',
+  // Test-only enemy bodies (see test/dummies.js); never registered into HEROES.
+  'test/dummies.js',
+  'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
@@ -78,7 +77,8 @@ function loadGame(opts = {}) {
     'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState', 'Events',
     'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
-    'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit', 'Blessing'];
+    'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit', 'Blessing',
+    'DUMMIES'];
   vm.runInContext(
     `Object.assign(globalThis, { ${EXPORTS.map((n) =>
       `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ')} });`,
