@@ -1,0 +1,226 @@
+<title>Archetype Bench</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* A soundings chart: cool paper, ink, and one blue line for the
+     measurement itself. Deviation is the only place colour is spent,
+     and it is semantic (over / under the median) rather than accent. */
+  :root {
+    --paper:  #e7ecef;
+    --panel:  #f5f8fa;
+    --panel2: #eef3f6;
+    --ink:    #14212b;
+    --muted:  #5c7080;
+    --rule:   #c2cfd8;
+    --hair:   #d8e1e7;
+    --sound:  #0f6d8c;
+    --over:   #a8452c;
+    --over-w: #e8cbc2;
+    --under:  #7d6524;
+    --under-w:#e2d8bd;
+    --display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+    --body: 'Source Serif 4', Georgia, serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+  :root:not([data-theme="light"]) {
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:  #0e151a;
+      --panel:  #151f26;
+      --panel2: #111a20;
+      --ink:    #dfe9f0;
+      --muted:  #86a0b1;
+      --rule:   #263640;
+      --hair:   #1d2a33;
+      --sound:  #4fb8d8;
+      --over:   #e08a6a;
+      --over-w: #4a2a20;
+      --under:  #d3b566;
+      --under-w:#3b3118;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:  #0e151a;
+    --panel:  #151f26;
+    --panel2: #111a20;
+    --ink:    #dfe9f0;
+    --muted:  #86a0b1;
+    --rule:   #263640;
+    --hair:   #1d2a33;
+    --sound:  #4fb8d8;
+    --over:   #e08a6a;
+    --over-w: #4a2a20;
+    --under:  #d3b566;
+    --under-w:#3b3118;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 96px;
+    display: flex; flex-direction: column; gap: 52px; }
+
+  /* ---- masthead ---- */
+  .mast { display: flex; flex-direction: column; gap: 14px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 22px; }
+  .eyebrow { font-family: var(--display); font-weight: 500; font-size: 12px;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(38px, 7vw, 62px);
+    line-height: .98; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+  .run { font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+    line-height: 1.7; max-width: 78ch; }
+  .lede { font-size: 18px; max-width: 66ch; margin: 0; }
+  .lede b { font-weight: 600; }
+
+  h2 { font-family: var(--display); font-weight: 700; font-size: 13px;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--sound);
+    margin: 0 0 4px; }
+  h3 { font-family: var(--display); font-weight: 700; font-size: 24px;
+    margin: 0; letter-spacing: .01em; }
+  .sub { color: var(--muted); max-width: 68ch; margin: 0; }
+  section > p + .scroll, section > .meta + .scroll { margin-top: 14px; }
+
+  /* ---- tables ---- */
+  .scroll { overflow-x: auto; border: 1px solid var(--rule);
+    background: var(--panel); border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--mono);
+    font-size: 13px; font-variant-numeric: tabular-nums; }
+  thead th { position: sticky; top: 0; background: var(--panel2);
+    font-family: var(--display); font-weight: 500; font-size: 11px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+    text-align: left; padding: 10px 12px; white-space: nowrap;
+    border-bottom: 1px solid var(--rule); }
+  tbody th { text-align: left; font-weight: 500; padding: 9px 12px; white-space: nowrap; }
+  td { padding: 9px 12px; border-top: 1px solid var(--hair); white-space: nowrap; }
+  tbody th { border-top: 1px solid var(--hair); }
+  tbody tr:first-child th, tbody tr:first-child td { border-top: none; }
+  .num, th.num { text-align: right; }
+  .key { color: var(--ink); font-weight: 600; }
+  thead th.key { color: var(--sound); }
+  .st { color: var(--muted); }
+  .sect, .where { color: var(--muted); font-size: 12px; }
+  .nm { font-weight: 600; }
+  .ti { display: block; font-family: var(--body); font-size: 11.5px;
+    color: var(--muted); font-weight: 400; line-height: 1.3; }
+  .x { font-weight: 600; width: 1%; }
+  tr.over .x, tr.over .key { color: var(--over); }
+  tr.under .x, tr.under .key { color: var(--under); }
+  tr.over th .nm { color: var(--over); }
+  tr.under th .nm { color: var(--under); }
+
+  /* Deviation bar: the centre line is the bucket median. */
+  .dev { width: 190px; }
+  .bar { position: relative; display: block; height: 9px; width: 170px;
+    background: var(--panel2); border: 1px solid var(--hair); border-radius: 1px; }
+  .bar .mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px;
+    background: var(--rule); }
+  .bar .fill { position: absolute; top: 1px; bottom: 1px; display: block; }
+  .bar .fill.over { background: var(--over-w); border-right: 2px solid var(--over); }
+  .bar .fill.under { background: var(--under-w); border-left: 2px solid var(--under); }
+
+  /* ---- key ---- */
+  .key-note { display: flex; gap: 26px; flex-wrap: wrap; font-family: var(--mono);
+    font-size: 12px; color: var(--muted); }
+  .key-note span { display: inline-flex; align-items: center; gap: 8px; }
+  .chip { width: 22px; height: 9px; border-radius: 1px; display: inline-block; }
+  .chip.over { background: var(--over-w); border-right: 2px solid var(--over); }
+  .chip.under { background: var(--under-w); border-left: 2px solid var(--under); }
+  .chip.mid { background: var(--rule); width: 1px; height: 13px; }
+
+  /* ---- method ---- */
+  .method { background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 22px 26px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px 34px; }
+  .method h4 { font-family: var(--display); font-weight: 700; font-size: 12px;
+    letter-spacing: .16em; text-transform: uppercase; margin: 0 0 6px;
+    color: var(--ink); }
+  .method p { margin: 0; font-size: 14.5px; color: var(--muted); }
+  .method p b { color: var(--ink); font-weight: 600; }
+
+  .buckets { display: flex; flex-direction: column; gap: 44px; }
+  .bucket { display: flex; flex-direction: column; gap: 4px; }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 0; }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  .foot { border-top: 1px solid var(--rule); padding-top: 20px;
+    font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .foot code { background: var(--panel); border: 1px solid var(--hair);
+    border-radius: 2px; padding: 1px 6px; color: var(--ink); }
+  a { color: var(--sound); }
+  a:focus-visible, tr:focus-visible { outline: 2px solid var(--sound); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">Browser Gacha &middot; Balance</div>
+    <h1>Archetype Bench</h1>
+    <p class="run">%%HEADER%%</p>
+  </header>
+
+  <section>
+    <h2>What this measures</h2>
+    <p class="lede">Every hero is dropped into the <b>same fight</b> in place of one ally,
+    against and alongside a fixed cast drawn from its own archetype. The only thing that
+    changes between runs is the hero under test &mdash; which is what makes the comparison
+    fair rather than realistic. Nobody carries gear, so the numbers are the kit and the
+    statline and nothing else.</p>
+    <div class="method" style="margin-top:22px">
+      <div><h4>The cast is fixed</h4><p>Six allies and seven opponents, the
+        median-power members of the same bucket. Both formations are <b>full</b>:
+        a half-empty board silently undervalues anything that hits a row.</p></div>
+      <div><h4>Judged on one axis</h4><p>A back-row healer and a front-row bruiser
+        have no business on the same leaderboard, so each bucket is ranked on the
+        thing that bucket exists for &mdash; <b>damage</b>, <b>worth</b> or
+        <b>effective HP</b>.</p></div>
+      <div><h4>Everything is a rate</h4><p>Most mirrors run the clock out with no
+        winner. That is fine and expected: every column is per-second, so a fight
+        that never resolves still measures throughput.</p></div>
+      <div><h4>Seeded</h4><p>The same hero replays the same fight every time, so a
+        difference between two heroes is <b>a difference in the heroes</b> and not
+        in the dice.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Off the median</h2>
+    <h3 style="margin-bottom:6px">%%NFLAG%% of %%NHEROES%% heroes sit past double or under half</h3>
+    <p class="sub">Ranked by distance from their own bucket's median. By sect:
+      <b>%%SECTLINE%%</b>.</p>
+    <div class="scroll" style="margin-top:14px">
+      <table>
+        <thead><tr>
+          <th scope="col">Hero</th><th scope="col">Sect</th><th scope="col">Bucket</th>
+          <th scope="col">Judged on</th><th scope="col" class="num key">Reading</th>
+          <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
+        </tr></thead>
+        <tbody>%%FLAGROWS%%</tbody>
+      </table>
+    </div>
+    <div class="key-note" style="margin-top:14px">
+      <span><i class="chip mid"></i> bucket median</span>
+      <span><i class="chip over"></i> at or above 2&times;</span>
+      <span><i class="chip under"></i> at or below 0.5&times;</span>
+      <span>bar clipped at 4&times;</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every hero, by bucket</h2>
+    <h3>Six buckets: where the hero's hex wants it, crossed with what the kit is for</h3>
+    <p class="sub">Sorted best-first on each bucket's own axis. <b>Mit/s</b> is damage
+    prevented rather than dealt; <b>taken/s</b> is what the hero itself absorbs.</p>
+    <div class="buckets" style="margin-top:26px">%%BUCKETS%%</div>
+  </section>
+
+  <footer class="foot">
+    Generated from the bench's own CSV &mdash; <code>node test/archetypes.js --sims 25 --csv</code>
+    piped through <code>tools/build_bench_report.py</code>. No figure on this page is
+    transcribed by hand; re-running both is the whole update path.<br>
+    Play at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a>.
+  </footer>
+</div>
