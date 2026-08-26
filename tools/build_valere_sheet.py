@@ -111,6 +111,12 @@ html = r'''<title>Valere, Suitor of the Nightflowers</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--rose-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-size: 19px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--ivory); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -202,33 +208,37 @@ html = r'''<title>Valere, Suitor of the Nightflowers</title>
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>A Rose For You</h3>
       <div class="meta">Single enemy &middot; <b>90% ATK &middot; -30% ATK, 2 turns</b></div>
-      <p>A gift they cannot refuse: <b>90% ATK</b>, and their attack falls
+      <p>A gift they can rarely refuse: <b>90% ATK</b>, and a <b>50% chance</b> their attack falls
       <b>30% for two turns</b>. Handed over personally.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 4</div>
+      <div class="slot">Skill 2 &middot; Cooldown 5 &rarr; 3 fully levelled</div>
       <h3>The Whole Bouquet</h3>
       <div class="meta">All enemies &middot; <b>-30% Resistance &middot; -20% DEF, 2 turns</b></div>
-      <p>Every bloom at once. The <b>whole enemy team</b> loses <b>30%
-      Resistance and 20% DEF</b>. This is the turn that makes the other
+      <p>Every bloom at once. Two <b>50%</b> rolls made apart on every enemy &#x2014; one for
+      <b>-30% Resistance</b>, one for <b>-20% DEF</b>. This is the turn that makes the other
       five Nightflowers work.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 7</div>
+      <div class="slot">Skill 3 &middot; Cooldown 8 &rarr; 6 fully levelled</div>
       <h3>Something Rarer</h3>
       <div class="meta">Single enemy &middot; <b>the whole bouquet, and -30% DEF</b></div>
       <p>He presents one enemy with everything his own side was carrying:
       <b>every debuff and poison on his team moves onto them</b>, with the
-      time it had left. Their DEF falls <b>30% for three turns</b>
-      regardless, so it is never a dead turn.</p>
+      time it had left. A separate <b>50%</b> roll drops their DEF <b>30% for three
+      turns</b> on top &#x2014; bought to certain, never a dead turn.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect &rsaquo; +10% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
       <h3>Nothing Is Refused</h3>
       <div class="meta">Against anyone already afflicted</div>
-      <p>He cannot force the first flower on anyone &#x2014; but a debuff
-      he lays on an enemy <b>already carrying one can never be
-      resisted</b>. Take one and you take the rest.</p>
+      <p>He cannot force the first flower on anyone &#x2014; but a debuff he lays on an enemy <b>already carrying one can never
+      be resisted</b>. The 50% gate still has to open first &#x2014; the
+      passive beats their Resistance, not his own roll. Take one and you
+      take the rest.</p>
     </div>
     <div class="ability passive-card">
       <div class="slot">Positional &middot; Back hex</div>

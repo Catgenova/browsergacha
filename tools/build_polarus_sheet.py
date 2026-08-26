@@ -172,6 +172,12 @@ html = r'''<title>Polarus, King of Cryst</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--ice-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: 2px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--rime); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -292,24 +298,28 @@ html = r'''<title>Polarus, King of Cryst</title>
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Glacial Bolt</h3>
       <div class="meta">Single target &middot; <b>125% ATK</b> &middot; 30% freeze, 2 turns</div>
-      <p>A shard of court ice. The damage is steady; the <b>three-in-ten
-      lockout</b> is the reason it goes out every turn.</p>
+      <p>A shard of court ice. The damage is steady; the <b>three-in-ten lockout</b> is the reason it goes out every
+      turn &#x2014; and the reason it is the one hex the ladder never
+      carries past <b>50%</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Crystalline Mantle</h3>
       <div class="meta">Self &middot; 2 turns &middot; attackers: <b>30% freeze on contact</b></div>
       <p>Takes on <b>Crystalline form</b>: for two turns, anyone who lands a
       blow on him risks freezing solid mid-swing. A center-tile king who
       makes focusing him a mistake.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +1 turn &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 5</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Shatterfall</h3>
       <div class="meta">All enemies &middot; <b>80% ATK</b> &middot; <b>300%</b> to the frozen &middot; then thaws</div>
       <p>The whole court sweeps the enemy team. The unfrozen feel a chill;
       the frozen take <b>300% ATK</b> outright &#x2014; and then the ice
       shatters away, spent.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -338,8 +348,7 @@ html = r'''<title>Polarus, King of Cryst</title>
         <tr><th>&nbsp;&nbsp;&#x2026;against the frozen</th><td>300</td><td>330</td><td>360</td><td>390</td><td class="max">420</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Polarus. The freeze odds, the Mantle counter and the throne's refund are fixed.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The freeze odds, the Mantle counter and the throne's refund are fixed.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

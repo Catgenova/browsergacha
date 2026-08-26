@@ -113,6 +113,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--dawn-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 24px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gold); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -260,18 +266,21 @@
       <h3>Unbroken Cut</h3>
       <div class="meta">Single target &middot; <b>155% ATK</b> &middot; <span class="hl">310% at full health</span></div>
       <p>A clean cut at one enemy. His whole rotation is built to keep this doubled.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Dawn Reliquary</h3>
       <div class="meta">Self &middot; <b>heal 20% ATK</b> &middot; <b>shield 30% ATK</b>, 3 turns</div>
       <p>No damage, no target but himself. Restores the condition and then defends it.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 4-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 5-turn cooldown &rarr; 3 fully levelled</div>
       <h3>Daybreak Sweep</h3>
       <div class="meta">Enemy front rank &middot; <b>140% ATK</b> &middot; <span class="hl">280% at full health</span></div>
       <p>One sweep across every enemy holding a front hex, each of them feeding the shield.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
   </div>
 

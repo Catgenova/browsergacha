@@ -107,6 +107,12 @@ html = r'''<title>Franz, Firebreather of the Firetroupe</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--show-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 17px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--brass); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -181,21 +187,24 @@ html = r'''<title>Franz, Firebreather of the Firetroupe</title>
       <div class="meta">Single enemy &middot; <b>20% max HP</b></div>
       <p>Hurl a showman's iron weight square off one enemy's head for
       <b>20% of Franz's own max HP</b> as damage.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Wagon Wheel</h3>
       <div class="meta">Enemy front row &middot; <b>20% max HP each</b></div>
       <p>Send a wagon wheel rolling through the enemy front row for
       <b>20% of his own max HP</b> as damage to each of them.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Flaming Finale</h3>
       <div class="meta">All enemies &middot; <b>15% max HP each</b></div>
       <p>Draw a deep breath and hose the entire enemy team with fire for
       <b>15% of his own max HP</b> each. The 14-frame ignite earns its
       wind-up.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

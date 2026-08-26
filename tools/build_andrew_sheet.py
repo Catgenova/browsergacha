@@ -177,6 +177,12 @@ html = r'''<title>Andrew, Casualty of Cryst</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--crystal-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 24px; letter-spacing: 2px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -288,22 +294,26 @@ html = r'''<title>Andrew, Casualty of Cryst</title>
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Pickwork</h3>
       <div class="meta">Single target &middot; <b>110% ATK</b> &middot; &#x2212;15 action points</div>
-      <p>An honest swing that also knocks <b>15 AP</b> off the target's bar
+      <p>An honest swing with a <b>50% chance</b> to knock <b>15 AP</b>
+      off the target's bar
       &#x2014; the mine teaches you where to hit so things stop moving.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Shore Up</h3>
       <div class="meta">All allies &middot; <b>+30% DEF</b> &middot; 2 turns</div>
       <p>Brace the whole team the way you brace a tunnel: properly, and
       before the roof asks. The classic center-support beat.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 4-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 5-turn cooldown &rarr; 3 fully levelled</div>
       <h3>Crystal Spoil</h3>
       <div class="meta">Enemy back row &middot; <b>90% ATK each</b></div>
       <p>A basketful of sharp off-cuts hurled across the enemy <b>back
       line</b> &#x2014; the healers and snipers all catch a share.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -330,8 +340,7 @@ html = r'''<title>Andrew, Casualty of Cryst</title>
         <tr><th>Crystal Spoil, % ATK each</th><td>90</td><td>99</td><td>108</td><td>117</td><td class="max">126</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Andrew. The AP cut, the brace and both masters' clauses are fixed.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The AP cut, the brace and both masters' clauses are fixed.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

@@ -147,6 +147,12 @@ html = r'''<title>Catherine, White Paladin</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--halo-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 24px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gold); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -241,18 +247,21 @@ html = r'''<title>Catherine, White Paladin</title>
       <h3>Reverent Strike</h3>
       <div class="meta">Single target · <b>120% ATK</b></div>
       <p>A full swing of the flail at one enemy.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 · 3-turn cooldown</div>
+      <div class="slot">Skill 2 · 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Consecrated Mercy</h3>
       <div class="meta">Herself + 2 allies · <b>30% ATK</b> each</div>
       <p>Heals Catherine and the <b>2 most-wounded allies</b> — picked by lowest HP percentage, so the healing always finds who needs it.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 · 5-turn cooldown</div>
+      <div class="slot">Skill 3 · 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Reverent Sweep</h3>
       <div class="meta">Enemy front line · <b>150% ATK</b> each</div>
       <p>Whirls the flail through <b>every enemy in a front hex</b> in one sweeping arc.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -278,7 +287,7 @@ html = r'''<title>Catherine, White Paladin</title>
         <tr><th>Reverent Sweep, % ATK each</th><td>150</td><td>165</td><td>180</td><td>195</td><td class="max">210</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) — raised in Improve by sacrificing another Catherine.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy.</div>
   </div>
 
   <h2><span class="glyph">✦</span> Animations</h2>

@@ -111,6 +111,12 @@ html = r'''<title>Sable, Gravetender of the Nightflowers</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--seed-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: 0; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bloom); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -205,24 +211,28 @@ html = r'''<title>Sable, Gravetender of the Nightflowers</title>
       <h3>Seedfall</h3>
       <div class="meta">2 random enemies &middot; <b>70% ATK &middot; poison 30% ATK, 3 turns</b></div>
       <p>Seed scatters across the field: <b>70% ATK</b> to <b>two random,
-      never-the-same</b> enemies, each left poisoned. His whole-fight
-      resource, on no cooldown.</p>
+      never-the-same</b> enemies, each with a <b>50% chance</b> to be left poisoned. His
+      whole-fight resource, on no cooldown.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Open The Flower</h3>
       <div class="meta">All enemies &middot; <b>detonate every poison</b></div>
       <p>No damage of its own. The bloom on his staff opens and every
       seeded enemy answers: <b>all remaining ticks land immediately</b>
       and the poison burns itself out. It pays <b>exactly</b> what
       waiting would have &#x2014; it only stops making you wait.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 3</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Grave Garden</h3>
       <div class="meta">All enemies &middot; <b>110% ATK &middot; poison 30% ATK, 3 turns</b></div>
       <p>The whole field goes to seed: <b>110% ATK</b> to every enemy,
-      and <b>every one of them</b> is poisoned. The fuse for the flower.</p>
+      and a <b>50% chance each</b> to be poisoned. The fuse for the
+      flower.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

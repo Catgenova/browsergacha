@@ -133,6 +133,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--ember-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 21px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -238,25 +244,29 @@
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Cinder Lash</h3>
       <div class="meta">Single enemy &middot; <b>110% ATK</b></div>
-      <p>Lash one enemy and set them alight: the burn eats <b>3% of their
+      <p>Lash one enemy with a <b>50% chance</b> to set them alight: the
+      burn eats <b>3% of their
       max HP</b> at the start of each of their turns, for 3 turns. The
       bigger they are, the better they burn.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Stoke the Forge</h3>
       <div class="meta">Self &middot; <b>permanent ATK</b></div>
       <p>Draw heat from the field: gain <b>50 ATK for the rest of the
       fight per burning enemy</b>, banking up to <b>1000 ATK</b> per
       battle. The fires do not need to be his.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10 ATK each &rsaquo; +10 ATK each &rsaquo; +10 ATK each &rsaquo; +10 ATK each &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Wildfire Arc</h3>
       <div class="meta">Ricochet &middot; <b>125% ATK per hit</b></div>
       <p>Hurl fire that strikes for <b>125% ATK</b>, then leaps to another
       enemy with a <b>75% chance, indefinitely</b>. Alone on the field,
       the flame leaps back into the same enemy.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

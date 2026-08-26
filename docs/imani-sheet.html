@@ -70,6 +70,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--leaf-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--vellum); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -147,21 +153,24 @@
       <div class="meta">Single enemy &middot; <b>125% ATK</b></div>
       <p>One bell, struck clean: <b>125% ATK</b> to a single enemy &#x2014;
       the only time she picks her own target.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Two Bells</h3>
       <div class="meta">2 random enemies &middot; <b>130% ATK each</b></div>
       <p>The bar swings twice: <b>130% ATK</b> to <b>two random</b>
       enemies &#x2014; never the same one twice.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>All The Bells</h3>
       <div class="meta">3 random enemies &middot; <b>130% ATK &middot; -30% SPD, 2 turns</b></div>
       <p>Every bell at once: <b>130% ATK</b> to <b>three random</b>
-      enemies, and the sound drags at them &#x2014; <b>-30% Speed for 2
-      turns</b>.</p>
+      enemies, and a <b>50% chance each</b> that the sound drags at them
+      &#x2014; <b>-30% Speed for 2 turns</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +10% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

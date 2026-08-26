@@ -136,6 +136,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--crystal-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 19px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -254,22 +260,24 @@
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Bore Sweep</h3>
       <div class="meta">Enemy front row &middot; <b>80% DEF each</b> &middot; &#x2212;30% DEF, 1 turn</div>
-      <p>The drill dragged across the enemy line. It grinds <b>and</b> it
-      strips &#x2014; the wall ahead is softer for whoever swings next.</p>
+      <p>The drill dragged across the enemy line. It grinds, and <b>half the time</b> it strips &#x2014; the wall ahead is softer for whoever swings next.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Core Sample</h3>
       <div class="meta">Single target &middot; <b>125% DEF</b></div>
       <p>The bit swells to full bore and goes <b>through</b> one enemy.
       Geology as a threat.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Breakthrough</h3>
       <div class="meta">Front row + center &middot; <b>90% DEF each</b></div>
       <p>Fifteen frames of wind-up and the wall comes down &#x2014; the
       front line and the <b>keystone behind it</b> in one drive.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -297,8 +305,7 @@
         <tr><th>Breakthrough, each</th><td>90</td><td>99</td><td>108</td><td>117</td><td class="max">126</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Bit. The DEF strip, the hardening and Bedrock are fixed.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The DEF strip, the hardening and Bedrock are fixed.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

@@ -109,6 +109,12 @@ html = r'''<title>Lin, Balance Act of the Firetroupe</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--ball-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 19px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--brass); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -184,25 +190,28 @@ html = r'''<title>Lin, Balance Act of the Firetroupe</title>
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Center of Attention</h3>
       <div class="meta">Enemy back row &middot; <b>Taunt, 1 turn</b></div>
-      <p>A flourish nobody can ignore: taunts the enemy back row &#x2014;
-      on its next turn each victim <b>must throw its skill 1 at Lin</b>
+      <p>A flourish nobody can ignore: a <b>50% chance each</b> to taunt the enemy back row &#x2014; on
+      its next turn a taunted victim <b>must throw its skill 1 at Lin</b>
       and nothing else.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 4</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Blazing Ball</h3>
       <div class="meta">Enemy front row &middot; <b>2 burns each</b></div>
-      <p>Set the ball alight and roll it down the line: the enemy front
-      row takes <b>2 burns</b>, each eating <b>3% of their max HP</b> per
-      turn for 2 turns.</p>
+      <p>Set the ball alight and roll it down the line: two burns roll at the enemy front row, <b>each a separate 50%
+      chance</b>, each eating <b>3% of their max HP</b> per turn for 2
+      turns.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +1% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Ball Barricade</h3>
       <div class="meta">Self &middot; <b>Blocker, 2 turns</b></div>
       <p>Plant the ball and brace: Lin <b>cannot act</b>, but <b>absorbs
       all damage aimed at front-row allies, mitigating 25%</b> of it. She
       holds the braced pose for as long as the buff lasts.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +1 turn &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 5</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

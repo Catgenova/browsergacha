@@ -73,6 +73,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--wisteria-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 0; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gold); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -166,24 +172,28 @@
       <p>The maul comes down: <b>70% DEF</b> to the enemy front row, and
       something grows where it landed &#x2014; he <b>mends 8% of his own
       max HP</b>, every turn, forever.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +5% power &rsaquo; +5% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 5</div>
+      <div class="slot">Skill 2 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Wisteria</h3>
       <div class="meta">All enemies &middot; <b>taunt 1 turn &middot; +50% DEF, 2 turns</b></div>
       <p>The garden on his back comes into flower and every eye follows
-      it: <b>the whole enemy team</b> is taunted onto him for a turn, and
+      it: <b>every enemy</b> has a <b>50% chance</b> to be taunted onto him
+      for a turn, and
       Morrow takes <b>+50% DEF for two</b>. Nothing else in the game
       taunts more than a row.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 6</div>
+      <div class="slot">Skill 3 &middot; Cooldown 7 &rarr; 5 fully levelled</div>
       <h3>Pallbearer</h3>
       <div class="meta">Single enemy &middot; <b>200% DEF, +20% a corpse</b></div>
       <p>He brings down everything he has had to carry: <b>200% DEF</b> to
       one enemy, and <b>20% more for every unit that has fallen this
       fight</b>, either side. Uncapped, which only matters in a fight that
       has already gone badly for somebody.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power, +5%/death &rsaquo; +10% power, +5%/death &rsaquo; +10% power, +5%/death &rsaquo; +10% power, +5%/death &rsaquo; +10% power, +5%/death &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

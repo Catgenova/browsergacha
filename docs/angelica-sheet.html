@@ -137,6 +137,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--teal-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -257,22 +263,26 @@
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Shardcast</h3>
       <div class="meta">Single target &middot; <b>90% ATK</b> &middot; 30% freeze, 2 turns</div>
-      <p>A shard off the staff crystal. Modest on its own &#x2014; but it rolls
-      the freeze die <b>every single turn</b>.</p>
+      <p>A shard off the staff crystal. Modest on its own &#x2014; but it rolls a <b>three-in-ten</b> freeze <b>every single
+      turn</b>. Deliberately short of the 50% every other hex opens at:
+      a lockout thrown every turn is not allowed to become certain.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Rimeorb</h3>
       <div class="meta">Single target &middot; <b>125% ATK</b> &middot; 40% freeze, 2 turns</div>
-      <p>A sphere of packed rime, conjured and hurled. The middle rung of
-      the ladder: better damage, better odds.</p>
+      <p>A sphere of packed rime, conjured and hurled. The middle rung of the ladder: better damage, and a <b>coin-flip
+      freeze</b> that skill ups carry all the way to certain.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Cryst Lance</h3>
       <div class="meta">Single target &middot; <b>150% ATK</b> &middot; 50% freeze, 2 turns</div>
       <p>The staff driven home. Half the time the target simply
       <b>stops</b> &#x2014; and her tally ticks up either way if it lands.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -300,8 +310,7 @@
         <tr><th>Cryst Lance, % ATK</th><td>150</td><td>165</td><td>180</td><td>195</td><td class="max">210</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Angelica. The freeze odds and the tally's tenth are fixed.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The freeze odds and the tally's tenth are fixed.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

@@ -108,6 +108,12 @@ html = r'''<title>Posie, Boughbearer of the Whisperchime</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--leaf-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--vellum); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -188,24 +194,27 @@ html = r'''<title>Posie, Boughbearer of the Whisperchime</title>
       <div class="meta">Single ally &middot; <b>20% of POSIE's max HP</b></div>
       <p>Tip the bough over one ally: heals them for <b>20% of Posie's own
       max HP</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Windfall</h3>
       <div class="meta">Single ally &middot; <b>20% of THEIR max HP &middot; 50% to swing on</b></div>
       <p>Heal one ally for <b>20% of their own max HP</b> &#x2014; then a
       <b>50% chance</b> to swing on to the <b>lowest-HP ally</b> and heal
       again, over and over while the rolls hold. Each jump re-picks, so
       the bough follows the wounded down the line.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% chain &rsaquo; +5% chain &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>High Summer</h3>
       <div class="meta">All allies &middot; <b>25% of POSIE's max HP &middot; +30% RES, 2 turns</b></div>
       <p>The whole bough opens at once: heal <b>every ally</b> for <b>25%
       of Posie's max HP</b> and raise their <b>Resistance by 30% for 2
       turns</b> &#x2014; the stat that refuses debuffs, buff-stripping and
       AP drain alike.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

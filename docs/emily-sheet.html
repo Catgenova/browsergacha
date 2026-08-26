@@ -114,6 +114,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--dawn-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 26px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--halo); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -211,20 +217,23 @@
       <p>Bathes one ally in light. Her bread and butter &#x2014; a third of her
       own life total handed over as healing, every turn, forever. Build
       her HP and every mend grows with it.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Purifying Chorus</h3>
       <div class="meta">All allies &middot; heals <b>20% of her max HP</b> each + cleanse</div>
       <p>Heals <b>every ally at once</b> and strips their debuffs &#x2014; poisons
       included. The answer to a bad turn the whole party took together.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 7-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 8-turn cooldown &rarr; 6 fully levelled</div>
       <h3>Second Dawn</h3>
       <div class="meta">A fallen ally &middot; <b>revives at 40% max HP</b></div>
       <p>Calls a dead teammate back to the fight at <b>40% max HP</b> &#x2014;
       the strongest revival in the game.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -253,8 +262,7 @@
         <tr><th>Second Dawn, % max HP restored</th><td>40</td><td>40</td><td>40</td><td>40</td><td class="max">40</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve by
-      sacrificing another Emily. The revival's 40% is fixed: a second life doesn't scale.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The revival's 40% is fixed: a second life doesn't scale.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

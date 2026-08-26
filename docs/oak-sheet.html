@@ -134,6 +134,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--ember-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 23px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--candle); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -250,20 +256,23 @@
       <div class="meta">Single target &middot; <b>110% ATK</b> &middot; 20% &#x2192; Penance</div>
       <p>A measured opening strike. One swing in five turns into something
       much worse for the target.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Penance</h3>
       <div class="meta">Single target &middot; <b>150% ATK</b> &middot; 25% &#x2192; Absolution</div>
       <p>The price of what was confessed. A quarter of the time, the
       sentence is carried out immediately.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Absolution</h3>
       <div class="meta">Single target &middot; <b>175% ATK</b> &middot; 30% &#x2192; Confession</div>
       <p>The final rite &#x2014; which sometimes turns out not to be final
       at all, as the cycle begins again.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -293,8 +302,7 @@
         <tr><th>Absolution, % ATK</th><td>175</td><td>192.5</td><td>210</td><td>227.5</td><td class="max">245</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Oak. Chain chances never change; the dice are the dice.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. Chain chances never change; the dice are the dice.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

@@ -109,6 +109,12 @@ html = r'''<title>Slick, Barrel Man of the Firetroupe</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--oil-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 17px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--ember); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -183,24 +189,27 @@ html = r'''<title>Slick, Barrel Man of the Firetroupe</title>
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Splash Zone</h3>
       <div class="meta">Enemy front row &middot; <b>Oilslicked, 3 turns</b></div>
-      <p>Slop a wave of pitch over the enemy front row, leaving them
-      <b>Oilslicked for 3 turns</b> &#x2014; burns tick twice as hard on an
+      <p>Slop a wave of pitch over the enemy front row, a <b>50% chance each</b> to leave them <b>Oilslicked for 3
+      turns</b> &#x2014; burns tick twice as hard on an
       oiled target.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 4</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Fresh Coat</h3>
       <div class="meta">Self &middot; <b>+30% SPD, +30% Accuracy</b> &middot; 2 turns</div>
       <p>Slick his own staves with a fresh coat of oil: <b>+30% SPD</b> and
       <b>+30% debuff Accuracy</b> for 2 turns. Nothing sticks to a greased
       barrel &#x2014; and nothing he throws misses.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>The Big Spill</h3>
       <div class="meta">All enemies &middot; <b>Oilslicked, 3 turns</b></div>
-      <p>Tip the whole barrel: <b>every enemy is Oilslicked for 3
+      <p>Tip the whole barrel: a <b>50% chance each</b> that an enemy is <b>Oilslicked for 3
       turns</b>. The finale starts when someone brings a match.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

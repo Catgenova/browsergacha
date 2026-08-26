@@ -73,6 +73,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--thread-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: 0; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bone); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -163,24 +169,28 @@
       <p>One clean stitch: <b>130% ATK</b>, and Lysandra <b>mends for 20%
       of what it cost them</b>. Sustain, because her whole plan is to
       stand there and take it.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Slip Knot</h3>
       <div class="meta">Enemy front row &middot; <b>110% ATK &middot; taunt, 1 turn</b></div>
       <p>A loop thrown over the whole line: <b>110% ATK</b> to the enemy
-      front row, and every one of them is <b>taunted onto her needle</b>.
+      front row, and a <b>50% chance each</b> to be
+      <b>taunted onto her needle</b>.
       This is the setup &#x2014; every swing they answer with lands on the
       bond as well.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5 &middot; One at a time</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled &middot; One at a time</div>
       <h3>Soul Bond</h3>
       <div class="meta">Single enemy &middot; <b>160% ATK &middot; the thread</b></div>
       <p><b>160% ATK</b> and a thread run through them. While it holds,
       <b>every point of damage Lysandra takes is dealt to them as well,
       unmitigated</b>. She cannot throw a second thread until that one is
       <b>dead or cut</b> &#x2014; and the cooldown is up.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

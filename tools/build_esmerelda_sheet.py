@@ -107,6 +107,12 @@ html = r'''<title>Esmerelda, Firedancer of the Firetroupe</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--silk-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 20px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--flame); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -181,23 +187,27 @@ html = r'''<title>Esmerelda, Firedancer of the Firetroupe</title>
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Ribbon Lash</h3>
       <div class="meta">Single enemy &middot; <b>110% ATK + burn</b></div>
-      <p>Lash one enemy with a burning silk for <b>110% ATK</b> and leave a
-      burn eating <b>3% of their max HP</b> per turn for 2 turns.</p>
+      <p>Lash one enemy with a burning silk for <b>110% ATK</b> with a <b>50% chance</b> to leave a burn eating <b>3% of their
+      max HP</b> per turn for 2 turns.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Gathering Embers</h3>
       <div class="meta">Front-row allies &middot; <b>20% ATK per enemy DoT</b></div>
       <p>Draw the heat home: heal every front-row ally for <b>20% of her
       ATK per damage-over-time</b> burning on the enemy team. A field of
       four burns is an 80%-ATK heal for the whole front line.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Trailing Flame</h3>
       <div class="meta">Enemy back row &middot; <b>125% ATK + burn each</b></div>
       <p>Send the ribbons arcing over the wall: <b>125% ATK</b> to the enemy
-      back row, each victim left with a <b>2-turn burn</b> of their own.</p>
+      back row, each victim with a <b>50% chance</b> at a <b>2-turn burn</b> of
+      their own.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

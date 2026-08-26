@@ -134,6 +134,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--arrow-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 27px; letter-spacing: 1px; line-height: 1; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -251,20 +257,23 @@
       <div class="meta">Single target &middot; <b>110% ATK</b></div>
       <p>A crystal-tipped arrow, drawn and loosed clean. The drumbeat &#x2014;
       and the shot her passive repeats <b>for free</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Lancing Shot</h3>
       <div class="meta">Single target &middot; <b>135% ATK</b> &middot; ignores 10% DEF</div>
       <p>The bow charged to full crystal glow. The point finds the seams:
       a tenth of the target's armor <b>simply isn't there</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Marrow Volley</h3>
       <div class="meta">Single target &middot; <b>140% ATK + 5% target max HP</b></div>
       <p>A fanned volley that charges by the pound: the blow folds in
       <b>a twentieth of whatever the target is made of</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -293,8 +302,7 @@
         <tr><th>Marrow Volley, % ATK</th><td>140</td><td>154</td><td>168</td><td>182</td><td class="max">196</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Ari. The DEF bypass and both max-HP riders are fixed shares, outside the scaling.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The DEF bypass and both max-HP riders are fixed shares, outside the scaling.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

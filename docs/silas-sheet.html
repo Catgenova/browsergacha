@@ -127,6 +127,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--sight-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bolt); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -235,24 +241,27 @@
       <div class="meta">Single target &middot; <b>115% ATK</b> &middot; 230% aimed</div>
       <p>A snapped shot. Fired from the stance it strikes double &#x2014; the
       filler that stops being filler when he takes a breath first.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown &middot; needs the stance</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled &middot; needs the stance</div>
       <h3>Lumen Arrow</h3>
       <div class="meta">Enemy row &middot; <b>200% ATK each</b> &middot; 400% aimed</div>
       <p>A holy arrow driven through an <b>entire enemy row</b>. It can only
       be loosed from Aiming Stance &#x2014; and since firing spends the stance,
       every Lumen Arrow is an aimed one: <b>400% ATK to everything in the
       line</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 2-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 3-turn cooldown &rarr; 1 fully levelled</div>
       <h3>Aiming Stance</h3>
       <div class="meta">Self &middot; held until spent or broken</div>
       <p>Settle, draw, hold. The next shot deals <b>100% extra damage</b>; the
       stance survives volleys and dodged arrows, and falls only to a direct
       hit that lands. On the field he <b>stays crouched and drawn</b> &#x2014;
       the pose holds for as long as the stance does.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 3</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -280,8 +289,7 @@
         <tr><th>Lumen Arrow (always aimed), % ATK each</th><td>400</td><td>440</td><td>480</td><td>520</td><td class="max">560</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Silas. Aimed figures are the stance's &#xd7;2 applied to the leveled shot.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. Aimed figures are the stance's &#xd7;2 applied to the leveled shot.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>
