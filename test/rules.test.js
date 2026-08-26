@@ -897,7 +897,16 @@ test('team presets round-trip and survive a hero going missing', () => {
 
 test('favourites toggle, persist, and lead every sort order', () => {
   const { GameState } = g;
+  // Keepers pin themselves on arrival: a 5-star, a Dark/Light 4-star, or
+  // any blessed copy. The blessing roll is random, so heroes added by
+  // earlier tests may already sit at the top of the order -- clear the
+  // board first, or this test fails roughly one run in eight on a rule
+  // it is not testing. (This is what has been failing CI.)
+  for (const uid of GameState.ownedHeroIds()) {
+    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
+  }
   const pinned = GameState.addHero('angelica').uid;
+  if (GameState.isFavorite(pinned)) GameState.toggleFavorite(pinned);
   assert(!GameState.isFavorite(pinned), 'heroes should not start favourited');
   assert(GameState.toggleFavorite(pinned) === true, 'toggle did not set it');
   assert(GameState.isFavorite(pinned), 'the favourite did not stick');
