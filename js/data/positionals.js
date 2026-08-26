@@ -125,6 +125,20 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Hallow's hex: the storm is worse where there is more sky to fill.
+  def('stormglass', {
+    position: POSITION.BACK,
+    name: 'Stormglass',
+    description: 'Back hex: +25% damage with skills that catch the whole enemy team.',
+    hooks: {
+      // Reads the ABILITY rather than the target, so it pays once per
+      // victim of a genuine team sweep and never on a single-target
+      // strike -- a bonus for the shape of the cast, not the aim of it.
+      damageDealtMult: (u, t, ability) =>
+        (ability && ability.targeting === 'all-enemies' ? 1.25 : 1),
+    },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

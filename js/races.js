@@ -18,6 +18,15 @@ const RACES = (() => {
   const PREFIXES = new Set([
     'rat', 'minotaur', 'snake', 'wolf', 'boar', 'bear', 'cat', 'drake',
   ]);
+  // Named birds. The generated cohorts are "<species> <role>" and fall
+  // out of BIRD_SPECIES above, but a sect's members are individuals with
+  // names -- Hallow is not "a gull", he is Hallow -- so they get the
+  // same explicit roster the humans do rather than an id prefix that
+  // would force every Gulldigger to be the same species.
+  const AVIANS = new Set([
+    'hallow',
+  ]);
+
   // The humans are named individuals rather than "<race> <role>", so
   // they're an explicit roster. Listed by id, not inferred, so bosses
   // and future one-off ids never fall into the race by accident.
@@ -41,6 +50,7 @@ const RACES = (() => {
   function of(def) {
     if (!def || !def.id) return null;
     if (HUMANS.has(def.id)) return 'human';
+    if (AVIANS.has(def.id)) return 'avian';
     const head = def.id.split('_')[0];
     if (PREFIXES.has(head)) return head;
     if (BIRD_SPECIES.has(head)) return 'avian';
@@ -55,10 +65,15 @@ const RACES = (() => {
   // named heroes group into SECTS instead (below).
   const SET_OF_RACE = { drake: 'dragon' };
 
-  // Human sects: the named heroes belong to orders, each with an
-  // assigned number (a designation, not a roster size — Reverence is
-  // No. 4 and runs eight strong). Members are hero ids; 'echo' is
-  // Aniani, 'florence' is Tide (the Crystal Blade wears Cryst blue).
+  // Sects: the named heroes belong to orders, each with an assigned
+  // number (a designation, not a roster size — Reverence is No. 4 and
+  // runs eight strong). Members are hero ids; 'echo' is Aniani,
+  // 'florence' is Tide (the Crystal Blade wears Cryst blue).
+  //
+  // Sects were a human institution until the Gulldiggers, who are birds
+  // and keep one anyway. A non-human sect is nine strong by a different
+  // arithmetic than the human nine: one 1★, two 2★, three 3★, two 4★
+  // and a single 5★ at the top of it.
   const SECTS = {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
                  members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
@@ -85,6 +100,11 @@ const RACES = (() => {
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',
                            'asher'] },
+    // The first sect that is not human: pirate seabirds who fight the
+    // way weather does, all at once and to everybody. Hallow holds the
+    // 5★ chair.
+    gulldigger: { id: 'gulldigger', name: 'Gulldigger', number: 8,
+                 members: ['hallow'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
