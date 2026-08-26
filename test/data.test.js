@@ -392,6 +392,49 @@ test('an old save survives the move from copies to heroes', () => {
 });
 
 
+test('every hero with art on disk is actually wired to it', () => {
+  const { HEROES } = g;
+  // A hero with a missing or broken sprite block does not error: it
+  // quietly renders the procedural placeholder, which is the right
+  // fallback for a hero with genuinely no art and exactly what let
+  // Noctelle ship as a grey box for weeks with six finished strips
+  // sitting in the repo. Nothing distinguished "no art yet" from "art
+  // present but unwired" — this does.
+  const artDir = path.join(ROOT, 'assets', 'heroes');
+  if (!fs.existsSync(artDir)) return;
+  // Art folders are named for the hero, not the id (Echo/ holds
+  // Aniani), so match on folder name against both.
+  const folders = fs.readdirSync(artDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .filter((e) => fs.readdirSync(path.join(artDir, e.name))
+      .some((f) => f.toLowerCase().endsWith('.png')));
+
+  const unwired = [];
+  const dangling = [];
+  for (const dir of folders) {
+    const key = dir.name.toLowerCase();
+    const hero = Object.values(HEROES).find((h) =>
+      h.id.toLowerCase() === key || (h.name || '').toLowerCase() === key);
+    if (!hero) continue;   // art for a hero not on the roster: not our problem here
+    const strips = hero.sprite && hero.sprite.strips;
+    if (!strips || !strips.idle) {
+      unwired.push(`${hero.id} (assets/heroes/${dir.name} has art, def has no sprite.strips.idle)`);
+      continue;
+    }
+    // And every path it names must exist, so a typo or a renamed file
+    // surfaces as a failure rather than as a silent placeholder.
+    for (const [name, strip] of Object.entries(strips)) {
+      const src = strip && strip.src;
+      if (!src) continue;
+      const abs = path.join(ROOT, decodeURIComponent(src));
+      if (!fs.existsSync(abs)) dangling.push(`${hero.id}.${name} -> ${src}`);
+    }
+  }
+  assert(unwired.length === 0, `art on disk but not wired: ${unwired.join('; ')}`);
+  assert(dangling.length === 0, `sprite paths pointing at nothing: ${dangling.join('; ')}`);
+});
+
+
 test('campaign and hunt waves field 3-star enemies only', () => {
   const { LOCATION_ENEMIES, ENEMIES, HEROES } = g;
   // The roaming pool stands in for the retired 3-star cohorts, so it
