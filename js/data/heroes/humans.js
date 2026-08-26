@@ -3368,6 +3368,98 @@ Object.assign(HEROES, {
     positional: POSITIONALS.deep_roots,
   },
 
+  evelune: {
+    id: 'evelune',
+    element: 'dark',
+    name: 'Evelune',
+    title: 'First Chair of the Nightflowers',
+    rarity: 4,
+    // The sect's amplifier, and the first hero who creates almost
+    // nothing of her own. She hands the team its cooldowns back early,
+    // holds everyone else's blessings a turn longer, and carries a
+    // quarter of every blessing to a second ally. On a team with
+    // nothing to amplify she is a mediocre 4-star; on a team full of
+    // supports she is the reason the whole thing runs.
+    stats: { hp: 1800, atk: 135, def: 130, speed: 118 },
+    tint: { body: '#3a2a52', helm: '#e8e0f0', weapon: '#8a6a4a', skin: '#c89a78' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Evelune/eveluneidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Evelune/eveluneidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Evelune/eveluneidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Evelune/eveluneskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Evelune/eveluneskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Evelune/eveluneskill3.png', frames: 'auto', fps: 10,
+                  loop: false },
+        death:  { src: 'assets/heroes/Evelune/evelunedeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'evelune_struck_note', name: 'Struck Note',
+        icon: 'assets/icons/fc1287.png',
+        description: 'One note, struck hard: 130% ATK to a single enemy, and ' +
+          'the discord costs them 20 AP.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.30 },
+          { type: 'turnMeter', amount: -0.20 },
+        ],
+      },
+      {
+        id: 'evelune_play_it_again', name: 'Play It Again',
+        icon: 'assets/icons/fc1288.png',
+        description: 'The same phrase, sooner: every ally gets 1 turn back ' +
+          'off all of their cooldowns.',
+        cooldown: 4, targeting: 'all-allies', animation: 'skill2',
+        effects: [
+          { type: 'cooldownReduce', turns: 1 },
+        ],
+      },
+      {
+        id: 'evelune_hold_the_chord', name: 'Hold The Chord',
+        icon: 'assets/icons/fc1289.png',
+        description: 'A chord held open over the whole line: mends every ally ' +
+          "for 15% of Evelune's max HP, and every blessing the team is " +
+          'wearing lasts 1 turn longer.',
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
+        effects: [
+          { type: 'healHpPct', pct: 0.15 },
+          { type: 'extendBuffs', turns: 1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Chord Carries',
+      icon: 'assets/icons/fc1290.png',
+      description: 'A note struck on one string sounds the next: every buff ' +
+        'that lands on an ally has a 25% chance to also land on another ' +
+        'ally, with the time it had left.',
+      hooks: {
+        onAllyBuffed(unit, { receiver, effect, battle }) {
+          if (!battle || !effect || effect.kind !== 'buff') return null;
+          if (Math.random() >= 0.25) return null;
+          const others = battle.livingUnits(unit.team)
+            .filter((u) => u !== receiver && !u.buffsSealed());
+          if (others.length === 0) return null;
+          const to = others[Math.floor(Math.random() * others.length)];
+          // The copy carries the same terms and the same time; its
+          // source stays whoever earned the credit for the original.
+          to.addStatusEffect({ ...effect });
+          return { floats: [{ target: to, text: '\u266a CARRIES', color: '#ffd76a' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.first_chair,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',

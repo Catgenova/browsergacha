@@ -4960,4 +4960,158 @@ test("Sable's kit: he plants ordinary poison, then calls it all due at once", ()
   }
 });
 
+test("Evelune's kit: she creates almost nothing and multiplies everything", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.evelune;
+  assert(def && def.element === 'dark' && def.rarity === 4, 'Evelune drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Evelune left the Nightflowers');
+  assert(def.role === 'support', 'Evelune is not binned as a support');
+
+  const arena = (centre = false) => {
+    const b = makeBattle();
+    const eve = place(b, def, TEAM.PLAYER, centre ? 0 : 1);
+    const mates = [2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.PLAYER, i));
+    const foes = [1, 2].map((i) => place(b, DUMMIES.rat_brawler, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    for (const m of mates) { m.maxHp = 6000; m.hp = 2000; }
+    eve.baseCritChance = -1;
+    return { b, eve, mates, foes };
+  };
+  // The spread is a coin the tests do not want flipped under them.
+  const noSpread = (fn) => {
+    const R = g.Math; R.random = () => 0.99;
+    try { return fn(); } finally { delete R.random; }
+  };
+
+  // ---- Struck Note: damage, and 20 AP off the target ----
+  {
+    const { b, eve, foes } = arena();
+    const mark = foes[0];
+    mark.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
+    const before = mark.turnMeter;
+    const res = noSpread(() => A.execute(def.abilities[0], eve, mark, b));
+    assert(res.some((r) => r.kind === 'damage' && r.amount > 0), 'the note did no damage');
+    assert(Math.abs(before - mark.turnMeter - CONFIG.TURN_METER_MAX * 0.20) < 1e-6,
+      `the drain took ${before - mark.turnMeter}, wanted 20 AP`);
+  }
+
+  // ---- Play It Again hands the team a turn back ----
+  {
+    const { b, eve, mates } = arena();
+    for (const m of mates) for (const a of m.abilities) a.cooldownRemaining = 3;
+    // One skill already ready must not be driven negative.
+    mates[0].abilities[0].cooldownRemaining = 0;
+    // Evelune's own refresh must not refresh itself.
+    const self = eve.abilities.find((a) => a.def.id === 'evelune_play_it_again');
+    self.cooldownRemaining = 4;
+    eve.abilities[2].cooldownRemaining = 5;
+    noSpread(() => A.execute(def.abilities[1], eve, null, b));
+    for (const m of mates) {
+      for (const a of m.abilities) {
+        assert(a.cooldownRemaining >= 0, 'a cooldown went negative');
+      }
+      assert(m.abilities[1].cooldownRemaining === 2, 'an ally kept its full cooldown');
+      assert(m.abilities[0].cooldownRemaining === 0 ||
+        m.abilities[0].cooldownRemaining === 2, 'a ready skill was disturbed');
+    }
+    assert(mates[0].abilities[0].cooldownRemaining === 0,
+      'a skill already ready was pushed below zero');
+    assert(self.cooldownRemaining === 4,
+      `Play It Again refreshed itself to ${self.cooldownRemaining}`);
+    assert(eve.abilities[2].cooldownRemaining === 4,
+      'Evelune did not get her OTHER skills back');
+  }
+
+  // ---- Hold The Chord: a mend, and one more turn on every blessing ----
+  {
+    const { b, eve, mates } = arena();
+    const mate = mates[0];
+    mate.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 2 });
+    mate.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.2, turns: 1 });
+    mate.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.8, turns: 3 });
+    const hp = mate.hp;
+    noSpread(() => A.execute(def.abilities[2], eve, null, b));
+    assert(mate.hp - hp === Math.round(eve.maxHp * 0.15),
+      `the chord mended ${mate.hp - hp}, wanted ${Math.round(eve.maxHp * 0.15)}`);
+    const buffs = mate.statusEffects.filter((fx) => fx.kind === 'buff');
+    assert(buffs.find((fx) => fx.stat === 'atk').turns === 3 &&
+      buffs.find((fx) => fx.stat === 'def').turns === 2, 'the blessings did not hold');
+    assert(mate.statusEffects.find((fx) => fx.kind === 'debuff').turns === 3,
+      'the chord extended a DEBUFF');
+    // It creates nothing: an unblessed ally simply gets the mend.
+    assert(mates[1].statusEffects.filter((fx) => fx.kind === 'buff').length === 0,
+      'the chord invented a blessing out of nothing');
+  }
+
+  // ---- The Chord Carries: a quarter of every blessing reaches a second ally ----
+  {
+    const { b, eve, mates } = arena();
+    const prev = Battle.active;
+    Battle.active = b;
+    const R = g.Math;
+    try {
+      // Rolled in: the blessing lands twice, with the time it had left.
+      R.random = () => 0.01;
+      mates[0].addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
+      const elsewhere = [eve, mates[1]].filter((u) =>
+        u.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'atk'));
+      assert(elsewhere.length === 1, `the chord carried to ${elsewhere.length} allies`);
+      const copy = elsewhere[0].statusEffects.find((fx) => fx.stat === 'atk');
+      assert(copy.mult === 1.5 && copy.turns === 3, 'the copy lost its terms');
+      // ...and it does NOT carry again from the copy.
+      const total = b.livingUnits(TEAM.PLAYER)
+        .reduce((n, u) => n + u.statusEffects.filter((fx) => fx.kind === 'buff').length, 0);
+      assert(total === 2, `one blessing became ${total}`);
+      // Rolled out: nothing spreads.
+      R.random = () => 0.99;
+      mates[0].addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.2, turns: 2 });
+      assert(!mates[1].statusEffects.some((fx) => fx.stat === 'def') &&
+        !eve.statusEffects.some((fx) => fx.stat === 'def'),
+        'a failed roll spread anyway');
+      // A DEBUFF never carries, however the coin lands.
+      R.random = () => 0.01;
+      mates[0].addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.7, turns: 2 });
+      assert(!mates[1].statusEffects.some((fx) => fx.kind === 'debuff'),
+        'the chord carried a curse');
+    } finally { delete R.random; Battle.active = prev; }
+  }
+
+  // ---- A sealed ally is never a destination ----
+  {
+    const { b, eve, mates } = arena();
+    const prev = Battle.active;
+    Battle.active = b;
+    const R = g.Math;
+    try {
+      for (const u of [eve, mates[1]]) {
+        u.addStatusEffect({ kind: 'debuff', stat: 'buffblock', turns: 3 });
+      }
+      R.random = () => 0.01;
+      mates[0].addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
+      assert(!eve.statusEffects.some((fx) => fx.kind === 'buff') &&
+        !mates[1].statusEffects.some((fx) => fx.kind === 'buff'),
+        'the chord carried onto a sealed ally');
+    } finally { delete R.random; Battle.active = prev; }
+  }
+
+  // ---- First Chair: the middle of the ring plays faster ----
+  {
+    assert(def.positional.name === 'First Chair' &&
+      def.positional.position === POSITION.CENTER &&
+      def.positional.stat === 'speed' && def.positional.mult === 1.25,
+      'the centre-hex bonus drifted');
+    const { eve: mid } = arena(true);
+    const { eve: off } = arena(false);
+    assert(mid.slot.position === POSITION.CENTER &&
+      off.slot.position !== POSITION.CENTER, 'sanity: same hex twice');
+    assert(mid.effectiveStat('speed') === Math.round(off.effectiveStat('speed') * 1.25),
+      `centre ${mid.effectiveStat('speed')} vs off-centre ${off.effectiveStat('speed')}`);
+  }
+});
+
 report();
