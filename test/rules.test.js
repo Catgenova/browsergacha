@@ -6805,8 +6805,12 @@ test('Hallow prices a storm off the size of the crowd it catches', () => {
   // hex pays on a team sweep and never on Cork Snap.
   const flatCtr = sweep(squall, 5, POSITION.CENTER).each;
   const flatBack = sweep(squall, 5, POSITION.BACK).each;
-  assert(Math.abs(flatBack / flatCtr - 1.25) < 0.02,
-    `Stormglass paid ${(flatBack / flatCtr).toFixed(3)}x on a team sweep, wanted 1.25x`);
+  // Read the figure off the hex rather than restating it, so a balance
+  // pass moves one number instead of two.
+  const hexPays = hallow.positional.hooks.damageDealtMult(
+    null, null, { targeting: 'all-enemies' });
+  assert(Math.abs(flatBack / flatCtr - hexPays) < 0.02,
+    `Stormglass paid ${(flatBack / flatCtr).toFixed(3)}x on a team sweep, wanted ${hexPays}x`);
   const snapCtr = sweep(hallow.abilities[0], 5, POSITION.CENTER).each;
   const snapBack = sweep(hallow.abilities[0], 5, POSITION.BACK).each;
   assert(snapCtr === snapBack,
@@ -7490,6 +7494,60 @@ test("Polo's chart puts everybody on their own hex for a while", () => {
       `Polo hands the team +${Math.round(hisTop * 100)}% crit against Artur's ` +
       `+${Math.round(arturTop * 100)}% to one ally`);
   }
+});
+
+test('a mitigation ward refreshes itself, and stacks between two casters', () => {
+  // A ward whose duration outruns its own cooldown always overlaps
+  // itself, and damageTakenBreakdown multiplies every damageTaken
+  // status it finds. Talon's Snub the Cable (3 turns at cap, 2-turn
+  // cooldown) reached four stacks and 87.5% prevented -- a number no
+  // card in the game offers.
+  const battle = new Battle();
+  const talon = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+  battle.placeUnit(talon, battle.playerSlots.findIndex(
+    (sl) => sl.position === POSITION.FRONT));
+  talon.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+  const foe = new Unit(DUMMIES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 4 });
+  battle.placeUnit(foe, 1);
+
+  const readings = [];
+  for (let i = 0; i < 4; i++) {
+    Abilities.execute(talon.abilities[1].def, talon, talon, battle);
+    readings.push(talon.damageTakenMult(null));
+  }
+  const held = talon.statusEffects.filter((fx) => fx.stat === 'damageTaken');
+  assert(held.length === 1,
+    `four casts left ${held.length} wards stacked on one bird`);
+  assert(readings.every((r) => Math.abs(r - readings[0]) < 1e-9),
+    `the ward deepened itself: ${readings.map((r) => r.toFixed(3)).join(' -> ')}`);
+
+  // But two DIFFERENT protectors still stack -- that is two heroes
+  // covering one body, and it should be worth more than one.
+  const bo = new Unit(HEROES.bo, TEAM.PLAYER, { level: 30, stars: 3 });
+  battle.placeUnit(bo, battle.playerSlots.findIndex(
+    (sl) => !battle.units.some((u) => u.slot === sl)));
+  const alone = bo.damageTakenMult(null);
+  Abilities.execute(talon.abilities[1].def, talon, bo, battle);
+  const covered = bo.damageTakenMult(null);
+  assert(covered < alone,
+    'a second protector added nothing on top of the first');
+  Abilities.execute(bo.abilities[1].def, bo, bo, battle);
+  assert(bo.damageTakenMult(null) < covered,
+    "Bo's own ward failed to stack with the one Talon gave him");
+  assert(bo.statusEffects.filter((fx) => fx.stat === 'damageTaken').length === 2,
+    'two casters did not leave two wards');
+
+  // The deeper of two casts from one caster is the one that is kept.
+  const b2 = new Battle();
+  const t2 = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+  b2.placeUnit(t2, b2.playerSlots.findIndex((sl) => sl.position === POSITION.FRONT));
+  Abilities.execute(t2.abilities[1].def, t2, t2, b2);           // level 1
+  const shallow = t2.statusEffects.find((fx) => fx.stat === 'damageTaken').mult;
+  t2.abilities[1].level = Progression.skillCap(t2.abilities[1].def, 1);
+  Abilities.execute(t2.abilities[1].def, t2, t2, b2);           // maxed
+  const kept = t2.statusEffects.find((fx) => fx.stat === 'damageTaken').mult;
+  assert(kept < shallow,
+    `the refresh kept the shallower cover (${shallow} over ${kept})`);
 });
 
 report();

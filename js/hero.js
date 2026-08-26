@@ -1034,6 +1034,23 @@ class Unit {
     if (e.source === undefined && Unit.hookOwner && Unit.hookOwner !== this) {
       e.source = Unit.hookOwner;
     }
+    // Incoming-damage reductions from the SAME caster refresh rather
+    // than stack. damageTakenBreakdown multiplies every damageTaken
+    // status it finds, and a ward whose duration outruns its own
+    // cooldown always overlaps itself -- Talon's Snub the Cable (3
+    // turns, 2-turn cooldown) reached four stacks and 87.5% prevented,
+    // which is not a number any card offers. Two DIFFERENT casters
+    // still stack: that is two heroes protecting one body, and it
+    // should be worth more than one.
+    if (e.kind === 'buff' && e.stat === 'damageTaken' && typeof e.mult === 'number') {
+      const held = this.statusEffects.find((fx) => fx.kind === 'buff' &&
+        fx.stat === 'damageTaken' && fx.source === e.source);
+      if (held) {
+        held.turns = Math.max(held.turns, e.turns);
+        held.mult = Math.min(held.mult, e.mult); // keep the deeper cover
+        return true;
+      }
+    }
     this.statusEffects.push(e);
     // A hostile status landing rings through the victim's OWN side:
     // passives that answer their team's misfortune (Ilyra's Kindly
