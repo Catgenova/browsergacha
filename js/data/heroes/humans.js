@@ -3942,6 +3942,31 @@ Object.assign(HEROES, {
     // back row.
     stats: { hp: 2100, atk: 95, def: 120, speed: 104 },
     tint: { body: '#2a2438', helm: '#6a5a8a', weapon: '#b8a8d8', skin: '#e0d0e8' },
+    // Her art arrived after her kit was wired, and nothing connected the
+    // two: with no sprite block she fell through to the procedural
+    // placeholder and shipped as a grey box for weeks, with the real
+    // sheets sitting in the repo the whole time.
+    //
+    // 256px square frames, 9 across, except the death at 17. One idle
+    // fidget (the moth wings settle); no ready strip. Authored facing
+    // right — staff hand and the cast both build right of frame — like
+    // the rest of the Nightflowers, so no faceLeft flag.
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Noctelle/noctelleidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Noctelle/noctelleidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Noctelle/noctelleskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Noctelle/noctelleskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Noctelle/noctelleskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Noctelle/noctelledeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
     role: 'support',
     abilities: [
       {
