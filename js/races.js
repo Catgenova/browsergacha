@@ -62,7 +62,7 @@ const RACES = (() => {
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
                  members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
-                 members: ['vex', 'vivian', 'coral'] },
+                 members: ['vex', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
     // Sawyer's order; a one-member sect costs nothing and claims the
@@ -79,7 +79,7 @@ const RACES = (() => {
                  members: [] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
-                 members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn'] },
+                 members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

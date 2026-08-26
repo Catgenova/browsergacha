@@ -155,14 +155,14 @@ test('every hero belongs to a race', () => {
 test('human sects hold real humans, once each, with their numbers', () => {
   const expected = {
     cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
-    hedge: { number: 3, members: ['vex', 'vivian', 'coral'] },
+    hedge: { number: 3, members: ['vex', 'coral'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
     shadowflower: { number: 2, members: ['sawyer'] },
     firetroupe: { number: 5, members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo'] },
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: [] },
-    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn'] },
+    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
