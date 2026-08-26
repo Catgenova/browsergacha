@@ -1,0 +1,94 @@
+# Reworking skill level-ups
+
+The old system was one blanket multiplier: `skillPower(level) = 1 + 0.10
+* (level - 1)`, applied to every number in the ability. On a damage
+skill that worked. On a skill that only lands a debuff it did nothing at
+all — levelling a pure-debuff skill five times changed no value a player
+could observe.
+
+The replacement gives every skill an explicit **ladder of upgrades**,
+one per level, drawn from four kinds of improvement. A single skill may
+mix them, and most should.
+
+## The four rules
+
+### 1. Damage and healing → raise the modifier
+
+- A skill scaling off **ATK or DEF**: `+10%` per level-up.
+- A skill scaling off **max HP**: `+5%` per level-up.
+
+"+10%" means ten percentage points on the modifier itself: a 120% ATK
+skill goes 120 → 130 → 140. HP-priced skills move in fives because a
+percentage of a health pool is a much larger number than a percentage of
+an attack stat.
+
+### 2. Cooldowns → the last two level-ups take one turn each
+
+- **Every skill 2 and skill 3 has its base cooldown increased by 1.**
+- The **final two** upgrades on the ladder are each `-1 cooldown`.
+
+So a skill lands weaker than it used to and ends up better: an old
+`cd 5` becomes `cd 6` at level 1 and `cd 4` fully levelled. Skills with
+no cooldown (most skill 1s) skip this rule and spend every rung on
+something else.
+
+### 3. Debuffs → a real application chance, and severity
+
+- The **base chance to apply is 50%**, rolled *before* the existing
+  accuracy-versus-resistance contest. This is a new, separate gate.
+- Level-ups raise that chance toward **100%**, in steps of **10–20%**.
+- The **severity** of the debuff is also fair game for a rung: a -30%
+  DEF break becoming -40%.
+
+A debuff skill must be able to reach 100% application chance by max
+level, so the rungs spent on chance have to add up to +50.
+
+### 4. Buffs → duration, and severity
+
+- Level-ups can extend the **duration** in turns.
+- Level-ups can raise the **severity** of the buff.
+
+## Level caps by slot
+
+| Slot | Max level | Upgrade rungs |
+|---|---|---|
+| Skill 1 | 5 | 4 |
+| Skill 2 | 6 | 5 |
+| Skill 3 | 7 | 6 |
+
+A skill starts at level 1, so the number of rungs is one less than the
+cap. Deeper skills get longer ladders, which is what lets a skill 3
+afford both a damage track and two cooldown reductions.
+
+## Worked example
+
+The shape to aim for, from the brief:
+
+**Before** — front row attack 120% and reduce DEF -30% for 2 turns, cd 5
+
+**After (base)** — front row attack 120% and a **50% chance** to reduce
+DEF -30% for 2 turns, **cd 6**
+
+**The ladder** — `+20% ATK modifier` · `+25% debuff chance` · `+25%
+debuff chance` · `+10% debuff power` · `-1 cooldown` · `-1 cooldown`
+
+Note what this does to the feel of the skill: at level 1 it is a
+coinflip that costs an extra turn of cooldown, and fully levelled it is
+a guaranteed, harder-hitting, faster-cycling version of the old one.
+Investment moves a skill from unreliable to certain, which is a far more
+interesting axis than "the number got bigger".
+
+## Working method
+
+We go **hero by hero**. For each:
+
+1. Read the current kit — base numbers, cooldowns, what each effect does.
+2. Apply the four rules to produce the new **base** (cooldown +1 on
+   skills 2 and 3, debuff chances set to 50%).
+3. Write the **ladder** for each skill, one rung per level, using the
+   rungs available for that slot.
+4. Propose it as numbered points so it can be edited before it is built.
+5. Build, test, verify in-game, commit.
+
+The proposal step is not optional. These are balance decisions, and the
+numbers are worth arguing about before they are code.
