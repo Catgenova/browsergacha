@@ -4237,7 +4237,11 @@ test("Ryn's kit: speed is the damage stat", () => {
   assert(def && def.element === 'wind' && def.rarity === 4, 'Ryn drifted');
   assert(RACES.sectOf(def).id === 'whisperchime', 'Ryn left the Whisperchime');
   assert(def.role === 'dps', 'Ryn is not binned as damage');
-  assert(def.sprite.faceLeft === true, 'Ryn lost her facing flag');
+  // Authored facing right, like every other Whisperchime upload. This
+  // asserted faceLeft === true for a while, which pinned the bug in
+  // place: the flag was read off a wind-up frame instead of the swing,
+  // and the test then defended it.
+  assert(!def.sprite.faceLeft, 'Ryn is flipped again — her art faces right');
 
   // ---- Terminal Velocity: 20% per FULL 50 SPD, read as fought ----
   {

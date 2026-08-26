@@ -3127,9 +3127,11 @@ Object.assign(HEROES, {
     tint: { body: '#4a6a3a', helm: '#c8b45a', weapon: '#e8c86a', skin: '#8a5a3a' },
     sprite: {
       displayH: 96,
-      // Authored facing left (every blade sweep runs left of frame) —
-      // flagged, not mirrored into the files.
-      faceLeft: true,
+      // Authored facing RIGHT, like the rest of the Whisperchime
+      // uploads — her stance, both chakrams and the Crosscut strike
+      // frame all drive right of frame. She carried faceLeft: true for
+      // a while, which is what made her fight backwards; the flag was
+      // read off a wind-up frame rather than the swing. No flag.
       strips: {
         idle:  { src: 'assets/heroes/Ryn/rynidle.png', frames: 'auto', fps: 7, loop: true },
         idle2: { src: 'assets/heroes/Ryn/rynidle1.png', frames: 'auto', fps: 6, loop: false,
@@ -3210,7 +3212,13 @@ Object.assign(HEROES, {
     stats: { hp: 1850, atk: 175, def: 120, speed: 116 },
     tint: { body: '#4a6a3a', helm: '#f0ece0', weapon: '#e8c86a', skin: '#a06a4a' },
     sprite: {
-      displayH: 96,
+      // 67, not the roster's usual 96 — a 30% cut. displayH scales by
+      // HEIGHT, and she is the only hero drawn seated: her frame is all
+      // torso and a bell bar that spans 225 of its 256px, where a
+      // standing hero like Ryn spans 184. Matching her height to theirs
+      // therefore made her read half again as wide on the board. The
+      // art is untouched; this is the display size only.
+      displayH: 67,
       // Authored facing right (her cast reaches right of frame); she is
       // near enough frontal either way. No flag.
       strips: {
