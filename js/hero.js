@@ -254,6 +254,14 @@ class Unit {
     return r;
   }
 
+  // A sealed target takes no new blessings at all. Asher's Nothing For
+  // You writes this flag as an ordinary debuff, so it cleanses, it
+  // resists, and it expires like everything else hostile.
+  buffsSealed() {
+    return this.statusEffects.some((fx) =>
+      fx.kind === 'debuff' && fx.stat === 'buffblock');
+  }
+
   // Damage-over-time amplification (Snake set, venom passives).
   dotBoost() {
     let d = this.gearDotBoost;
@@ -875,6 +883,12 @@ class Unit {
 
   addStatusEffect(fx) {
     const e = { ...fx };
+    // The seal is checked HERE rather than at the ability that casts a
+    // buff, because roughly a hundred hook call sites hand out
+    // blessings without ever passing through applyEffect. This is the
+    // one gate they all share. Heals-over-time, shields and bubbles are
+    // not stat buffs and still land.
+    if (e.kind === 'buff' && this.buffsSealed()) return false;
     // Effects a passive or positional hook puts on SOMEONE ELSE belong to
     // the hook's owner. Abilities pass `source` explicitly; the ~150 hook
     // call sites in the data files do not, and without this every rally
@@ -889,9 +903,9 @@ class Unit {
     // through — ability, passive hook or set bonus alike. The guard
     // keeps a hook that answers by applying another status from
     // setting itself off.
-    if ((e.kind !== 'debuff' && e.kind !== 'dot') || Unit.debuffRinging) return;
+    if ((e.kind !== 'debuff' && e.kind !== 'dot') || Unit.debuffRinging) return true;
     const battle = typeof Battle !== 'undefined' ? Battle.active : null;
-    if (!battle) return;
+    if (!battle) return true;
     Unit.debuffRinging = true;
     try {
       for (const ally of battle.livingUnits(this.team)) {
@@ -901,6 +915,7 @@ class Unit {
         }
       }
     } finally { Unit.debuffRinging = false; }
+    return true;
   }
 
   tickStatusEffects() {

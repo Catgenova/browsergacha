@@ -516,6 +516,9 @@ const Abilities = (() => {
             turns += 1;
           }
         }
+        if (effect.type === 'buff' && target.buffsSealed()) {
+          return { kind: 'buff', target, stat: effect.stat, sealed: true };
+        }
         target.addStatusEffect({
           kind: effect.type,
           stat: effect.stat,
@@ -600,6 +603,60 @@ const Abilities = (() => {
           }
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
+      }
+      case 'stealBuffs': {
+        // Not a strip: the blessing comes OFF them and goes ON him,
+        // carrying whatever turns it had left. Oldest first, up to
+        // `count`. Taking something from an unwilling target is a
+        // contest like any debuff, and a caster whose own buffs are
+        // sealed still takes them away — he just cannot wear them.
+        if (!takeLands(caster, target)) {
+          return { kind: 'stealBuff', target, count: 0, resisted: true };
+        }
+        const taken = [];
+        let left = effect.count || 1;
+        target.statusEffects = target.statusEffects.filter((fx) => {
+          if (fx.kind !== 'buff' || left <= 0) return true;
+          left--; taken.push(fx);
+          return false;
+        });
+        for (const fx of taken) {
+          // Re-sourced to the thief: the numbers it produces from here
+          // on are his, not the support's who cast it.
+          caster.addStatusEffect({ ...fx, source: caster });
+        }
+        // A steal is still a removal, so anyone paid for tearing
+        // blessings off (Tumble's Chime Tax) is paid for this too.
+        const prevOwner = Unit.hookOwner;
+        Unit.hookOwner = caster;
+        try {
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            if (p.hooks && p.hooks.onStripBuff) {
+              p.hooks.onStripBuff(caster, { count: taken.length, target });
+            }
+          }
+        } finally { Unit.hookOwner = prevOwner; }
+        return { kind: 'stealBuff', target, count: taken.length,
+          stats: taken.map((fx) => fx.stat) };
+      }
+      case 'buffBlock': {
+        // Seal the target against every new blessing for a few turns.
+        // Written as an ordinary debuff so it cleanses, resists and
+        // expires like the rest; `stat` is a flag, not a number, the
+        // same way freeze is.
+        const turns = effect.turns || 3;
+        if (!debuffLands(caster, target)) {
+          return { kind: 'debuff', target, stat: 'buffblock', resisted: true };
+        }
+        const held = target.statusEffects.find(
+          (fx) => fx.kind === 'debuff' && fx.stat === 'buffblock');
+        if (held) {
+          held.turns = Math.max(held.turns, turns);
+          return { kind: 'buffBlock', target, turns: held.turns, refreshed: true };
+        }
+        target.addStatusEffect({ kind: 'debuff', stat: 'buffblock', turns,
+          source: caster });
+        return { kind: 'buffBlock', target, turns };
       }
       case 'swapRank': {
         // Haul a back-line enemy out from behind their wall, and put

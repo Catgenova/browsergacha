@@ -465,6 +465,14 @@ const POSITIONALS = (() => {
     stat: 'hp', mult: 1.20,
   });
 
+  def('clapper', {
+    position: POSITION.FRONT,
+    name: 'Clapper',
+    description: 'Front hex: +30% accuracy — the striker inside the bell, ' +
+      'and it never misses the rim.',
+    hooks: { accuracyAdd: 0.30 },
+  });
+
   def('chime_bar', {
     position: POSITION.CENTER,
     name: 'Chime Bar',

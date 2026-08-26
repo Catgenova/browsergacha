@@ -84,6 +84,20 @@ const StatusIcons = (() => {
         line(ctx, u, [[10.2, 3.6], [1.8, 8.4]]);
         ctx.fillStyle = c; disc(ctx, u, 6, 6, 1.1);
       } },
+    buffblock: { title: 'Sealed', note: 'cannot receive any new buff',
+      color: '#c79aff', good: false,
+      draw(ctx, u, c) {
+        // A padlock: shackle over a solid body, keyhole punched out.
+        ctx.strokeStyle = c; ctx.lineWidth = 1.3 * u; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(6 * u, 5 * u, 2.5 * u, Math.PI, 0, false);
+        ctx.stroke();
+        ctx.fillStyle = c;
+        poly(ctx, u, [[2.4, 5.2], [9.6, 5.2], [9.6, 10.8], [2.4, 10.8]]);
+        ctx.fillStyle = PLATE;
+        disc(ctx, u, 6, 7.5, 1);
+        poly(ctx, u, [[5.5, 7.5], [6.5, 7.5], [6.3, 9.6], [5.7, 9.6]]);
+      } },
     taunted: { title: 'Taunted', note: 'must spend its next turn on skill 1 at the taunter',
       color: '#ff9a5a', good: false,
       draw(ctx, u, c) {
@@ -290,7 +304,7 @@ const StatusIcons = (() => {
 
   // The battle-legend order: control first, then damage over time, then
   // the marks, then the stat modifiers and resources.
-  const LEGEND = ['stun', 'freeze', 'taunted', 'blocker', 'burn', 'dot', 'hot',
+  const LEGEND = ['stun', 'freeze', 'buffblock', 'taunted', 'blocker', 'burn', 'dot', 'hot',
     'vulnerable', 'ward', 'methane', 'oilslicked', 'veil', 'slag',
     'crystalline', 'aiming', 'taunt', 'bubble', 'shield', 'mirrors',
     'atk', 'def', 'speed', 'accuracy', 'critChance', 'critDamage'];

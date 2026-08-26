@@ -4433,4 +4433,142 @@ test("Wren's kit: her own bulk is the weapon, and the line gets rearranged", () 
   }
 });
 
+test("Asher's kit: he wears what he takes, and shuts the door behind him", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.asher;
+  assert(def && def.element === 'wind' && def.rarity === 5, 'Asher drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Asher left the Whisperchime');
+  assert(def.role === 'dps', 'Asher is not binned as a DPS');
+
+  const arena = () => {
+    const b = makeBattle();
+    const asher = place(b, def, TEAM.PLAYER, 1);      // a front hex
+    const foes = [1, 2].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    asher.baseCritChance = -1;
+    return { b, asher, foes };
+  };
+
+  // ---- Helping Myself moves the buff, it does not destroy it ----
+  {
+    const { b, asher, foes } = arena();
+    const mark = foes[0];
+    mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    const res = A.execute(def.abilities[1], asher, mark, b);
+    const steal = res.find((r) => r.kind === 'stealBuff');
+    assert(steal && steal.count === 1, `stole ${steal && steal.count}, wanted 1`);
+    assert(!mark.statusEffects.some((fx) => fx.kind === 'buff'),
+      'the buff is still on the victim');
+    const worn = asher.statusEffects.filter((fx) => fx.kind === 'buff');
+    assert(worn.length === 1 && worn[0].stat === 'atk' && worn[0].mult === 1.4,
+      'the stolen buff did not arrive intact');
+    assert(worn[0].turns === 4, `stolen buff kept ${worn[0].turns} turns, wanted 4`);
+    assert(worn[0].source === asher, 'the stolen buff still credits its old caster');
+  }
+
+  // ---- Nothing For You takes two and seals the target ----
+  {
+    const { b, asher, foes } = arena();
+    const mark = foes[0];
+    for (const stat of ['atk', 'def', 'speed']) {
+      mark.addStatusEffect({ kind: 'buff', stat, mult: 1.2, turns: 3 });
+    }
+    A.execute(def.abilities[2], asher, mark, b);
+    assert(mark.statusEffects.filter((fx) => fx.kind === 'buff').length === 1,
+      'Nothing For You did not take exactly two');
+    assert(asher.statusEffects.filter((fx) => fx.kind === 'buff').length === 2,
+      'Asher is not wearing both of them');
+    assert(mark.buffsSealed(), 'the target was not sealed');
+    const seal = mark.statusEffects.find((fx) => fx.stat === 'buffblock');
+    assert(seal.kind === 'debuff' && seal.turns === 3,
+      'the seal is not a 3-turn debuff');
+
+    // Sealed means sealed, from every direction: the ability path
+    // reports it, and a raw hook-style call is refused outright.
+    const before = mark.statusEffects.length;
+    const blocked = A.applyEffect({ type: 'buff', stat: 'atk', mult: 1.5, turns: 2 },
+      asher, mark, 1);
+    assert(blocked.sealed, 'a buff cast onto a sealed target was not reported as sealed');
+    assert(mark.addStatusEffect({ kind: 'buff', stat: 'def', mult: 2, turns: 2 }) === false,
+      'addStatusEffect let a buff through the seal');
+    assert(mark.statusEffects.length === before, 'something got onto a sealed target');
+
+    // A heal-over-time is not a stat buff and still lands.
+    mark.addStatusEffect({ kind: 'hot', amount: 10, turns: 2 });
+    assert(mark.statusEffects.some((fx) => fx.kind === 'hot'),
+      'the seal wrongly swallowed a heal-over-time');
+
+    // And it expires like any other debuff.
+    for (let i = 0; i < 3; i++) mark.tickStatusEffects();
+    assert(!mark.buffsSealed(), 'the seal outlived its three turns');
+  }
+
+  // ---- A resisted theft leaves the blessing where it was ----
+  {
+    const { b, asher, foes } = arena();
+    const mark = foes[0];
+    mark.debuffResistance = () => 10;               // nothing gets through
+    mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    const R = g.Math;                       // the sandbox's own Math
+    R.random = () => 0.99;
+    let res;
+    try { res = A.execute(def.abilities[1], asher, mark, b); }
+    finally { delete R.random; }
+    const steal = res.find((r) => r.kind === 'stealBuff');
+    assert(steal && steal.resisted, 'the theft was not contested');
+    assert(mark.statusEffects.some((fx) => fx.kind === 'buff'),
+      'a resisted theft still took the buff');
+    assert(!asher.statusEffects.some((fx) => fx.kind === 'buff'),
+      'a resisted theft still dressed the thief');
+  }
+
+  // ---- Borrowed Weather pays 25% per buff HE is wearing ----
+  {
+    const { asher, foes } = arena();
+    const mark = foes[0];
+    assert(asher.damageDealtMult(mark) === 1, 'an unbuffed Asher is not at 1.00');
+    asher.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    assert(Math.abs(asher.damageDealtMult(mark) - 1.25) < 1e-9,
+      `one buff gave ${asher.damageDealtMult(mark)}, wanted 1.25`);
+    asher.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 5 });
+    asher.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.1, turns: 5 });
+    assert(Math.abs(asher.damageDealtMult(mark) - 1.75) < 1e-9,
+      `three buffs gave ${asher.damageDealtMult(mark)}, wanted 1.75`);
+    // The count is buffs only: a shield or a debuff pays nothing.
+    asher.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.8, turns: 5 });
+    assert(Math.abs(asher.damageDealtMult(mark) - 1.75) < 1e-9,
+      'a debuff was counted as a blessing');
+  }
+
+  // ---- Skill 2 is a real self-combo: the theft feeds the next swing ----
+  {
+    const { b, asher, foes } = arena();
+    const mark = foes[0];
+    mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    A.execute(def.abilities[1], asher, mark, b);
+    const after = asher.damageDealtMult(mark);
+    assert(Math.abs(after - 1.25) < 1e-9,
+      `after one theft Asher hits at ${after}, wanted 1.25`);
+  }
+
+  // ---- The front hex sharpens him, because he has to connect ----
+  {
+    assert(def.positional.name === 'Clapper' &&
+      def.positional.position === POSITION.FRONT &&
+      def.positional.hooks.accuracyAdd === 0.30, 'the front-hex bonus drifted');
+    const b = makeBattle();
+    const on = place(b, def, TEAM.PLAYER, 1);
+    const off = place(b, def, TEAM.PLAYER, 5);
+    assert(on.slot.position === POSITION.FRONT &&
+      off.slot.position === POSITION.BACK, 'sanity: those are not opposite rows');
+    assert(Math.abs((on.debuffAccuracy() - off.debuffAccuracy()) - 0.30) < 1e-9,
+      `front ${on.debuffAccuracy()} vs back ${off.debuffAccuracy()}`);
+  }
+});
+
 report();

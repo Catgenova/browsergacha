@@ -3280,6 +3280,89 @@ Object.assign(HEROES, {
     positional: POSITIONALS.chime_bar,
   },
 
+  asher: {
+    id: 'asher',
+    element: 'wind',
+    name: 'Asher',
+    title: 'Bell Thief of the Whisperchime',
+    rarity: 5,
+    // The sect's answer to a buffed enemy team, and the one member who
+    // gets STRONGER for meeting one. Every blessing he takes off them
+    // he puts on himself, and his passive pays 25% for each one he is
+    // wearing — so the same swing that undresses their carry dresses
+    // him. His third skill closes the door behind it: nothing new gets
+    // onto that target for three turns.
+    stats: { hp: 2000, atk: 245, def: 150, speed: 106 },
+    tint: { body: '#6a5a3a', helm: '#c8b878', weapon: '#8a7a5a', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Asher/asheridle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Asher/asheridle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Asher/asheridle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Asher/asherskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Asher/asherskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Asher/asherskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Asher/asherdeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'asher_downstroke', name: 'Downstroke',
+        icon: 'assets/icons/fc1273.png',
+        description: 'The hammer comes down on one of them for 130% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.30 },
+        ],
+      },
+      {
+        id: 'asher_helping_myself', name: 'Helping Myself',
+        icon: 'assets/icons/fc1274.png',
+        description: '150% ATK to a single enemy, and one buff comes off ' +
+          'them and onto Asher with whatever time it had left.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.50 },
+          { type: 'stealBuffs', count: 1 },
+        ],
+      },
+      {
+        id: 'asher_nothing_for_you', name: 'Nothing For You',
+        icon: 'assets/icons/fc1275.png',
+        description: '175% ATK to a single enemy, TWO of their buffs move ' +
+          'onto Asher, and the target is sealed against every new blessing ' +
+          'for 3 turns.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.75 },
+          { type: 'stealBuffs', count: 2 },
+          { type: 'buffBlock', turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Borrowed Weather',
+      icon: 'assets/icons/fc1281.png',
+      description: 'Deals 25% extra damage for every buff Asher himself is ' +
+        'carrying — his own, his supports\', and everything he has taken.',
+      hooks: {
+        damageDealtMult(unit) {
+          const worn = unit.statusEffects.filter((fx) => fx.kind === 'buff').length;
+          return 1 + 0.25 * worn;
+        },
+      },
+    },
+    positional: POSITIONALS.clapper,
+  },
+
   wren: {
     id: 'wren',
     element: 'wind',
