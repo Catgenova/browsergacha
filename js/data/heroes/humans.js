@@ -3550,6 +3550,98 @@ Object.assign(HEROES, {
     positional: POSITIONALS.spool,
   },
 
+  morrow: {
+    id: 'morrow',
+    element: 'dark',
+    name: 'Morrow',
+    title: 'Pallbearer of the Nightflowers',
+    rarity: 4,
+    // The sect's gravedigger, and the body it was missing. Everything
+    // he throws is priced off his DEF, so the gear that keeps him
+    // standing is the gear that hits; he volunteers for the whole enemy
+    // team at once and gets fed by every corpse it makes, whoever it
+    // belonged to. His last swing is the weight of all of them.
+    stats: { hp: 2500, atk: 110, def: 175, speed: 90 },
+    tint: { body: '#2e2440', helm: '#c8a84a', weapon: '#8a7ab8', skin: '#d8c8b0' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Morrow/morrowidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Morrow/morrowidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Morrow/morrowidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Morrow/morrowskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Morrow/morrowskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Morrow/morrowskill3.png', frames: 'auto', fps: 10,
+                  loop: false },
+        death:  { src: 'assets/heroes/Morrow/morrowdeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'tank',
+    abilities: [
+      {
+        id: 'morrow_groundbreak', name: 'Groundbreak',
+        icon: 'assets/icons/fc1295.png',
+        description: 'The maul comes down: 70% DEF to the enemy FRONT row, ' +
+          "and something grows where it landed — Morrow mends 8% of his " +
+          'own max HP.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slam',
+        effects: [
+          { type: 'damageDef', mult: 0.70 },
+        ],
+        selfEffects: [
+          { type: 'healHpPct', pct: 0.08 },
+        ],
+      },
+      {
+        id: 'morrow_wisteria', name: 'Wisteria',
+        icon: 'assets/icons/fc1296.png',
+        description: 'The garden on his back comes into flower and every eye ' +
+          'follows it: the WHOLE enemy team is taunted onto him for 1 turn, ' +
+          'and Morrow takes +50% DEF for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill2',
+        effects: [
+          { type: 'debuff', stat: 'taunted', turns: 1 },
+        ],
+        selfEffects: [
+          { type: 'buff', stat: 'def', mult: 1.50, turns: 2 },
+        ],
+      },
+      {
+        id: 'morrow_pallbearer', name: 'Pallbearer',
+        icon: 'assets/icons/fc1297.png',
+        description: 'He brings down everything he has had to carry: 200% DEF ' +
+          'to a single enemy, and 20% DEF more for every unit that has ' +
+          'fallen this fight, either side.',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slam',
+        effects: [
+          { type: 'damageDef', mult: 2.00, perDeath: 0.20 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Grave Soil',
+      icon: 'assets/icons/fc1298.png',
+      description: 'The garden does not ask whose corpse it was: whenever ' +
+        'any unit on the field falls, friend or enemy, Morrow mends 10% of ' +
+        'his max HP.',
+      hooks: {
+        onUnitDied(unit) {
+          if (!unit.alive) return null;
+          const mend = Math.max(1, Math.round(unit.maxHp * 0.10));
+          const healed = unit.heal(mend, unit);
+          if (healed <= 0) return null;
+          return { floats: [{ target: unit, text: `+${healed}`, color: '#7ae87a' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.mourners_row,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',

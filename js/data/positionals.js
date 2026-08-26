@@ -339,6 +339,18 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('mourners_row', {
+    position: POSITION.FRONT,
+    name: "Mourner's Row",
+    description: 'Front hex: allies on BACK hexes take 20% less damage — ' +
+      'he is standing between them and it.',
+    hooks: {
+      coverMult(unit, ally) {
+        return ally.slot && ally.slot.position === POSITION.BACK ? 0.80 : 1;
+      },
+    },
+  });
+
   def('spool', {
     position: POSITION.FRONT,
     name: 'Spool',
