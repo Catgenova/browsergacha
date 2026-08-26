@@ -4304,4 +4304,133 @@ test("Imani's kit: the chime picks its own victims, and answers their blessings"
   }
 });
 
+test("Wren's kit: her own bulk is the weapon, and the line gets rearranged", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.wren;
+  assert(def && def.element === 'wind' && def.rarity === 3, 'Wren drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Wren left the Whisperchime');
+  assert(def.role === 'tank', 'Wren is not binned as a tank');
+
+  // Her strips are wired to the skills they actually animate, not to
+  // the numbers in their filenames.
+  assert(def.sprite.strips.attack.src.endsWith('wrenskill3.png'), 'skill 1 lost its strip');
+  assert(def.sprite.strips.skill3.src.endsWith('wrenskill1.png'), 'skill 3 lost its strip');
+  assert(def.sprite.strips.skill2.src.includes('%20'), 'the spaced filename was not escaped');
+
+  const arena = () => {
+    const b = makeBattle();
+    const wren = place(b, def, TEAM.PLAYER, 1);       // a front hex
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.effectiveStat = () => 0;                     // no DEF curve in the way
+    }
+    wren.baseCritChance = -1;
+    // Elemental matchup and her own out-of-place bonus both ride on top
+    // of the HP scaling; the helper reports them so a test that only
+    // cares about the 10%/15% can divide them back out.
+    const riders = (foe) => g.Elements.mult('wind', foe.element) *
+      wren.damageDealtMult(foe);
+    return { b, wren, foes, riders };
+  };
+
+  // ---- Skills 1 and 2 are measured off HER pool ----
+  {
+    const { b, wren, foes, riders } = arena();
+    const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
+    const want = front.map((f) => Math.round(wren.maxHp * 0.10 * riders(f)));
+    A.execute(def.abilities[0], wren, null, b);
+    front.forEach((f, i) => {
+      const dealt = f.maxHp - f.hp;
+      assert(Math.abs(dealt - want[i]) <= 2,
+        `Breakwater dealt ${dealt}, expected ${want[i]} (10% of ${wren.maxHp} with riders)`);
+    });
+    for (const f of foes.filter((x) => !front.includes(x))) {
+      assert(f.hp === f.maxHp, 'Breakwater reached past the front row');
+    }
+    const mark = foes[0];
+    mark.hp = mark.maxHp;
+    const want2 = Math.round(wren.maxHp * 0.15 * riders(mark));
+    A.execute(def.abilities[1], wren, mark, b);
+    assert(Math.abs((mark.maxHp - mark.hp) - want2) <= 2,
+      `Shoulder Check dealt ${mark.maxHp - mark.hp}, expected ${want2}`);
+  }
+
+  // ---- Out You Come: the row trades hexes ----
+  {
+    const { b, wren, foes } = arena();
+    const back = foes.find((f) => f.slot.position === POSITION.BACK);
+    const rowFront = foes.find((f) => f.slot.position === POSITION.FRONT &&
+      Math.abs(f.slot.y - back.slot.y) < 1);
+    assert(rowFront, 'sanity: nobody is covering that back hex');
+    const backHex = back.slot, frontHex = rowFront.slot;
+    A.execute(def.abilities[2], wren, back, b);
+    assert(back.slot === frontHex, 'the back-liner was not hauled forward');
+    assert(rowFront.slot === backHex, 'the cover was not shoved in behind');
+    assert(backHex.unit === rowFront && frontHex.unit === back,
+      'the hexes disagree with the fighters standing on them');
+    assert(back.slot.position === POSITION.FRONT &&
+      rowFront.slot.position === POSITION.BACK, 'the swap did not change rank');
+  }
+
+  // Striking the front of a row trades the same pair — the move is
+  // symmetric — and the middle column has no partner to trade with.
+  {
+    const { b, wren, foes } = arena();
+    const f0 = foes.find((f) => f.slot.position === POSITION.FRONT);
+    const partner = foes.find((f) => f.slot.position === POSITION.BACK &&
+      Math.abs(f.slot.y - f0.slot.y) < 1);
+    A.execute(def.abilities[2], wren, f0, b);
+    assert(f0.slot.position === POSITION.BACK && partner.slot.position === POSITION.FRONT,
+      'the trade did not work from the front end of the row');
+
+    const b2 = makeBattle();
+    const w2 = place(b2, def, TEAM.PLAYER, 1);
+    const mid = place(b2, H.rat_knight, TEAM.ENEMY, 0);
+    mid.hp = mid.maxHp = 10 ** 7; mid.dodgeChance = () => 0;
+    const hex = mid.slot;
+    A.execute(def.abilities[2], w2, mid, b2);
+    assert(mid.slot === hex, 'the middle column was dragged somewhere');
+  }
+
+  // ---- Out Of Place: 30% more into anyone standing wrong ----
+  {
+    const { b, wren, foes } = arena();
+    const settled = foes.find((f) => f.positionalActive());
+    const displaced = foes.find((f) => f.positional && !f.positionalActive());
+    assert(settled && displaced, 'sanity: need one enemy in place and one out of it');
+    assert(Math.abs(wren.damageDealtMult(settled) - 1) < 1e-9,
+      'she billed an enemy standing in the right hex');
+    assert(Math.abs(wren.damageDealtMult(displaced) - 1.30) < 1e-9,
+      'the out-of-place bonus drifted');
+    // And her own skill 3 creates the condition it profits from.
+    const back = foes.find((f) => f.slot.position === POSITION.BACK &&
+      f.positionalActive());
+    if (back) {
+      A.execute(def.abilities[2], wren, back, b);
+      assert(Math.abs(wren.damageDealtMult(back) - 1.30) < 1e-9,
+        'hauling them out did not put them out of place');
+    }
+  }
+
+  // ---- The front hex is the tank bonus, and it feeds her damage ----
+  {
+    assert(def.positional.name === 'Windbreak' && def.positional.stat === 'hp' &&
+      def.positional.mult === 1.20, 'the front-hex bonus drifted');
+    // A max-HP positional is applied once, AT PLACEMENT, so this one
+    // has to go through a real Battle rather than the stand-in.
+    const real = new Battle();
+    const front = new Unit(def, TEAM.PLAYER, { level: 30, stars: 3 });
+    const back = new Unit(def, TEAM.PLAYER, { level: 30, stars: 3 });
+    real.placeUnit(front, 1);
+    real.placeUnit(back, 5);
+    assert(front.slot.position === POSITION.FRONT &&
+      back.slot.position === POSITION.BACK, 'sanity: those are not opposite rows');
+    assert(front.maxHp === Math.round(back.maxHp * 1.20),
+      `front ${front.maxHp} vs back ${back.maxHp}`);
+    assert(front.hp === front.maxHp, 'the bonus left her short of full');
+  }
+});
+
 report();

@@ -3279,4 +3279,94 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.chime_bar,
   },
+
+  wren: {
+    id: 'wren',
+    element: 'wind',
+    name: 'Wren',
+    title: 'Windbreak of the Whisperchime',
+    rarity: 3,
+    // Front-line tank whose swings are measured off her OWN pool, so
+    // every point of HP is offence as well as defence. Her third skill
+    // is the sect's whole thesis in one move: reach past the wall,
+    // haul the back line out into the open, and shove the wall in
+    // behind them. Her passive then bills everyone standing in the
+    // wrong hex — including everyone SHE just moved.
+    stats: { hp: 2400, atk: 90, def: 160, speed: 92 },
+    tint: { body: '#3a5a4a', helm: '#8a8a7a', weapon: '#c8c8b8', skin: '#e8c8a8' },
+    sprite: {
+      displayH: 96,
+      // The strips arrived out of order, and are wired to the skills
+      // they actually animate: skill1's file is her THIRD skill, the
+      // 'skill 2 3' file is her second, and skill3's file is her first.
+      // The space in that filename is escaped rather than renamed —
+      // the uploads are left exactly as delivered.
+      strips: {
+        idle:  { src: 'assets/heroes/Wren/wrenidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Wren/wrenidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Wren/wrenidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Wren/wrenskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Wren/wrenskill%202%203.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Wren/wrenskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Wren/wrendeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'tank',
+    abilities: [
+      {
+        id: 'wren_breakwater', name: 'Breakwater',
+        icon: 'assets/icons/fc1270.png',
+        description: "A shoulder into the whole line: the enemy FRONT row " +
+          "takes 10% of Wren's own max HP as damage.",
+        cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.10 },
+        ],
+      },
+      {
+        id: 'wren_shoulder_check', name: 'Shoulder Check',
+        icon: 'assets/icons/fc1271.png',
+        description: "Everything she has, into one of them: 15% of Wren's " +
+          'own max HP as damage to a single enemy.',
+        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.15 },
+        ],
+      },
+      {
+        id: 'wren_out_you_come', name: 'Out You Come',
+        icon: 'assets/icons/fc1272.png',
+        description: 'Reach past the wall for a BACK-row enemy: 10% of ' +
+          "Wren's max HP as damage, and they trade hexes with whoever was " +
+          'covering them — their caster out in the open, their wall shoved ' +
+          'in behind.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damageHp', mult: 0.10 },
+          { type: 'swapRank' },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Out Of Place',
+      icon: 'assets/icons/fc1280.png',
+      description: 'Deals 30% extra damage to enemies standing outside ' +
+        'their own positional hex — anyone the wind has moved, including ' +
+        'everyone she just moved herself.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          // Only a fighter who HAS a favoured hex can be out of it.
+          if (!target || !target.positional) return 1;
+          return target.positionalActive() ? 1 : 1.30;
+        },
+      },
+    },
+    positional: POSITIONALS.windbreak,
+  },
 });
