@@ -83,10 +83,21 @@ const Abilities = (() => {
   // resistance contest. `frac` is the positive share of the bar to
   // remove. Exported so the ~dozen passives that reach for an enemy's
   // meter directly all obey the same rule.
-  function drainMeter(caster, target, frac) {
+  function drainMeter(caster, target, frac, opts = {}) {
     if (!target || !target.alive || !(frac > 0)) return null;
     if (meterGuarded(target)) {
       return { kind: 'meter', target, amount: 0, guarded: true };
+    }
+    // Application gate, ahead of the guard's cousin the accuracy
+    // contest: taking someone's turn away is as hostile as any hex, so
+    // it rolls the same 50% base and levels to a certainty the same way.
+    // Only effects that AUTHOR a chance are gated -- a passive that
+    // drains meter, and every hero not yet swept, behave as before.
+    if (opts.chance !== undefined) {
+      const odds = Math.min(1, opts.chance + (opts.bonus || 0));
+      if (Math.random() >= odds) {
+        return { kind: 'meter', target, amount: 0, missed: true };
+      }
     }
     if (caster && caster !== target && !takeLands(caster, target)) {
       return { kind: 'meter', target, amount: 0, resisted: true };
@@ -481,7 +492,8 @@ const Abilities = (() => {
           // Taking meter is a contest; the helper owns the guard and
           // the resistance roll alike. A `meter` rung deepens the drain.
           const mLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
-          return drainMeter(caster, target, -effect.amount + (mLad.meter || 0));
+          return drainMeter(caster, target, -effect.amount + (mLad.meter || 0),
+            { chance: effect.chance, bonus: mLad.debuffChance || 0 });
         }
         const before = target.turnMeter;
         // No ceiling. Meters overfill past TURN_METER_MAX so that turn

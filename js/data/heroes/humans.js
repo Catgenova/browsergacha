@@ -722,35 +722,36 @@ Object.assign(HEROES, {
       {
         id: 'eli_sigil_bolt', name: 'Sigil Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Brand one enemy for 100% ATK and cut their turn meter by 20%.',
+        description: 'Brand one enemy for 100% ATK, with a 50% chance to cut '
+          + 'their turn meter by 20%.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.0 },
-          { type: 'turnMeter', amount: -0.20 },
+          { type: 'turnMeter', amount: -0.20, chance: 0.5 },
         ],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
-          { mult: 0.1 },
-          { meter: 0.05 },
-          { meter: 0.05 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
         id: 'eli_sealing_glyph', name: 'Sealing Glyph',
         icon: 'assets/icons/fc862.png',
-        description: 'Cast a glyph across the enemy BACK row: 90% ATK and ' +
-          '-15% turn meter to each.',
+        description: 'Cast a glyph across the enemy BACK row: 90% ATK, with a ' +
+          '50% chance to strip 15% turn meter from each.',
         cooldown: 4, targeting: 'back-enemies', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
-          { type: 'turnMeter', amount: -0.15 },
+          { type: 'turnMeter', amount: -0.15, chance: 0.5 },
         ],
         levelUps: [
           { mult: 0.1 },
-          { mult: 0.1 },
-          { mult: 0.1 },
-          { meter: 0.05 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -1055,19 +1056,19 @@ Object.assign(HEROES, {
       {
         id: 'andrew_pickwork', name: 'Pickwork',
         icon: 'assets/icons/fc1044.png',
-        description: 'A working swing for 110% ATK that knocks 15 action ' +
-          'points off the target.',
+        description: 'A working swing for 110% ATK with a 50% chance to knock ' +
+          '15 action points off the target.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.1 },
-          { type: 'turnMeter', amount: -0.15 },
+          { type: 'turnMeter', amount: -0.15, chance: 0.5 },
         ],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
-          { mult: 0.1 },
-          { meter: 0.05 },
-          { meter: 0.05 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
@@ -1932,18 +1933,18 @@ Object.assign(HEROES, {
       {
         id: 'briar_burst', name: 'Briar Burst',
         icon: 'assets/icons/fc1066.png',
-        description: 'Lash an enemy with thorns for 20% of Vivian\'s max HP and cut their action bar by 50%.',
+        description: 'Lash an enemy with thorns for 20% of Vivian\'s max HP, with a 50% chance to cut their action bar in half.',
         cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike_green',
         effects: [
           { type: 'damageHpPct', pct: 0.20 },
-          { type: 'turnMeter', amount: -0.5 },
+          { type: 'turnMeter', amount: -0.5, chance: 0.5 },
         ],
         levelUps: [
           { heal: 0.05 },
           { heal: 0.05 },
-          { heal: 0.05 },
-          { meter: 0.05 },
-          { meter: 0.05 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -3373,14 +3374,16 @@ Object.assign(HEROES, {
       {
         id: 'cleo_fortunes_reversed', name: 'Fortunes Reversed',
         icon: 'assets/icons/fc1053.png',
-        description: 'The wisps fly out and come back with stolen luck: ' +
-          'strips one buff from every enemy.',
+        description: 'The wisps fly out and come back with stolen luck: a 50% ' +
+          'chance to strip one buff from each enemy.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
-          { type: 'stripBuffs', count: 1 },
+          { type: 'stripBuffs', count: 1, chance: 0.5 },
         ],
         levelUps: [
-          { stripCount: 1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
           { stripCount: 1 },
           { stripCount: 1 },
           { cooldown: -1 },

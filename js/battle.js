@@ -632,7 +632,11 @@ class Battle {
         this.addFloatingText(res.target, 'HoT ▲', '#7ae87a');
         this.log(`${res.target.name} is blessed with regrowth for ${res.turns} turns.`, cls);
       } else if (res.kind === 'meter') {
-        if (res.guarded) {
+        if (res.missed) {
+          // The gate failed: the grab never reached the contest.
+          this.addFloatingText(res.target, 'MISS', '#8f8aa0');
+          this.log(`${caster.name} reaches for ${res.target.name}'s turn and misses.`, cls);
+        } else if (res.guarded) {
           this.addFloatingText(res.target, '✎ INKED', '#ffe8a8');
           this.log(`${res.target.name}'s place is written in permanent ` +
             'ink — the drain is refused.', cls);
@@ -710,8 +714,11 @@ class Battle {
           'log-system');
       } else if (res.kind === 'stripBuff') {
         if (res.rolled) {
-          // The rider missed its roll — say nothing rather than
-          // reporting an absence of blessings that were never checked.
+          // The gate failed: the hand never closed on anything. Say so
+          // the way every other failed gate does — a silent nothing on
+          // a coin-flip strip reads as a bug rather than a bad roll.
+          this.addFloatingText(res.target, 'MISS', '#8f8aa0');
+          this.log(`${caster.name} grabs at ${res.target.name}'s blessing and misses.`, cls);
         } else if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');
           this.log(`${res.target.name} keeps its blessing — the strip is resisted!`, cls);
