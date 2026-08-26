@@ -197,18 +197,18 @@ html = r'''<title>Coral, Tide Caller of the Hedge</title>
       <thead><tr><th>Skill</th><th class="num">Base</th><th class="num">Maxed</th><th class="num">Base hit</th><th class="num">Maxed hit</th><th class="num">Maxed, front-hex target</th></tr></thead>
       <tbody>
         <tr><td class="lab">Tide Lash &mdash; every turn</td><td class="num">110%</td><td class="num">160%</td><td class="num">526</td><td class="num">765</td><td class="num"><span class="big">956</span></td></tr>
-        <tr><td class="lab">Undertow &mdash; enemy back row</td><td class="num">90%</td><td class="num">130%</td><td class="num">430</td><td class="num">621</td><td class="num"><span class="never">never</span></td></tr>
+        <tr><td class="lab">Undertow &mdash; enemy back row</td><td class="num">90%</td><td class="num">130%</td><td class="num">430</td><td class="num">621</td><td class="num">776 <span class="never">only on a collapse</span></td></tr>
         <tr><td class="lab">Maelstrom Spear</td><td class="num">240%</td><td class="num">290%</td><td class="num">1,147</td><td class="num">1,386</td><td class="num"><span class="big">1,733</span></td></tr>
       </tbody>
     </table>
   </div>
 
   <h2><span class="glyph">&#x2248;</span> The contradiction in her kit</h2>
-  <p class="section-sub">That "never" is not a rounding note. <b>Riptide
-  pays only against enemies on a front hex. Undertow reaches only
-  enemies on a back hex.</b> Her one area skill is the single skill her
-  passive can never touch &#x2014; and the two cannot be brought
-  together by positioning, gear or levels.</p>
+  <p class="section-sub"><b>Riptide pays only against enemies on a front
+  hex. Undertow reaches only enemies on a back hex.</b> In the ordinary
+  case her one area skill is the single skill her passive cannot touch,
+  and no amount of positioning, gear or levels brings the two
+  together.</p>
   <div class="engine-box">
     <div class="engine-step"><b>Against one back-liner, don't.</b> A
       capped Tide Lash is 160% on no cooldown; a capped Undertow is 130%
@@ -219,11 +219,19 @@ html = r'''<title>Coral, Tide Caller of the Hedge</title>
       back-hex enemies is 390% of her attack in one cast, and it is the
       only sweep she owns.</div>
     <div class="engine-arrow">&#x2192;</div>
-    <div class="engine-step"><b>Against an empty back row, nothing.</b>
-      There is no fallback target &#x2014; the cast finds no one and the
-      turn is gone. A boss is the exception: it spans every hex, so it
-      always qualifies.</div>
+    <div class="engine-step"><b>Against an empty back row, it collapses
+      forward.</b> A row sweep that finds its row empty walks inward
+      until it finds one that is not &#x2014; the centre, then the
+      front. The turn is never wasted.</div>
   </div>
+  <p class="section-sub" style="margin-top:16px">And that collapse is
+  the <em>only</em> way the two halves of her kit ever meet. When the
+  enemy back row is empty and the sweep falls all the way to the front,
+  Undertow is hitting front-hex enemies &#x2014; so <b>Riptide finally
+  pays on it</b>, at 776 a body. It is the one case her passive and her
+  sweep agree on, and she does not get to choose when it happens. (A
+  boss is the other exception, in the other direction: it spans every
+  hex, so it always satisfies the printed row and nothing collapses.)</p>
 
   <h2><span class="glyph">&#x2248;</span> Drain the Line</h2>
   <p class="section-sub">Her hex sits in the <b>centre</b>, and it is
@@ -262,9 +270,9 @@ html = r'''<title>Coral, Tide Caller of the Hedge</title>
       <h3>Undertow</h3>
       <div class="meta">Enemy back row &middot; <b>90% ATK</b> &rarr; 130%</div>
       <p>Her only sweep, and her only awkward button. It goes where
-      Riptide does not, it needs bodies back there to be worth a turn,
-      and it whiffs entirely against a team that keeps nobody home. Two
-      of its six rungs go to the cooldown rather than the number.</p>
+      Riptide does not, and it needs two or three bodies back there to
+      beat simply pressing Tide Lash again. Two of its six rungs go to
+      the cooldown rather than the number.</p>
       <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">

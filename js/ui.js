@@ -1,6 +1,14 @@
 // DOM UI for the battle screen: ability bar, target selection, battle log,
 // end banner. Rebindable to a fresh Battle via bind().
 
+// Hex positions in the words the cards use, for the note a row sweep
+// leaves on its button when the row it names is empty.
+const ROW_WORD = {
+  [POSITION.FRONT]: 'front',
+  [POSITION.CENTER]: 'centre',
+  [POSITION.BACK]: 'back',
+};
+
 class UI {
   constructor(renderer, canvas) {
     this.renderer = renderer;
@@ -140,6 +148,22 @@ class UI {
       const needsStance = a.requires &&
         !unit.statusEffects.some((fx) => fx.stat === a.requires);
       if (needsStance) btn.title += '\n\nNeeds Aiming Stance — cast it first.';
+      // A row sweep aimed at a row nobody is standing in still lands --
+      // it collapses onto the next row in. Say where, because the card
+      // names a row and the sweep is about to hit a different one.
+      const fell = Abilities.rowFallback(a, unit, this.battle);
+      if (fell) {
+        const who = fell.side === 'ally' ? 'ally' : 'enemy';
+        btn.title += `\n\nNo ${who} holds the ${ROW_WORD[fell.aimed]} row ` +
+          `— this lands on the ${ROW_WORD[fell.landed]} row instead.`;
+        btn.classList.add('sweep-collapsed');
+      }
+      // Nothing left to point at: a revive with no one down, or a group
+      // ability on a side that has already fallen. The button says so
+      // rather than spending the turn on an empty set.
+      const noTargets = Abilities.GROUP_TARGETINGS.includes(a.targeting) &&
+        Abilities.resolveTargets(a, unit, null, this.battle).length === 0;
+      if (noTargets) btn.title += '\n\nNothing to target.';
       // The inverse gate: an ability held shut by its OWN mark still
       // standing on someone (Lysandra's thread). The button says why,
       // because a cooldown at zero on a disabled button is otherwise a
@@ -150,7 +174,7 @@ class UI {
           'the one wearing it has to fall.';
       }
       btn.disabled = abilityState.cooldownRemaining > 0 || needsDead ||
-        needsStance || stillTied;
+        needsStance || stillTied || noTargets;
       btn.addEventListener('click', () => this.selectAbility(abilityState, btn));
       this.buttonsEl.appendChild(btn);
     });

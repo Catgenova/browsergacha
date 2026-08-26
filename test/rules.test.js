@@ -6622,4 +6622,90 @@ test('a meter gift never knocks an overfilled unit backwards', () => {
     `${clamps.length} passive(s) still clamp a meter gain to the cap`);
 });
 
+test('a row sweep collapses onto the next row in rather than fizzling', () => {
+  // Seven skills aim at the enemy BACK row and five at the ally FRONT
+  // row. Both used to return an empty target set when nobody stood
+  // there -- the turn and the cooldown spent on nothing. Lin's Center
+  // of Attention is a skill 1 with no cooldown, so that was her basic
+  // attack disappearing against a team with an empty back line.
+  const backSweeps = [];
+  const frontSweeps = [];
+  for (const def of Object.values(HEROES)) {
+    def.abilities.forEach((a, i) => {
+      if (a.targeting === 'back-enemies') backSweeps.push([def, a, i]);
+      if (a.targeting === 'front-allies') frontSweeps.push([def, a, i]);
+    });
+  }
+  assert(backSweeps.length > 0 && frontSweeps.length > 0,
+    'no row sweeps found -- the targeting names must have changed');
+
+  // Every back-row sweep, cast at a team standing only in the FRONT
+  // hexes. It has to find them.
+  for (const [def, a] of backSweeps) {
+    const battle = makeBattle();
+    const caster = place(battle, def, TEAM.PLAYER, 0);
+    const frontIdx = battle.enemySlots
+      .map((s, i) => [s, i]).filter(([s]) => s.position === POSITION.FRONT)
+      .map(([, i]) => i);
+    const foes = frontIdx.map((i) => place(battle, HEROES.oak, TEAM.ENEMY, i));
+    const hit = Abilities.resolveTargets(a, caster, null, battle);
+    assert(hit.length === foes.length,
+      `${def.id} ${a.name} found ${hit.length} of ${foes.length} front-row ` +
+      'enemies when the back row was empty');
+    assert(hit.every((u) => u.slot.position === POSITION.FRONT),
+      `${def.id} ${a.name} collapsed onto the wrong row`);
+  }
+
+  // And every front-row ally sweep, cast by a team standing only in the
+  // BACK hexes.
+  for (const [def, a] of frontSweeps) {
+    const battle = makeBattle();
+    const backIdx = battle.playerSlots
+      .map((s, i) => [s, i]).filter(([s]) => s.position === POSITION.BACK)
+      .map(([, i]) => i);
+    const caster = place(battle, def, TEAM.PLAYER, backIdx[0]);
+    const mates = backIdx.map((i, n) =>
+      n === 0 ? caster : place(battle, HEROES.oak, TEAM.PLAYER, i));
+    const hit = Abilities.resolveTargets(a, caster, null, battle);
+    assert(hit.length === mates.length,
+      `${def.id} ${a.name} blessed ${hit.length} of ${mates.length} back-row ` +
+      'allies when the front row was empty');
+  }
+
+  // The centre is preferred over the front: a back sweep stops at the
+  // first row it finds walking inward, it does not skip to the far side.
+  const battle = makeBattle();
+  const lin = place(battle, HEROES.lin, TEAM.PLAYER, 0);
+  const centreIdx = battle.enemySlots.findIndex(
+    (sl) => sl.position === POSITION.CENTER);
+  const frontIdx = battle.enemySlots.findIndex(
+    (sl) => sl.position === POSITION.FRONT);
+  const middle = place(battle, HEROES.oak, TEAM.ENEMY, centreIdx);
+  place(battle, HEROES.oak, TEAM.ENEMY, frontIdx);
+  const landed = Abilities.resolveTargets(
+    lin.abilities[0].def, lin, null, battle);
+  assert(landed.length === 1 && landed[0] === middle,
+    'a back sweep skipped the centre and went straight to the front');
+
+  // rowFallback is what the ability bar puts in its tooltip, so it has
+  // to agree with where the sweep actually went -- and stay quiet when
+  // the printed row is occupied.
+  const note = Abilities.rowFallback(lin.abilities[0].def, lin, battle);
+  assert(note && note.aimed === POSITION.BACK && note.landed === POSITION.CENTER,
+    `rowFallback said ${JSON.stringify(note)} for a back sweep landing centre`);
+  const backIdx = battle.enemySlots.findIndex(
+    (sl) => sl.position === POSITION.BACK);
+  place(battle, HEROES.oak, TEAM.ENEMY, backIdx);
+  assert(Abilities.rowFallback(lin.abilities[0].def, lin, battle) === null,
+    'rowFallback spoke up for a sweep landing exactly where it was aimed');
+
+  // Nobody left standing is still nobody: the collapse walks the rows,
+  // it does not invent a target.
+  const empty = makeBattle();
+  const alone = place(empty, HEROES.lin, TEAM.PLAYER, 0);
+  assert(Abilities.resolveTargets(
+    alone.abilities[0].def, alone, null, empty).length === 0,
+    'a row sweep found a target on an empty side');
+});
+
 report();
