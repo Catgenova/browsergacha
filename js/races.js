@@ -24,7 +24,7 @@ const RACES = (() => {
   // same explicit roster the humans do rather than an id prefix that
   // would force every Gulldigger to be the same species.
   const AVIANS = new Set([
-    'hallow', 'ike',
+    'hallow', 'ike', 'jack',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -104,7 +104,7 @@ const RACES = (() => {
     // way weather does, all at once and to everybody. Hallow holds the
     // 5★ chair.
     gulldigger: { id: 'gulldigger', name: 'Gulldigger', number: 8,
-                 members: ['hallow', 'ike'] },
+                 members: ['hallow', 'ike', 'jack'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

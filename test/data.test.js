@@ -24,7 +24,18 @@ test('every hero has the full contract', () => {
     assert(h.id && h.name, `hero missing id/name: ${JSON.stringify(h).slice(0, 60)}`);
     assert(h.rarity >= 1 && h.rarity <= 5, `${h.id}: bad rarity ${h.rarity}`);
     assert(h.element, `${h.id}: no element`);
-    assert((h.abilities || []).length === 3, `${h.id}: ${(h.abilities || []).length} abilities`);
+    // Three actives for everyone -- except a 1-star, who gets exactly
+    // one. A hero at the bottom of a sect is a body with a knife, not a
+    // kit; the single skill IS the character, and there is no slot 2 or
+    // 3 for it to hide behind.
+    const wantSkills = h.rarity === 1 ? 1 : 3;
+    assert((h.abilities || []).length === wantSkills,
+      `${h.id}: ${(h.abilities || []).length} abilities, a ${h.rarity}-star has ${wantSkills}`);
+    if (h.rarity === 1) {
+      assert(h.abilities[0].cooldown === 0,
+        `${h.id}: a 1-star's only skill has a ${h.abilities[0].cooldown}-turn cooldown, ` +
+        'so it has turns with nothing at all to do');
+    }
     assert(passivesOf(h).length >= 1, `${h.id}: no passive`);
     assert(h.positional, `${h.id}: no positional`);
     assert(h.stats && h.stats.hp > 0, `${h.id}: no stats`);
@@ -181,7 +192,7 @@ test('every sect holds one race, once each, with its number', () => {
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
-    gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike'] },
+    gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike', 'jack'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

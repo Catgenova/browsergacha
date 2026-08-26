@@ -739,7 +739,16 @@ class Unit {
           b.deaths = (b.deaths || 0) + 1;
           Unit.deathRinging = true;
           try {
-            for (const watcher of b.livingUnits()) {
+            // The victim hears its OWN death, and hears it first: a
+            // passive that only pays out when its owner falls (Jack's
+            // powder keg) has no other moment to fire in. Everyone who
+            // read this hook before it did so to be paid for somebody
+            // ELSE dying, and all three of them already guard against a
+            // self-death -- Morrow on `!unit.alive`, Lenore on
+            // `victim === unit`, Sable on the victim being an enemy --
+            // so adding the corpse to the ring changes nothing for
+            // them.
+            for (const watcher of [this, ...b.livingUnits()]) {
               for (const p of (watcher.hookSources ? watcher.hookSources() : [])) {
                 const hook = p.hooks && p.hooks.onUnitDied;
                 if (hook) hook(watcher, { victim: this, battle: b });
