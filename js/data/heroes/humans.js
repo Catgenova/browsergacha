@@ -612,7 +612,7 @@ Object.assign(HEROES, {
     id: 'sawyer',
     element: 'dark',
     name: 'Sawyer',
-    title: 'Blade of Shadowflower',
+    title: 'Blade of the Nightflowers',
     rarity: 5,
     // Front-row carry money: the ATK line leads, the DEF line pays for
     // it, and Night Bloom is how he affords standing in the front hexes.
