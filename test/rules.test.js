@@ -7305,4 +7305,97 @@ test('Bo eats one meal per bird he knocks down, and a big pouch holds more', () 
   }
 });
 
+test('Wanda pipes louder to a fuller deck, and only her blessings carry', () => {
+  const wanda = HEROES.wanda;
+  assert(wanda.rarity === 2 && wanda.abilities.length === 2,
+    `Wanda is a ${wanda.rarity}-star with ${wanda.abilities.length} skills`);
+  const call = wanda.abilities[1];
+  assert(call.effects[0].perTarget > 0, 'the call lost its crowd bonus');
+
+  function crew(n, hex = POSITION.BACK) {
+    const battle = new Battle();
+    const w = new Unit(wanda, TEAM.PLAYER, { level: 30, stars: 2 });
+    battle.placeUnit(w, battle.playerSlots.findIndex((sl) => sl.position === hex));
+    w.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    const mates = [w];
+    for (let i = 0; i < n - 1; i++) {
+      const free = battle.playerSlots.findIndex(
+        (sl) => !battle.units.some((u) => u.slot === sl));
+      const m = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+      battle.placeUnit(m, free);
+      mates.push(m);
+    }
+    mates.forEach((u) => { u.turnMeter = 0; });
+    return { battle, w, mates };
+  }
+
+  // The call is worth more the more of the crew answers it -- the
+  // sect's crowd bonus, on tempo rather than on damage.
+  const pushed = [1, 3, 5, 7].map((n) => {
+    const { battle, w, mates } = crew(n);
+    Abilities.execute(call, w, mates[mates.length - 1], battle);
+    const got = mates.map((u) => u.turnMeter);
+    assert(new Set(got).size === 1,
+      `one call pushed ${[...new Set(got)].join('/')} to different birds`);
+    return got[0];
+  });
+  for (let i = 1; i < pushed.length; i++) {
+    assert(pushed[i] > pushed[i - 1],
+      `the call did not carry further: ${pushed.map(Math.round).join(' -> ')}`);
+  }
+
+  // Weather Eye widens what she hands out, from the back hex only.
+  const fromBack = (() => {
+    const { battle, w, mates } = crew(3, POSITION.BACK);
+    Abilities.execute(wanda.abilities[0], w, mates[1], battle);
+    return mates[1].turnMeter;
+  })();
+  const fromMiddle = (() => {
+    const { battle, w, mates } = crew(3, POSITION.CENTER);
+    Abilities.execute(wanda.abilities[0], w, mates[1], battle);
+    return mates[1].turnMeter;
+  })();
+  assert(fromBack > fromMiddle,
+    `Weather Eye paid nothing: ${Math.round(fromBack)} vs ${Math.round(fromMiddle)}`);
+
+  // She does not out-pipe Artur, who is the roster's tempo support and
+  // a rank above her, on the cooldown-free button they share.
+  {
+    const artur = HEROES.artur;
+    const his = artur.abilities[0];
+    const hisLad = Progression.skillLadder(his, Progression.skillCap(his, 0));
+    const hers = wanda.abilities[0];
+    const herLad = Progression.skillLadder(hers, Progression.skillCap(hers, 0));
+    // Find the meter effect by TYPE: Margin Note carries more than one
+    // effect and the push is not the first of them.
+    const top = (a, lad) => {
+      const push = a.effects.find((e) => e.type === 'turnMeter' && e.amount > 0);
+      assert(push, `${a.name} stopped pushing an action bar`);
+      return push.amount + (lad.meter || 0);
+    };
+    assert(top(hers, herLad) <= top(his, hisLad),
+      `Wanda's basic pipe tops out at ${top(hers, herLad)} against Artur's ${top(his, hisLad)}`);
+  }
+
+  // Carries on the Wind lengthens HER blessings and nobody else's.
+  {
+    const { battle, w, mates } = crew(3);
+    Abilities.execute(call, w, mates[1], battle);
+    const hers = mates[1].statusEffects.find((fx) => fx.stat === 'atk');
+    const printed = call.effects[1].turns +
+      (Progression.skillLadder(call, Progression.skillCap(call, 1)).duration || 0);
+    assert(hers && hers.turns === printed + 1,
+      `her own buff ran ${hers && hers.turns} turns against a printed ${printed}`);
+
+    const free = battle.playerSlots.findIndex(
+      (sl) => !battle.units.some((u) => u.slot === sl));
+    const talon = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+    battle.placeUnit(talon, free);
+    Abilities.execute(HEROES.talon.abilities[1], talon, mates[1], battle);
+    const his = mates[1].statusEffects.find((fx) => fx.stat === 'damageTaken');
+    assert(his && his.turns === HEROES.talon.abilities[1].effects[0].turns,
+      `Talon's buff ran ${his && his.turns} turns beside Wanda -- her passive leaked`);
+  }
+});
+
 report();

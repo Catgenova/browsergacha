@@ -1006,6 +1006,20 @@ class Unit {
     // one gate they all share. Heals-over-time, shields and bubbles are
     // not stat buffs and still land.
     if (e.kind === 'buff' && this.buffsSealed()) return false;
+    // A `buffExtraTurns` hook on whoever HANDED this out keeps it up
+    // longer (Wanda's call carries). The sibling of debuffExtraTurns
+    // (Vex) and shieldExtraTurns (Peck); the family was missing its
+    // friendly member. Read off the source rather than the recipient,
+    // because it is the caller's blessing, not the receiver's luck.
+    if (e.kind === 'buff' && e.turns > 0) {
+      const from = e.source || Unit.hookOwner;
+      // Including a blessing she puts on herself: it is still hers.
+      if (from && from.hookSources) {
+        for (const p of from.hookSources()) {
+          if (p.hooks && p.hooks.buffExtraTurns) e.turns += p.hooks.buffExtraTurns;
+        }
+      }
+    }
     // Effects a passive or positional hook puts on SOMEONE ELSE belong to
     // the hook's owner. Abilities pass `source` explicitly; the ~150 hook
     // call sites in the data files do not, and without this every rally

@@ -666,4 +666,90 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.deep_pouch,
   },
+
+  wanda: {
+    id: 'wanda',
+    element: 'water',
+    name: 'Wanda',
+    title: 'Bosun',
+    rarity: 2,
+    // Nothing in her kit reads ATK or her own health pool: she is a
+    // whistle with legs, and every number on her card is a flat
+    // percentage. Speed is the one stat that changes what she is worth,
+    // because a call given before the enemy line thins is worth more
+    // than the same call given after.
+    // (Ratios only; js/data/balance.js scales all three to the shared
+    // budget and leaves speed alone.)
+    stats: { hp: 1500, atk: 95, def: 125, speed: 116 },
+    tint: { body: '#e8ecf4', helm: '#1a5ac8', weapon: '#e8b898', shield: '#c8a86a' },
+    sprite: {
+      displayH: 94, // she stands tall, and the conch stands taller
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Wandaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // TWO skills, being a 2-star.
+    abilities: [
+      {
+        id: 'pipe_the_side', name: 'Pipe the Side',
+        icon: 'assets/icons/fc866.png',
+        description: 'Two notes on the conch and somebody moves: one ally gains 15% action bar.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        // Rungs of three rather than the usual five. At the standard
+        // step this reached 45% -- and 56% off her own back hex --
+        // against the 35% Artur's Margin Note tops out at, on the same
+        // cooldown-free single-ally slot. He is the roster's tempo
+        // support and a 4-star; a 2-star does not out-pipe him on the
+        // button they share.
+        effects: [{ type: 'turnMeter', amount: 0.15 }],
+        levelUps: [
+          { meter: 0.03 },
+          { meter: 0.03 },
+          { meter: 0.03 },
+          { meter: 0.03 },
+          { meter: 0.03 },
+        ],
+      },
+      {
+        id: 'all_hands', name: 'All Hands',
+        icon: 'assets/icons/fc1113.png',
+        description: 'The long call, and the whole deck answers: ALL allies gain 8% action ' +
+          'bar and 2% more each for every ally beyond the first who answers, plus 15% ATK ' +
+          'for 2 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // The sect's crowd bonus on tempo. It matters more to the
+        // Gulldiggers than it would to anyone else: their damage is
+        // priced off how many enemies are still standing, so a turn
+        // taken EARLY -- while the enemy line is still full -- is worth
+        // more than the same turn taken late. Wanda is how they get
+        // their sweeps off before the crowd thins.
+        effects: [
+          { type: 'turnMeter', amount: 0.08, perTarget: 0.02 },
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 2 },
+        ],
+        levelUps: [
+          { meter: 0.02 },
+          { perTarget: 0.01 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Carries on the Wind',
+      icon: 'assets/icons/fc1053.png',
+      description: 'A conch heard once is heard for a while: every buff Wanda hands out ' +
+        'lasts 1 turn longer.',
+      hooks: {
+        // Read off the SOURCE when a buff lands, so it lengthens what
+        // she gives other people rather than what she happens to be
+        // carrying. Completes the family: Vex lengthens her hexes,
+        // Peck his wards, Wanda her blessings.
+        buffExtraTurns: 1,
+      },
+    },
+    positional: POSITIONALS.weather_eye,
+  },
 });
