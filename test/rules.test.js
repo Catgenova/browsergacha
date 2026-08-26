@@ -4203,4 +4203,105 @@ test("Ryn's kit: speed is the damage stat", () => {
   }
 });
 
+test("Imani's kit: the chime picks its own victims, and answers their blessings", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.imani;
+  assert(def && def.element === 'wind' && def.rarity === 4, 'Imani drifted');
+  assert(RACES.sectOf(def).id === 'whisperchime', 'Imani left the Whisperchime');
+  assert(def.role === 'dps', 'Imani is not binned as damage');
+
+  const arena = () => {
+    const b = makeBattle();
+    const imani = place(b, def, TEAM.PLAYER, 0);     // the centre hex
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+    }
+    imani.baseCritChance = -1;
+    return { b, imani, foes };
+  };
+
+  // ---- Skill 2 draws TWO distinct enemies; skill 3 draws THREE ----
+  {
+    const { b, imani, foes } = arena();
+    for (const [ability, want] of [[def.abilities[1], 2], [def.abilities[2], 3]]) {
+      const spread = new Set();
+      for (let i = 0; i < 40; i++) {
+        const hit = A.execute(ability, imani, null, b).filter((r) => r.kind === 'damage');
+        assert(hit.length === want, `${ability.name} hit ${hit.length}, expected ${want}`);
+        assert(new Set(hit.map((r) => r.target)).size === want,
+          `${ability.name} rang the same bell twice`);
+        hit.forEach((r) => spread.add(r.target));
+      }
+      assert(spread.size > want, `${ability.name} always chose the same enemies`);
+    }
+  }
+
+  // A thin field simply gets everyone standing, not a crash.
+  {
+    const b = makeBattle();
+    const imani = place(b, def, TEAM.PLAYER, 0);
+    const lone = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    lone.hp = lone.maxHp = 10 ** 7;
+    lone.dodgeChance = () => 0;
+    const hit = A.execute(def.abilities[2], imani, null, b).filter((r) => r.kind === 'damage');
+    assert(hit.length === 1 && hit[0].target === lone,
+      `a one-enemy field took ${hit.length} hits`);
+  }
+
+  // ---- Skill 3 also drags at their speed ----
+  {
+    const { b, imani, foes } = arena();
+    const before = foes.map((f) => f.effectiveStat('speed'));
+    const hit = A.execute(def.abilities[2], imani, null, b)
+      .filter((r) => r.kind === 'damage').map((r) => r.target);
+    for (const f of hit) {
+      assert(f.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'speed'),
+        'a struck enemy kept its full speed');
+    }
+    const untouched = foes.filter((f) => !hit.includes(f));
+    for (const f of untouched) {
+      assert(f.effectiveStat('speed') === before[foes.indexOf(f)],
+        'the peal slowed somebody it never rang for');
+    }
+  }
+
+  // ---- Answering Bells: +20% per buff ON THE TARGET ----
+  {
+    const { b, imani, foes } = arena();
+    const bare = foes[0], dressed = foes[1];
+    dressed.effectiveStat = bare.effectiveStat.bind(bare);  // same defence
+    const hit = (foe) => {
+      const before = foe.hp;
+      A.applyEffect({ type: 'damage', mult: 1.0 }, imani, foe, 1);
+      return before - foe.hp;
+    };
+    const plain = hit(bare);
+    for (let i = 0; i < 3; i++) {
+      dressed.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    }
+    const loud = hit(dressed);
+    assert(Math.abs(loud / plain - 1.6) < 0.03,
+      `three blessings paid ${(loud / plain).toFixed(3)}x, expected 1.6x`);
+    // And she is the mirror of Galen: he wants them bare, she wants them dressed.
+    assert(H.galen.passive.hooks.damageDealtMult(imani, dressed) === 1 &&
+      H.galen.passive.hooks.damageDealtMult(imani, bare) === 1.25,
+      'the sect no longer pulls in two directions');
+  }
+
+  // ---- The centre hex pays attack ----
+  {
+    assert(def.positional.name === 'Chime Bar' && def.positional.stat === 'atk' &&
+      def.positional.mult === 1.15, 'the centre bonus drifted');
+    const b = makeBattle();
+    const mid = place(b, def, TEAM.PLAYER, 0);
+    const off = place(b, def, TEAM.PLAYER, 1);
+    assert(mid.slot.position === POSITION.CENTER, 'slot 0 is not the middle hex');
+    assert(mid.effectiveStat('atk') === Math.round(off.effectiveStat('atk') * 1.15),
+      `centre ${mid.effectiveStat('atk')} vs off-centre ${off.effectiveStat('atk')}`);
+  }
+});
+
 report();

@@ -456,6 +456,14 @@ const POSITIONALS = (() => {
   // Galen's hex: back where he can watch the whole field turn.
   // Ilyra's hex: standing back, the wind bends around her.
   // Ryn's hex: out front, where the wind is already moving.
+  // Imani's hex: the middle, where the whole chime hangs.
+  def('chime_bar', {
+    position: POSITION.CENTER,
+    name: 'Chime Bar',
+    description: 'Center hex: +15% ATK — every bell on the bar rings at once.',
+    stat: 'atk', mult: 1.15,
+  });
+
   def('headwind', {
     position: POSITION.FRONT,
     name: 'Headwind',
