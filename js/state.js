@@ -869,9 +869,12 @@ const GameState = (() => {
       const e = state.roster[uid];
       const def = this.defOf(uid);
       if (!e || !def) return null;
+      // Each ability caps at its own slot's ceiling: laddered skills run
+      // 6/7/8 by slot, unswept ones stay on the legacy 5.
       const open = (def.abilities || [])
         .map((_, i) => i)
-        .filter((i) => this.skillLevel(uid, i) < Progression.MAX_SKILL_LEVEL);
+        .filter((i) => this.skillLevel(uid, i) <
+          Progression.skillCap(def.abilities[i], i));
       if (!open.length) return null;
       const idx = open[Math.floor(Math.random() * open.length)];
       if (!e.skills) e.skills = {};

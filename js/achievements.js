@@ -24,8 +24,8 @@ const ACHIEVEMENTS = (() => {
   const bestLevel = () => Math.max(1,
     ...heroes().map((uid) => GameState.progressOf(uid).level));
   const maxedSkills = () => heroes().filter((uid) =>
-    (GameState.defOf(uid).abilities || []).every((_, i) =>
-      GameState.skillLevel(uid, i) >= Progression.MAX_SKILL_LEVEL)).length;
+    (GameState.defOf(uid).abilities || []).every((a, i) =>
+      GameState.skillLevel(uid, i) >= Progression.skillCap(a, i))).length;
   const bossesCleared = (stage) => Object.values(BOSSES)
     .filter((b) => GameState.bossStageCleared(b.id) >= stage).length;
 

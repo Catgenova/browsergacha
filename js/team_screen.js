@@ -768,20 +768,23 @@ class TeamScreen {
     const placedSlot = slotIndex !== null ? this.slots[slotIndex] : null;
     const bonusLive = placedSlot && placedSlot.position === def.positional.position;
 
-    // Abilities with skill levels: each level past 1 adds +10% power.
-    // Raised only by sacrificing another copy of the same character, over
-    // in Improve -- there is no currency for it any more.
+    // Abilities with skill levels. A reworked skill spends each level on
+    // an explicit rung -- power, cooldown, debuff chance, duration (see
+    // docs/skill-level-process.md); the rest still take the old blanket
+    // +10%. Raised only by sacrificing another copy, over in Improve.
     const abilitiesHtml = def.abilities.map((a, i) => {
-      const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
       const icon = a.icon
         ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
       const lv = GameState.skillLevel(uid, i);
-      const maxed = lv >= Progression.MAX_SKILL_LEVEL;
-      const bonus = Math.round((Progression.skillPower(lv) - 1) * 100);
-      const powerText = bonus > 0 ? ` · +${bonus}% power` : '';
+      const cap = Progression.skillCap(a, i);
+      const cdTurns = Progression.skillCooldown(a, lv);
+      const cd = cdTurns > 0 ? `CD ${cdTurns}` : 'No CD';
+      const maxed = lv >= cap;
+      const bonusText = Progression.skillBonusText(a, lv);
+      const powerText = bonusText ? ` · ${bonusText}` : '';
       return `<div class="detail-ability">${icon}<b>${a.name}</b>
-        <span class="cd">Lv ${lv}/${Progression.MAX_SKILL_LEVEL} · ${cd}${powerText}</span>
+        <span class="cd">Lv ${lv}/${cap} · ${cd}${powerText}</span>
         ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
     }).join('');
 
@@ -981,16 +984,18 @@ class TeamScreen {
     const xpNeed = atCap ? 0 : Progression.xpToNext(e.level);
     const xpPct = atCap ? 100 : Math.min(100, Math.round((e.xp / xpNeed) * 100));
     const abilitiesHtml = def.abilities.map((a, i) => {
-      const cd = a.cooldown > 0 ? `CD ${a.cooldown}` : 'No CD';
       const icon = a.icon
         ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
         : '';
       const lv = (e.skills && e.skills[i]) || 1;
-      const maxed = lv >= Progression.MAX_SKILL_LEVEL;
-      const bonus = Math.round((Progression.skillPower(lv) - 1) * 100);
-      const powerText = bonus > 0 ? ` · +${bonus}% power` : '';
+      const cap = Progression.skillCap(a, i);
+      const cdTurns = Progression.skillCooldown(a, lv);
+      const cd = cdTurns > 0 ? `CD ${cdTurns}` : 'No CD';
+      const maxed = lv >= cap;
+      const bonusText = Progression.skillBonusText(a, lv);
+      const powerText = bonusText ? ` · ${bonusText}` : '';
       return `<div class="detail-ability">${icon}<b>${a.name}</b>
-        <span class="cd">Lv ${lv}/${Progression.MAX_SKILL_LEVEL} · ${cd}${powerText}</span>
+        <span class="cd">Lv ${lv}/${cap} · ${cd}${powerText}</span>
         ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
     }).join('');
 

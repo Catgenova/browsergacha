@@ -288,8 +288,14 @@ const Abilities = (() => {
         const bodies = (currentBattle && currentBattle.deaths) ||
           ((typeof Battle !== 'undefined' && Battle.active &&
             Battle.active.deaths) || 0);
-        const mult = effect.mult +
-          (effect.perMirror || 0) * (caster.mirrors || 0) +
+        // Ladder rungs (docs/skill-level-process.md) add points to the
+        // modifier rather than multiplying it. `perMirror` gets its own
+        // rung value because on a mirror-scaled kit the per-mirror term
+        // IS the skill — raising only the flat part would make a
+        // level-up worth a fraction of what it is worth on anyone else.
+        const lad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const mult = effect.mult + (lad.mult || 0) +
+          ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
           (effect.perDeath || 0) * bodies;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *

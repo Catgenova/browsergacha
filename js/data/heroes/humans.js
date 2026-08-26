@@ -48,21 +48,53 @@ Object.assign(HEROES, {
           description: 'Strike one enemy for 60% DEF, +30% DEF per active crystal mirror.',
           cooldown: 0, targeting: 'enemy', animation: 'attack',
           effects: [{ type: 'damageDef', mult: 0.6, perMirror: 0.3 }],
+          // No cooldown and no debuff, so every rung is damage. Each buys
+          // BOTH halves of the modifier: the per-mirror term is the skill
+          // on a mirror kit, and raising only the flat part would make a
+          // level-up worth a quarter of what it is worth on anyone else.
+          levelUps: [
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+          ],
         },
         {
           id: 'prism_wave', name: 'Prism Wave',
           icon: 'assets/icons/fc306.png',
           description: 'Sweep an enemy row for 40% DEF, +20% DEF per active crystal mirror.',
-          cooldown: 3, targeting: 'enemy-row', animation: 'attack',
+          // Base cooldown raised 3 -> 4 by the sweep rule; the last two
+          // rungs hand it back and then some, landing at 2.
+          cooldown: 4, targeting: 'enemy-row', animation: 'attack',
           effects: [{ type: 'damageDef', mult: 0.4, perMirror: 0.2 }],
+          levelUps: [
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { cooldown: -1 },
+            { cooldown: -1 },
+          ],
         },
         {
           id: 'resonant_shatter', name: 'Resonant Shatter',
           icon: 'assets/icons/fc307.png',
           description: 'Blast one enemy for 70% DEF, +40% DEF per active crystal mirror, then reform 2 mirrors.',
-          cooldown: 5, targeting: 'enemy', animation: 'skill3',
+          // Base cooldown raised 5 -> 6 by the sweep rule; fully levelled
+          // it cycles at 4, one turn faster than it ever did.
+          cooldown: 6, targeting: 'enemy', animation: 'skill3',
           effects: [{ type: 'damageDef', mult: 0.7, perMirror: 0.4 }],
           selfEffects: [{ type: 'mirrors', count: 2 }],
+          levelUps: [
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { mult: 0.10, perMirror: 0.05 },
+            { cooldown: -1 },
+            { cooldown: -1 },
+          ],
         },
       ],
       passive: {

@@ -6,7 +6,7 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState, RACES, DUMMIES } = g;
+  Battle, GameState, RACES, DUMMIES, Progression } = g;
 
 // The bottom of the roster. It used to be 1-star -- the generated
 // cohorts filled that shelf -- and is 3-star now that only authored
@@ -5934,6 +5934,85 @@ test('the next-up indicator agrees with who actually acts', () => {
   a.speed = 10; b.speed = 400; c.speed = 10;
   assert(nextUp(battle) === b,
     'projection ignored speed and picked the fuller-but-slower meter');
+});
+
+test("Aniani's skill ladder reaches the damage, the cooldown and the caps", () => {
+  const A = Abilities, H = HEROES, P = Progression;
+  const def = H.echo;
+  const [lance, wave, shatter] = def.abilities;
+
+  // Per-slot rungs: 5/6/7, so caps are 6/7/8.
+  assert(P.skillCap(lance, 0) === 6, `skill 1 cap ${P.skillCap(lance, 0)}`);
+  assert(P.skillCap(wave, 1) === 7, `skill 2 cap ${P.skillCap(wave, 1)}`);
+  assert(P.skillCap(shatter, 2) === 8, `skill 3 cap ${P.skillCap(shatter, 2)}`);
+  assert(lance.levelUps.length === 5 && wave.levelUps.length === 6 &&
+    shatter.levelUps.length === 7, 'rung counts drifted from 5/6/7');
+
+  // The sweep rule raised skills 2 and 3 by one turn at base...
+  assert(wave.cooldown === 4, `Prism Wave base cd ${wave.cooldown}`);
+  assert(shatter.cooldown === 6, `Resonant Shatter base cd ${shatter.cooldown}`);
+  // ...and the last two rungs hand back two, ending better than before.
+  assert(P.skillCooldown(wave, 7) === 2, `Wave at max cd ${P.skillCooldown(wave, 7)}`);
+  assert(P.skillCooldown(shatter, 8) === 4, `Shatter at max cd ${P.skillCooldown(shatter, 8)}`);
+  // A cooldown rung must never make a skill free.
+  assert(P.skillCooldown(shatter, 8) >= 1, 'a cooldown rung reached zero');
+
+  // The rungs must actually land in the damage, not merely in the table.
+  // Both halves of the modifier move: 60+30/mirror at Lv1 becomes
+  // 110+55/mirror at Lv6, which at six mirrors is 240% -> 440% DEF.
+  const battle = makeBattle();
+  const cast = (level) => {
+    const u = place(battle, def, TEAM.PLAYER, 0);
+    const foe = place(battle, def, TEAM.ENEMY, 0);
+    u.mirrors = 6; foe.mirrors = 0;
+    const st = u.abilities.find((x) => x.def === lance);
+    st.level = level;
+    const bonus = u.skillBonusFor(lance);
+    return { u, foe, bonus };
+  };
+  const lo = cast(1), hi = cast(6);
+  assert(Object.keys(lo.bonus).length === 0, 'level 1 earned a rung it should not have');
+  assert(Math.abs(hi.bonus.mult - 0.50) < 1e-9, `flat rungs ${hi.bonus.mult}`);
+  assert(Math.abs(hi.bonus.perMirror - 0.25) < 1e-9, `mirror rungs ${hi.bonus.perMirror}`);
+  const eff = lance.effects[0];
+  const total = (b) => eff.mult + (b.mult || 0) + (eff.perMirror + (b.perMirror || 0)) * 6;
+  assert(Math.abs(total(lo.bonus) - 2.40) < 1e-9, `Lv1 at six mirrors ${total(lo.bonus)}`);
+  assert(Math.abs(total(hi.bonus) - 4.40) < 1e-9, `Lv6 at six mirrors ${total(hi.bonus)}`);
+
+  // A laddered skill must NOT also take the old blanket multiplier, or
+  // every rung would be paid twice.
+  assert(hi.u.skillPowerFor(lance) === 1,
+    'a laddered skill is still taking the legacy skillPower multiplier');
+
+  // The readout must not fuse the two halves into one number that is
+  // true at no mirror count.
+  const text = P.skillBonusText(lance, 6);
+  assert(text.includes('+50% power') && text.includes('+25%/mirror'),
+    `ladder readout fused its halves: ${text}`);
+});
+
+test('unswept heroes keep the old blanket skill scaling', () => {
+  const H = HEROES, P = Progression;
+  // The roster is swept hero by hero, so most abilities have no ladder
+  // yet. Those must keep the legacy cap and the legacy multiplier --
+  // a half-migrated system that quietly zeroed them would be worse than
+  // no migration at all.
+  const legacy = Object.values(H)
+    .flatMap((h) => (h.abilities || []).map((a, i) => ({ h, a, i })))
+    .filter(({ a }) => !a.levelUps);
+  assert(legacy.length > 0, 'no unswept abilities left -- retire this test');
+  const { h, a, i } = legacy[0];
+  assert(P.skillCap(a, i) === P.MAX_SKILL_LEVEL,
+    `${h.id} skill ${i + 1} lost the legacy cap`);
+  assert(Math.abs(P.skillPower(5) - 1.4) < 1e-9, 'legacy skillPower drifted');
+  assert(P.skillBonusText(a, 5) === '+40% power',
+    `legacy readout changed: ${P.skillBonusText(a, 5)}`);
+  const battle = makeBattle();
+  const u = place(battle, h, TEAM.PLAYER, 0);
+  const st = u.abilities.find((x) => x.def === a);
+  st.level = 5;
+  assert(Math.abs(u.skillPowerFor(a) - 1.4) < 1e-9,
+    'an unswept ability stopped scaling with skill level');
 });
 
 report();
