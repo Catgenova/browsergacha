@@ -139,6 +139,18 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Jack's hex: the smallest bird on the boarding line gets to pick
+  // who has not been hit yet. The mirror of Tumble's Eye of the Ring,
+  // which pays for finishing rather than for starting.
+  def('first_blood', {
+    position: POSITION.FRONT,
+    name: 'First Blood',
+    description: 'Front hex: +25% damage to enemies who have not been hurt yet.',
+    hooks: {
+      damageDealtMult: (u, t) => (t && t.hp >= t.maxHp ? 1.25 : 1),
+    },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

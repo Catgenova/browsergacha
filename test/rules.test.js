@@ -16,6 +16,23 @@ function lowestRarity(world = g) {
   return Math.min(...Object.values(world.HEROES).map((h) => h.rarity || 1));
 }
 
+// The cheapest shelf carrying at least `n` DIFFERENT characters. The
+// bottom of the roster is not necessarily stocked: a sect's 1-star is
+// exactly ONE hero by the sect's own shape, so a test that needs two
+// distinct bodies to melt into each other asks for a shelf that can
+// actually supply them instead of assuming the floor can.
+function shelfOf(n, world = g) {
+  const count = new Map();
+  for (const h of Object.values(world.HEROES)) {
+    const r = h.rarity || 1;
+    count.set(r, (count.get(r) || 0) + 1);
+  }
+  const shelf = [...count.entries()]
+    .filter(([, c]) => c >= n).map(([r]) => r).sort((a, b) => a - b)[0];
+  assert(shelf !== undefined, `no rarity has ${n} characters on it`);
+  return shelf;
+}
+
 // A battle stand-in: enough surface for hooks that reach for the field.
 function makeBattle() {
   const slots = Hex.buildFormation(TEAM.PLAYER, 200, 200, 56);
@@ -1360,10 +1377,9 @@ test('favourites and team members are never sacrifice material', () => {
 test('auto star up forges the bottom shelf one rank up', () => {
   const w = loadGame();
   const G = w.GameState;
-  const floor = lowestRarity(w);
+  const floor = shelfOf(2, w);
   const goal = floor + 1;
   const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === floor);
-  assert(ones.length >= 2, `need two ${floor}-star characters for this test`);
   // A star up at rank N eats N heroes, so one recipient plus its cost
   // is what a single rank costs.
   const cost = w.Progression.starUpCost(floor);
@@ -2355,7 +2371,7 @@ test('login bonuses: two separate claims, a real calendar, catch-up buys days', 
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
-  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === lowestRarity(w));
+  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === shelfOf(2, w));
   const [a, b] = ones;
 
   const first = G.addHero(a.id);
@@ -6870,6 +6886,80 @@ test("Ike's pike reaches the centre hex, and only his does", () => {
     `a fourth body did not deepen the crowd bonus (${three.each} -> ${four.each})`);
   assert(four.total > three.total * 1.3,
     `the centre hex added only ${Math.round((four.total / three.total - 1) * 100)}%`);
+});
+
+test("Jack is one skill and a powder keg, and the keg only goes off for him", () => {
+  const jack = HEROES.jack;
+  assert(jack.rarity === 1 && jack.abilities.length === 1,
+    `Jack is a ${jack.rarity}-star with ${jack.abilities.length} skills`);
+  assert(jack.abilities[0].cooldown === 0, "Jack's only skill has a cooldown");
+
+  // A real Battle, not the stub: the death ring lives on Battle.active
+  // and the keg is fired from inside it.
+  function field() {
+    const battle = new Battle();
+    const j = new Unit(jack, TEAM.PLAYER, { level: 30, stars: 1 });
+    battle.placeUnit(j, 1);
+    // Three enemies spread across the hexes, so the keg has both a
+    // front row to hit and somebody behind it to leave alone.
+    battle.enemySlots.forEach((sl, i) => {
+      if (i > 3) return;
+      const f = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 5, stars: 3 });
+      battle.placeUnit(f, i);
+    });
+    return { battle, j };
+  }
+
+  // Kill Jack and the front row should feel it.
+  let { battle, j } = field();
+  let foes = battle.livingUnits(j.enemyTeam());
+  foes.forEach((u) => { u.hp = u.maxHp = 9e6; });
+  const before = foes.map((u) => u.hp);
+  j.takeDamage(9e9);
+  assert(!j.alive, 'Jack survived nine billion');
+  const dealt = foes.map((u, i) => before[i] - u.hp);
+  const front = foes.filter((u) => u.isBoss || u.slot.position === POSITION.FRONT);
+  assert(front.length > 0, 'the probe stood nobody on a front hex');
+  const hurtFront = foes.filter((u, i) => dealt[i] > 0 &&
+    (u.isBoss || u.slot.position === POSITION.FRONT));
+  assert(hurtFront.length === front.length,
+    `the keg reached ${hurtFront.length} of ${front.length} front-hex enemies`);
+  foes.forEach((u, i) => {
+    const isFront = u.isBoss || u.slot.position === POSITION.FRONT;
+    assert(isFront || dealt[i] === 0,
+      `the keg hit a ${u.slot.position}-hex enemy for ${dealt[i]}`);
+  });
+
+  // It is HIS death that sets it off -- an ally dying beside him does
+  // nothing, which is what separates this from every other onUnitDied
+  // passive on the roster.
+  ({ battle, j } = field());
+  foes = battle.livingUnits(j.enemyTeam());
+  foes.forEach((u) => { u.hp = u.maxHp = 9e6; });
+  const quiet = foes.map((u) => u.hp);
+  foes[foes.length - 1].takeDamage(9e9); // an enemy falls; Jack lives
+  assert(j.alive, 'the probe killed the wrong bird');
+  const stray = foes.filter((u, i) => u.alive && quiet[i] - u.hp > 0);
+  assert(stray.length === 0,
+    `the keg went off for somebody else's death, hitting ${stray.length}`);
+
+  // And the three passives that already read onUnitDied still ignore
+  // their own: adding the corpse to the ring must not have paid them.
+  for (const id of ['morrow', 'lenore', 'sable']) {
+    const b = new Battle();
+    const self = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: HEROES[id].rarity });
+    b.placeUnit(self, 1);
+    b.placeUnit(new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 5, stars: 3 }), 1);
+    self.hp = Math.round(self.maxHp / 2);
+    const cds = self.abilities.map((a) => { a.cooldownRemaining = 2; return 2; });
+    self.takeDamage(9e9);
+    assert(!self.alive, `${id} survived nine billion`);
+    assert(self.hp === 0, `${id} mended himself out of his own death to ${self.hp}`);
+    self.abilities.forEach((a, i) => {
+      assert(a.cooldownRemaining === cds[i],
+        `${id}'s own death moved his own cooldown to ${a.cooldownRemaining}`);
+    });
+  }
 });
 
 report();

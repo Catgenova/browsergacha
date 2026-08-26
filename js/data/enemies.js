@@ -75,10 +75,15 @@ const ENEMIES = (() => {
 // that wants a specific heavyweight can still pin it with
 // `enemies: [...]`, and the dungeon and boss tables are unaffected.
 // To widen this back out, drop the rarity filter.
-const ENEMY_MAX_RARITY = 3;
+// The band roaming enemies are drawn AT, not a ceiling. It read `<=`
+// while 3-star WAS the bottom of the roster, which made the two
+// identical -- until the Gulldiggers put a 1-star on the shelf and a
+// sect's cheapest body started turning up as a roaming hunt enemy. A
+// 1-star wave is as wrong as a 5-star one, in the other direction.
+const ENEMY_RARITY = 3;
 const LOCATION_ENEMIES = (() => {
   const pool = Object.keys(ENEMIES)
-    .filter((id) => ENEMIES[id].rarity <= ENEMY_MAX_RARITY);
+    .filter((id) => ENEMIES[id].rarity === ENEMY_RARITY);
   const out = {};
   for (let loc = 0; loc < CONFIG.BATTLE_BGS.length; loc++) out[loc] = pool;
   return out;

@@ -201,4 +201,82 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.bloodied_fury,
   },
+
+  jack: {
+    id: 'jack',
+    element: 'water',
+    name: 'Jack',
+    title: 'Powder Monkey',
+    rarity: 1,
+    // The bottom of the sect: fast, cheap, and made of paper. He is
+    // priced to be spent, which is the whole reason his passive only
+    // pays once he has been. (Ratios only; js/data/balance.js scales
+    // all three to the shared budget and leaves speed alone.)
+    stats: { hp: 900, atk: 200, def: 85, speed: 118 },
+    tint: { body: '#8a6a4a', helm: '#1a5ac8', weapon: '#c8ccd4', shield: '#1a5ac8' },
+    sprite: {
+      displayH: 74, // the smallest bird on the line
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Jackidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // ONE skill, and it has to be cooldown-free: a 1-star with a
+    // cooldown would spend whole turns with nothing to press. The
+    // contract test in data.test.js holds both halves of that.
+    abilities: [
+      {
+        id: 'shivwork', name: 'Shivwork',
+        icon: 'assets/icons/fc819.png',
+        description: 'In under the guard and out again: 60% ATK to the enemy FRONT row, ' +
+          'and 5% more to each of them for every enemy beyond the first he gets among.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.05 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { perTarget: 0.02 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Powder Monkey',
+      icon: 'assets/icons/fc786.png',
+      description: 'He is carrying the charges. When Jack falls, the keg goes with ' +
+        'him: 180% of his ATK to every enemy on a front hex, and 12% more to each ' +
+        'of them for every enemy beyond the first caught in the blast.',
+      hooks: {
+        // The one passive on the roster that pays out for its OWNER
+        // dying rather than for somebody else doing it. The victim is
+        // rung into its own death for exactly this (js/hero.js).
+        //
+        // Damage goes through Abilities.strike, which is exported so
+        // hooks deal damage down the same pipeline an ability does --
+        // the DEF curve, dodge, guards, reflect and the damage meter
+        // all still apply, and the keg is credited to Jack.
+        onUnitDied(unit, { victim, battle }) {
+          if (victim !== unit || !battle) return null;
+          const foes = battle.livingUnits(unit.enemyTeam())
+            .filter((u) => u.isBoss || u.slot.position === POSITION.FRONT);
+          if (foes.length === 0) return null;
+          // Same arithmetic the sect's skills use: every body beyond the
+          // first deepens the blast for all of them.
+          const mult = 1.8 + 0.12 * (foes.length - 1);
+          const floats = [];
+          for (const foe of foes) {
+            const raw = unit.effectiveStat('atk') * mult *
+              Elements.mult(unit.element, foe.element);
+            const hit = Abilities.strike(unit, foe, raw);
+            if (hit && hit.amount > 0) {
+              floats.push({ target: foe, text: `-${hit.amount}`, color: '#e8a04a' });
+            }
+          }
+          if (floats.length === 0) return null;
+          return { message: `${unit.name}'s powder goes up with him!`, floats };
+        },
+      },
+    },
+    positional: POSITIONALS.first_blood,
+  },
 });
