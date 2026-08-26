@@ -1,12 +1,20 @@
 // Rules tests: the roster has to survive contact with the engine.
-// Every ability is executed and every hook is fired for all 385 heroes,
+// Every ability is executed and every hook is fired for every hero,
 // then the systems that are easy to break silently (gear scoring, AI
 // profiles, the damage meter, mirrors) get targeted checks.
 
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState, RACES } = g;
+  Battle, GameState, RACES, DUMMIES } = g;
+
+// The bottom of the roster. It used to be 1-star -- the generated
+// cohorts filled that shelf -- and is 3-star now that only authored
+// heroes remain, so the tests that want "the cheapest body available"
+// ask rather than assume.
+function lowestRarity(world = g) {
+  return Math.min(...Object.values(world.HEROES).map((h) => h.rarity || 1));
+}
 
 // A battle stand-in: enough surface for hooks that reach for the field.
 function makeBattle() {
@@ -44,9 +52,9 @@ function place(battle, def, team, slotIdx) {
 
 test('every hero ability resolves against a live target', () => {
   const battle = makeBattle();
-  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const foeB = place(battle, HEROES.rat_archer, TEAM.ENEMY, 4);
-  const mate = place(battle, HEROES.rat_knight, TEAM.PLAYER, 4);
+  const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 4);
+  const mate = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 4);
   const broken = [];
   for (const def of Object.values(HEROES)) {
     const u = place(battle, def, TEAM.PLAYER, 1);
@@ -67,8 +75,8 @@ test('every hero ability resolves against a live target', () => {
 
 test('every hero hook runs, in and out of position, hurt and healthy', () => {
   const battle = makeBattle();
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const mate = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const mate = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
   const byPosition = {};
   for (const s of battle.playerSlots) byPosition[s.position] = s;
   const broken = [];
@@ -98,7 +106,7 @@ test('every hero hook runs, in and out of position, hurt and healthy', () => {
 
 test('every boss ability and passive resolves', () => {
   const battle = makeBattle();
-  const hero = place(battle, HEROES.rat_knight, TEAM.PLAYER, 1);
+  const hero = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 1);
   const broken = [];
   for (const def of Object.values(BOSSES)) {
     const b = new Unit(def, TEAM.ENEMY, { level: 50, stars: 5 });
@@ -119,8 +127,8 @@ test('every boss ability and passive resolves', () => {
 
 test('AI profiles pick an ability and a target for every race', () => {
   const battle = makeBattle();
-  const prey = [place(battle, HEROES.rat_archer, TEAM.PLAYER, 4),
-    place(battle, HEROES.rat_knight, TEAM.PLAYER, 1)];
+  const prey = [place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4),
+    place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 1)];
   const broken = [];
   for (const def of Object.values(HEROES)) {
     const u = place(battle, def, TEAM.ENEMY, 0);
@@ -140,14 +148,14 @@ test('bosses fight as tyrants and player heroes fight to the tactics', () => {
   const battle = makeBattle();
   const boss = new Unit(Object.values(BOSSES)[0], TEAM.ENEMY, { level: 50, stars: 5 });
   assert(AI.profileFor(boss).name === 'Tyrant', 'boss is not a tyrant');
-  const hero = place(battle, HEROES.rat_archer, TEAM.PLAYER, 1);
+  const hero = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 1);
   assert(AI.profileFor(hero).name === 'Your tactics',
     'player hero is not using the player tactics on auto');
 
   // Every option in every axis has to resolve to something the engine
   // can call, or a saved tactic silently falls back mid-fight.
-  const foes = [place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1),
-    place(battle, HEROES.rat_knight, TEAM.ENEMY, 4)];
+  const foes = [place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1),
+    place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 4)];
   for (const opt of AI.TACTICS.target) {
     GameState.setTactic('target', opt.id);
     const picked = AI.profileFor(hero).focus(foes, hero, battle);
@@ -181,9 +189,9 @@ test('bosses fight as tyrants and player heroes fight to the tactics', () => {
 
 test('a shield absorbs before HP and credits whoever raised it', () => {
   const battle = makeBattle();
-  const hero = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const support = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
-  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const support = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   foe.dodgeChance = () => 0;
   hero.hookSources = () => [];   // no guards of its own muddying the split
   hero.statusEffects = [];
@@ -217,7 +225,7 @@ test('a shield absorbs before HP and credits whoever raised it', () => {
 test('Javarious doubles his damage while the shield holds him at full HP', () => {
   const battle = makeBattle();
   const jav = place(battle, HEROES.javarious, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   foe.dodgeChance = () => 0;
   jav.baseCritChance = 0;  // the doubling has to be readable, not lucky
   const cut = HEROES.javarious.abilities[0];
@@ -268,8 +276,8 @@ test('gear scoring prefers the piece that suits the hero', () => {
 test('the damage meter credits the right side and separates its scopes', () => {
   Meter.resetSession();
   const battle = makeBattle();
-  const hero = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const foe = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 1);
   Abilities.execute(hero.abilities[0].def, hero, foe, battle);
   const dealt = Meter.rows('damage', 'battle');
   assert(dealt.total > 0 && dealt.list[0].name === hero.name,
@@ -286,9 +294,9 @@ test('the damage meter credits the right side and separates its scopes', () => {
 
 test('an attack buff credits the buffer with the damage it bought', () => {
   const battle = makeBattle();
-  const hero = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
-  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   // No dodging, no crits: the split has to be readable, not lucky.
   foe.dodgeChance = () => 0;
   const hit = () => {
@@ -338,9 +346,9 @@ test("Leonardo's rite lifts two debuffs and his rebuke stalls the readiest foe",
   const battle = makeBattle();
   const leo = place(battle, HEROES.leonardo, TEAM.PLAYER, 1);
   leo.slot = battle.playerSlots.find((s) => s.position === POSITION.CENTER);
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const foeA = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
-  const foeB = place(battle, HEROES.rat_knight, TEAM.ENEMY, 4);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const foeA = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 1);
+  const foeB = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 4);
 
   // Rite of Absolution: two of three afflictions lifted, oldest first.
   mate.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.9, turns: 3 });
@@ -374,9 +382,9 @@ test("Leonardo's rite lifts two debuffs and his rebuke stalls the readiest foe",
 
 test('a speed buff banks meter gifts for the hero who granted it', () => {
   const battle = makeBattle();
-  const runner = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
-  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const runner = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
 
   // Doubled speed means half of every tick's fill is the buffer's gift.
   runner.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 2, turns: 5, source: buffer });
@@ -398,9 +406,9 @@ test('a speed buff banks meter gifts for the hero who granted it', () => {
 
 test('def walls and damage marks credit their caster', () => {
   const battle = makeBattle();
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const buffer = place(battle, HEROES.rat_knight, TEAM.PLAYER, 4);
-  const foe = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 1);
   mate.hookSources = () => []; foe.hookSources = () => [];
   mate.dodgeChance = () => 0; foe.dodgeChance = () => 0;
 
@@ -437,8 +445,8 @@ test('a buffed or bought mend credits its enabler', () => {
     (a.effects || []).some((e) => e.type === 'heal')));
   assert(healerDef, 'no ATK-scaled healer anywhere in the roster');
   const healer = place(battle, healerDef, TEAM.PLAYER, 4);
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const buffer = place(battle, HEROES.rat_archer, TEAM.PLAYER, 5);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const buffer = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 5);
   const healAb = healer.abilities.find((a) =>
     Abilities.sideOf(a.def.targeting) === 'ally' &&
     (a.def.effects || []).some((e) => e.type === 'heal'));
@@ -476,13 +484,16 @@ test('a buffed or bought mend credits its enabler', () => {
 
 test('a ward credits its mitigation to the support who cast it', () => {
   const battle = makeBattle();
-  // A protector whose kit reduces an ally's damageTaken.
-  const wardDef = Object.values(HEROES).find((h) => h.abilities.some((a) =>
-    (a.effects || []).some((e) => e.type === 'buff' && e.stat === 'damageTaken')));
+  // A protector whose kit reduces an ally's damageTaken. No authored
+  // hero casts one yet, so the search takes in the enemy bodies too --
+  // the mechanic is the engine's, not any one hero's.
+  const wardDef = [...Object.values(HEROES), ...Object.values(DUMMIES)]
+    .find((h) => h.abilities.some((a) =>
+      (a.effects || []).some((e) => e.type === 'buff' && e.stat === 'damageTaken')));
   assert(wardDef, 'no damageTaken ward anywhere in the roster');
   const ward = place(battle, wardDef, TEAM.PLAYER, 4);
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_archer, TEAM.ENEMY, 1);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const foe = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 1);
   const wardAb = wardDef.abilities.find((a) =>
     (a.effects || []).some((e) => e.type === 'buff' && e.stat === 'damageTaken'));
 
@@ -526,7 +537,7 @@ test('healing is credited to the healer, once, however it lands', () => {
     h.abilities.some((a) => (a.effects || []).some((e) => e.type === 'hot')) &&
     h.abilities.some((a) => (a.effects || []).some((e) => e.type === 'heal' || e.type === 'healHpPct')));
   const cleric = place(battle, clericDef, TEAM.PLAYER, 4);
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
   const healAb = clericDef.abilities.find((a) =>
     (a.effects || []).some((e) => e.type === 'heal' || e.type === 'healHpPct'));
   const hotAb = clericDef.abilities.find((a) =>
@@ -568,7 +579,7 @@ test('crystal mirrors halve nothing, reflect a quarter, and break one per hit', 
   Meter.resetSession();
   const battle = makeBattle();
   const echo = place(battle, HEROES.echo, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
   assert(echo.mirrors === 6, `starts with ${echo.mirrors} mirrors`);
   const foeBefore = foe.hp;
   const dealt = echo.takeDamage(200, foe);
@@ -600,7 +611,7 @@ test('every damage path is mitigated, whatever it scaled off', () => {
     assert(expected < RAW * 0.5,
       `DEF ${def} should blunt a raw ${RAW} well past half, got ${expected}`);
 
-    const caster = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
+    const caster = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
     const before = wall.hp;
     const res = Abilities.strike(caster, wall, RAW);
     assert(res.amount === expected,
@@ -632,8 +643,8 @@ test('onStruck retaliation fires on a survived hit, and only then', () => {
   Battle.active = battle; // struck() needs a live battle to hand the hooks
   try {
     const toll = place(battle, HEROES.toll, TEAM.PLAYER, 1);
-    const mate = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
-    const foes = [1, 2, 4].map((i) => place(battle, HEROES.rat_brawler, TEAM.ENEMY, i));
+    const mate = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+    const foes = [1, 2, 4].map((i) => place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, i));
     const byPosition = {};
     for (const sl of battle.playerSlots) byPosition[sl.position] = sl;
     toll.slot = byPosition[POSITION.FRONT];
@@ -728,7 +739,12 @@ test('retaliation cannot recurse when both sides answer blows', () => {
 
 test('positional hooks only fire in their own hex', () => {
   const battle = makeBattle();
-  const wallHero = Object.values(HEROES).find((h) => h.positional.id === 'shield_wall');
+  // Reckless Charge moves damage taken the OTHER way -- the point of
+  // the test is that the hook is silent off its own hex, whichever
+  // direction it pushes.
+  const wallHero = Object.values(HEROES).find((h) =>
+    h.positional.id === 'reckless_charge');
+  assert(wallHero, 'no hero wears a damage-taken positional');
   const u = place(battle, wallHero, TEAM.PLAYER, 1);
   const byPosition = {};
   for (const s of battle.playerSlots) byPosition[s.position] = s;
@@ -737,8 +753,8 @@ test('positional hooks only fire in their own hex', () => {
   const inPlace = u.damageTakenMult();
   u.slot = { position: 'nowhere', x: 0, y: 0 };
   const outOfPlace = u.damageTakenMult();
-  assert(inPlace < 1, `shield wall did nothing in position: ${inPlace}`);
-  assert(outOfPlace === 1, `shield wall still applied out of position: ${outOfPlace}`);
+  assert(inPlace !== 1, `the hex hook did nothing in position: ${inPlace}`);
+  assert(outOfPlace === 1, `the hex hook still applied out of position: ${outOfPlace}`);
 });
 
 
@@ -749,13 +765,13 @@ test('the front line draws attacks away from the back', () => {
   const battle = makeBattle();
   const byPos = {};
   for (const s of battle.playerSlots) byPos[s.position] = s;
-  const wall = place(battle, HEROES.rat_knight, TEAM.PLAYER, 1);
-  const squishy = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const wall = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 1);
+  const squishy = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
   wall.slot = byPos[POSITION.FRONT];
   squishy.slot = byPos[POSITION.BACK];
   // The back-liner is far softer, so the old AI always picked it.
   squishy.hp = Math.round(squishy.maxHp * 0.2);
-  const attacker = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const attacker = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
   const profile = AI.profileFor(attacker);
   let hitWall = 0;
   for (let i = 0; i < 400; i++) {
@@ -769,12 +785,12 @@ test('a taunt overrides target choice entirely', () => {
   const battle = makeBattle();
   const byPos = {};
   for (const s of battle.playerSlots) byPos[s.position] = s;
-  const bait = place(battle, HEROES.rat_knight, TEAM.PLAYER, 1);
-  const squishy = place(battle, HEROES.rat_archer, TEAM.PLAYER, 4);
+  const bait = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 1);
+  const squishy = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
   bait.slot = byPos[POSITION.BACK];       // not even in front
   squishy.slot = byPos[POSITION.FRONT];
   bait.addStatusEffect({ kind: 'buff', stat: 'taunt', turns: 2 });
-  const attacker = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const attacker = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
   const profile = AI.profileFor(attacker);
   for (let i = 0; i < 50; i++) {
     assert(profile.focus([bait, squishy], attacker, battle) === bait,
@@ -830,7 +846,7 @@ test('every substat prints as the kind of number it is', () => {
 
 test('team presets round-trip and survive a hero going missing', () => {
   const { GameState } = g;
-  const ids = ['rat_knight', 'rat_archer', 'rat_cook']
+  const ids = ['carl', 'silas', 'angelica']
     .map((heroId) => GameState.addHero(heroId).uid);
   ids.forEach((uid, i) => GameState.setTeamSlot(i, uid));
   const before = GameState.getTeam();
@@ -870,7 +886,7 @@ test('team presets round-trip and survive a hero going missing', () => {
 
 test('favourites toggle, persist, and lead every sort order', () => {
   const { GameState } = g;
-  const pinned = GameState.addHero('rat_cook').uid;
+  const pinned = GameState.addHero('angelica').uid;
   assert(!GameState.isFavorite(pinned), 'heroes should not start favourited');
   assert(GameState.toggleFavorite(pinned) === true, 'toggle did not set it');
   assert(GameState.isFavorite(pinned), 'the favourite did not stick');
@@ -992,10 +1008,10 @@ test('the roster is capped and summoning refuses to overflow it', () => {
   const max = GameState.MAX_ROSTER;
   assert(max === 100, `expected a 100 base cap, got ${max}`);
   while (!GameState.rosterFull()) {
-    assert(GameState.addHero('rat_archer'), 'addHero refused below the cap');
+    assert(GameState.addHero('silas'), 'addHero refused below the cap');
   }
   assert(GameState.rosterCount() === max, `roster holds ${GameState.rosterCount()}`);
-  assert(GameState.addHero('rat_archer') === null, 'a hero was added past the cap');
+  assert(GameState.addHero('silas') === null, 'a hero was added past the cap');
 
   // A pull that cannot fit is refused whole rather than part-filled: a
   // summon hands over a hero now, and dropping some on the floor is not
@@ -1114,12 +1130,12 @@ test('difficulty tiers gate per chapter and pay exactly what they promise', () =
   // Hard and Expert gear the rank and file but NEVER the holder: the
   // holder already compounds its chapter tuning with the tier scale,
   // and a six-piece set on top made it unbeatable rather than hard.
-  assert(Campaign.gearFor(boss1, 'hard', HEROES.rat_brawler).length === 0 &&
-    Campaign.gearFor(boss1, 'expert', HEROES.rat_brawler).length === 0,
+  assert(Campaign.gearFor(boss1, 'hard', DUMMIES.rat_brawler).length === 0 &&
+    Campaign.gearFor(boss1, 'expert', DUMMIES.rat_brawler).length === 0,
     'the holder came armed');
-  assert(Campaign.gearFor(entry, 'hard', HEROES.rat_brawler).length > 0,
+  assert(Campaign.gearFor(entry, 'hard', DUMMIES.rat_brawler).length > 0,
     'the rank and file lost their tier gear');
-  assert(Campaign.gearFor(entry, 'normal', HEROES.rat_brawler).length === 0,
+  assert(Campaign.gearFor(entry, 'normal', DUMMIES.rat_brawler).length === 0,
     'Normal enemies must fight bare');
   assert(!Campaign.tierNote(boss1, 'hard').includes('gear'),
     `the tier note still advertises holder gear: ${Campaign.tierNote(boss1, 'hard')}`);
@@ -1209,7 +1225,7 @@ test('a unit told to act with every enemy already dead simply stands down', () =
     h.abilities.some((a) => a.targeting === 'enemy-row'));
   assert(rower, 'no hero has a row-targeting ability to test with');
   const hero = new Unit(rower, TEAM.PLAYER, { level: 30, stars: rower.rarity });
-  const foe = new Unit(HEROES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 1 });
+  const foe = new Unit(DUMMIES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 1 });
   battle.placeUnit(hero, 1);
   battle.placeUnit(foe, 1);
   // Kill the enemy outright, then make the hero take its turn anyway.
@@ -1286,7 +1302,7 @@ test('an old save keeps the hunts and bosses it already earned', () => {
 test('favourites and team members are never sacrifice material', () => {
   const w = loadGame();
   const G = w.GameState;
-  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === 1);
+  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === lowestRarity(w));
   const target = G.addHero(cheap.id).uid;
   const fav = G.addHero(cheap.id).uid;
   const fielded = G.addHero(cheap.id).uid;
@@ -1311,32 +1327,40 @@ test('favourites and team members are never sacrifice material', () => {
     'a protected hero died anyway');
 });
 
-test('auto star up forges the 1-2 star shelf into 3-star heroes', () => {
+test('auto star up forges the bottom shelf one rank up', () => {
   const w = loadGame();
   const G = w.GameState;
-  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === 1);
-  assert(ones.length >= 2, 'need two 1-star characters for this test');
-  // Six 1-star bodies: pairs make three 2-stars, which make one 3-star.
+  const floor = lowestRarity(w);
+  const goal = floor + 1;
+  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === floor);
+  assert(ones.length >= 2, `need two ${floor}-star characters for this test`);
+  // A star up at rank N eats N heroes, so one recipient plus its cost
+  // is what a single rank costs.
+  const cost = w.Progression.starUpCost(floor);
   const uids = [];
-  for (let i = 0; i < 6; i++) uids.push(G.addHero(ones[i % 2].id).uid);
-  // The keeper: favourited and levelled, so it must be the survivor.
+  for (let i = 0; i < cost + 1; i++) uids.push(G.addHero(ones[i % 2].id).uid);
+  // The keeper: favourited, so it must be the survivor.
   const keeper = uids[0];
   G.toggleFavorite(keeper);
-  const r = G.autoStarUp();
-  assert(r.starUps === 4, `expected 4 star ups (3x 1->2, 1x 2->3), got ${r.starUps}`);
-  assert(r.spent === 5, `expected 5 heroes spent, got ${r.spent}`);
-  assert(G.progressOf(keeper) && G.progressOf(keeper).stars === 3,
-    'the favourite should survive and stand at 3 stars');
+  const r = G.autoStarUp(goal);
+  assert(r.starUps === 1, `expected 1 star up to ${goal}, got ${r.starUps}`);
+  assert(r.spent === cost, `expected ${cost} heroes spent, got ${r.spent}`);
+  assert(G.progressOf(keeper) && G.progressOf(keeper).stars === goal,
+    `the favourite should survive and stand at ${goal} stars`);
   const left = uids.filter((u) => G.progressOf(u));
   assert(left.length === 1, `expected one survivor, found ${left.length}`);
   // Idempotent: a second press finds nothing to do.
-  assert(G.planAutoStarUp().length === 0, 'a second pass should plan nothing');
+  assert(G.planAutoStarUp(goal).length === 0, 'a second pass should plan nothing');
+  // And a target at or below the floor is a no-op by construction --
+  // there is nothing underneath it to forge.
+  assert(G.planAutoStarUp(floor).length === 0,
+    `target ${floor} planned work on a roster whose floor is ${floor}`);
 });
 
 test('wind resonance feeds AP only off enemy turns', () => {
   const battle = makeBattle();
   const hero = place(battle, HEROES.florence, TEAM.PLAYER, 0);
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
+  const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
   hero.synergyApOnEnemyTurn = 0.05;
   hero.turnMeter = 0; foe.turnMeter = 0;
   // The real Battle owns grantTurnApGain; borrow it onto the stand-in.
@@ -1353,7 +1377,7 @@ test('wind resonance feeds AP only off enemy turns', () => {
 test('dark resonance can stretch a debuff by one turn', () => {
   const battle = makeBattle();
   const hero = place(battle, HEROES.vex, TEAM.PLAYER, 0);
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
+  const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
   // Vex reads debuff durations off her own passive (+1); the resonance
   // adds one more on top when the coin lands.
   const debuff = hero.abilities[0].def.effects.find((e) => e.type === 'debuff');
@@ -1377,7 +1401,7 @@ test('dark resonance can stretch a debuff by one turn', () => {
 test('hero storage: gear comes off on deposit, play resumes on withdraw', () => {
   const w = loadGame();
   const G = w.GameState;
-  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === 1);
+  const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === lowestRarity(w));
   const uid = G.addHero(cheap.id).uid;
   // Dress the hero so the strip is observable.
   const gid = G.addGear(w.Gear.drop('rat', 1));
@@ -1411,8 +1435,8 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
 test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center hex', () => {
   const battle = makeBattle();
   const sawyer = place(battle, HEROES.sawyer, TEAM.PLAYER, 1);
-  const centerFoe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 0);
-  const frontFoe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const centerFoe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
+  const frontFoe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
   for (const f of [centerFoe, frontFoe]) f.dodgeChance = () => 0;
   sawyer.baseCritChance = 0;  // the numbers must be readable, not lucky
   sawyer.gearAccuracy = 10;   // and the hexes must land to be counted
@@ -1461,8 +1485,8 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
 test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', () => {
   const battle = makeBattle();
   const pol = place(battle, HEROES.polarus, TEAM.PLAYER, 0); // center hex
-  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const foeB = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2);
   pol.baseCritChance = 0;
   pol.gearAccuracy = 10; // the freezes must land to be readable
   for (const f of [foeA, foeB]) f.dodgeChance = () => 0;
@@ -1494,7 +1518,7 @@ test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', 
   const realRandom = Math.random;
   Math.random = () => 0.01;
   try {
-    Abilities.execute(HEROES.rat_brawler.abilities[0], foeB, pol, battle);
+    Abilities.execute(DUMMIES.rat_brawler.abilities[0], foeB, pol, battle);
   } finally {
     Math.random = realRandom;
   }
@@ -1506,7 +1530,7 @@ test('andrew: pickwork drains AP, two masters gives and takes, undermine digs', 
   const battle = makeBattle();
   const andrew = place(battle, HEROES.andrew, TEAM.PLAYER, 0); // center hex
   const aniani = place(battle, HEROES.echo, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
+  const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
   andrew.baseCritChance = 0;
   andrew.gearAccuracy = 10; // the dig must land to be readable
   foe.dodgeChance = () => 0;
@@ -1548,8 +1572,8 @@ test('angelica: every freeze in the fight compounds her, the forge steadies her'
   const battle = makeBattle();
   const angelica = place(battle, HEROES.angelica, TEAM.PLAYER, 4); // back hex
   const polarus = place(battle, HEROES.polarus, TEAM.PLAYER, 1);
-  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const foeB = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2);
   angelica.gearAccuracy = 10;
   polarus.gearAccuracy = 10;
   for (const f of [foeA, foeB]) f.dodgeChance = () => 0;
@@ -1591,7 +1615,7 @@ test('ari: the lance slips DEF, the volley taxes max HP, the quarry eats a free 
   const battle = makeBattle();
   const ari = place(battle, HEROES.ari, TEAM.PLAYER, 4); // back hex — Giantslayer live
   const polarus = place(battle, HEROES.polarus, TEAM.PLAYER, 1);
-  const foe = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   ari.baseCritChance = 0;
   polarus.gearAccuracy = 10;
   foe.dodgeChance = () => 0;
@@ -1634,10 +1658,10 @@ test('ari: the lance slips DEF, the volley taxes max HP, the quarry eats a free 
 test('cain: mercy in shares of himself, and the overflow lashes the healthiest', () => {
   const battle = makeBattle();
   const cain = place(battle, HEROES.cain, TEAM.PLAYER, 4); // back hex — Spillway live
-  const mateA = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const mateB = place(battle, HEROES.rat_knight, TEAM.PLAYER, 2);
-  const foeHigh = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
-  const foeLow = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 2);
+  const mateA = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const mateB = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 2);
+  const foeHigh = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+  const foeLow = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2);
   for (const f of [foeHigh, foeLow]) f.dodgeChance = () => 0;
   foeLow.hp = Math.round(foeLow.maxHp * 0.4); // the HEALTHY one must be lashed
 
@@ -1683,9 +1707,9 @@ test('cain: mercy in shares of himself, and the overflow lashes the healthiest',
 test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock', () => {
   const battle = makeBattle();
   const bit = place(battle, HEROES.bit, TEAM.PLAYER, 1); // front hex — Bedrock live
-  const foeFront = place(battle, HEROES.rat_knight, TEAM.ENEMY, 1);
-  const foeCenter = place(battle, HEROES.rat_knight, TEAM.ENEMY, 0);
-  const foeBack = place(battle, HEROES.rat_knight, TEAM.ENEMY, 4);
+  const foeFront = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+  const foeCenter = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+  const foeBack = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 4);
   bit.baseCritChance = 0;
   bit.gearAccuracy = 10; // the DEF strip must land to be readable
   for (const f of [foeFront, foeCenter, foeBack]) f.dodgeChance = () => 0;
@@ -1734,9 +1758,9 @@ test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock
 test('tanner: favors, bubbles that eat one hit, and meter for the laggard', () => {
   const battle = makeBattle();
   const tanner = place(battle, HEROES.tanner, TEAM.PLAYER, 4); // back hex — Second Wind live
-  const mate = place(battle, HEROES.rat_brawler, TEAM.PLAYER, 1);
-  const slow = place(battle, HEROES.rat_knight, TEAM.PLAYER, 2);
-  const foe = place(battle, HEROES.rat_mauler, TEAM.ENEMY, 1);
+  const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const slow = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 2);
+  const foe = place(battle, DUMMIES.rat_mauler, TEAM.ENEMY, 1);
   foe.baseCritChance = 0;
   mate.dodgeChance = () => 0;
 
@@ -1756,10 +1780,10 @@ test('tanner: favors, bubbles that eat one hit, and meter for the laggard', () =
     assert(u.statusEffects.some((fx) => fx.kind === 'bubble'), `${u.name} unbubbled`);
   }
   mate.hp = mate.maxHp;
-  Abilities.execute(HEROES.rat_mauler.abilities[0], foe, mate, battle);
+  Abilities.execute(DUMMIES.rat_mauler.abilities[0], foe, mate, battle);
   assert(mate.hp === mate.maxHp, 'the bubble let the hit through');
   assert(!mate.statusEffects.some((fx) => fx.kind === 'bubble'), 'the bubble survived the pop');
-  Abilities.execute(HEROES.rat_mauler.abilities[0], foe, mate, battle);
+  Abilities.execute(DUMMIES.rat_mauler.abilities[0], foe, mate, battle);
   assert(mate.hp < mate.maxHp, 'the second hit should land');
 
   // Noblesse Oblige: his turn start waves the laggard ally onward.
@@ -1900,7 +1924,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   assert(E.bannerWeight(HEROES.polarus, during, 'temporal') === 1, 'the King crashed the Temporal');
   assert(E.bannerWeight(HEROES.toll, during, 'rare') === 1, 'Toll crashed the Rare');
   assert(E.bannerWeight(HEROES.toll, after, 'temporal') === 1, 'Toll overstayed');
-  assert(E.bannerWeight(HEROES.rat_brawler, during, 'rare') === 1, 'a rat on the banner');
+  assert(E.bannerWeight(DUMMIES.rat_brawler, during, 'rare') === 1, 'a rat on the banner');
   assert(E.bannerWeight(HEROES.polarus, after, 'rare') === 1, 'the King outstayed his banner');
   assert(E.bannerWeight(HEROES.lucian, during, 'rare') === 1, 'Lucian jumped his banner');
   assert(E.bannerWeight(HEROES.lucian, after, 'rare') === 2, 'Lucian missed his own banner');
@@ -1926,7 +1950,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   const expectedFlat = revCount / pool3.length;
   const expectedTilted = (revCount * 2) / (pool3.length + revCount);
   const seen = hits / draws;
-  assert(seen > expectedFlat * 1.4 && seen < expectedTilted * 1.25,
+  assert(seen > (expectedFlat + expectedTilted) / 2 && seen < expectedTilted * 1.06,
     `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
 
   // Rare-scroll elective pulls tilt the same way, toward whichever sect
@@ -1946,7 +1970,11 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     const flat = count / poolR.length;
     const tilted = (count * 2) / (poolR.length + count);
     const share = hit / draws;
-    assert(share > flat * 1.4 && share < tilted * 1.25,
+    // The sample must land nearer the tilted figure than the flat one,
+    // and must not overshoot what a 2x weight can even produce. A
+    // ratio-of-flat bound would be meaningless here: a sect can be most
+    // of its own star band now, so flat * 1.4 is often above 1.
+    assert(share > (flat + tilted) / 2 && share < tilted * 1.06,
       `${sectId} share ${share.toFixed(3)} vs flat ${flat.toFixed(3)} / tilted ${tilted.toFixed(3)}`);
   };
   rareTilt('cryst', during);
@@ -2017,24 +2045,25 @@ test('pity ladders: plain rare breaks at 100, banner pity claims the featured st
 test('auto star up: higher targets forge further up the ladder', () => {
   const w = loadGame();
   const G = w.GameState;
-  const one = Object.values(w.HEROES).find((h) => h.rarity === 1);
+  const one = Object.values(w.HEROES).find((h) => h.rarity === lowestRarity(w));
   for (let i = 0; i < 24; i++) G.addHero(one.id);
 
-  // Plans are monotonic in the target: aiming at 4★ includes every
-  // step the 3★ plan takes plus the ranks above it.
-  const p3 = G.planAutoStarUp(3).length;
-  const p4 = G.planAutoStarUp(4).length;
-  assert(p3 > 0, 'a shelf of 24 spares planned nothing');
-  assert(p4 > p3, `target 4 planned ${p4} steps vs target 3's ${p3}`);
+  // Plans are monotonic in the target: aiming one rank higher includes
+  // every step the lower plan takes plus the rank above it.
+  const floor = lowestRarity(w);
+  const lo = G.planAutoStarUp(floor + 1).length;
+  const hi = G.planAutoStarUp(floor + 2).length;
+  assert(lo > 0, 'a shelf of 24 spares planned nothing');
+  assert(hi > lo, `target ${floor + 2} planned ${hi} steps vs ${floor + 1}'s ${lo}`);
 
-  // Executing the 4★ plan performs exactly what it promised, and a new
-  // 4★ hero exists that did not before.
-  const fours = () => G.ownedHeroIds()
-    .filter((uid) => G.progressOf(uid).stars >= 4).length;
-  const before = fours();
-  const r = G.autoStarUp(4);
-  assert(r.starUps === p4, `planned ${p4} star ups, performed ${r.starUps}`);
-  assert(fours() > before, 'no new 4-star hero was forged');
+  // Executing the higher plan performs exactly what it promised, and a
+  // hero two ranks above the floor exists that did not before.
+  const tall = () => G.ownedHeroIds()
+    .filter((uid) => G.progressOf(uid).stars >= floor + 2).length;
+  const before = tall();
+  const r = G.autoStarUp(floor + 2);
+  assert(r.starUps === hi, `planned ${hi} star ups, performed ${r.starUps}`);
+  assert(tall() > before, `no new ${floor + 2}-star hero was forged`);
 });
 
 test('the World Rift: weekly rotation, score ledger, milestones pay once', () => {
@@ -2099,7 +2128,7 @@ test('keepers favourite themselves on arrival', () => {
   // Any blessed copy pins, whatever its stars.
   const realRoll = w.Blessing.roll;
   w.Blessing.roll = () => 'blessed';
-  const bl = G.addHero(pick((h) => h.rarity === 1).id);
+  const bl = G.addHero(pick((h) => h.rarity === lowestRarity(w)).id);
   w.Blessing.roll = realRoll;
   assert(G.isFavorite(bl.uid), 'a blessed 1-star arrived unpinned');
   // And the pin is an ordinary favourite — the player can lift it.
@@ -2112,9 +2141,16 @@ test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', 
   const G = w.GameState;
   const pool3 = Object.values(w.HEROES).filter((h) =>
     h.rarity === 3 && ['water', 'fire', 'wind'].includes(h.element));
-  // Sectless picks, so the running Cryst banner can't muddy the
-  // banners-unaffected check below.
-  const picks = pool3.filter((h) => !w.RACES.sectOf(h)).slice(0, 4);
+  // Picks from outside whichever sect holds the Rare scroll today, so
+  // the running banner can't muddy the banners-unaffected check below.
+  // (Nobody is sectless any more -- every authored hero has a home.)
+  const rare = w.Events.currentBanner(new Date(), 'rare');
+  const picks = pool3.filter((h) => {
+    const sect = w.RACES.sectOf(h);
+    return !sect || !rare || sect.id !== rare.sect;
+  }).slice(0, 4);
+  assert(picks.length === 4,
+    `only ${picks.length} 3-star heroes outside the running Rare banner`);
 
   // Three slots, toggling on and off.
   assert(G.toggleWishlist(picks[0].id).on && G.toggleWishlist(picks[1].id).on &&
@@ -2266,7 +2302,7 @@ test('login bonuses: two separate claims, a real calendar, catch-up buys days', 
 test('the collection is forever: NEW! and the compendium track characters ever held', () => {
   const w = loadGame();
   const G = w.GameState;
-  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === 1);
+  const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === lowestRarity(w));
   const [a, b] = ones;
 
   const first = G.addHero(a.id);
@@ -2342,7 +2378,7 @@ test("Oak's rites chain into each other and his dodge can riposte", () => {
   };
   const battle = mk();
   const oak = new U(H.oak, T.PLAYER, { level: 30, stars: 4 });
-  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   foe.hookSources = () => [];
   foe.dodgeChance = () => 0;
   battle.units.push(oak, foe);
@@ -2380,8 +2416,8 @@ test("Oak's rites chain into each other and his dodge can riposte", () => {
 test("Silas's Aiming Stance gates, doubles, spends, and breaks correctly", () => {
   const battle = makeBattle();
   const silas = place(battle, HEROES.silas, TEAM.PLAYER, 4);
-  const foeA = place(battle, HEROES.rat_brawler, TEAM.ENEMY, 1);
-  const foeB = place(battle, HEROES.rat_knight, TEAM.ENEMY, 2);
+  const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const foeB = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 2);
   foeA.dodgeChance = () => 0; foeB.dodgeChance = () => 0;
   silas.dodgeChance = () => 0;
   foeA.hookSources = () => []; foeB.hookSources = () => [];
@@ -2483,7 +2519,7 @@ test('the Oilslick mark: burns tick double, direct hits gain nothing', () => {
   const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Elements: E } = w;
   const franz = new U(H.franz, T.PLAYER, { level: 30, stars: 4 });
   const vex = new U(H.vex, T.PLAYER, { level: 30, stars: 3 });
-  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   foe.hp = foe.maxHp = 10 ** 6;
   foe.hookSources = () => [];
   foe.dodgeChance = () => 0;
@@ -2529,9 +2565,9 @@ test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
   M.resetBattle();
   const battle = new B();
   const esme = new U(H.esmerelda, T.PLAYER, { level: 30, stars: 3 });
-  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
-  const foeA = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
-  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const foeA = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(esme, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.BACK));
   battle.placeUnit(foeA, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
@@ -2593,8 +2629,8 @@ test("Carl's kit: pole swings, Iron Appetite, and the strongman", () => {
   assert(carl.maxHp === Math.round(builtMax * 1.15),
     `strongman read ${carl.maxHp} vs built ${builtMax}`);
 
-  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
-  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const foeFront = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(foeBack, battle.enemySlots.findIndex((s) => s.position === P.BACK));
   for (const f of [foeFront, foeBack]) {
@@ -2641,7 +2677,7 @@ test("Franz's kit: HP-scaled bonks, wounded fury, and the hearth's regen", () =>
   M.resetBattle();
   const battle = new B();
   const franz = new U(H.franz, T.PLAYER, { level: 30, stars: 4 });
-  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   const frontIdx = battle.playerSlots.findIndex((s) => s.position === P.FRONT);
   battle.placeUnit(franz, frontIdx);
   battle.placeUnit(foe, 1);
@@ -2679,7 +2715,7 @@ test("Franz's kit: HP-scaled bonks, wounded fury, and the hearth's regen", () =>
     `sliver Bonk dealt ${atSliver}`);
 
   // Tent Collapse reaches the whole enemy team at 15%.
-  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(foeB, 5);
   foeB.hp = foeB.maxHp = 10 ** 6;
   foeB.hookSources = () => [];
@@ -2713,8 +2749,8 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
   const battle = new B();
   battle.autoMode = true;
   const lucian = new U(H.lucian, T.PLAYER, { level: 30, stars: 5 });
-  const foeA = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
-  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const foeA = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(lucian, 5);
   battle.placeUnit(foeA, 1);
   battle.placeUnit(foeB, 4);
@@ -2781,7 +2817,7 @@ test("Eli's sigils drain meters and the Quickening grants a real extra turn", ()
   const battle = new B();
   battle.autoMode = true;
   const eli = new U(H.eli, T.PLAYER, { level: 30, stars: 3 });
-  const foe = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(eli, 5);
   battle.placeUnit(foe, 1);
   foe.hp = foe.maxHp = 10 ** 9;
@@ -2900,8 +2936,8 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
   M.resetBattle();
   const battle = new B();
   const slick = new U(H.slick, T.PLAYER, { level: 30, stars: 3 });
-  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
-  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const foeFront = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   const centerIdx = battle.playerSlots.findIndex((s) => s.position === P.CENTER);
   battle.placeUnit(slick, centerIdx);
   battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
@@ -2957,8 +2993,8 @@ test("Samuels's kit: triple strikes, crit riders, and the center toss", () => {
   M.resetBattle();
   const battle = new B();
   const sam = new U(H.samuels, T.PLAYER, { level: 30, stars: 3 });
-  const foeFront = new U(H.rat_knight, T.ENEMY, { level: 30, stars: 3 });
-  const foeCenter = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeFront = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  const foeCenter = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(sam, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(foeFront, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(foeCenter, battle.enemySlots.findIndex((s) => s.position === P.CENTER));
@@ -3028,10 +3064,10 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
   M.resetBattle();
   const battle = new B();
   const lin = new U(H.lin, T.PLAYER, { level: 30, stars: 4 });
-  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
-  const backMate = new U(H.rat_archer, T.PLAYER, { level: 30, stars: 3 });
-  const foeFront = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
-  const foeBack = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const backMate = new U(DUMMIES.rat_archer, T.PLAYER, { level: 30, stars: 3 });
+  const foeFront = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeBack = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(lin, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(mate, battle.playerSlots.findIndex((s, i) =>
     s.position === P.FRONT && !battle.playerSlots[i].unit));
@@ -3119,9 +3155,9 @@ test("Koe's kit: the remedy, the rope, the wall, and the silent alarm", () => {
   M.resetBattle();
   const battle = new B();
   const koe = new U(H.koe, T.PLAYER, { level: 30, stars: 4 });
-  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
-  const backMate = new U(H.rat_archer, T.PLAYER, { level: 30, stars: 3 });
-  const foe = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const backMate = new U(DUMMIES.rat_archer, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(koe, battle.playerSlots.findIndex((s) => s.position === P.BACK));
   battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(backMate, battle.playerSlots.findIndex((s, i) =>
@@ -3201,10 +3237,10 @@ test("Cleo's kit: triage by the ball, stolen luck, and reading the flames", () =
   M.resetBattle();
   const battle = new B();
   const cleo = new U(H.cleo, T.PLAYER, { level: 30, stars: 5 });
-  const hurt = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
-  const hurtier = new U(H.rat_warrior, T.PLAYER, { level: 30, stars: 3 });
-  const foeA = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
-  const foeB = new U(H.rat_archer, T.ENEMY, { level: 30, stars: 3 });
+  const hurt = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const hurtier = new U(DUMMIES.rat_warrior, T.PLAYER, { level: 30, stars: 3 });
+  const foeA = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(cleo, battle.playerSlots.findIndex((s) => s.position === P.BACK));
   battle.placeUnit(hurt, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(hurtier, battle.playerSlots.findIndex((s, i) =>
@@ -3298,8 +3334,8 @@ test("Artur's kit: annotations, the page turn, and permanent ink", () => {
   M.resetBattle();
   const battle = new B();
   const artur = new U(H.artur, T.PLAYER, { level: 30, stars: 3 });
-  const mate = new U(H.rat_knight, T.PLAYER, { level: 30, stars: 3 });
-  const foe = new U(H.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(artur, battle.playerSlots.findIndex((s) => s.position === P.BACK));
   battle.placeUnit(mate, battle.playerSlots.findIndex((s) => s.position === P.FRONT));
   battle.placeUnit(foe, battle.enemySlots.findIndex((s) => s.position === P.FRONT));
@@ -3659,7 +3695,7 @@ test("Tumble's kit: the whirl strips, the carousel turns the field", () => {
   // ---- Skill 1: the front row only, damage plus a rolled strip ----
   const b = makeBattle();
   const tum = place(b, def, TEAM.PLAYER, 0);
-  const foes = [1, 2, 3].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+  const foes = [1, 2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
   const front = foes.filter((u) => u.slot.position === POSITION.FRONT);
   assert(front.length > 0, 'nobody is holding the enemy front row');
   for (const f of foes) {
@@ -3685,7 +3721,7 @@ test("Tumble's kit: the whirl strips, the carousel turns the field", () => {
   // A failed roll takes nothing and pays nothing.
   const b2 = makeBattle();
   const tum2 = place(b2, def, TEAM.PLAYER, 0);
-  const foe2 = place(b2, H.rat_knight, TEAM.ENEMY, 1);
+  const foe2 = place(b2, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   foe2.hp = foe2.maxHp = 10 ** 6;
   foe2.dodgeChance = () => 0;
   foe2.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
@@ -3711,8 +3747,8 @@ test("Tumble's kit: the whirl strips, the carousel turns the field", () => {
   // ---- Skill 3: both outer rows, and the field turns ----
   const b4 = makeBattle();
   const tum4 = place(b4, def, TEAM.PLAYER, 0);
-  const ring = [1, 2, 3, 4, 5, 6].map((i) => place(b4, H.rat_knight, TEAM.ENEMY, i));
-  const mid = place(b4, H.rat_archer, TEAM.ENEMY, 0);
+  const ring = [1, 2, 3, 4, 5, 6].map((i) => place(b4, DUMMIES.rat_knight, TEAM.ENEMY, i));
+  const mid = place(b4, DUMMIES.rat_archer, TEAM.ENEMY, 0);
   for (const u of [...ring, mid]) { u.hp = u.maxHp = 10 ** 6; u.dodgeChance = () => 0; }
   // The sweep spares the middle hex.
   const hit = A.execute(def.abilities[2], tum4, ring[0], b4)
@@ -3754,7 +3790,7 @@ test('taking is contested: strips and AP drains roll accuracy vs resistance', ()
   const mk = () => {
     const b = makeBattle();
     const caster = place(b, H.cleo, TEAM.PLAYER, 0);
-    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const foe = place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
     foe.hp = foe.maxHp = 10 ** 6;
     foe.dodgeChance = () => 0;
     foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 3 });
@@ -3841,7 +3877,7 @@ test('taking is contested: strips and AP drains roll accuracy vs resistance', ()
   {
     const b = makeBattle();
     const caster = place(b, H.cleo, TEAM.PLAYER, 0);
-    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const foe = place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
     const scribe = place(b, H.artur, TEAM.ENEMY, 2);
     assert(scribe.hookSources().some((p) => p.hooks && p.hooks.meterGuard),
       'sanity: Artur still guards meters');
@@ -3938,7 +3974,7 @@ test("Posie's kit: two pools, a bough that keeps swinging, a summer ward", () =>
     `resistance went ${before} -> ${ally.debuffResistance()}`);
   // And that resistance has to actually do something: it is the stat
   // the contested-take rule reads.
-  const foe = place(b4, H.rat_knight, TEAM.ENEMY, 1);
+  const foe = place(b4, DUMMIES.rat_knight, TEAM.ENEMY, 1);
   ally.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
   R.random = () => 0.85;                   // beats 1 - 0.30 = 0.70
   const drained = A.applyEffect({ type: 'turnMeter', amount: -0.20 }, foe, ally, 1);
@@ -3967,7 +4003,7 @@ test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => 
   const arena = () => {
     const b = makeBattle();
     const galen = place(b, def, TEAM.PLAYER, 5);      // a back hex
-    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) {
       f.hp = f.maxHp = 10 ** 7;
       f.dodgeChance = () => 0;
@@ -4136,7 +4172,7 @@ test("Ilyra's kit: the same mercy at three widths, paid for by the enemy", () =>
     const b = makeBattle();
     const ilyra = place(b, def, TEAM.PLAYER, 5);
     const mate = place(b, H.franz, TEAM.PLAYER, 1);
-    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const foe = place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
     const prevActive = Battle.active;
     Battle.active = b;                   // the ring reads the live battle
     try {
@@ -4234,7 +4270,7 @@ test("Ryn's kit: speed is the damage stat", () => {
   {
     const b = makeBattle();
     const ryn = place(b, def, TEAM.PLAYER, 1);
-    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) { f.hp = f.maxHp = 10 ** 7; f.dodgeChance = () => 0; }
     ryn.baseCritChance = -1;
     const one = A.execute(def.abilities[0], ryn, foes[0], b).filter((r) => r.kind === 'damage');
@@ -4262,7 +4298,7 @@ test("Imani's kit: the chime picks its own victims, and answers their blessings"
   const arena = () => {
     const b = makeBattle();
     const imani = place(b, def, TEAM.PLAYER, 0);     // the centre hex
-    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) {
       f.hp = f.maxHp = 10 ** 7;
       f.dodgeChance = () => 0;
@@ -4292,7 +4328,7 @@ test("Imani's kit: the chime picks its own victims, and answers their blessings"
   {
     const b = makeBattle();
     const imani = place(b, def, TEAM.PLAYER, 0);
-    const lone = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const lone = place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
     lone.hp = lone.maxHp = 10 ** 7;
     lone.dodgeChance = () => 0;
     const hit = A.execute(def.abilities[2], imani, null, b).filter((r) => r.kind === 'damage');
@@ -4369,7 +4405,7 @@ test("Wren's kit: her own bulk is the weapon, and the line gets rearranged", () 
   const arena = () => {
     const b = makeBattle();
     const wren = place(b, def, TEAM.PLAYER, 1);       // a front hex
-    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const foes = [1, 2, 3, 4, 5, 6].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) {
       f.hp = f.maxHp = 10 ** 7;
       f.dodgeChance = () => 0;
@@ -4436,7 +4472,7 @@ test("Wren's kit: her own bulk is the weapon, and the line gets rearranged", () 
 
     const b2 = makeBattle();
     const w2 = place(b2, def, TEAM.PLAYER, 1);
-    const mid = place(b2, H.rat_knight, TEAM.ENEMY, 0);
+    const mid = place(b2, DUMMIES.rat_knight, TEAM.ENEMY, 0);
     mid.hp = mid.maxHp = 10 ** 7; mid.dodgeChance = () => 0;
     const hex = mid.slot;
     A.execute(def.abilities[2], w2, mid, b2);
@@ -4492,7 +4528,7 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
   const arena = () => {
     const b = makeBattle();
     const asher = place(b, def, TEAM.PLAYER, 1);      // a front hex
-    const foes = [1, 2].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const foes = [1, 2].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) {
       f.hp = f.maxHp = 10 ** 7;
       f.dodgeChance = () => 0;
@@ -4633,8 +4669,8 @@ test("Noctelle's kit: the wound and the mend are the same number", () => {
   const arena = (back = false) => {
     const b = makeBattle();
     const noc = place(b, def, TEAM.PLAYER, back ? 5 : 1);
-    const allies = [2, 3].map((i) => place(b, H.rat_knight, TEAM.PLAYER, i));
-    const foes = [1, 2, 3].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    const allies = [2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.PLAYER, i));
+    const foes = [1, 2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
     for (const f of foes) {
       f.hp = f.maxHp = 10 ** 7;
       f.dodgeChance = () => 0;
@@ -4760,7 +4796,7 @@ test("Noctelle's kit: the wound and the mend are the same number", () => {
   {
     const b = makeBattle();
     const noc = place(b, def, TEAM.PLAYER, 1);
-    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    const foe = place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
     foe.hp = foe.maxHp = 10 ** 7;
     foe.dodgeChance = () => 0;
     foe.effectiveStat = () => 0;

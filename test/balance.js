@@ -9,7 +9,7 @@
 //   node test/balance.js                 # default sweep
 //   node test/balance.js --sims 40       # more samples per matchup
 //   node test/balance.js --level 40      # team level
-//   node test/balance.js --team echo,catherine,rat_knight
+//   node test/balance.js --team echo,catherine,carl
 
 const { loadGame } = require('./harness');
 const g = loadGame();
@@ -26,7 +26,7 @@ const MAX_TICKS = 20000; // ~1000 simulated seconds; a stalemate bails out
 
 // A reference party: a tank, a healer, two strikers and a support, so
 // the report reflects a normal team rather than one hero's showcase.
-const DEFAULT_TEAM = ['echo', 'catherine', 'rat_knight', 'rat_archer', 'snake_spitter'];
+const DEFAULT_TEAM = ['echo', 'catherine', 'carl', 'silas', 'esmerelda'];
 const TEAM_IDS = arg('team', DEFAULT_TEAM.join(',')).split(',')
   .map((s) => s.trim()).filter((id) => HEROES[id]);
 
