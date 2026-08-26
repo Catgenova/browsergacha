@@ -114,7 +114,13 @@ const Progression = (() => {
   // Cap for one ability: laddered skills use their slot's cap, the rest
   // stay on the legacy 5 until they are swept.
   function skillCap(abilityDef, idx) {
-    return abilityDef && abilityDef.levelUps ? maxSkillLevel(idx) : MAX_SKILL_LEVEL;
+    if (!abilityDef || !abilityDef.levelUps) return MAX_SKILL_LEVEL;
+    // A slot's rung count is the CEILING, not a quota. A few skills have
+    // fewer improvable axes than rungs available -- Silas's aiming
+    // stance is a flag with no magnitude and no meaningful duration, so
+    // its only axis is cooldown. Capping at the ladder's real length
+    // beats padding it with rungs that buy nothing.
+    return Math.min(maxSkillLevel(idx), abilityDef.levelUps.length + 1);
   }
 
   // Sum the ladder rungs earned at `level` into one bag of deltas. Rung
@@ -153,6 +159,9 @@ const Progression = (() => {
     if (l.heal) bits.push(`+${Math.round(l.heal * 100)}% heal`);
     if (l.debuffChance) bits.push(`+${Math.round(l.debuffChance * 100)}% land chance`);
     if (l.debuffPower) bits.push(`+${Math.round(l.debuffPower * 100)}% effect`);
+    if (l.buffPower) bits.push(`+${Math.round(l.buffPower * 100)}% boon`);
+    if (l.cleanseCount) bits.push(`+${l.cleanseCount} cleansed`);
+    if (l.meter) bits.push(`+${Math.round(l.meter * 100)}% drain`);
     if (l.duration) bits.push(`+${l.duration} turn${l.duration === 1 ? '' : 's'}`);
     if (l.cooldown) bits.push(`${l.cooldown} CD`);
     return bits.join(' · ');

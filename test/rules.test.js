@@ -1450,6 +1450,11 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
   for (const f of [centerFoe, frontFoe]) f.dodgeChance = () => 0;
   sawyer.baseCritChance = 0;  // the numbers must be readable, not lucky
   sawyer.gearAccuracy = 10;   // and the hexes must land to be counted
+  // Petalfall's grab-bag now rolls a 50% application gate per hex, so
+  // "both land" is a promise the skill only keeps once its chance rungs
+  // are bought. Max it: that is the level the assertion describes.
+  sawyer.abilities.find((a) => a.def === HEROES.sawyer.abilities[0]).level =
+    Progression.skillCap(HEROES.sawyer.abilities[0], 0);
 
   // Skill 1: two DIFFERENT debuffs, both for 2 turns.
   Abilities.execute(HEROES.sawyer.abilities[0], sawyer, frontFoe, battle);

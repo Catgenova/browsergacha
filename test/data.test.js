@@ -949,4 +949,91 @@ test('nothing looks a boss up by its id', () => {
   }
 });
 
+test('every swept skill obeys the level-up rules', () => {
+  const { HEROES, Progression } = g;
+  // docs/skill-level-process.md, enforced. The sweep runs hero by hero
+  // over 47 heroes; without this, rung counts and cooldown pairs drift
+  // between the first batch and the last and nobody notices until a
+  // player asks why one skill 3 levels differently from another.
+  const problems = [];
+  for (const h of Object.values(HEROES)) {
+    (h.abilities || []).forEach((a, i) => {
+      if (!a.levelUps) return;
+      const slotRungs = Progression.skillRungs(i);
+      const rungs = a.levelUps.length;
+      const lad = Progression.skillLadder(a, Progression.skillCap(a, i));
+      const where = `${h.id} s${i + 1}`;
+
+      // A ladder may be shorter than its slot when the skill runs out of
+      // improvable axes, but never longer.
+      if (rungs > slotRungs) problems.push(`${where}: ${rungs} rungs, slot allows ${slotRungs}`);
+      if (rungs < 1) problems.push(`${where}: empty ladder`);
+
+      // Cooldown skills buy exactly two turns back, and never reach 0.
+      if (a.cooldown > 0 && rungs >= 2) {
+        if ((lad.cooldown || 0) !== -2) {
+          problems.push(`${where}: cooldown skill bought ${lad.cooldown || 0} turns, wanted -2`);
+        }
+        if (Progression.skillCooldown(a, Progression.skillCap(a, i)) < 1) {
+          problems.push(`${where}: cooldown reaches zero`);
+        }
+      }
+      if (!a.cooldown && lad.cooldown) {
+        problems.push(`${where}: a cooldown-free skill bought cooldown rungs`);
+      }
+
+      // Every gated hostile effect must be reachable to certainty, or
+      // the rungs spent on it stop short of what they promise.
+      for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
+        if (e.chance === undefined) continue;
+        const top = e.chance + (lad.debuffChance || 0);
+        if (top > 1.000001) problems.push(`${where}: gate overshoots to ${top}`);
+      }
+
+      // Severity rungs need something to deepen; duration rungs need a
+      // buff to lengthen. A rung with no target silently buys nothing.
+      const all = [...(a.effects || []), ...(a.selfEffects || [])];
+      if (lad.duration && !all.some((e) => e.type === 'buff')) {
+        problems.push(`${where}: duration rungs but no buff to lengthen`);
+      }
+      if (lad.buffPower && !all.some((e) => e.type === 'buff')) {
+        problems.push(`${where}: buffPower rungs but no buff`);
+      }
+      if (lad.debuffPower && !all.some((e) => e.type === 'debuff' && e.mult !== undefined)) {
+        problems.push(`${where}: debuffPower rungs but no debuff with a magnitude`);
+      }
+      if (lad.heal && !all.some((e) => /^heal/.test(e.type))) {
+        problems.push(`${where}: heal rungs but nothing that heals`);
+      }
+      if (lad.cleanseCount && !all.some((e) => e.type === 'cleanse')) {
+        problems.push(`${where}: cleanse rungs but no cleanse`);
+      }
+    });
+  }
+  assert(problems.length === 0, `rule violations:\n  ${problems.join('\n  ')}`);
+});
+
+test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
+  const { HEROES } = g;
+  // The rule is a BASE change, so it has to be visible in the data, not
+  // only in the ladder. Recorded as the known post-sweep values: a hero
+  // whose cooldown is edited later has to come back through here.
+  const EXPECTED = {
+    echo: [0, 4, 6], toll: [0, 4, 6], catherine: [0, 4, 6], leonardo: [0, 4, 5],
+    oak: [0, 4, 6], silas: [0, 4, 3], eli: [0, 4, 6], sawyer: [0, 4, 6],
+    polarus: [0, 4, 6], andrew: [0, 4, 5], angelica: [0, 4, 6], ari: [0, 4, 6],
+    morrow: [0, 6, 7],
+  };
+  const wrong = [];
+  for (const [id, cds] of Object.entries(EXPECTED)) {
+    const h = HEROES[id];
+    if (!h) { wrong.push(`${id}: gone from the roster`); continue; }
+    cds.forEach((want, i) => {
+      const got = h.abilities[i] && h.abilities[i].cooldown;
+      if (got !== want) wrong.push(`${id} s${i + 1}: cd ${got}, expected ${want}`);
+    });
+  }
+  assert(wrong.length === 0, wrong.join('; '));
+});
+
 report();

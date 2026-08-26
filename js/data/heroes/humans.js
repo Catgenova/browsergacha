@@ -329,22 +329,46 @@ Object.assign(HEROES, {
         description: 'Swing the flail at a single enemy for 120% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.2 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
       },
       {
         id: 'consecrated_mercy', name: 'Consecrated Mercy',
         icon: 'assets/icons/fc681.png',
         description: 'Heal herself and the 2 most-wounded allies for 30% ATK each.',
-        cooldown: 3, targeting: 'self-and-wounded-allies', allyCount: 2,
+        cooldown: 4, targeting: 'self-and-wounded-allies', allyCount: 2,
         animation: 'heal',
         effects: [{ type: 'heal', mult: 0.3 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
       {
         id: 'reverent_sweep', name: 'Reverent Sweep',
         icon: 'assets/icons/fc940.png',
         description: 'Sweep the flail through the enemy front line for 150% ATK.',
-        cooldown: 5, targeting: 'front-enemies', animation: 'skill3',
+        cooldown: 6, targeting: 'front-enemies', animation: 'skill3',
         impact: 'slash',
         effects: [{ type: 'damage', mult: 1.5 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
     ],
     passive: {
@@ -402,20 +426,42 @@ Object.assign(HEROES, {
         description: 'The herald sets the pace: ALL allies gain +25% SPD for 2 turns.',
         cooldown: 0, targeting: 'all-allies', animation: 'skill1',
         effects: [{ type: 'buff', stat: 'speed', mult: 1.25, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+        ],
       },
       {
         id: 'call_to_arms', name: 'Call to Arms',
         icon: 'assets/icons/fc868.png',
         description: 'A ringing proclamation: ALL allies gain +30% ATK for 2 turns.',
-        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.3, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
       {
         id: 'rite_of_absolution', name: 'Rite of Absolution',
         icon: 'assets/icons/fc855.png',
         description: 'Absolve the party: removes up to 2 debuffs from every ally.',
-        cooldown: 4, targeting: 'all-allies', animation: 'skill3',
+        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
         effects: [{ type: 'cleanse', count: 2 }],
+        levelUps: [
+          { cleanseCount: 1 },
+          { cleanseCount: 1 },
+          { cleanseCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
     ],
     passive: {
@@ -482,24 +528,48 @@ Object.assign(HEROES, {
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.1 }],
         chain: { id: 'oak_penance', chance: 0.2 },
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
       },
       {
         id: 'oak_penance', name: 'Penance',
         icon: 'assets/icons/fc767.png',
         description: 'A punishing blow for 150% ATK — 25% chance to chain ' +
           'straight into Absolution.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.5 }],
         chain: { id: 'oak_absolution', chance: 0.25 },
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
       {
         id: 'oak_absolution', name: 'Absolution',
         icon: 'assets/icons/fc730.png',
         description: 'The final rite: 175% ATK — 30% chance to begin the ' +
           'cycle again with Confession.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.75 }],
         chain: { id: 'oak_confession', chance: 0.3 },
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
     ],
     passive: {
@@ -564,23 +634,42 @@ Object.assign(HEROES, {
         description: 'A snapped shot at one enemy for 115% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.15 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
       },
       {
         id: 'silas_lumen_arrow', name: 'Lumen Arrow',
         icon: 'assets/icons/fc1050.png',
         description: 'Loose a holy arrow through an enemy row for 200% ATK. ' +
           'Can only be fired from Aiming Stance.',
-        cooldown: 3, targeting: 'enemy-row', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy-row', animation: 'skill2', impact: 'slash',
         requires: 'aiming',
         effects: [{ type: 'damage', mult: 2.0 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
       {
         id: 'silas_aiming_stance', name: 'Aiming Stance',
         icon: 'assets/icons/fc882.png',
         description: 'Settle and draw: his next shot deals 100% extra damage. ' +
           'The stance holds until he shoots — or a direct hit lands on him.',
-        cooldown: 2, targeting: 'self', animation: 'skill3',
+        cooldown: 3, targeting: 'self', animation: 'skill3',
         effects: [{ type: 'buff', stat: 'aiming', mult: 1, turns: 99 }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
       },
     ],
     passive: {
@@ -639,16 +728,31 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 1.0 },
           { type: 'turnMeter', amount: -0.20 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { meter: 0.05 },
+          { meter: 0.05 },
+        ],
       },
       {
         id: 'eli_sealing_glyph', name: 'Sealing Glyph',
         icon: 'assets/icons/fc862.png',
         description: 'Cast a glyph across the enemy BACK row: 90% ATK and ' +
           '-15% turn meter to each.',
-        cooldown: 3, targeting: 'back-enemies', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'back-enemies', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
           { type: 'turnMeter', amount: -0.15 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { meter: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -656,10 +760,19 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc885.png',
         description: 'Inscribe himself: +30% SPD and +25% Crit Chance for ' +
           '3 turns — then take another turn immediately.',
-        cooldown: 5, targeting: 'self', animation: 'skill3', extraTurn: true,
+        cooldown: 6, targeting: 'self', animation: 'skill3', extraTurn: true,
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.3, turns: 3 },
           { type: 'buff', stat: 'critChance', add: 0.25, turns: 3 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -721,7 +834,14 @@ Object.assign(HEROES, {
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.5 },
-          { type: 'randomDebuffs', count: 2, turns: 2 },
+          { type: 'randomDebuffs', chance: 0.5, count: 2, turns: 2 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
@@ -729,11 +849,19 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1053.png',
         description: 'Come into flower: +30% ATK, +30% DEF and +30% SPD ' +
           'for 3 turns.',
-        cooldown: 3, targeting: 'self', animation: 'skill2',
+        cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.3, turns: 3 },
           { type: 'buff', stat: 'def', mult: 1.3, turns: 3 },
           { type: 'buff', stat: 'speed', mult: 1.3, turns: 3 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -741,10 +869,19 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1051.png',
         description: 'Run one enemy through for 230% ATK. A unit holding ' +
           'the CENTER hex takes 50% more — cut the central bloom first.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 2.3,
             bonusPosition: { position: 'center', mult: 1.5 } },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -810,15 +947,28 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 1.25 },
           { type: 'freeze', chance: 0.30, turns: 2 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.1 },
+          { debuffChance: 0.1 },
+        ],
       },
       {
         id: 'polarus_crystalline_mantle', name: 'Crystalline Mantle',
         icon: 'assets/icons/fc1016.png',
         description: 'Take on Crystalline form for 2 turns: enemies who ' +
           'strike him have a 30% chance to freeze solid on contact.',
-        cooldown: 3, targeting: 'self', animation: 'skill2',
+        cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'crystalline', mult: 1, turns: 2 },
+        ],
+        levelUps: [
+          { duration: 1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -826,11 +976,20 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1014.png',
         description: 'Sweep the whole enemy team for 80% ATK — the frozen ' +
           'take 300% instead — then the ice shatters away.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           // 0.8 x 3.75 keeps the frozen payout at the specced 300%.
           { type: 'damage', mult: 0.8, bonusVs: { stat: 'freeze', mult: 3.75 } },
           { type: 'removeStatus', stat: 'freeze' },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -903,15 +1062,30 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 1.1 },
           { type: 'turnMeter', amount: -0.15 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { meter: 0.05 },
+          { meter: 0.05 },
+        ],
       },
       {
         id: 'andrew_shore_up', name: 'Shore Up',
         icon: 'assets/icons/fc1099.png',
         description: 'Brace the whole team the way you brace a tunnel: ' +
           '+30% DEF for 2 turns.',
-        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'def', mult: 1.3, turns: 2 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -919,9 +1093,18 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1013.png',
         description: 'Hurl a basketful of sharp spoil across the enemy ' +
           'BACK row for 90% ATK each.',
-        cooldown: 4, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -994,16 +1177,31 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 0.9 },
           { type: 'freeze', chance: 0.30, turns: 2 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.1 },
+          { debuffChance: 0.1 },
+        ],
       },
       {
         id: 'angelica_rimeorb', name: 'Rimeorb',
         icon: 'assets/icons/fc1023.png',
         description: 'Conjure and hurl a sphere of packed rime: 125% ATK ' +
           'and a 40% chance to freeze for 2 turns.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
-          { type: 'freeze', chance: 0.40, turns: 2 },
+          { type: 'freeze', chance: 0.5, turns: 2 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -1011,10 +1209,19 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1017.png',
         description: 'Drive the staff home: 150% ATK and a coin-flip 50% ' +
           'chance to freeze the target solid for 2 turns.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.5 },
-          { type: 'freeze', chance: 0.50, turns: 2 },
+          { type: 'freeze', chance: 0.5, turns: 2 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -1083,15 +1290,30 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.1 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
       },
       {
         id: 'ari_lancing_shot', name: 'Lancing Shot',
         icon: 'assets/icons/fc1017.png',
         description: 'A charged shot for 135% ATK that slips past 10% of ' +
           "the target's DEF.",
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.35, ignoreDef: 0.10 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -1099,9 +1321,18 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1012.png',
         description: 'A fanned volley for 140% ATK that adds 5% of the ' +
           "target's max HP to the blow.",
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.4, targetHpPct: 0.05 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],

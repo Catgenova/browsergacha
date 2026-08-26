@@ -439,7 +439,9 @@ const Abilities = (() => {
         // Strip debuffs (poisons included) from the target — all of
         // them, or only the oldest `count` when the effect names a
         // limit (Leonardo lifts two, not everything).
-        let left = effect.count || Infinity;
+        const cleanseLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        let left = effect.count
+          ? effect.count + (cleanseLad.cleanseCount || 0) : Infinity;
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
           if ((fx.kind !== 'debuff' && fx.kind !== 'dot') || left <= 0) return true;
@@ -459,8 +461,9 @@ const Abilities = (() => {
         // (Artur's Permanent Ink).
         if (effect.amount < 0) {
           // Taking meter is a contest; the helper owns the guard and
-          // the resistance roll alike.
-          return drainMeter(caster, target, -effect.amount);
+          // the resistance roll alike. A `meter` rung deepens the drain.
+          const mLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+          return drainMeter(caster, target, -effect.amount + (mLad.meter || 0));
         }
         const before = target.turnMeter;
         // No ceiling. Meters overfill past TURN_METER_MAX so that turn
@@ -601,6 +604,18 @@ const Abilities = (() => {
             turns += 1;
           }
         }
+        // Buff severity rungs, mirroring debuffPower: `mult` moves away
+        // from 1, and an `add`-style grant (Eli's flat crit chance) takes
+        // the points straight on.
+        let addAmt = effect.add;
+        if (effect.type === 'buff' && ladder.buffPower) {
+          if (typeof mult === 'number') {
+            mult = mult < 1 ? Math.max(0, mult - ladder.buffPower) : mult + ladder.buffPower;
+          }
+          if (typeof addAmt === 'number') {
+            addAmt = addAmt < 0 ? addAmt - ladder.buffPower : addAmt + ladder.buffPower;
+          }
+        }
         if (effect.type === 'buff' && target.buffsSealed()) {
           return { kind: 'buff', target, stat: effect.stat, sealed: true };
         }
@@ -614,7 +629,7 @@ const Abilities = (() => {
           // contribution, and without this the mitigation it produces is
           // credited to the ally who was not hit.
           source: caster,
-          add: effect.add,
+          add: addAmt,
           turns,
         });
         return { kind: effect.type, target, stat: effect.stat, turns };
@@ -623,8 +638,12 @@ const Abilities = (() => {
         // `chance` gates the roll (default always); the Cryst sect pack
         // sharpens every freeze roll; resistance applies like any
         // debuff inside freeze() itself.
+        // A freeze is a chance-gated hostile effect like any other hex,
+        // so its gate takes debuffChance rungs too.
+        const fLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         if (effect.chance !== undefined &&
-            Math.random() >= effect.chance + (caster.synergyFreezeChance || 0)) {
+            Math.random() >= Math.min(1, effect.chance + (fLad.debuffChance || 0) +
+              (caster.synergyFreezeChance || 0))) {
           return null; // no trigger, no log noise
         }
         return freeze(caster, target, effect.turns || 2);
@@ -961,8 +980,12 @@ const Abilities = (() => {
         const out = [];
         for (let i = 0; i < count; i++) {
           const pick = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          // The grab-bag's own `chance` rides on each drawn hex, so the
+          // application gate (and its rungs) works here exactly as it
+          // does on a named debuff. Without this the gate on the parent
+          // effect would be silently ignored.
           const res = applyEffect(
-            { type: 'debuff', turns: effect.turns, ...pick },
+            { type: 'debuff', turns: effect.turns, chance: effect.chance, ...pick },
             caster, target, power);
           if (res) out.push(res);
         }
