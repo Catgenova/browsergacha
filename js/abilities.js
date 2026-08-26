@@ -341,7 +341,11 @@ const Abilities = (() => {
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
+        // ATK-priced, so it takes the ATK/DEF rate: `mult` points, not
+        // the smaller `heal` steps an HP-priced mend uses.
+        const hLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const amount = Math.round(
+          caster.effectiveStat('atk') * (effect.mult + (hLad.mult || 0)) * power * boost);
         // ATK-scaled, so an attack buff on the healer multiplied this
         // mend and its granter takes that share of the credit.
         if (target.healBlocked()) return { kind: 'heal', target, amount: 0, blocked: true };
@@ -391,11 +395,14 @@ const Abilities = (() => {
       case 'hot': {
         // Heal-over-time: fixed amount (locked at cast) at the start of
         // each of the target's turns.
+        const hotLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         target.addStatusEffect({
           kind: 'hot',
-          amount: Math.round(caster.maxHp * effect.pct * power *
+          amount: Math.round(caster.maxHp * (effect.pct + (hotLad.heal || 0)) * power *
             (1 + (caster.healingBoost ? caster.healingBoost() : 0))),
-          turns: effect.turns,
+          // A heal-over-time is a friendly effect, so a duration rung
+          // lengthens it exactly as it lengthens a buff.
+          turns: effect.turns + (hotLad.duration || 0),
           source: caster, // so each tick is credited to whoever cast it
         });
         return { kind: 'hot', target, turns: effect.turns };
@@ -404,7 +411,10 @@ const Abilities = (() => {
         // Scaled off the caster's max HP rather than a combat stat, and
         // mitigated like everything else — a large HP pool is not a way
         // around the DEF curve any more than a large DEF stat is.
-        const raw = caster.maxHp * effect.pct * power *
+        // HP-priced damage moves in the same small steps an HP-priced
+        // heal does, so it takes the `heal` rate rather than `mult`.
+        const hpLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const raw = caster.maxHp * (effect.pct + (hpLad.heal || 0)) * power *
           caster.damageDealtMult(target, currentAbility) *
           Elements.mult(caster.element, target.element);
         return strike(caster, target, raw);
@@ -418,12 +428,17 @@ const Abilities = (() => {
         // healHpPct and hot already do, for a caster whose whole kit is
         // priced off her pool rather than her attack (Lenore).
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        // A shield is HP the target does not lose, so it takes the rate
+        // its own pricing implies: `heal` points on an HP-priced ward,
+        // `mult` points on an ATK-priced one. Duration lengthens it.
+        const shLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         const base = effect.pct !== undefined
-          ? caster.maxHp * effect.pct
-          : caster.effectiveStat('atk') * effect.mult;
+          ? caster.maxHp * (effect.pct + (shLad.heal || 0))
+          : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0));
         const amount = Math.round(base * power * boost);
-        const gained = target.addShield(amount, effect.turns, caster);
-        return { kind: 'shield', target, amount: gained, turns: effect.turns };
+        const shTurns = effect.turns + (shLad.duration || 0);
+        const gained = target.addShield(amount, shTurns, caster);
+        return { kind: 'shield', target, amount: gained, turns: shTurns };
       }
       case 'taunt': {
         // Force attackers onto this unit for a few turns.
@@ -452,7 +467,8 @@ const Abilities = (() => {
       }
       case 'revive': {
         if (target.alive) return null;
-        target.revive(effect.pct, caster);
+        const revLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        target.revive(effect.pct + (revLad.heal || 0), caster);
         return { kind: 'revive', target, amount: target.hp };
       }
       case 'turnMeter': {
@@ -470,8 +486,9 @@ const Abilities = (() => {
         // order among everyone already at 100% stays concrete, and
         // clamping here made a gift into a punishment: pushing a unit
         // sitting at 140% "up" by 30% used to drop them to 100%.
+        const giftLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         target.turnMeter = Math.max(0,
-          target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX);
+          target.turnMeter + (effect.amount + (giftLad.meter || 0)) * CONFIG.TURN_METER_MAX);
         // Remember who paid for the push, so the turn it buys can credit
         // its damage back (see Unit.outgoingAssists).
         const gained = target.turnMeter - before;
@@ -486,11 +503,20 @@ const Abilities = (() => {
         // `targetHpPct` scales the tick off the VICTIM's max HP instead
         // (Lucian's burn), and `flavor` names the debuff for anything
         // that asks who is burning.
+        const dotLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined) {
+          const odds = Math.min(1, effect.chance + (dotLad.debuffChance || 0));
+          if (Math.random() >= odds) {
+            return { kind: 'debuff', target, stat: 'dot', missed: true };
+          }
+        }
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
+        // Severity rungs deepen the tick. A DoT priced off the victim's
+        // pool moves in the same small steps every HP-priced number does.
         const amount = effect.targetHpPct
-          ? Math.round(target.maxHp * effect.targetHpPct * power *
+          ? Math.round(target.maxHp * (effect.targetHpPct + (dotLad.debuffPower || 0)) * power *
               (1 + caster.dotBoost()))
           : Math.round(caster.effectiveStat('atk') * effect.pct *
               power * (1 + caster.dotBoost()));
@@ -515,7 +541,10 @@ const Abilities = (() => {
         const count = foes.filter((u) => u.statusEffects.some((fx) =>
           fx.kind === 'dot' && fx.flavor === effect.flavor)).length;
         const banked = caster.forgeBanked || 0;
-        const gain = Math.max(0, Math.min(effect.cap - banked, count * effect.per));
+        // A `per` rung raises how much ATK each burning enemy is worth.
+        const forgeLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const perHead = effect.per + (forgeLad.per || 0);
+        const gain = Math.max(0, Math.min(effect.cap - banked, count * perHead));
         if (gain > 0) {
           caster.forgeBanked = banked + gain;
           caster.baseAtk += gain;
@@ -652,7 +681,8 @@ const Abilities = (() => {
         // A blue glass sphere around the target: it absorbs one whole
         // incoming hit, pops, and is gone. Recasting refreshes the timer
         // instead of stacking a second sphere.
-        const turns = effect.turns || 2;
+        const bubLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const turns = (effect.turns || 2) + (bubLad.duration || 0);
         const held = target.statusEffects.find((fx) => fx.kind === 'bubble');
         if (held) {
           held.turns = turns;

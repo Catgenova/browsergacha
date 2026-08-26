@@ -29,6 +29,16 @@ const FILES = [
 // `opts.save` pre-seeds localStorage before any game file runs, which is
 // the only way to exercise the save loader and its migrations: state.js
 // reads storage once, at load.
+// (declared above loadGame so it can register into it)
+// Every sandbox a loadGame() call has handed out. Tests stub
+// `Math.random` on these to force a roll, and a test that throws between
+// the stub and its cleanup used to leak the constant into every test
+// that ran after it -- one real failure would cascade into six
+// unrelated ones and hide its own cause. The runner now restores the
+// randomness itself, so a failing test can only fail itself.
+const sandboxes = [];
+const hostRandom = Math.random;
+
 function loadGame(opts = {}) {
   // The sandbox gets its own Math so a caller can make the whole engine
   // deterministic — crits, dodges, wave picks and all — without touching
@@ -62,6 +72,9 @@ function loadGame(opts = {}) {
     })(),
   };
   sandbox.globalThis = sandbox;
+  // Registered so the test runner can undo any Math.random stub a
+  // test leaves behind (see test()).
+  sandboxes.push(sandbox);
   const ctx = vm.createContext(sandbox);
   for (const rel of FILES) {
     const code = fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -108,12 +121,22 @@ function loadGame(opts = {}) {
 
 const results = { passed: 0, failed: [] };
 
+
 function test(name, fn) {
   try {
     fn();
     results.passed++;
   } catch (e) {
     results.failed.push({ name, message: e.message });
+  } finally {
+    // The host Math too: tests reach for the real global as well as the
+    // sandboxed one, and a stub left on it is the same cascade.
+    if (Math.random !== hostRandom) Math.random = hostRandom;
+    for (const box of sandboxes) {
+      if (box.Math && Object.prototype.hasOwnProperty.call(box.Math, 'random')) {
+        delete box.Math.random;
+      }
+    }
   }
 }
 

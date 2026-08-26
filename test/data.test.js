@@ -993,20 +993,39 @@ test('every swept skill obeys the level-up rules', () => {
       // Severity rungs need something to deepen; duration rungs need a
       // buff to lengthen. A rung with no target silently buys nothing.
       const all = [...(a.effects || []), ...(a.selfEffects || [])];
-      if (lad.duration && !all.some((e) => e.type === 'buff')) {
-        problems.push(`${where}: duration rungs but no buff to lengthen`);
+      // Duration lengthens anything friendly that runs on a timer: a
+      // buff, a shield, a heal-over-time, or a one-hit ward.
+      const TIMED = new Set(['buff', 'shield', 'hot', 'bubble']);
+      if (lad.duration && !all.some((e) => TIMED.has(e.type))) {
+        problems.push(`${where}: duration rungs but nothing timed to lengthen`);
       }
       if (lad.buffPower && !all.some((e) => e.type === 'buff')) {
         problems.push(`${where}: buffPower rungs but no buff`);
       }
-      if (lad.debuffPower && !all.some((e) => e.type === 'debuff' && e.mult !== undefined)) {
-        problems.push(`${where}: debuffPower rungs but no debuff with a magnitude`);
+      if (lad.debuffPower && !all.some((e) =>
+        (e.type === 'debuff' && e.mult !== undefined) ||
+        (e.type === 'dot' && e.targetHpPct !== undefined))) {
+        problems.push(`${where}: debuffPower rungs but nothing with a magnitude to deepen`);
       }
-      if (lad.heal && !all.some((e) => /^heal/.test(e.type))) {
-        problems.push(`${where}: heal rungs but nothing that heals`);
+      // The `heal` rung is the SMALL rate, used by everything priced off
+      // a health pool -- mends, wards, revives, and HP-priced damage.
+      const HP_PRICED = (e) => /^heal/.test(e.type) || e.type === 'hot' ||
+        e.type === 'revive' || e.type === 'damageHpPct' ||
+        (e.type === 'shield' && e.pct !== undefined);
+      if (lad.heal && !all.some(HP_PRICED)) {
+        problems.push(`${where}: heal rungs but nothing priced off a health pool`);
       }
-      if (lad.cleanseCount && !all.some((e) => e.type === 'cleanse')) {
-        problems.push(`${where}: cleanse rungs but no cleanse`);
+      // A cleanse with no `count` already lifts everything, so widening
+      // it buys nothing -- the rung needs a capped cleanse to widen.
+      if (lad.cleanseCount &&
+          !all.some((e) => e.type === 'cleanse' && e.count !== undefined)) {
+        problems.push(`${where}: cleanse rungs but no capped cleanse to widen`);
+      }
+      if (lad.per && !all.some((e) => e.per !== undefined)) {
+        problems.push(`${where}: per rungs but nothing priced per head`);
+      }
+      if (lad.meter && !all.some((e) => e.type === 'turnMeter')) {
+        problems.push(`${where}: meter rungs but nothing that moves a meter`);
       }
     });
   }
@@ -1023,6 +1042,9 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
     oak: [0, 4, 6], silas: [0, 4, 3], eli: [0, 4, 6], sawyer: [0, 4, 6],
     polarus: [0, 4, 6], andrew: [0, 4, 5], angelica: [0, 4, 6], ari: [0, 4, 6],
     morrow: [0, 6, 7],
+    cain: [0, 4, 6], bit: [0, 4, 6], tanner: [0, 4, 6], florence: [0, 6, 8],
+    vivian: [0, 6, 7], vex: [0, 6, 8], emily: [0, 6, 8], coral: [0, 7, 8],
+    javarious: [0, 4, 5], lucian: [0, 4, 6],
   };
   const wrong = [];
   for (const [id, cds] of Object.entries(EXPECTED)) {

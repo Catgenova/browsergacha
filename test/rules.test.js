@@ -1392,6 +1392,10 @@ test('dark resonance can stretch a debuff by one turn', () => {
   // adds one more on top when the coin lands.
   const debuff = hero.abilities[0].def.effects.find((e) => e.type === 'debuff');
   const base = debuff.turns + 1; // her passive extension
+  // Her hex is gated at 50% until its chance rungs are bought, and this
+  // test is about DURATION, not about landing: max the skill so the
+  // shared stub only decides the coin flip it is here to decide.
+  hero.abilities[0].level = Progression.skillCap(hero.abilities[0].def, 0);
   const origRandom = Math.random;
   const roll = (r) => {
     foe.statusEffects.length = 0;
@@ -1743,6 +1747,11 @@ test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock
     `core sample paid ${foeFront.maxHp - foeFront.hp}, expected ${expected}`);
 
   // Bore Sweep: hits the front row only, and strips 30% DEF for 1 turn.
+  // The strip is gated at 50% until its chance rungs are bought, so max
+  // the skill -- a guaranteed strip is what the fully-levelled skill
+  // promises, not what the base one does.
+  bit.abilities.find((a) => a.def === HEROES.bit.abilities[0]).level =
+    Progression.skillCap(HEROES.bit.abilities[0], 0);
   foeFront.hp = foeFront.maxHp; foeBack.hp = foeBack.maxHp;
   Abilities.execute(HEROES.bit.abilities[0], bit, foeFront, battle);
   assert(foeFront.hp < foeFront.maxHp, 'bore sweep missed the front');
@@ -2777,6 +2786,9 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
 
   // Cinder Lash: damage plus a burn ticking exactly 3% of the VICTIM's
   // max HP (rats carry no resistance, so the land roll is certain).
+  // The burn also rolls the 50% application gate now, so the skill is
+  // maxed -- at which point it is certain again.
+  lucian.abilities[0].level = Progression.skillCap(lucian.abilities[0].def, 0);
   A.execute(lucian.abilities[0].def, lucian, foeA, battle);
   const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
   assert(burn, 'the burn failed to land');
