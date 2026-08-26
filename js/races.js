@@ -66,18 +66,20 @@ const RACES = (() => {
                  members: ['vex', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
-    // Sawyer's order; a one-member sect costs nothing and claims the
-    // name until its pack is specced.
+    // Sawyer's old home, emptied when he was recognised as the
+    // Nightflower his whole kit already said he was. The number is kept
+    // so the sect list does not renumber under saves that remember it.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
-                 members: ['sawyer'] },
+                 members: [] },
     // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
                  members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo'] },
-    // The Nightflowers hold their number and their name ahead of their
-    // roster — the same courtesy Shadowflower got. Members land as the
-    // heroes themselves are wired.
+    // The Nightflowers: the sect that grows out of what dies. Sawyer
+    // was written as one long before the sect existed — Petalfall Cut,
+    // Night Bloom, Deadheading, Wilting Garden — so he moved here and
+    // his title moved with him.
     nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
-                 members: ['noctelle', 'sable', 'evelune'] },
+                 members: ['sawyer', 'noctelle', 'sable', 'evelune'] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',
