@@ -339,6 +339,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('long_stems', {
+    position: POSITION.BACK,
+    name: 'Long Stems',
+    description: 'Back hex: debuffs he inflicts last 1 turn longer — cut ' +
+      'long, they keep.',
+    hooks: { debuffExtraTurns: 1 },
+  });
+
   def('mourners_row', {
     position: POSITION.FRONT,
     name: "Mourner's Row",

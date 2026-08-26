@@ -5444,4 +5444,159 @@ test("Morrow's kit: he volunteers for all of it and is fed by the result", () =>
   }
 });
 
+test("Valere's kit: he opens the door, then hands them the bill", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.valere;
+  assert(def && def.element === 'dark' && def.rarity === 4, 'Valere drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Valere left the Nightflowers');
+  assert(def.role === 'support', 'Valere is not binned as a support');
+  assert(def.abilities[1].cooldown === 4 && def.abilities[2].cooldown === 7,
+    'his cooldowns drifted');
+
+  const arena = (back = false) => {
+    const b = makeBattle();
+    const va = place(b, def, TEAM.PLAYER, back ? 5 : 1);
+    const mates = [2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.PLAYER, i));
+    const foes = [1, 2, 3].map((i) => place(b, DUMMIES.rat_brawler, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    va.baseCritChance = -1;
+    return { b, va, mates, foes };
+  };
+  const live = (b, fn) => {
+    const prev = Battle.active; Battle.active = b;
+    try { return fn(); } finally { Battle.active = prev; }
+  };
+
+  // ---- The Whole Bouquet is the enabler: resistance comes off ----
+  {
+    const { b, va, foes } = arena();
+    for (const f of foes) delete f.debuffResistance;   // read the real figure
+    const before = foes.map((f) => f.debuffResistance());
+    live(b, () => A.execute(def.abilities[1], va, null, b));
+    foes.forEach((f, i) => {
+      assert(Math.abs(f.debuffResistance() - (before[i] - 0.30)) < 1e-9,
+        `${f.def.id} resistance ${before[i]} -> ${f.debuffResistance()}`);
+      const res = f.statusEffects.find((fx) => fx.stat === 'resistance');
+      assert(res && res.turns === 2, 'the bouquet did not last 2 turns');
+      assert(f.statusEffects.some((fx) => fx.stat === 'def' && fx.mult === 0.80),
+        `${f.def.id} kept its armour`);
+    });
+  }
+
+  // ---- Nothing Is Refused: the first flower rolls, the rest do not ----
+  {
+    const { b, va, foes } = arena();
+    const mark = foes[0];
+    mark.debuffResistance = () => 10;          // nothing should ever land
+    const R = g.Math;
+    try {
+      R.random = () => 0.99;                   // every roll fails
+      live(b, () => A.execute(def.abilities[0], va, mark, b));
+      assert(!mark.statusEffects.some((fx) => fx.kind === 'debuff'),
+        'the first flower was forced on a clean target');
+      // Now they are carrying something from somewhere else.
+      mark.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.8, turns: 3 });
+      live(b, () => A.execute(def.abilities[0], va, mark, b));
+      assert(mark.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'atk'),
+        'an already-afflicted target still refused him');
+      // A poison counts as carrying something, and somebody ELSE with
+      // the same opening still gets refused.
+      const clean = foes[1];
+      clean.debuffResistance = () => 10;
+      live(b, () => A.execute(def.abilities[0], va, clean, b));
+      assert(!clean.statusEffects.some((fx) => fx.kind === 'debuff'),
+        'the exemption leaked onto a clean target');
+      clean.addStatusEffect({ kind: 'dot', amount: 10, turns: 2 });
+      live(b, () => A.execute(def.abilities[0], va, clean, b));
+      assert(clean.statusEffects.some((fx) => fx.stat === 'atk'),
+        'a poisoned target was not already afflicted enough');
+    } finally { delete R.random; }
+  }
+
+  // ---- Something Rarer: his side walks clean, one of theirs wears it ----
+  {
+    const { b, va, mates, foes } = arena();
+    const mark = foes[0];
+    mates[0].addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.5, turns: 4 });
+    mates[0].addStatusEffect({ kind: 'dot', amount: 99, turns: 3, source: foes[1] });
+    mates[1].addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.6, turns: 2 });
+    va.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.5, turns: 5 });
+    // A buff on his side must NOT go with them.
+    mates[0].addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.3, turns: 3 });
+    const res = live(b, () => A.execute(def.abilities[2], va, mark, b));
+    const moved = res.find((r) => r.kind === 'transferDebuffs');
+    assert(moved && moved.count === 4, `moved ${moved && moved.count}, wanted 4`);
+    for (const u of [va, ...mates]) {
+      assert(!u.statusEffects.some((fx) => fx.kind === 'debuff' || fx.kind === 'dot'),
+        `${u.def.id} kept an affliction`);
+    }
+    assert(mates[0].statusEffects.some((fx) => fx.kind === 'buff'),
+      'a blessing went with the bouquet');
+    const worn = mark.statusEffects;
+    assert(worn.filter((fx) => fx.kind === 'debuff').length >= 4, 'the target is not buried');
+    assert(worn.some((fx) => fx.stat === 'atk' && fx.mult === 0.5 && fx.turns === 4),
+      'a moved debuff lost its terms');
+    const dot = worn.find((fx) => fx.kind === 'dot');
+    assert(dot && dot.source === va, 'a moved poison still credits the enemy who cast it');
+    // ...and the rider lands regardless, so it is never a dead turn.
+    assert(worn.some((fx) => fx.stat === 'def' && fx.mult === 0.70 && fx.turns === 3),
+      'the guaranteed cut did not land');
+  }
+
+  // ---- A refused transfer is a no-op, not a bonfire ----
+  {
+    const { b, va, mates, foes } = arena();
+    const mark = foes[0];
+    mark.debuffResistance = () => 10;
+    mates[0].addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.5, turns: 4 });
+    const R = g.Math;
+    let res;
+    try {
+      R.random = () => 0.99;
+      // Only the transfer is under test; the rider would afflict them
+      // and switch the passive on, so it is cast on its own. It goes
+      // through execute() rather than applyEffect() because that is
+      // what tells Abilities which battle is being fought.
+      res = live(b, () => A.execute(
+        { id: 'probe', targeting: 'enemy', effects: [{ type: 'transferDebuffs' }] },
+        va, mark, b))[0];
+    } finally { delete R.random; }
+    assert(res && res.resisted, 'the transfer was not contested');
+    assert(mates[0].statusEffects.some((fx) => fx.stat === 'atk' && fx.turns === 4),
+      'a refused transfer destroyed the affliction it could not move');
+    assert(!mark.statusEffects.some((fx) => fx.kind === 'debuff'),
+      'a refused transfer landed anyway');
+  }
+
+  // ---- Nothing to hand over is reported, not faked ----
+  {
+    const { b, va, foes } = arena();
+    const res = live(b, () => A.execute(
+      { id: 'probe', targeting: 'enemy', effects: [{ type: 'transferDebuffs' }] },
+      va, foes[0], b))[0];
+    assert(res && res.count === 0 && !res.resisted, 'an empty bouquet misreported');
+  }
+
+  // ---- Long Stems: cut long, they keep ----
+  {
+    assert(def.positional.name === 'Long Stems' &&
+      def.positional.position === POSITION.BACK &&
+      def.positional.hooks.debuffExtraTurns === 1, 'the back-hex bonus drifted');
+    const on = arena(true), off = arena(false);
+    assert(on.va.slot.position === POSITION.BACK &&
+      off.va.slot.position !== POSITION.BACK, 'sanity: same hex twice');
+    const turnsOf = (a) => {
+      live(a.b, () => A.execute(def.abilities[0], a.va, a.foes[0], a.b));
+      return a.foes[0].statusEffects.find((fx) => fx.stat === 'atk').turns;
+    };
+    assert(turnsOf(on) === turnsOf(off) + 1,
+      `back hex ${turnsOf(on)} turns vs ${turnsOf(off)} off it`);
+  }
+});
+
 report();

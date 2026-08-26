@@ -687,6 +687,19 @@ class Battle {
               'catches a 2-turn burn.', cls);
           }
         }
+      } else if (res.kind === 'transferDebuffs') {
+        if (res.resisted) {
+          this.addFloatingText(res.target, 'REFUSED', '#c8c2da');
+          this.log(`${res.target.name} will not take the bouquet — ` +
+            'the affliction stays where it was.', cls);
+        } else if (res.count === 0) {
+          this.log(`${caster.name} has nothing to hand over.`, cls);
+        } else {
+          this.addFloatingText(res.target, `❦ ${res.count}`, '#d78aff');
+          this.log(`${caster.name} presents ${res.count} affliction` +
+            `${res.count === 1 ? '' : 's'} to ${res.target.name} — his own ` +
+            'side walks away clean.', cls);
+        }
       } else if (res.kind === 'soulBond') {
         this.addFloatingText(res.target, '❦ BOUND', '#e05a9a');
         this.log(`${caster.name} runs a thread through ${res.target.name} — ` +

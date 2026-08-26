@@ -54,6 +54,17 @@ const Abilities = (() => {
   // Debuff landing roll: accuracy (attacker) offsets resistance
   // (defender); the land chance is floored at 15%.
   function debuffLands(caster, target) {
+    // A caster may hold a `noResistWhenAfflicted` hook: once the target
+    // is already carrying something hostile, nothing else of that
+    // caster's is refused (Valere -- you took the first flower, you
+    // will take the rest). Checked before the roll rather than folded
+    // into accuracy, because it is a rule, not a number.
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (!(p.hooks && p.hooks.noResistWhenAfflicted)) continue;
+      const afflicted = (target.statusEffects || []).some(
+        (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+      if (afflicted) return true;
+    }
     const resistance = target.debuffResistance ? target.debuffResistance() : 0;
     const accuracy = caster.debuffAccuracy ? caster.debuffAccuracy() : 0;
     const chance = Math.max(0.15, 1 - Math.max(0, resistance - accuracy));
@@ -626,6 +637,36 @@ const Abilities = (() => {
           }
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
+      }
+      case 'transferDebuffs': {
+        // The inverse of stealBuffs: every affliction on the CASTER'S
+        // OWN SIDE comes off and goes onto one enemy, keeping whatever
+        // turns it had left. A taking like any other, so it contests --
+        // though by then the target is usually already carrying
+        // something, which is exactly when Valere cannot be refused.
+        const b = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        if (!b) return null;
+        const mine = b.livingUnits(caster.team);
+        const hostile = (fx) => fx.kind === 'debuff' || fx.kind === 'dot';
+        const moving = mine.flatMap((ally) => ally.statusEffects.filter(hostile));
+        if (moving.length === 0) return { kind: 'transferDebuffs', target, count: 0 };
+        // Rolled BEFORE anything is lifted, so a refusal leaves every
+        // affliction exactly where it was rather than needing to be put
+        // back on the right ally afterwards.
+        if (!takeLands(caster, target)) {
+          return { kind: 'transferDebuffs', target, count: 0, resisted: true };
+        }
+        for (const ally of mine) {
+          ally.statusEffects = ally.statusEffects.filter((fx) => !hostile(fx));
+        }
+        for (const fx of moving) {
+          // Re-sourced to the man who handed it over: a poison ticking
+          // on an enemy must not credit the enemy who first cast it.
+          target.addStatusEffect({ ...fx, source: caster });
+        }
+        return { kind: 'transferDebuffs', target, count: moving.length,
+          stats: moving.map((fx) => fx.stat || fx.kind) };
       }
       case 'soulBond': {
         // Tie the thread. An ordinary debuff so it cleanses, resists
