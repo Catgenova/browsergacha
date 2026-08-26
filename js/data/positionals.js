@@ -201,6 +201,15 @@ const POSITIONALS = (() => {
     hooks: { meterGiftAdd: 0.25 },
   });
 
+  // Polo's hex: the chart table is in the stern cabin, and the work is
+  // better done sitting down.
+  def('chart_table', {
+    position: POSITION.BACK,
+    name: 'Chart Table',
+    description: 'Back hex: every blessing this hero hands out is 10 points stronger.',
+    hooks: { buffPowerAdd: 0.10 },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

@@ -752,4 +752,99 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.weather_eye,
   },
+
+  polo: {
+    id: 'polo',
+    element: 'water',
+    name: 'Polo',
+    title: 'Cartographer',
+    rarity: 4,
+    // A pure buffer: he does no damage and mends nobody, so the whole
+    // of him is what he hands other people. Sturdy enough to survive
+    // being reached, because the crew is holding a chart it cannot
+    // read without him.
+    // (Ratios only; js/data/balance.js scales all three to the shared
+    // budget and leaves speed alone.)
+    stats: { hp: 1750, atk: 95, def: 150, speed: 108 },
+    tint: { body: '#dfe6ee', helm: '#1a5ac8', weapon: '#c8a86a', shield: '#8a6a3a' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Poloidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'take_a_bearing', name: 'Take a Bearing',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Fix somebody\'s position and hold them to it: one ally gains 25% ' +
+          'Accuracy and 25% Resistance for 2 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        // Two stats almost nothing on the roster hands out, and the two
+        // the Gulldiggers most need: half the sect's riders are gated
+        // rolls, and a crew this frail cannot afford to be hexed.
+        effects: [
+          { type: 'buff', stat: 'accuracy', add: 0.15, turns: 2 },
+          { type: 'buff', stat: 'resistance', add: 0.15, turns: 2 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+        ],
+      },
+      {
+        id: 'sound_the_depths', name: 'Sound the Depths',
+        icon: 'assets/icons/fc823.png',
+        description: 'Read the bottom and mark the shoals: ALL allies gain 10% Crit Chance ' +
+          'for 3 turns.',
+        cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // The roster's first TEAM crit buff -- Artur hands crit to one
+        // ally at a time and nobody else hands it out at all. Sized
+        // against him deliberately: at cap, and with his own hex
+        // counted, Polo gives the WHOLE crew what Artur gives one bird,
+        // and pays a four-turn cooldown for it where Artur pays none.
+        effects: [{ type: 'buff', stat: 'critChance', add: 0.10, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'every_berth_charted', name: 'Every Berth Charted',
+        icon: 'assets/icons/fc1117.png',
+        description: 'The whole deck, drawn to scale: for 2 turns every ally counts as ' +
+          'standing on their own favoured hex, wherever they actually are.',
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // The map. Every hero in the game carries a bonus locked to one
+        // hex and spends the whole fight either on it or without it;
+        // for two turns Polo suspends that, and a formation built for
+        // one thing gets to be built for another. Carried as a plain
+        // status so it expires, is sealed, and is stripped like any
+        // other blessing.
+        effects: [{ type: 'buff', stat: 'charted', turns: 2 }],
+        levelUps: [
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Dead Reckoning',
+      icon: 'assets/icons/fc866.png',
+      description: 'He does not need the hex to know where he is: Polo\'s own positional ' +
+        'bonus is active on every tile of the field.',
+      hooks: {
+        // Read directly out of positionalActive(), which is the single
+        // question every hex bonus in the game already asks.
+        alwaysPositioned: true,
+      },
+    },
+    positional: POSITIONALS.chart_table,
+  },
 });
