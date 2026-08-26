@@ -181,7 +181,7 @@ test('every sect holds one race, once each, with its number', () => {
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
-    gulldigger: { number: 8, race: 'avian', members: ['hallow'] },
+    gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

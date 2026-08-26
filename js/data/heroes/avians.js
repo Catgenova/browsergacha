@@ -111,4 +111,94 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.stormglass,
   },
+
+  ike: {
+    id: 'ike',
+    element: 'water',
+    name: 'Ike',
+    title: 'Boarding Pike',
+    rarity: 3,
+    // Sturdier than Hallow and nowhere near a tank: he lands within a
+    // few points of Sawyer, the roster's other front-line damage dealer,
+    // which is the band a front-row DPS belongs in. The first pass at
+    // this line read as a TANK by a single point of the Tags
+    // classifier -- bulk 213 against punch 212 -- which is exactly the
+    // kind of thing that is invisible until something prints the label.
+    // (Ratios only; js/data/balance.js scales all three to the shared
+    // budget and leaves speed alone.)
+    stats: { hp: 1400, atk: 240, def: 120, speed: 104 },
+    tint: { body: '#e8eef4', helm: '#1a3a7a', weapon: '#b8863a', shield: '#2a4a8a' },
+    sprite: {
+      displayH: 96, // he stands tall on the pike -- a heron's legs
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Ikeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'sweep_the_deck', name: 'Sweep the Deck',
+        icon: 'assets/icons/fc1045.png',
+        description: 'Work the pike along the enemy front rank: 70% ATK to the enemy FRONT row, ' +
+          'and 6% more to each of them for every enemy beyond the first the sweep catches.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.7, perTarget: 0.06 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { perTarget: 0.02 },
+        ],
+      },
+      {
+        id: 'gaff_and_haul', name: 'Gaff and Haul',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Drive the hook through a whole rank: 115% ATK to one enemy and everyone ' +
+          'level with them, and 8% more to each for every enemy beyond the first on the line.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.15, perTarget: 0.08 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { perTarget: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'skewer', name: 'Skewer',
+        icon: 'assets/icons/fc89.png',
+        description: 'Both wings behind it, straight through one bird: 260% ATK to a single enemy.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        // Deliberately no crowd bonus. Every other button he owns wants
+        // a full enemy line; this is the one he presses when there is
+        // one bird left and the sect's whole thesis has stopped paying.
+        effects: [{ type: 'damage', mult: 2.6 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Long Reach',
+      icon: 'assets/icons/fc1117.png',
+      description: 'His front-row sweeps reach the enemy CENTER hex as well.',
+      hooks: {
+        // Read by resolveTargets, which folds the centre into every
+        // 'front-enemies' cast this hero makes. It is a damage passive
+        // wearing a targeting hook: one more body in the sweep is one
+        // more stack of his own crowd bonus, on every skill that has
+        // one.
+        reachesCenter: true,
+      },
+    },
+    positional: POSITIONALS.bloodied_fury,
+  },
 });

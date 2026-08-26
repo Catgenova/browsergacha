@@ -2160,6 +2160,14 @@ test('keepers favourite themselves on arrival', () => {
   const H = w.HEROES;
   const pick = (fn) => Object.values(H).find(fn);
 
+  // The RARITY rule is what is under test here, and a blessing is a
+  // SECOND reason to pin -- so the roll is held off while the rarity
+  // half is checked. Without this the negative cases fail whenever the
+  // blessing lands, which is rare enough to look like a real bug and
+  // often enough to redden CI.
+  const realRoll = w.Blessing.roll;
+  w.Blessing.roll = () => null;
+
   const five = G.addHero(pick((h) => h.rarity === 5).id);
   assert(G.isFavorite(five.uid), 'a 5-star arrived unpinned');
   const four = G.addHero(pick((h) => h.rarity === 4 &&
@@ -2172,7 +2180,6 @@ test('keepers favourite themselves on arrival', () => {
   assert(!G.isFavorite(plain3.uid), 'a 3-star pinned itself');
 
   // Any blessed copy pins, whatever its stars.
-  const realRoll = w.Blessing.roll;
   w.Blessing.roll = () => 'blessed';
   const bl = G.addHero(pick((h) => h.rarity === lowestRarity(w)).id);
   w.Blessing.roll = realRoll;
@@ -6788,6 +6795,81 @@ test('Hallow prices a storm off the size of the crowd it catches', () => {
   const snapBack = sweep(hallow.abilities[0], 5, POSITION.BACK).each;
   assert(snapCtr === snapBack,
     'Stormglass paid out on a single-target strike');
+});
+
+test("Ike's pike reaches the centre hex, and only his does", () => {
+  const ike = HEROES.ike;
+  const sweep = ike.abilities[0];
+  assert(sweep.targeting === 'front-enemies', 'Sweep the Deck stopped being a front sweep');
+
+  // A field with the enemy standing in named hexes, and Ike out front.
+  function field(positions, def = ike) {
+    const battle = makeBattle();
+    const h = new Unit(def, TEAM.PLAYER, { level: 30, stars: def.rarity });
+    h.slot = battle.playerSlots[
+      battle.playerSlots.findIndex((sl) => sl.position === POSITION.FRONT)];
+    battle.units.push(h);
+    const taken = new Set();
+    for (const pos of positions) {
+      const i = battle.enemySlots.findIndex(
+        (sl, n) => sl.position === pos && !taken.has(n));
+      taken.add(i);
+      const f = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 4 });
+      f.slot = battle.enemySlots[i];
+      f.hp = f.maxHp = 9e6;
+      battle.units.push(f);
+    }
+    return { battle, h };
+  }
+  const hitPositions = (ability, positions, def = ike) => {
+    const { battle, h } = field(positions, def);
+    return Abilities.resolveTargets(ability, h, null, battle)
+      .map((u) => u.slot.position).sort();
+  };
+  const F = POSITION.FRONT, C = POSITION.CENTER, B = POSITION.BACK;
+
+  // The whole passive: a front sweep that also takes the centre.
+  assert(hitPositions(sweep, [F, F, F]).join() === [F, F, F].join(),
+    'Sweep the Deck invented a target that was not there');
+  const withCentre = hitPositions(sweep, [F, F, F, C]);
+  assert(withCentre.length === 4 && withCentre.includes(C),
+    `Long Reach missed the centre: hit ${withCentre.join()}`);
+  // It never reaches further than the centre.
+  assert(!hitPositions(sweep, [F, C, B]).includes(B),
+    'Long Reach went all the way to the back row');
+
+  // The reach is his, not the targeting's: a front sweep cast by a hero
+  // without the hook stops at the front rank.
+  const toll = HEROES.toll;
+  assert(toll.abilities[0].targeting === 'front-enemies', 'First Toll moved');
+  assert(!hitPositions(toll.abilities[0], [F, F, C], toll).includes(C),
+    'Long Reach leaked onto a hero who does not have it');
+
+  // And it does not touch his other two skills, which are not front
+  // sweeps at all.
+  assert(hitPositions(ike.abilities[2], [F, F, C]).length === 0,
+    'Skewer resolved a group without being handed a target');
+
+  // The extra body pays twice: one more victim AND a deeper crowd
+  // bonus on every victim, which is why the passive is worth a slot.
+  function damage(positions) {
+    const { battle, h } = field(positions);
+    h.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    const foes = battle.livingUnits(TEAM.ENEMY);
+    const before = foes.map((u) => u.hp);
+    const real = Math.random;
+    Math.random = () => 0.99;
+    Abilities.execute(sweep, h, foes[0], battle);
+    Math.random = real;
+    const each = foes.map((u, i) => before[i] - u.hp).filter((x) => x > 0);
+    return { each: each[0], total: each.reduce((a, c) => a + c, 0) };
+  }
+  const three = damage([F, F, F]);
+  const four = damage([F, F, F, C]);
+  assert(four.each > three.each,
+    `a fourth body did not deepen the crowd bonus (${three.each} -> ${four.each})`);
+  assert(four.total > three.total * 1.3,
+    `the centre hex added only ${Math.round((four.total / three.total - 1) * 100)}%`);
 });
 
 report();
