@@ -27,7 +27,7 @@ const RACES = (() => {
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
     'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
     'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani', 'wren', 'asher',
-    'noctelle', 'sable', 'evelune',
+    'noctelle', 'sable', 'evelune', 'lysandra',
   ]);
 
   const NAMES = {
@@ -79,7 +79,7 @@ const RACES = (() => {
     // Night Bloom, Deadheading, Wilting Garden — so he moved here and
     // his title moved with him.
     nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
-                 members: ['sawyer', 'noctelle', 'sable', 'evelune'] },
+                 members: ['sawyer', 'noctelle', 'sable', 'evelune', 'lysandra'] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',

@@ -140,7 +140,17 @@ class UI {
       const needsStance = a.requires &&
         !unit.statusEffects.some((fx) => fx.stat === a.requires);
       if (needsStance) btn.title += '\n\nNeeds Aiming Stance — cast it first.';
-      btn.disabled = abilityState.cooldownRemaining > 0 || needsDead || needsStance;
+      // The inverse gate: an ability held shut by its OWN mark still
+      // standing on someone (Lysandra's thread). The button says why,
+      // because a cooldown at zero on a disabled button is otherwise a
+      // bug rather than a rule.
+      const stillTied = unit.blockedByOwnStatus && unit.blockedByOwnStatus(a);
+      if (stillTied) {
+        btn.title += '\n\nThe thread is still tied — it has to be cut or ' +
+          'the one wearing it has to fall.';
+      }
+      btn.disabled = abilityState.cooldownRemaining > 0 || needsDead ||
+        needsStance || stillTied;
       btn.addEventListener('click', () => this.selectAbility(abilityState, btn));
       this.buttonsEl.appendChild(btn);
     });

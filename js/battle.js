@@ -686,6 +686,10 @@ class Battle {
               'catches a 2-turn burn.', cls);
           }
         }
+      } else if (res.kind === 'soulBond') {
+        this.addFloatingText(res.target, '❦ BOUND', '#e05a9a');
+        this.log(`${caster.name} runs a thread through ${res.target.name} — ` +
+          `everything she takes, they take.`, cls);
       } else if (res.kind === 'cooldownReduce') {
         if (res.moved > 0) {
           this.addFloatingText(res.target, `♪ -${res.turns} CD`, '#8ee8ff');

@@ -3460,6 +3460,96 @@ Object.assign(HEROES, {
     positional: POSITIONALS.first_chair,
   },
 
+  lysandra: {
+    id: 'lysandra',
+    element: 'dark',
+    name: 'Lysandra',
+    title: 'Needleworker of the Nightflowers',
+    rarity: 4,
+    // A front-line carry whose damage is not really hers: she ties a
+    // thread to one enemy, drags the rest of their line onto her
+    // needle, and lets them kill their own carry by hitting her. Every
+    // number in her statline is there to keep her standing while that
+    // happens.
+    stats: { hp: 1900, atk: 175, def: 155, speed: 108 },
+    tint: { body: '#3a2a58', helm: '#e8e0f0', weapon: '#d8d0e8', skin: '#e8d0b8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Lysandra/lysandraidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Lysandra/lysandraidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Lysandra/lysandraidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Lysandra/lysandraskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Lysandra/lysandraskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Lysandra/lysandraskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Lysandra/lysandradeath.png', frames: 'auto', fps: 10,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'lysandra_running_stitch', name: 'Running Stitch',
+        icon: 'assets/icons/fc1291.png',
+        description: 'One clean stitch: 130% ATK to a single enemy, and ' +
+          'Lysandra mends for 20% of what it cost them.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.30, healDealt: { to: 'self', frac: 0.20 } },
+        ],
+      },
+      {
+        id: 'lysandra_slip_knot', name: 'Slip Knot',
+        icon: 'assets/icons/fc1292.png',
+        description: 'A loop thrown over the whole line: 110% ATK to the ' +
+          'enemy FRONT row, and every one of them is taunted onto her ' +
+          'needle for 1 turn.',
+        cooldown: 3, targeting: 'front-enemies', animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.10 },
+          { type: 'debuff', stat: 'taunted', turns: 1 },
+        ],
+      },
+      {
+        id: 'lysandra_soul_bond', name: 'Soul Bond',
+        icon: 'assets/icons/fc1293.png',
+        // The gate, not a cooldown: one thread at a time.
+        blockedWhile: 'soulbond',
+        description: 'The knot tied off: 160% ATK to a single enemy and a ' +
+          'thread run through them. While it holds, every point of damage ' +
+          'Lysandra takes is dealt to them as well, unmitigated. She cannot ' +
+          'throw a second thread until that one is dead or cut.',
+        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.60 },
+          { type: 'soulBond' },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Pull It Taut',
+      icon: 'assets/icons/fc1294.png',
+      description: 'Committed while the thread is tied: +25% ATK and +25% ' +
+        'DEF for as long as a Soul Bond of hers is still on something living.',
+      hooks: {
+        statMult(unit, stat) {
+          if (stat !== 'atk' && stat !== 'def') return 1;
+          const b = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!b) return 1;
+          const tied = b.livingUnits().some((u) => u !== unit &&
+            u.statusEffects.some((fx) => fx.stat === 'soulbond' && fx.source === unit));
+          return tied ? 1.25 : 1;
+        },
+      },
+    },
+    positional: POSITIONALS.spool,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',
