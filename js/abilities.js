@@ -1243,8 +1243,16 @@ const Abilities = (() => {
         // Every living enemy in a front-position hex; if nobody holds
         // the front line, the sweep still catches one random enemy.
         const pool = battle.livingUnits(caster.enemyTeam());
+        // A long weapon reaches past the rank it is aimed at. A
+        // `reachesCenter` hook (Ike's pike) folds the centre hex into
+        // every front sweep its owner casts -- not one named skill, so
+        // it is worth exactly as much as the number of front sweeps the
+        // hero has, which for a Gulldigger is all of them.
+        const reach = (caster.hookSources ? caster.hookSources() : [])
+          .some((p) => p.hooks && p.hooks.reachesCenter);
         const front = pool.filter(
-          (u) => u.isBoss || u.slot.position === POSITION.FRONT);
+          (u) => u.isBoss || u.slot.position === POSITION.FRONT ||
+            (reach && u.slot.position === POSITION.CENTER));
         if (front.length > 0) return front;
         return pool.length > 0
           ? [pool[Math.floor(Math.random() * pool.length)]]
