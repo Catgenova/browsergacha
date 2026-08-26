@@ -1264,6 +1264,29 @@ body {
   50% { box-shadow: 0 0 26px rgba(255, 215, 106, 0.85); }
 }
 
+/* Roster controls on a summon result. They reuse .card-fav/.card-store
+   wholesale — same glyphs, same two corners — so the gesture learned on
+   one screen works on the other. The front face is absolutely
+   positioned, which makes it the ancestor those rules anchor to. */
+.summon-front .card-fav,
+.summon-front .card-store { z-index: 2; }
+/* The face centres its contents, so without this the longest status
+   line ("x2 in roster") runs under the favourite star. Reserve the
+   bottom strip for the controls on cards that actually carry them. */
+.summon-front:has(.card-store) { padding-bottom: 22px; }
+
+/* Vaulted straight off the summon screen. The card's contents dim, but
+   NOT the button itself (opacity does not un-inherit), so the tick that
+   says where the hero went stays legible. */
+.summon-card.summon-stored .summon-front { border-color: #3f7a46; box-shadow: none; animation: none; }
+.summon-card.summon-stored .summon-front > *:not(.card-store) { opacity: 0.45; }
+.summon-card.summon-stored .card-store {
+  color: #7ae87a;
+  border-color: #3f7a46;
+  background: #1e3324;
+  cursor: default;
+}
+
 .card-new {
   font-size: 10px;
   font-weight: bold;
