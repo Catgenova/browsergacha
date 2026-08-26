@@ -5733,4 +5733,135 @@ test("Lenore's kit: the bell is priced off her own pool, and a death rings it so
   }
 });
 
+test("Dorian's kit: he does not out-heal a healer, he removes the healer", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.dorian;
+  assert(def && def.element === 'dark' && def.rarity === 5, 'Dorian drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Dorian left the Nightflowers');
+  assert(def.role === 'dps', 'Dorian is not binned as a DPS');
+  // The seal he casts is the SAME one Asher casts, on the same plate.
+  const seal = def.abilities[2].effects.find((e) => e.type === 'buffBlock');
+  assert(seal, 'No Physician stopped sealing');
+  assert(H.asher.abilities.some((a) =>
+    (a.effects || []).some((e) => e.type === 'buffBlock')),
+    'sanity: nobody else uses the seal');
+
+  const arena = (front = true) => {
+    const b = makeBattle();
+    const dor = place(b, def, TEAM.PLAYER, front ? 1 : 5);
+    const medic = place(b, DUMMIES.rat_knight, TEAM.PLAYER, 2);
+    const foes = [1, 2].map((i) => place(b, DUMMIES.rat_brawler, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    dor.baseCritChance = -1;
+    return { b, dor, medic, foes };
+  };
+  const live = (b, fn) => {
+    const prev = Battle.active; Battle.active = b;
+    try { return fn(); } finally { Battle.active = prev; }
+  };
+
+  // ---- The lock stops every kind of mending there is ----
+  {
+    const { b, dor, foes } = arena();
+    const mark = foes[0];
+    live(b, () => A.execute(def.abilities[1], dor, mark, b));
+    assert(mark.healBlocked(), 'the lock did not land');
+    const lock = mark.statusEffects.find((fx) => fx.stat === 'healblock');
+    assert(lock.kind === 'debuff' && lock.turns === 2, 'the lock is not a 2-turn debuff');
+
+    mark.hp = Math.round(mark.maxHp * 0.5);
+    const hp = mark.hp;
+    // A cast heal.
+    assert(mark.heal(5000, dor) === 0, 'a cast mend got through');
+    // A regen tick, and a drain rider.
+    mark.addStatusEffect({ kind: 'hot', amount: 500, turns: 2, source: foes[1] });
+    live(b, () => mark.startTurn(b));
+    assert(mark.hp === hp, 'a regen tick got through');
+    live(b, () => A.applyEffect(
+      { type: 'damageHp', mult: 0.01, healDealt: { to: 'self', frac: 1 } },
+      mark, foes[1], 1));
+    assert(mark.hp === hp, 'a drain got through');
+    // An ability-cast mend reports itself as refused rather than as a zero.
+    const res = live(b, () => A.applyEffect({ type: 'healHpPct', pct: 0.5 }, dor, mark, 1));
+    assert(res && res.blocked && res.amount === 0, 'a refused mend misreported');
+
+    // ...but a REVIVE is not healing, and is deliberately untouched.
+    mark.hp = 0;
+    assert(!mark.alive, 'sanity: he lived');
+    mark.revive(0.4, dor);
+    assert(mark.alive && mark.hp === Math.round(mark.maxHp * 0.4),
+      'the lock stopped a revive it was never meant to stop');
+    // And a shield is not healing either.
+    mark.addStatusEffect({ kind: 'shield', amount: 900, turns: 3 });
+    assert(mark.shieldTotal() === 900, 'the lock ate a shield');
+  }
+
+  // ---- The lock expires, and then mending works again ----
+  {
+    const { b, dor, foes } = arena();
+    const mark = foes[0];
+    live(b, () => A.execute(def.abilities[1], dor, mark, b));
+    for (let i = 0; i < 2; i++) mark.tickStatusEffects();
+    assert(!mark.healBlocked(), 'the lock outlived its two turns');
+    mark.hp = 100;
+    assert(mark.heal(500, dor) === 400 || mark.hp > 100, 'mending stayed shut');
+  }
+
+  // ---- No Physician shuts both doors at once ----
+  {
+    const { b, dor, foes } = arena();
+    const mark = foes[0];
+    live(b, () => A.execute(def.abilities[2], dor, mark, b));
+    assert(mark.healBlocked() && mark.buffsSealed(),
+      'the lit blade left a door open');
+    assert(mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 2, turns: 3 }) === false,
+      'a blessing reached a sealed target');
+    assert(mark.heal(9999, dor) === 0, 'a mend reached a cut-off target');
+  }
+
+  // ---- Past Helping pays per lock, and only for HIS two ----
+  {
+    const { b, dor, foes } = arena();
+    const mark = foes[0];
+    assert(dor.damageDealtMult(mark) === 1, 'an untouched enemy already paid');
+    mark.addStatusEffect({ kind: 'debuff', stat: 'healblock', turns: 3 });
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.20) < 1e-9,
+      `one lock gave ${dor.damageDealtMult(mark)}`);
+    mark.addStatusEffect({ kind: 'debuff', stat: 'buffblock', turns: 3 });
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.40) < 1e-9,
+      `both locks gave ${dor.damageDealtMult(mark)}`);
+    // Some other affliction is not one of his locks.
+    mark.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.5, turns: 3 });
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.40) < 1e-9,
+      'an unrelated debuff was counted as a lock');
+    // ...and it shows in the damage, not just the multiplier.
+    const clean = foes[1];
+    const hit = (t) => { const h = t.hp;
+      live(b, () => A.applyEffect({ type: 'damage', mult: 1.40 }, dor, t, 1));
+      return h - t.hp; };
+    const elem = g.Elements.mult('dark', mark.element) /
+      g.Elements.mult('dark', clean.element);
+    assert(Math.abs(hit(mark) / (hit(clean) * elem) - 1.40) < 0.02,
+      'the locks did not show up in the swing');
+  }
+
+  // ---- Reach: the front hex is what makes the locks stick ----
+  {
+    assert(def.positional.name === 'Reach' &&
+      def.positional.position === POSITION.FRONT &&
+      def.positional.hooks.accuracyAdd === 0.40, 'the front-hex bonus drifted');
+    const { dor: on } = arena(true);
+    const { dor: off } = arena(false);
+    assert(on.slot.position === POSITION.FRONT &&
+      off.slot.position !== POSITION.FRONT, 'sanity: same hex twice');
+    assert(Math.abs((on.debuffAccuracy() - off.debuffAccuracy()) - 0.40) < 1e-9,
+      `front ${on.debuffAccuracy()} vs back ${off.debuffAccuracy()}`);
+  }
+});
+
 report();

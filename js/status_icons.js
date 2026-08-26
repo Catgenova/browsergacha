@@ -103,6 +103,19 @@ const StatusIcons = (() => {
         ctx.fillStyle = PLATE;
         disc(ctx, u, 9.5, 2.5, 0.5);
       } },
+    healblock: { title: 'Cut Off', note: 'cannot be healed by anything',
+      color: '#ff7a7a', good: false,
+      draw(ctx, u, c) {
+        // A medical cross with a bar struck through it.
+        ctx.fillStyle = c;
+        poly(ctx, u, [[4.8, 1.6], [7.2, 1.6], [7.2, 4.8], [10.4, 4.8],
+          [10.4, 7.2], [7.2, 7.2], [7.2, 10.4], [4.8, 10.4], [4.8, 7.2],
+          [1.6, 7.2], [1.6, 4.8], [4.8, 4.8]]);
+        ctx.strokeStyle = PLATE; ctx.lineWidth = 2.4 * u; ctx.lineCap = 'butt';
+        line(ctx, u, [[1.6, 10.4], [10.4, 1.6]]);
+        ctx.strokeStyle = c; ctx.lineWidth = 1.2 * u; ctx.lineCap = 'round';
+        line(ctx, u, [[1.8, 10.2], [10.2, 1.8]]);
+      } },
     buffblock: { title: 'Sealed', note: 'cannot receive any new buff',
       color: '#c79aff', good: false,
       draw(ctx, u, c) {
@@ -323,7 +336,7 @@ const StatusIcons = (() => {
 
   // The battle-legend order: control first, then damage over time, then
   // the marks, then the stat modifiers and resources.
-  const LEGEND = ['stun', 'freeze', 'buffblock', 'soulbond', 'taunted', 'blocker', 'burn', 'dot', 'hot',
+  const LEGEND = ['stun', 'freeze', 'buffblock', 'healblock', 'soulbond', 'taunted', 'blocker', 'burn', 'dot', 'hot',
     'vulnerable', 'ward', 'methane', 'oilslicked', 'veil', 'slag',
     'crystalline', 'aiming', 'taunt', 'bubble', 'shield', 'mirrors',
     'atk', 'def', 'speed', 'accuracy', 'critChance', 'critDamage'];

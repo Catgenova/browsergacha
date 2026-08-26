@@ -572,6 +572,15 @@ class Battle {
           this.log(`${res.target.name} is defeated!`, 'log-system');
         }
       } else if (res.kind === 'heal') {
+        // A mend refused by a heal-lock IS an event, and a loud one --
+        // the turn was spent and bought nothing. Said plainly rather
+        // than swallowed with the ordinary zero-heals below.
+        if (res.blocked) {
+          this.addFloatingText(res.target, 'NO MEND', '#e05a5a');
+          this.log(`${res.target.name} is cut off — the mend finds nothing ` +
+            'to close.', cls);
+          continue;
+        }
         // A heal onto a full-health target is a real outcome, not an
         // event: Javarious casts his at full HP on purpose, for the
         // shield that comes with it. Say nothing rather than "for 0".
@@ -735,6 +744,11 @@ class Battle {
             `${res.count} blessings`} off ${res.target.name} and wears ` +
             `${res.count === 1 ? 'it' : 'them'} instead!`, cls);
         }
+      } else if (res.kind === 'healBlock') {
+        this.addFloatingText(res.target, 'NO MEND', '#e05a5a');
+        this.log(`${res.target.name} is cut off from help for ` +
+          `${res.turns} turn${res.turns > 1 ? 's' : ''} — nothing will ` +
+          'close those wounds.', cls);
       } else if (res.kind === 'buffBlock') {
         this.addFloatingText(res.target, 'SEALED', '#9a7ad8');
         this.log(`${res.target.name} is sealed against blessings for ` +
