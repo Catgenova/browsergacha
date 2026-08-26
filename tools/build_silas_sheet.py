@@ -233,9 +233,9 @@ html = r'''<title>Silas, Boltcaster of Reverence</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1150</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">250</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">95</div><div class="sub">stay in the back</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">925</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">201</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">76</div><div class="sub">stay in the back</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">104</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

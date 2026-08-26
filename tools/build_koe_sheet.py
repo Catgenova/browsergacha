@@ -155,9 +155,9 @@ html = r'''<title>Koe, Mime of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1900</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">125</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">130</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1555</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">102</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">106</div></div>
     <div class="stat spd"><div class="k">SPD</div><div class="v">108</div><div class="sub">always in position</div></div>
   </div>
 

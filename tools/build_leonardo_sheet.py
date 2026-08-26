@@ -211,9 +211,9 @@ html = r'''<title>Leonardo, Herald of Reverence</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1450</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">160</div><div class="sub">he never uses it</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">145</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1200</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">133</div><div class="sub">he never uses it</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">120</div></div>
     <div class="stat spd"><div class="k">SPD</div><div class="v">106</div><div class="sub">the herald leads</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&#xd7;1.5 damage</div></div>
   </div>

@@ -153,9 +153,9 @@ html = r'''<title>Tumble, Whirling Dervish of the Whisperchime</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1750</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">130</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">120</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1360</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">101</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">93</div></div>
     <div class="stat spd"><div class="k">SPD</div><div class="v">118</div><div class="sub">never stops moving</div></div>
   </div>
 

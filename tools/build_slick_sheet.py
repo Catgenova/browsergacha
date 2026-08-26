@@ -155,9 +155,9 @@ html = r'''<title>Slick, Barrel Man of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat hp"><div class="k">HP</div><div class="v">1800</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">110</div><div class="sub">never used in anger</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">140</div><div class="sub">solid oak</div></div>
+    <div class="stat hp"><div class="k">HP</div><div class="v">1690</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">103</div><div class="sub">never used in anger</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">131</div><div class="sub">solid oak</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">100</div></div>
   </div>
 

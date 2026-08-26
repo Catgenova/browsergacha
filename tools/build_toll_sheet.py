@@ -184,9 +184,9 @@ html = r'''<title>Toll, Bellringer of Reverence</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">2650</div></div>
-    <div class="stat"><div class="k">ATK</div><div class="v">96</div><div class="sub">unused by his kit</div></div>
-    <div class="stat def"><div class="k">DEF</div><div class="v">300</div><div class="sub">drives everything</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">2295</div></div>
+    <div class="stat"><div class="k">ATK</div><div class="v">83</div><div class="sub">unused by his kit</div></div>
+    <div class="stat def"><div class="k">DEF</div><div class="v">260</div><div class="sub">drives everything</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">84</div><div class="sub">slowest 5&#9733;</div></div>
     <div class="stat"><div class="k">Crit</div><div class="v">15%</div><div class="sub">&times;1.5 damage</div></div>
   </div>

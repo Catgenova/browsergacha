@@ -153,9 +153,9 @@ html = r'''<title>Esmerelda, Firedancer of the Firetroupe</title>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">HP</div><div class="v">1550</div></div>
-    <div class="stat atk"><div class="k">ATK</div><div class="v">165</div><div class="sub">the ribbon's edge</div></div>
-    <div class="stat"><div class="k">DEF</div><div class="v">110</div></div>
+    <div class="stat"><div class="k">HP</div><div class="v">1290</div></div>
+    <div class="stat atk"><div class="k">ATK</div><div class="v">138</div><div class="sub">the ribbon's edge</div></div>
+    <div class="stat"><div class="k">DEF</div><div class="v">92</div></div>
     <div class="stat"><div class="k">SPD</div><div class="v">104</div><div class="sub">always mid-turn</div></div>
   </div>
 

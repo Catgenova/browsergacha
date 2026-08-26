@@ -682,7 +682,7 @@ Object.assign(HEROES, {
       name: 'Wilting Garden',
       icon: 'assets/icons/fc1119.png',
       description: 'Deals 10% extra damage per debuff on the target ' +
-        '(up to +30%) — flowers cut easiest once they droop.',
+        '(up to +60%) — flowers cut easiest once they droop.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
