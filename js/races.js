@@ -26,7 +26,7 @@ const RACES = (() => {
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
     'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
-    'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani', 'wren',
+    'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani', 'wren', 'asher',
   ]);
 
   const NAMES = {
@@ -79,7 +79,8 @@ const RACES = (() => {
                  members: [] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
-                 members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren'] },
+                 members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',
+                           'asher'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

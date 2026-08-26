@@ -686,7 +686,30 @@ class Battle {
               'catches a 2-turn burn.', cls);
           }
         }
+      } else if (res.kind === 'stealBuff') {
+        if (res.resisted) {
+          this.addFloatingText(res.target, 'RESIST', '#c8c2da');
+          this.log(`${res.target.name} keeps its blessing — the theft is resisted!`, cls);
+        } else if (res.count === 0) {
+          this.log(`${res.target.name} carries no blessing worth taking.`, cls);
+        } else {
+          this.addFloatingText(res.target, 'BUFF ⤳', '#d78aff');
+          this.log(`${caster.name} takes ${res.count === 1 ? 'a blessing' :
+            `${res.count} blessings`} off ${res.target.name} and wears ` +
+            `${res.count === 1 ? 'it' : 'them'} instead!`, cls);
+        }
+      } else if (res.kind === 'buffBlock') {
+        this.addFloatingText(res.target, 'SEALED', '#9a7ad8');
+        this.log(`${res.target.name} is sealed against blessings for ` +
+          `${res.turns} turn${res.turns > 1 ? 's' : ''} — nothing can help it now.`, cls);
       } else if (res.kind === 'buff' || res.kind === 'debuff') {
+        // A blessing refused by a seal is reported as such, so the
+        // wasted turn is visible rather than silently swallowed.
+        if (res.sealed) {
+          this.addFloatingText(res.target, 'SEALED', '#9a7ad8');
+          this.log(`${res.target.name} is sealed — the blessing finds no purchase.`, cls);
+          continue;
+        }
         // A ward gets its own note — it is the one buff whose whole
         // value is invisible until something hits the ally wearing it.
         if (typeof Sound !== 'undefined' && !res.resisted &&
