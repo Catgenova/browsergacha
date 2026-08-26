@@ -43,6 +43,17 @@ function makeBattle() {
   };
   return battle;
 }
+// Max every skill on a unit. The sweep put a 50% application gate under
+// each debuff, so a test that asserts "the hex lands" is describing the
+// fully-levelled skill, not the base one. Cheaper and clearer than
+// stubbing the roll in a dozen places.
+function maxSkill(unit, ...idxs) {
+  for (const i of idxs) {
+    unit.abilities[i].level = g.Progression.skillCap(unit.abilities[i].def, i);
+  }
+  return unit;
+}
+
 function place(battle, def, team, slotIdx) {
   const u = new Unit(def, team, { level: 30, stars: def.rarity || 3 });
   u.slot = (team === TEAM.PLAYER ? battle.playerSlots : battle.enemySlots)[slotIdx];
@@ -2589,6 +2600,7 @@ test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
   M.resetBattle();
   const battle = new B();
   const esme = new U(H.esmerelda, T.PLAYER, { level: 30, stars: 3 });
+  maxSkill(esme, 0, 2);   // the two burn gates, not the gathering
   const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
   const foeA = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
@@ -2963,6 +2975,7 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
   M.resetBattle();
   const battle = new B();
   const slick = new U(H.slick, T.PLAYER, { level: 30, stars: 3 });
+  maxSkill(slick, 0, 2);  // the two oil gates, not the self-buff
   const foeFront = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   const foeBack = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   const centerIdx = battle.playerSlots.findIndex((s) => s.position === P.CENTER);
@@ -3091,6 +3104,7 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
   M.resetBattle();
   const battle = new B();
   const lin = new U(H.lin, T.PLAYER, { level: 30, stars: 4 });
+  maxSkill(lin, 0);       // the taunt gate only
   const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
   const backMate = new U(DUMMIES.rat_archer, T.PLAYER, { level: 30, stars: 3 });
   const foeFront = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
@@ -3126,13 +3140,20 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
   assert(calls.length === 1 && calls[0].a === foeBack.abilities[0] &&
     calls[0].t === lin, 'the taunt did not command the turn');
 
-  // Blazing Ball: TWO separate burns on each front-row enemy.
-  A.execute(lin.abilities[1].def, lin, null, battle);
+  // Blazing Ball: TWO separate burns on each front-row enemy. Maxed,
+  // because each burn rolls its own 50% application gate now -- and the
+  // expected tick is read off the ladder rather than hard-coded, since
+  // the same max that guarantees the burns also deepens them.
+  maxSkill(lin, 1);
+  const ballDef = lin.abilities[1].def;
+  const ballLad = Progression.skillLadder(ballDef, Progression.skillCap(ballDef, 1));
+  const tick = Math.round(foeFront.maxHp *
+    (ballDef.effects[0].targetHpPct + (ballLad.debuffPower || 0)));
+  A.execute(ballDef, lin, null, battle);
   const burns = foeFront.statusEffects.filter(
     (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
-  assert(burns.length === 2 &&
-    burns.every((fx) => fx.amount === Math.round(foeFront.maxHp * 0.03)),
-    `the ball rolled ${burns.length} burns`);
+  assert(burns.length === 2 && burns.every((fx) => fx.amount === tick),
+    `the ball rolled ${burns.length} burns at ${burns.map((f) => f.amount)}, wanted 2 x ${tick}`);
   assert(!foeBack.statusEffects.some((fx) => fx.kind === 'dot'),
     'the ball reached the back row');
 

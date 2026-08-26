@@ -1021,6 +1021,9 @@ test('every swept skill obeys the level-up rules', () => {
           !all.some((e) => e.type === 'cleanse' && e.count !== undefined)) {
         problems.push(`${where}: cleanse rungs but no capped cleanse to widen`);
       }
+      if (lad.stripCount && !all.some((e) => e.type === 'stripBuffs')) {
+        problems.push(`${where}: strip rungs but nothing that strips`);
+      }
       if (lad.per && !all.some((e) => e.per !== undefined)) {
         problems.push(`${where}: per rungs but nothing priced per head`);
       }
@@ -1045,6 +1048,9 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
     cain: [0, 4, 6], bit: [0, 4, 6], tanner: [0, 4, 6], florence: [0, 6, 8],
     vivian: [0, 6, 7], vex: [0, 6, 8], emily: [0, 6, 8], coral: [0, 7, 8],
     javarious: [0, 4, 5], lucian: [0, 4, 6],
+    franz: [0, 4, 6], carl: [0, 4, 6], esmerelda: [0, 4, 6], slick: [0, 4, 6],
+    samuels: [0, 4, 6], lin: [0, 4, 6], koe: [0, 4, 6], cleo: [0, 4, 6],
+    artur: [0, 4, 6], tumble: [0, 4, 6],
   };
   const wrong = [];
   for (const [id, cds] of Object.entries(EXPECTED)) {

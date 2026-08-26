@@ -385,8 +385,10 @@ const Abilities = (() => {
           n + u.statusEffects.filter((fx) => fx.kind === 'dot').length, 0);
         if (count === 0) return { kind: 'heal', target, amount: 0 };
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const amount = Math.round(caster.effectiveStat('atk') * effect.pct *
-          count * power * boost);
+        // ATK-priced per fire, so it takes the ATK rate.
+        const pdLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const amount = Math.round(caster.effectiveStat('atk') *
+          (effect.pct + (pdLad.mult || 0)) * count * power * boost);
         const healed = target.heal(amount, caster,
           { assists: caster.healAssists(true) });
         notifyOverheal(caster, amount - healed, target);
@@ -698,7 +700,9 @@ const Abilities = (() => {
         // 2-turn burn — the roll is the whole gate, like the sect oil.
         // A rider strip (Tumble's whirl) rolls per target before it
         // reaches for anything.
-        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+        const stLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (stLad.debuffChance || 0))) {
           return { kind: 'stripBuff', target, count: 0, rolled: true };
         }
         // Tearing a blessing off is taking something from an unwilling
@@ -707,7 +711,7 @@ const Abilities = (() => {
         if (!takeLands(caster, target)) {
           return { kind: 'stripBuff', target, count: 0, resisted: true };
         }
-        let left = effect.count || 1;
+        let left = (effect.count || 1) + (stLad.stripCount || 0);
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
           if (fx.kind !== 'buff' || left <= 0) return true;

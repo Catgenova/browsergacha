@@ -161,6 +161,7 @@ const Progression = (() => {
     if (l.debuffPower) bits.push(`+${Math.round(l.debuffPower * 100)}% effect`);
     if (l.buffPower) bits.push(`+${Math.round(l.buffPower * 100)}% boon`);
     if (l.cleanseCount) bits.push(`+${l.cleanseCount} cleansed`);
+    if (l.stripCount) bits.push(`+${l.stripCount} stripped`);
     if (l.meter) bits.push(`+${Math.round(l.meter * 100)}% drain`);
     if (l.per) bits.push(`+${l.per} ATK each`);
     if (l.duration) bits.push(`+${l.duration} turn${l.duration === 1 ? '' : 's'}`);

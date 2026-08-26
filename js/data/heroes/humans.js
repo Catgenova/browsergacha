@@ -2554,15 +2554,30 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damageHp', mult: 0.20 },
         ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+        ],
       },
       {
         id: 'franz_wagon_wheel', name: 'Wagon Wheel',
         icon: 'assets/icons/fc1031.png',
         description: 'Send a wagon wheel rolling through the enemy ' +
           'front row for 20% of his own max HP as damage to each.',
-        cooldown: 3, targeting: 'front-enemies', animation: 'skill2', impact: 'slam',
+        cooldown: 4, targeting: 'front-enemies', animation: 'skill2', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -2570,9 +2585,18 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1032.png',
         description: 'Draw a deep breath and hose the entire enemy team ' +
           'with fire for 15% of his own max HP each.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3', impact: 'strike',
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3', impact: 'strike',
         effects: [
           { type: 'damageHp', mult: 0.15 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -2632,15 +2656,30 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damageHp', mult: 0.15 },
         ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+        ],
       },
       {
         id: 'carl_pole_swing', name: 'Crowd-Pleaser',
         icon: 'assets/icons/fc1034.png',
         description: 'Wind up and lay one enemy out for 20% of his own ' +
           'max HP as damage, then flex for the crowd.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.20 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -2649,10 +2688,19 @@ Object.assign(HEROES, {
         description: 'The headline act: a two-fisted drive for 25% of his ' +
           'own max HP as damage — a FRONT-row target takes 50% more. ' +
           'Tanks first.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.25,
             bonusPosition: { position: 'front', mult: 1.5 } },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -2725,7 +2773,14 @@ Object.assign(HEROES, {
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
-          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
@@ -2734,9 +2789,17 @@ Object.assign(HEROES, {
         description: 'Draw the heat home: heal every front-row ally for ' +
           "20% of Esmerelda's ATK per damage-over-time burning on the " +
           'enemy team.',
-        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'healPerDot', pct: 0.20 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -2745,10 +2808,19 @@ Object.assign(HEROES, {
         description: 'Send the ribbons arcing over the wall: 125% ATK to ' +
           'the enemy back row, each victim left with a burn eating 3% of ' +
           'their max HP per turn for 2 turns.',
-        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
-          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -2811,7 +2883,12 @@ Object.assign(HEROES, {
           'hard on an oiled target.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [
-          { type: 'debuff', stat: 'oilslicked', turns: 3 },
+          { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
@@ -2819,10 +2896,18 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1040.png',
         description: 'Slick his own staves with a fresh coat of oil: ' +
           '+30% SPD and +30% debuff Accuracy for 2 turns.',
-        cooldown: 3, targeting: 'self', animation: 'skill2',
+        cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
           { type: 'buff', stat: 'accuracy', add: 0.30, turns: 2 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -2830,9 +2915,16 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1041.png',
         description: 'Tip the whole barrel: every enemy is Oilslicked ' +
           'for 3 turns.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
-          { type: 'debuff', stat: 'oilslicked', turns: 3 },
+          { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -2908,17 +3000,32 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 0.35, critAdd: 0.15 },
           { type: 'damage', mult: 0.35, critAdd: 0.15 },
         ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+        ],
       },
       {
         id: 'samuels_aim_for_the_middle', name: 'Aim for the Middle',
         icon: 'assets/icons/fc1043.png',
         description: 'Three thrown blades of 40% ATK each — a target on ' +
           'the center tile takes double from every one.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'strike',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
           { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
           { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -2926,11 +3033,20 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1044.png',
         description: 'All three brothers commit: 3 separate strikes of ' +
           '55% ATK, each with 20% extra chance to crit.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.55, critAdd: 0.20 },
           { type: 'damage', mult: 0.55, critAdd: 0.20 },
           { type: 'damage', mult: 0.55, critAdd: 0.20 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -3001,7 +3117,12 @@ Object.assign(HEROES, {
         effects: [
           // turns: 2 because statuses tick at the victim's turn start —
           // this covers exactly ONE of the victim's turns.
-          { type: 'debuff', stat: 'taunted', turns: 2 },
+          { type: 'debuff', chance: 0.5, stat: 'taunted', turns: 2 },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
         ],
       },
       {
@@ -3010,10 +3131,18 @@ Object.assign(HEROES, {
         description: 'Set the ball alight and roll it down the line: ' +
           'the enemy front row takes 2 burns, each eating 3% of their ' +
           'max HP per turn for 2 turns.',
-        cooldown: 3, targeting: 'front-enemies', animation: 'skill2',
+        cooldown: 4, targeting: 'front-enemies', animation: 'skill2',
         effects: [
-          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
-          { type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.01 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3022,9 +3151,15 @@ Object.assign(HEROES, {
         description: 'Plant the ball and brace: Lin gains Blocker for 2 ' +
           'turns — she cannot act, but absorbs all damage aimed at ' +
           'front-row allies, mitigating 25% of it.',
-        cooldown: 5, targeting: 'self', animation: 'skill3',
+        cooldown: 6, targeting: 'self', animation: 'skill3',
         effects: [
           { type: 'buff', stat: 'blocker', turns: 2 },
+        ],
+        levelUps: [
+          { duration: 1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -3088,6 +3223,13 @@ Object.assign(HEROES, {
           { type: 'healHpPct', targetPct: 0.15 },
           { type: 'cleanse', count: 2 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+          { cleanseCount: 1 },
+        ],
       },
       {
         id: 'koe_pull_the_rope', name: 'Pull the Rope',
@@ -3095,10 +3237,18 @@ Object.assign(HEROES, {
         description: 'Haul the front line forward on a rope only Koe can ' +
           'see: front-row allies gain 30% SPD for 2 turns and 20% turn ' +
           'meter at once.',
-        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
           { type: 'turnMeter', amount: 0.20 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { meter: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3107,9 +3257,15 @@ Object.assign(HEROES, {
         description: 'Press both palms flat and the wall is THERE: every ' +
           'front-row ally gains a Bubble for 2 turns that absorbs one ' +
           'whole hit.',
-        cooldown: 5, targeting: 'front-allies', animation: 'skill3',
+        cooldown: 6, targeting: 'front-allies', animation: 'skill3',
         effects: [
           { type: 'bubble', turns: 2 },
+        ],
+        levelUps: [
+          { duration: 1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -3187,16 +3343,31 @@ Object.assign(HEROES, {
         effects: [
           { type: 'healHpPct', targetPct: 0.20 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ],
       },
       {
         id: 'cleo_twin_fates', name: 'Twin Fates',
         icon: 'assets/icons/fc1052.png',
         description: 'Two readings at once: heals the 2 lowest-HP allies ' +
           'for 25% of their max HP each and lifts one debuff from each.',
-        cooldown: 3, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
+        cooldown: 4, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
         effects: [
           { type: 'healHpPct', targetPct: 0.25 },
           { type: 'cleanse', count: 1 },
+        ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3204,9 +3375,16 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1053.png',
         description: 'The wisps fly out and come back with stolen luck: ' +
           'strips one buff from every enemy.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
           { type: 'stripBuffs', count: 1 },
+        ],
+        levelUps: [
+          { stripCount: 1 },
+          { stripCount: 1 },
+          { stripCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -3280,16 +3458,31 @@ Object.assign(HEROES, {
           { type: 'buff', stat: 'critChance', add: 0.30, turns: 2 },
           { type: 'turnMeter', amount: 0.30 },
         ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { meter: 0.05 },
+        ],
       },
       {
         id: 'artur_illuminated_letter', name: 'Illuminated Letter',
         icon: 'assets/icons/fc1065.png',
         description: "Gold leaf on one ally's initial: +60% Crit Damage " +
           'for 2 turns and 30% turn meter at once.',
-        cooldown: 3, targeting: 'ally', animation: 'skill2',
+        cooldown: 4, targeting: 'ally', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'critDamage', add: 0.60, turns: 2 },
           { type: 'turnMeter', amount: 0.30 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3297,9 +3490,16 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1067.png',
         description: 'The whole chapter advances: every ally gains 15% ' +
           'turn meter.',
-        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        cooldown: 6, targeting: 'all-allies', animation: 'skill3',
         effects: [
           { type: 'turnMeter', amount: 0.15 },
+        ],
+        levelUps: [
+          { meter: 0.05 },
+          { meter: 0.05 },
+          { meter: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
@@ -3362,15 +3562,30 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 0.50 },
           { type: 'stripBuffs', count: 1, chance: 0.50 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+        ],
       },
       {
         id: 'tumble_quickstep', name: 'Quickstep',
         icon: 'assets/icons/fc1141.png',
         description: 'The whole troupe picks up his tempo: +30% Speed to ' +
           'every ally for 2 turns.',
-        cooldown: 3, targeting: 'all-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3380,7 +3595,7 @@ Object.assign(HEROES, {
           'ATK, and the whole enemy formation turns one hex clockwise ' +
           'around its middle — front ranks swung to the back, casters ' +
           'dragged to the front.',
-        cooldown: 5, targeting: 'flank-enemies', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'flank-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.50 },
         ],
@@ -3388,6 +3603,15 @@ Object.assign(HEROES, {
         // fighter it clipped on the way round.
         selfEffects: [
           { type: 'rotateFormation', side: 'enemies', dir: 'cw' },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
