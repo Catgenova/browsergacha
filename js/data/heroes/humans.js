@@ -2556,11 +2556,11 @@ Object.assign(HEROES, {
           { type: 'damageHp', mult: 0.20 },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
         ],
       },
       {
@@ -2573,10 +2573,10 @@ Object.assign(HEROES, {
           { type: 'damageHp', mult: 0.20 },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -2591,11 +2591,11 @@ Object.assign(HEROES, {
           { type: 'damageHp', mult: 0.15 },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -2658,11 +2658,11 @@ Object.assign(HEROES, {
           { type: 'damageHp', mult: 0.15 },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
         ],
       },
       {
@@ -2675,10 +2675,10 @@ Object.assign(HEROES, {
           { type: 'damageHp', mult: 0.20 },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -2695,11 +2695,11 @@ Object.assign(HEROES, {
             bonusPosition: { position: 'front', mult: 1.5 } },
         ],
         levelUps: [
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
-          { mult: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -4920,29 +4920,54 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.40 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ]
       },
       {
         id: 'dorian_nothing_for_the_pain', name: 'Nothing For The Pain',
         icon: 'assets/icons/fc1308.png',
-        description: '150% ATK to a single enemy, and for 2 turns nothing ' +
-          'can heal them — no mend, no regen, no drain.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        description: '150% ATK to a single enemy, with a 50% chance that for 2 ' +
+          'turns nothing can heal them — no mend, no regen, no drain.',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.50 },
-          { type: 'healBlock', turns: 2 },
+          { type: 'healBlock', turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'dorian_no_physician', name: 'No Physician',
         icon: 'assets/icons/fc1309.png',
-        description: 'The lit blade: 190% ATK to a single enemy, who for 2 ' +
-          'turns can neither be healed NOR take any new blessing.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+        description: 'The lit blade: 190% ATK to a single enemy, then two 50% ' +
+          'rolls made apart — one to cut them off from healing for 2 ' +
+          'turns, one to seal them against new blessings for 2.',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.90 },
-          { type: 'healBlock', turns: 2 },
-          { type: 'buffBlock', turns: 2 },
+          { type: 'healBlock', turns: 2, chance: 0.5 },
+          { type: 'buffBlock', turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -5015,28 +5040,53 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damageHp', mult: 0.10, healDealt: { to: 'lowest-ally', frac: 1 } },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ]
       },
       {
         id: 'noctelle_nightbloom', name: 'Nightbloom',
         icon: 'assets/icons/fc1277.png',
         description: "Mends one ally for 20% of Noctelle's own max HP " +
           'and lifts a debuff off them.',
-        cooldown: 3, targeting: 'ally', animation: 'skill2', impact: 'heal_purple',
+        cooldown: 4, targeting: 'ally', animation: 'skill2', impact: 'heal_purple',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
           { type: 'cleanse', count: 1 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'noctelle_moth_dust', name: 'Moth Dust',
         icon: 'assets/icons/fc1278.png',
         description: "10% of Noctelle's own max HP as damage to the enemy " +
-          'BACK row, and the dust drags at them: -30% Speed for 2 turns.',
-        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'strike_purple',
+          'BACK row, with a 50% chance the dust drags at each of them: ' +
+          '-30% Speed for 2 turns.',
+        cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damageHp', mult: 0.10 },
-          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2 },
+          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -5096,30 +5146,54 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.30 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ]
       },
       {
         id: 'asher_helping_myself', name: 'Helping Myself',
         icon: 'assets/icons/fc1274.png',
-        description: '150% ATK to a single enemy, and one buff comes off ' +
-          'them and onto Asher with whatever time it had left.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slam',
+        description: '150% ATK to a single enemy, with a 50% chance one buff ' +
+          'comes off them and onto Asher with whatever time it had left.',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.50 },
-          { type: 'stealBuffs', count: 1 },
+          { type: 'stealBuffs', count: 1, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'asher_nothing_for_you', name: 'Nothing For You',
         icon: 'assets/icons/fc1275.png',
-        description: '175% ATK to a single enemy, TWO of their buffs move ' +
-          'onto Asher, and the target is sealed against every new blessing ' +
-          'for 3 turns.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slam',
+        description: '175% ATK to a single enemy, then two 50% rolls made apart: ' +
+          'one to move TWO of their buffs onto Asher, one to seal them ' +
+          'against every new blessing for 3 turns.',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.75 },
-          { type: 'stealBuffs', count: 2 },
-          { type: 'buffBlock', turns: 3 },
+          { type: 'stealBuffs', count: 2, chance: 0.5 },
+          { type: 'buffBlock', turns: 3, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -5191,16 +5265,31 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damageHp', mult: 0.10 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ]
       },
       {
         id: 'wren_shoulder_check', name: 'Shoulder Check',
         icon: 'assets/icons/fc1271.png',
         description: "Everything she has, into one of them: 15% of Wren's " +
           'own max HP as damage to a single enemy.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.15 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'wren_out_you_come', name: 'Out You Come',
@@ -5209,11 +5298,20 @@ Object.assign(HEROES, {
           "Wren's max HP as damage, and they trade hexes with whoever was " +
           'covering them — their caster out in the open, their wall shoved ' +
           'in behind.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.10 },
           { type: 'swapRank' },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {

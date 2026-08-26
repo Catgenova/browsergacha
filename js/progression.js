@@ -156,7 +156,16 @@ const Progression = (() => {
     if (l.mult) bits.push(`+${Math.round(l.mult * 100)}% power`);
     if (l.perMirror) bits.push(`+${Math.round(l.perMirror * 100)}%/mirror`);
     if (l.perDeath) bits.push(`+${Math.round(l.perDeath * 100)}%/death`);
-    if (l.heal) bits.push(`+${Math.round(l.heal * 100)}% heal`);
+    // The `heal` rung is the HP-priced RATE, and HP-priced damage rides
+    // it too (Wren's shoulder, Franz's bonk). Calling that "+25% heal" on
+    // a skill that only ever hurts people would be a plain lie, so the
+    // word follows what the skill actually does.
+    if (l.heal) {
+      const mends = (abilityDef.effects || []).some((e) =>
+        /^heal/.test(e.type) || e.type === 'hot' || e.type === 'revive' ||
+        e.type === 'shield' || e.healDealt !== undefined);
+      bits.push(`+${Math.round(l.heal * 100)}% ${mends ? 'heal' : 'power'}`);
+    }
     if (l.debuffChance) bits.push(`+${Math.round(l.debuffChance * 100)}% land chance`);
     if (l.debuffPower) bits.push(`+${Math.round(l.debuffPower * 100)}% effect`);
     if (l.buffPower) bits.push(`+${Math.round(l.buffPower * 100)}% boon`);

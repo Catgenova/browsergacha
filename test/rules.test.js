@@ -4622,6 +4622,7 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
     const { b, asher, foes } = arena();
     const mark = foes[0];
     mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    maxSkill(asher, 1);   // close the 50% gate on the theft
     const res = A.execute(def.abilities[1], asher, mark, b);
     const steal = res.find((r) => r.kind === 'stealBuff');
     assert(steal && steal.count === 1, `stole ${steal && steal.count}, wanted 1`);
@@ -4641,6 +4642,7 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
     for (const stat of ['atk', 'def', 'speed']) {
       mark.addStatusEffect({ kind: 'buff', stat, mult: 1.2, turns: 3 });
     }
+    maxSkill(asher, 2);   // close the 50% gates on the theft and the seal
     A.execute(def.abilities[2], asher, mark, b);
     assert(mark.statusEffects.filter((fx) => fx.kind === 'buff').length === 1,
       'Nothing For You did not take exactly two');
@@ -4677,6 +4679,11 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
     const mark = foes[0];
     mark.debuffResistance = () => 10;               // nothing gets through
     mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    // Max the skill so the 50% gate is shut: what is measured here is
+    // the RESIST that follows it. At level 1 a 0.99 roll would fail the
+    // gate and never reach the contest -- which is exactly the
+    // distinction the two readouts exist to draw.
+    maxSkill(asher, 1);
     const R = g.Math;                       // the sandbox's own Math
     R.random = () => 0.99;
     let res;
@@ -4713,6 +4720,7 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
     const { b, asher, foes } = arena();
     const mark = foes[0];
     mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.4, turns: 4 });
+    maxSkill(asher, 1);   // close the 50% gate so the combo actually starts
     A.execute(def.abilities[1], asher, mark, b);
     const after = asher.damageDealtMult(mark);
     assert(Math.abs(after - 1.25) < 1e-9,
@@ -4802,6 +4810,7 @@ test("Noctelle's kit: the wound and the mend are the same number", () => {
   // ---- Moth Dust: the back row, slowed, and doubled against Wind ----
   {
     const { b, noc, foes } = arena();
+    maxSkill(noc, 2);   // close the 50% gate on the dust
     const back = foes.filter((f) => f.slot.position === POSITION.BACK);
     assert(back.length > 0, 'sanity: no enemy back row to hit');
     const res = A.execute(def.abilities[2], noc, back[0], b);
@@ -5871,6 +5880,7 @@ test("Dorian's kit: he does not out-heal a healer, he removes the healer", () =>
   {
     const { b, dor, foes } = arena();
     const mark = foes[0];
+    maxSkill(dor, 1);   // close the 50% gate on the lock
     live(b, () => A.execute(def.abilities[1], dor, mark, b));
     assert(mark.healBlocked(), 'the lock did not land');
     const lock = mark.statusEffects.find((fx) => fx.stat === 'healblock');
@@ -5918,6 +5928,9 @@ test("Dorian's kit: he does not out-heal a healer, he removes the healer", () =>
   {
     const { b, dor, foes } = arena();
     const mark = foes[0];
+    // Two gates, rolled apart: at level 1 both doors shut only a quarter
+    // of the time. Bought to certain, the blade does what it says.
+    maxSkill(dor, 2);
     live(b, () => A.execute(def.abilities[2], dor, mark, b));
     assert(mark.healBlocked() && mark.buffsSealed(),
       'the lit blade left a door open');
@@ -6089,28 +6102,30 @@ test("Aniani's skill ladder reaches the damage, the cooldown and the caps", () =
     `ladder readout fused its halves: ${text}`);
 });
 
-test('unswept heroes keep the old blanket skill scaling', () => {
+test('the whole roster is swept, and a ladderless skill still works', () => {
   const H = HEROES, P = Progression;
-  // The roster is swept hero by hero, so most abilities have no ladder
-  // yet. Those must keep the legacy cap and the legacy multiplier --
-  // a half-migrated system that quietly zeroed them would be worse than
-  // no migration at all.
-  const legacy = Object.values(H)
+  // The sweep is finished: every ability on every hero carries a ladder.
+  // Pinned here so a hero added later cannot quietly ship on the legacy
+  // blanket multiplier and level five times for nothing observable.
+  const bare = Object.values(H)
     .flatMap((h) => (h.abilities || []).map((a, i) => ({ h, a, i })))
-    .filter(({ a }) => !a.levelUps);
-  assert(legacy.length > 0, 'no unswept abilities left -- retire this test');
-  const { h, a, i } = legacy[0];
-  assert(P.skillCap(a, i) === P.MAX_SKILL_LEVEL,
-    `${h.id} skill ${i + 1} lost the legacy cap`);
+    .filter(({ a }) => !a.levelUps)
+    .map(({ h, i }) => `${h.id} s${i + 1}`);
+  assert(bare.length === 0, `no ladder on: ${bare.join(', ')}`);
+
+  // The legacy path stays wired all the same. It is what a new hero
+  // lands on before their kit is laddered, and a migration that rotted
+  // the moment the last real user of it left would be a trap.
+  const relic = { id: 'relic', name: 'Relic', cooldown: 0, effects: [{ type: 'damage', mult: 1 }] };
+  assert(P.skillCap(relic, 0) === P.MAX_SKILL_LEVEL, 'a ladderless skill lost the legacy cap');
   assert(Math.abs(P.skillPower(5) - 1.4) < 1e-9, 'legacy skillPower drifted');
-  assert(P.skillBonusText(a, 5) === '+40% power',
-    `legacy readout changed: ${P.skillBonusText(a, 5)}`);
+  assert(P.skillBonusText(relic, 5) === '+40% power',
+    `legacy readout changed: ${P.skillBonusText(relic, 5)}`);
   const battle = makeBattle();
-  const u = place(battle, h, TEAM.PLAYER, 0);
-  const st = u.abilities.find((x) => x.def === a);
-  st.level = 5;
-  assert(Math.abs(u.skillPowerFor(a) - 1.4) < 1e-9,
-    'an unswept ability stopped scaling with skill level');
+  const u = place(battle, H.ryn, TEAM.PLAYER, 0);
+  u.abilities.push({ def: relic, level: 5, cooldownRemaining: 0 });
+  assert(Math.abs(u.skillPowerFor(relic) - 1.4) < 1e-9,
+    'a ladderless ability stopped scaling with skill level');
 });
 
 test("Toll's Reckoning: a 50% base gate that levels to a certainty", () => {
@@ -6470,6 +6485,98 @@ test('the batch-four rungs buy what they promise: chain, refund, extend, tick, k
     max(ly, 0);
     const wide = kept();
     assert(Math.abs(wide - 0.25) < 0.01, `the heal rung kept ${wide.toFixed(3)}, wanted 0.25`);
+  }
+});
+
+test('the last four: HP-priced damage takes the small rate, and blocks are gated', () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Progression: P } = w;
+  M.resetBattle();
+  const max = (unit, i) => { unit.abilities[i].level = P.skillCap(unit.abilities[i].def, i); };
+
+  // -- Wren's shoulder is priced off her own pool ---------------------
+  {
+    const battle = new B();
+    const wren = new U(H.wren, T.PLAYER, { level: 30, stars: 4 });
+    const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+    battle.placeUnit(wren, 1); battle.placeUnit(foe, 1);
+    B.active = battle;
+    foe.hp = foe.maxHp = 10 ** 9;
+    foe.dodgeChance = () => 0;
+    foe.effectiveStat = () => 0;          // no mitigation in the arithmetic
+    wren.baseCritChance = -1;
+    const swing = () => {
+      const before = foe.hp;
+      A.execute(wren.abilities[1].def, wren, foe, battle);
+      return before - foe.hp;
+    };
+    const plain = swing();
+    max(wren, 1);
+    const levelled = swing();
+    // 15% of her max HP -> 35%: four `heal` rungs at five points each.
+    // On the ATK rate the same four rungs would have paid 55%, which on
+    // a tank's health pool is a different game entirely.
+    assert(Math.abs(levelled / plain - 35 / 15) < 0.02,
+      `the shoulder paid ${(levelled / plain).toFixed(3)}x, wanted 2.333x`);
+    assert(P.skillBonusText(H.wren.abilities[1], P.skillCap(H.wren.abilities[1], 1))
+      .startsWith('+20% power'),
+      `a skill that only hurts people should not advertise heal: ` +
+      P.skillBonusText(H.wren.abilities[1], 7));
+  }
+
+  // -- Dorian's two locks, Asher's theft: gated, and bought shut ------
+  {
+    const battle = new B();
+    const dor = new U(H.dorian, T.PLAYER, { level: 30, stars: 4 });
+    const asher = new U(H.asher, T.PLAYER, { level: 30, stars: 4 });
+    const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+    battle.placeUnit(dor, 1); battle.placeUnit(asher, 2); battle.placeUnit(foe, 1);
+    B.active = battle;
+    foe.hp = foe.maxHp = 10 ** 9;
+    foe.dodgeChance = () => 0;
+    foe.debuffResistance = () => 0;
+
+    const rate = (n, fn) => {
+      let hits = 0;
+      for (let i = 0; i < n; i++) { foe.statusEffects = []; if (fn()) hits++; }
+      return hits / n;
+    };
+    const locked = () => {
+      A.execute(dor.abilities[1].def, dor, foe, battle);
+      return foe.healBlocked();
+    };
+    const base = rate(600, locked);
+    assert(base > 0.4 && base < 0.6, `an unlevelled lock landed ${base.toFixed(2)} of the time`);
+    max(dor, 1);
+    assert(rate(200, locked) === 1, 'a bought lock still missed');
+
+    // The lit blade rolls its two doors APART, so at base both shut
+    // only about a quarter of the time -- the same independence Toll's
+    // Reckoning has, and the description says so.
+    const both = rate(900, () => {
+      A.execute(dor.abilities[2].def, dor, foe, battle);
+      return foe.healBlocked() && foe.buffsSealed();
+    });
+    assert(both > 0.17 && both < 0.33,
+      `two independent gates shut together ${both.toFixed(2)} of the time, wanted ~0.25`);
+    max(dor, 2);
+    assert(rate(200, () => {
+      A.execute(dor.abilities[2].def, dor, foe, battle);
+      return foe.healBlocked() && foe.buffsSealed();
+    }) === 1, 'the bought blade still left a door open');
+
+    // Asher's theft takes the same admission as a strip.
+    const steal = () => {
+      asher.statusEffects = [];
+      foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 4 });
+      A.execute(asher.abilities[1].def, asher, foe, battle);
+      return asher.statusEffects.some((fx) => fx.kind === 'buff');
+    };
+    const took = rate(600, steal);
+    assert(took > 0.4 && took < 0.6, `an unlevelled theft landed ${took.toFixed(2)}`);
+    max(asher, 1);
+    assert(rate(200, steal) === 1, 'a bought theft still came up empty');
   }
 });
 
