@@ -239,7 +239,18 @@ function runOne(def, cast, seedValue) {
   };
   const realMeterMit = Meter.mitigated;
   Meter.mitigated = (unit, amount) => {
-    if (unit === hero && defending) selfMit += amount;
+    // `taken` above deliberately skips the attrition bleed, so booking
+    // the prevention against that same bleed counts one side of it and
+    // not the other: mitRatio climbs with nothing to balance it, and any
+    // hero carrying a ward reads as unkillable. It put Talon at 8.09x
+    // his bucket's median on a kit that is actually worth 1.78x, and
+    // pinned Peck at maxHp/0.05 -- the clamp, not a measurement.
+    //
+    // blunt() already refuses self-credit against the bleed
+    // (selfCredit: false); shield absorption happens inside takeDamage,
+    // which this harness wraps in `defending`, so it needed the same
+    // guard one level up.
+    if (unit === hero && defending && !bleeding) selfMit += amount;
     return realMeterMit(unit, amount);
   };
   // Poison is the only damage in the game that skips the DEF curve, so a

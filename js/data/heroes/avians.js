@@ -59,9 +59,9 @@ Object.assign(HEROES, {
         id: 'squall_line', name: 'Squall Line',
         icon: 'assets/icons/fc823.png',
         description: 'Tip the bottle across the whole enemy line: 60% ATK to ALL enemies, ' +
-          'and 8% more to each of them for every enemy beyond the first that the squall catches.',
+          'and 5% more to each of them for every enemy beyond the first that the squall catches.',
         cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.08 }],
+        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.05 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
@@ -74,12 +74,12 @@ Object.assign(HEROES, {
       {
         id: 'uncork_the_bottle', name: 'Uncork the Bottle',
         icon: 'assets/icons/fc786.png',
-        description: 'Pull the cork out entirely: 140% ATK to ALL enemies, and 12% more to ' +
+        description: 'Pull the cork out entirely: 140% ATK to ALL enemies, and 10% more to ' +
           'each of them for every enemy beyond the first caught in it, with a 50% chance ' +
           'each to knock 20% off their action bars.',
         cooldown: 8, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
         effects: [
-          { type: 'damage', mult: 1.4, perTarget: 0.12 },
+          { type: 'damage', mult: 1.4, perTarget: 0.10 },
           { type: 'turnMeter', amount: -0.20, chance: 0.5 },
         ],
         levelUps: [
@@ -392,7 +392,7 @@ Object.assign(HEROES, {
         id: 'share_the_pot', name: 'Share the Pot',
         icon: 'assets/icons/fc1073.png',
         description: 'Set the cauldron down where everyone can reach it: heal ALL allies for ' +
-          "7% of Peck's max HP, and 2% more each for every ally beyond the first at the table.",
+          "5% of Peck's max HP, and 2% more each for every ally beyond the first at the table.",
         cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // Deliberately feeble at a thin table and the best team heal in
         // the game at a full one. Benched against every all-allies mend
@@ -400,9 +400,8 @@ Object.assign(HEROES, {
         // Summer, a 5-star; at three he is behind Ilyra; at seven he is
         // ahead of both. The sect's whole argument, on the friendly
         // side of the field.
-        effects: [{ type: 'healHpPct', pct: 0.07, perTarget: 0.02 }],
+        effects: [{ type: 'healHpPct', pct: 0.05, perTarget: 0.02 }],
         levelUps: [
-          { heal: 0.05 },
           { heal: 0.05 },
           { heal: 0.05 },
           { perTarget: 0.02 },
@@ -413,12 +412,11 @@ Object.assign(HEROES, {
       {
         id: 'a_full_belly', name: 'A Full Belly',
         icon: 'assets/icons/fc1113.png',
-        description: 'Second helpings all round: ALL allies gain a ward worth 8% of ' +
+        description: 'Second helpings all round: ALL allies gain a ward worth 5% of ' +
           "Peck's max HP for 3 turns, and 2% more each for every ally beyond the first fed.",
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'shield', pct: 0.08, perTarget: 0.02, turns: 3 }],
+        effects: [{ type: 'shield', pct: 0.05, perTarget: 0.02, turns: 3 }],
         levelUps: [
-          { heal: 0.05 },
           { heal: 0.05 },
           { heal: 0.05 },
           { perTarget: 0.02 },
