@@ -7225,4 +7225,84 @@ test('Talon sets deeper the more of them pull, and takes the strain for the crew
   }
 });
 
+test('Bo eats one meal per bird he knocks down, and a big pouch holds more', () => {
+  const bo = HEROES.bo;
+  assert(bo.passive.hooks.onDealtDamage, 'Bo lost Full Pouch');
+
+  function field(nFoes, hex = POSITION.FRONT) {
+    const battle = new Battle();
+    const b = new Unit(bo, TEAM.PLAYER, { level: 30, stars: 3 });
+    battle.placeUnit(b, battle.playerSlots.findIndex((sl) => sl.position === hex));
+    b.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    // rat_brawler, not rat_knight: the knight's Bulwark passive changes
+    // its own mitigation once three allies stand, which would move the
+    // damage under a test that varies enemy COUNT.
+    const idx = battle.enemySlots.map((sl, i) => [sl, i])
+      .filter(([sl]) => sl.position === POSITION.FRONT).map(([, i]) => i);
+    const foes = [];
+    for (let i = 0; i < nFoes; i++) {
+      const f = new Unit(DUMMIES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 4 });
+      battle.placeUnit(f, idx[i]);
+      f.hp = f.maxHp = 9e6;
+      foes.push(f);
+    }
+    return { battle, b, foes };
+  }
+
+  // One meal per body: the sect's crowd bonus, eaten rather than dealt.
+  const meals = [1, 2, 3].map((n) => {
+    const { battle, b, foes } = field(n);
+    b.hp = Math.round(b.maxHp / 2);
+    const before = b.hp;
+    const real = Math.random;
+    Math.random = () => 0.99;
+    Abilities.execute(bo.abilities[0], b, foes[0], battle);
+    Math.random = real;
+    const dealt = foes.map((u) => u.maxHp - u.hp).filter((x) => x > 0);
+    assert(dealt.length === n, `the sweep caught ${dealt.length} of ${n}`);
+    return b.hp - before;
+  });
+  for (let i = 1; i < meals.length; i++) {
+    assert(meals[i] > meals[i - 1], `the pouch did not fill: ${meals.join(' -> ')}`);
+  }
+  // Each body is worth the SAME meal -- it is priced off his pool, not
+  // off the damage, which is what separates it from a drain.
+  assert(Math.abs(meals[2] / meals[0] - 3) < 0.05,
+    `three birds fed him ${(meals[2] / meals[0]).toFixed(2)}x one, wanted 3x`);
+
+  // A tank does not out-hit the sect's striker on totals: Bo has one
+  // damage button and Ike has three, plus a passive that widens his.
+  assert(bo.abilities.filter((a) =>
+    (a.effects || []).some((e) => /^damage/.test(e.type))).length === 2,
+    'Bo grew a third damage skill');
+
+  // Deep Pouch: read on the PATIENT, so it widens a mend from anywhere.
+  for (const [hex, wants] of [[POSITION.FRONT, true], [POSITION.CENTER, false]]) {
+    const { b } = field(1, hex);
+    b.hp = 1;
+    const got = b.heal(1000, null);
+    assert(wants ? got > 1000 : got === 1000,
+      `on the ${hex} hex a 1000 mend gave him ${got}`);
+  }
+  // And it is his alone.
+  {
+    const battle = new Battle();
+    const other = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+    battle.placeUnit(other, battle.playerSlots.findIndex(
+      (sl) => sl.position === POSITION.FRONT));
+    other.hp = 1;
+    assert(other.heal(1000, null) === 1000,
+      "Deep Pouch leaked onto another hero on the same hex");
+  }
+
+  // The pouch stays shut for an ally's damage and for a whiff.
+  {
+    const { battle, b, foes } = field(1);
+    b.hp = Math.round(b.maxHp / 2);
+    const before = b.hp;
+    foes[0].takeDamage(0, b);
+    assert(b.hp === before, 'a zero-damage hit still fed him');
+  }
+});
+
 report();
