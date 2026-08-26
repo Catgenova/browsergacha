@@ -3642,6 +3642,90 @@ Object.assign(HEROES, {
     positional: POSITIONALS.mourners_row,
   },
 
+  valere: {
+    id: 'valere',
+    element: 'dark',
+    name: 'Valere',
+    title: 'Suitor of the Nightflowers',
+    rarity: 4,
+    // Not a curse-flinger -- a suitor. Everything he does is presented
+    // rather than thrown, and the point of him is that he opens the
+    // door for the rest of the sect: strip the enemy's resistance and
+    // Sable's poison, Lysandra's thread and Morrow's taunt all stick.
+    // His last move is a two-way cleanse -- his own side walks away
+    // clean and one of theirs wears the lot.
+    stats: { hp: 1700, atk: 145, def: 125, speed: 114 },
+    tint: { body: '#2a2140', helm: '#6a4a9a', weapon: '#e8e0f0', skin: '#e8d8c8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Valere/valereidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Valere/valereidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Valere/valereidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Valere/valereskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Valere/valereskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Valere/valereskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Valere/valeredeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'valere_a_rose_for_you', name: 'A Rose For You',
+        icon: 'assets/icons/fc1299.png',
+        description: 'A gift they cannot refuse: 90% ATK to one enemy, and ' +
+          'their ATK falls 30% for 2 turns.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 0.90 },
+          { type: 'debuff', stat: 'atk', mult: 0.70, turns: 2 },
+        ],
+      },
+      {
+        id: 'valere_the_whole_bouquet', name: 'The Whole Bouquet',
+        icon: 'assets/icons/fc1300.png',
+        description: 'Every bloom at once: the WHOLE enemy team loses 30% ' +
+          'Resistance and 20% DEF for 2 turns. Nothing they are handed ' +
+          'after this is easy to refuse.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'skill2',
+        effects: [
+          { type: 'debuff', stat: 'resistance', add: -0.30, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.80, turns: 2 },
+        ],
+      },
+      {
+        id: 'valere_something_rarer', name: 'Something Rarer',
+        icon: 'assets/icons/fc1301.png',
+        description: 'He presents one enemy with everything his own side was ' +
+          'carrying: every debuff and poison on Valere\'s team moves onto ' +
+          'them with the time it had left, and their DEF falls 30% for 3 ' +
+          'turns regardless.',
+        cooldown: 7, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+        effects: [
+          { type: 'debuff', stat: 'def', mult: 0.70, turns: 3 },
+          { type: 'transferDebuffs' },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Is Refused',
+      icon: 'assets/icons/fc1302.png',
+      description: 'He cannot force the first flower on anyone — but a ' +
+        'debuff he lays on an enemy already carrying one can never be ' +
+        'resisted.',
+      hooks: {
+        noResistWhenAfflicted: true,
+      },
+    },
+    positional: POSITIONALS.long_stems,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',
