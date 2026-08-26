@@ -158,11 +158,18 @@ class Unit {
 
   // Positional bonus applies only when placed in the matching position.
   positionalActive() {
-    return (
-      this.positional &&
-      this.slot &&
-      this.slot.position === this.positional.position
-    );
+    if (!this.positional) return false;
+    if (this.slot && this.slot.position === this.positional.position) return true;
+    // A chart says you are where you need to be. Polo's map hands the
+    // whole crew their hex bonus wherever they happen to be standing;
+    // it is read HERE because every positional in the game already
+    // funnels through this one question, so nothing has to be taught
+    // about it individually.
+    if (this.statusEffects.some((fx) => fx.stat === 'charted')) return true;
+    // And a passive can carry the chart permanently (Polo's own dead
+    // reckoning). Read off `passives` rather than hookSources(), which
+    // would ask this same question and loop.
+    return (this.passives || []).some((p) => p.hooks && p.hooks.alwaysPositioned);
   }
 
   // Everything that can carry behavior hooks right now: the hero's

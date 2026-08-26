@@ -713,12 +713,22 @@ const Abilities = (() => {
         // from 1, and an `add`-style grant (Eli's flat crit chance) takes
         // the points straight on.
         let addAmt = effect.add;
-        if (effect.type === 'buff' && ladder.buffPower) {
+        // A `buffPowerAdd` hook on the caster (Polo's chart table) is
+        // the same points from a different place -- the blessing
+        // equivalent of healBoostAdd -- so it is folded in here and
+        // moved away from neutral by exactly the rule above.
+        let deepen = ladder.buffPower || 0;
+        if (effect.type === 'buff') {
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            if (p.hooks && p.hooks.buffPowerAdd) deepen += p.hooks.buffPowerAdd;
+          }
+        }
+        if (effect.type === 'buff' && deepen) {
           if (typeof mult === 'number') {
-            mult = mult < 1 ? Math.max(0, mult - ladder.buffPower) : mult + ladder.buffPower;
+            mult = mult < 1 ? Math.max(0, mult - deepen) : mult + deepen;
           }
           if (typeof addAmt === 'number') {
-            addAmt = addAmt < 0 ? addAmt - ladder.buffPower : addAmt + ladder.buffPower;
+            addAmt = addAmt < 0 ? addAmt - deepen : addAmt + deepen;
           }
         }
         if (effect.type === 'buff' && target.buffsSealed()) {

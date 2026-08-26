@@ -7398,4 +7398,98 @@ test('Wanda pipes louder to a fuller deck, and only her blessings carry', () => 
   }
 });
 
+test("Polo's chart puts everybody on their own hex for a while", () => {
+  const polo = HEROES.polo;
+  const chart = polo.abilities[2];
+  assert(polo.passive.hooks.alwaysPositioned, 'Polo lost Dead Reckoning');
+
+  // Talon's Set Fast is a FRONT hex bonus. Stand him in the BACK, where
+  // it does nothing, and hand him the map.
+  const battle = new Battle();
+  const p = new Unit(polo, TEAM.PLAYER, { level: 30, stars: 4 });
+  battle.placeUnit(p, battle.playerSlots.findIndex((sl) => sl.position === POSITION.BACK));
+  const talon = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+  const spare = battle.playerSlots.map((sl, i) => [sl, i])
+    .filter(([sl]) => sl.position === POSITION.BACK &&
+      !battle.units.some((u) => u.slot === sl)).map(([, i]) => i)[0];
+  battle.placeUnit(talon, spare);
+  assert(talon.positional.position === POSITION.FRONT,
+    "Talon's hex moved -- pick another off-hex subject");
+
+  const adrift = talon.effectiveStat('def');
+  assert(!talon.positionalActive(), 'Talon had his hex bonus in the wrong row');
+  Abilities.execute(chart, p, talon, battle);
+  assert(talon.positionalActive(), 'the chart did not put him on his hex');
+  const charted = talon.effectiveStat('def');
+  assert(charted > adrift,
+    `the chart gave him nothing: ${adrift} -> ${charted}`);
+
+  // And it is a blessing like any other: it runs out.
+  talon.statusEffects = talon.statusEffects.filter((fx) => fx.stat !== 'charted');
+  assert(!talon.positionalActive() && talon.effectiveStat('def') === adrift,
+    'the chart outlived its own status effect');
+
+  // Dead Reckoning is his alone. Wanda off her back hex stays off it.
+  {
+    const b2 = new Battle();
+    const p2 = new Unit(polo, TEAM.PLAYER, { level: 30, stars: 4 });
+    b2.placeUnit(p2, b2.playerSlots.findIndex((sl) => sl.position === POSITION.FRONT));
+    assert(p2.positionalActive(),
+      'Dead Reckoning failed to carry his own hex off it');
+    const w = new Unit(HEROES.wanda, TEAM.PLAYER, { level: 30, stars: 2 });
+    b2.placeUnit(w, b2.playerSlots.findIndex((sl) => sl.position === POSITION.CENTER));
+    assert(w.positionalActive() === false,
+      'Dead Reckoning leaked onto an ally standing off her hex');
+  }
+
+  // Chart Table deepens what he hands out. Because Dead Reckoning makes
+  // his own hex unconditional, this is on wherever he stands -- which
+  // is what the passive says on the card, not an accident.
+  function bearing(hero, hex) {
+    const b3 = new Battle();
+    const h = new Unit(hero, TEAM.PLAYER, { level: 30, stars: hero.rarity });
+    b3.placeUnit(h, b3.playerSlots.findIndex((sl) => sl.position === hex));
+    const mate = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+    b3.placeUnit(mate, b3.playerSlots.findIndex((sl) => sl.position === POSITION.FRONT));
+    Abilities.execute(hero.abilities[0], h, mate, b3);
+    const acc = mate.statusEffects.find((fx) => fx.stat === 'accuracy');
+    return acc ? acc.add : 0;
+  }
+  const printed = polo.abilities[0].effects[0].add;
+  assert(bearing(polo, POSITION.BACK) > printed,
+    'Chart Table added nothing to his own blessing');
+  assert(bearing(polo, POSITION.CENTER) === bearing(polo, POSITION.BACK),
+    'Dead Reckoning did not carry Chart Table off the back hex');
+
+  // It does not leak: another buffer's blessing lands at its own size.
+  {
+    const b4 = new Battle();
+    const w = new Unit(HEROES.wanda, TEAM.PLAYER, { level: 30, stars: 2 });
+    b4.placeUnit(w, b4.playerSlots.findIndex((sl) => sl.position === POSITION.BACK));
+    const mate = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+    b4.placeUnit(mate, b4.playerSlots.findIndex((sl) => sl.position === POSITION.FRONT));
+    Abilities.execute(HEROES.wanda.abilities[1], w, mate, b4);
+    const atk = mate.statusEffects.find((fx) => fx.stat === 'atk');
+    const want = HEROES.wanda.abilities[1].effects[1].mult;
+    assert(atk && Math.abs(atk.mult - want) < 0.001,
+      `Wanda's buff landed at x${atk && atk.mult} instead of its printed x${want}`);
+  }
+
+  // He hands the WHOLE crew less crit than Artur hands one ally, which
+  // is the trade for it being team-wide and on a cooldown.
+  {
+    const his = polo.abilities[1];
+    const hisTop = his.effects[0].add +
+      (Progression.skillLadder(his, Progression.skillCap(his, 1)).buffPower || 0) +
+      polo.positional.hooks.buffPowerAdd;
+    const arturs = HEROES.artur.abilities[0];
+    const crit = arturs.effects.find((e) => e.stat === 'critChance');
+    const arturTop = crit.add +
+      (Progression.skillLadder(arturs, Progression.skillCap(arturs, 0)).buffPower || 0);
+    assert(hisTop <= arturTop,
+      `Polo hands the team +${Math.round(hisTop * 100)}% crit against Artur's ` +
+      `+${Math.round(arturTop * 100)}% to one ally`);
+  }
+});
+
 report();
