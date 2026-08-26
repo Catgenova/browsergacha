@@ -6015,4 +6015,119 @@ test('unswept heroes keep the old blanket skill scaling', () => {
     'an unswept ability stopped scaling with skill level');
 });
 
+test("Toll's Reckoning: a 50% base gate that levels to a certainty", () => {
+  const A = Abilities, H = HEROES, P = Progression;
+  const R = g.Math;
+  const def = H.toll;
+  const [first, peal, reck] = def.abilities;
+
+  // Base: the sweep rule's cooldowns, and a coin flip on both stats.
+  assert(peal.cooldown === 4, `Full Peal base cd ${peal.cooldown}`);
+  assert(reck.cooldown === 6, `Reckoning base cd ${reck.cooldown}`);
+  assert(reck.effects.every((e) => e.chance === 0.5),
+    'the Reckoning did not get its 50% base application chance');
+  assert(P.skillCooldown(peal, 7) === 2 && P.skillCooldown(reck, 8) === 4,
+    'cooldown rungs did not land');
+  assert(first.levelUps.length === 5 && peal.levelUps.length === 6 &&
+    reck.levelUps.length === 7, 'rung counts drifted from 5/6/7');
+
+  // The chance rungs must reach EXACTLY 100 -- short changes the skill
+  // from reliable to nearly-reliable, over wastes a rung.
+  const lad = P.skillLadder(reck, P.skillCap(reck, 2));
+  assert(Math.abs(lad.debuffChance - 0.50) < 1e-9,
+    `chance rungs sum to ${lad.debuffChance}, not 0.50`);
+  assert(Math.abs(lad.debuffPower - 0.10) < 1e-9,
+    `severity rungs sum to ${lad.debuffPower}, not 0.10`);
+
+  const battle = makeBattle();
+  const toll = place(battle, def, TEAM.PLAYER, 0);
+  const foe = place(battle, H.catherine, TEAM.ENEMY, 0);
+  const st = toll.abilities.find((x) => x.def === reck);
+  // The REAL ability object, not a spread copy: skillBonusFor finds a
+  // unit's level by def reference, so a clone silently reports level 1
+  // and the gate would look broken when it is not.
+  const cast = (level, roll) => {
+    st.level = level;
+    foe.statusEffects = [];
+    R.random = () => roll;          // one value for the gate and the contest
+    const out = A.execute(reck, toll, foe, battle);
+    delete R.random;
+    return out;
+  };
+
+  // At level 1 the gate is 0.5: a roll of 0.75 fails it and the hex
+  // never reaches the accuracy contest at all.
+  let res = cast(1, 0.75);
+  assert(res.some((r) => r.missed), 'a 0.75 roll got past a 50% gate');
+  assert(foe.statusEffects.length === 0, 'a missed hex still applied');
+
+  // Fully levelled the gate is 1.0, so the same roll lands.
+  res = cast(P.skillCap(reck, 2), 0.75);
+  assert(!res.some((r) => r.missed), 'a maxed 100% gate still missed');
+  assert(foe.statusEffects.length === 2,
+    `expected DEF and ATK breaks, got ${foe.statusEffects.length}`);
+
+  // And severity moved AWAY from neutral on both: -30% became -40%.
+  for (const fx of foe.statusEffects) {
+    assert(Math.abs(fx.mult - 0.60) < 1e-9,
+      `${fx.stat} break landed at ${fx.mult}, expected 0.60`);
+  }
+
+  // The two breaks roll their own gates rather than sharing one, so a
+  // level-1 Reckoning can land the DEF break and miss the ATK break.
+  // The description says "each" for exactly this reason; if the rolls
+  // are ever fused into one, that wording becomes a lie.
+  // Measured rather than seeded: each effect draws for its gate AND for
+  // the accuracy contest, so a hand-fed roll sequence tests the stub,
+  // not the rule. With the contest neutralised, 400 level-1 casts must
+  // show all three outcomes.
+  st.level = 1;
+  foe.debuffResistance = () => 0;
+  toll.debuffAccuracy = () => 1;
+  const tally = { 0: 0, 1: 0, 2: 0 };
+  for (let n = 0; n < 400; n++) {
+    foe.statusEffects = [];
+    A.execute(reck, toll, foe, battle);
+    tally[foe.statusEffects.length] = (tally[foe.statusEffects.length] || 0) + 1;
+  }
+  assert(tally[1] > 0,
+    `independent gates should allow partial lands: ${JSON.stringify(tally)}`);
+  assert(tally[0] > 0 && tally[2] > 0,
+    `a 50% gate should also miss both and land both: ${JSON.stringify(tally)}`);
+
+  // A level-1 cast that passes the gate keeps the undeepened -30%.
+  cast(1, 0.10);
+  assert(foe.statusEffects.length === 2 && foe.statusEffects.every(
+    (fx) => Math.abs(fx.mult - 0.70) < 1e-9),
+    'an unlevelled hex was already deepened');
+});
+
+test('severity rungs deepen a reduction and amplify an amplifier', () => {
+  const A = Abilities, H = HEROES;
+  const R = g.Math;
+  // The rung is "further from neutral", so one rule serves a -30% stat
+  // break (mult below 1) and a +30% vulnerability mark (mult above 1).
+  // Getting this backwards would make vulnerability marks WEAKER as they
+  // level, and nothing else in the suite would notice.
+  const battle = makeBattle();
+  const caster = place(battle, H.toll, TEAM.PLAYER, 0);
+  const foe = place(battle, H.catherine, TEAM.ENEMY, 0);
+  caster.skillBonusFor = () => ({ debuffPower: 0.05 });
+  const lay = (mult, stat) => {
+    foe.statusEffects = [];
+    R.random = () => 0.01;
+    A.execute({ id: 'probe', targeting: 'enemy',
+      effects: [{ type: 'debuff', stat, mult, turns: 2, chance: 1 }] },
+      caster, foe, battle);
+    delete R.random;
+    return foe.statusEffects[0];
+  };
+  const down = lay(0.70, 'def');
+  assert(down && Math.abs(down.mult - 0.65) < 1e-9,
+    `a reduction should deepen to 0.65, got ${down && down.mult}`);
+  const up = lay(1.30, 'damageTaken');
+  assert(up && Math.abs(up.mult - 1.35) < 1e-9,
+    `an amplifier should rise to 1.35, got ${up && up.mult}`);
+});
+
 report();

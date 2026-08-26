@@ -556,7 +556,28 @@ const Abilities = (() => {
         // Debuffs can be resisted (accuracy vs resistance); buffs always
         // land. Debuffer passives can extend applied debuff durations.
         let turns = effect.turns;
+        const ladder = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        // Severity rungs move the debuff AWAY FROM NEUTRAL, so the same
+        // rung reads correctly on a reduction and an amplification
+        // alike: a -30% DEF break (mult 0.70) deepens to 0.65, while a
+        // +30% damage-taken mark (mult 1.30) rises to 1.35.
+        let mult = effect.mult;
+        const severity = ladder.debuffPower || 0;
+        if (severity > 0 && typeof mult === 'number' && effect.type === 'debuff') {
+          mult = mult < 1 ? Math.max(0, mult - severity) : mult + severity;
+        }
         if (effect.type === 'debuff') {
+          // Base application chance (docs/skill-level-process.md): a
+          // separate gate rolled BEFORE the accuracy-versus-resistance
+          // contest, so a swept debuff is a coin flip at level 1 and a
+          // certainty once its chance rungs are bought. Effects with no
+          // `chance` are unswept and always attempt, as they always did.
+          if (effect.chance !== undefined) {
+            const odds = Math.min(1, effect.chance + (ladder.debuffChance || 0));
+            if (Math.random() >= odds) {
+              return { kind: 'debuff', target, stat: effect.stat, missed: true };
+            }
+          }
           if (!debuffLands(caster, target)) {
             return { kind: 'debuff', target, stat: effect.stat, resisted: true };
           }
@@ -575,7 +596,9 @@ const Abilities = (() => {
         target.addStatusEffect({
           kind: effect.type,
           stat: effect.stat,
-          mult: effect.mult,
+          // `mult`, not `effect.mult`: severity rungs have already been
+          // folded in above.
+          mult,
           // Who granted it. A damageTaken ward is a support's whole
           // contribution, and without this the mitigation it produces is
           // credited to the ally who was not hit.
