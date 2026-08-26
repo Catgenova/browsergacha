@@ -10,6 +10,10 @@ class SummonScreen {
     this.scrollsEl = document.getElementById('scroll-counts');
     this.errorEl = document.getElementById('summon-error');
     this.revealing = false;
+    // Repaint hooks for the favourite/store controls on the cards
+    // currently on screen. Storing one hero can change what every OTHER
+    // card may do (the vault fills up), so a deposit repaints them all.
+    this.cardActions = [];
 
     this.buttons = [
       { el: document.getElementById('summon-common-one'), kind: 'common', count: 1 },
@@ -210,6 +214,7 @@ class SummonScreen {
     this.revealing = true;
     this.updateInfo();
     this.resultsEl.innerHTML = '';
+    this.cardActions = [];
 
     results.forEach((res, i) => {
       const card = this.buildCard(res);
@@ -235,7 +240,7 @@ class SummonScreen {
   }
 
   buildCard(res) {
-    const { def, rarity, isNew, copies, blessing } = res;
+    const { def, rarity, isNew, copies, blessing, uid } = res;
 
     const card = document.createElement('div');
     card.className = `summon-card rarity-${rarity}`;
@@ -295,6 +300,14 @@ class SummonScreen {
         front.appendChild(tag);
       }
     }
+    // The two controls the Roster puts on its cards, on the summon
+    // result itself. A ten-pull is exactly the moment you know which
+    // copy is the keeper and which are vault fodder, and making that a
+    // separate trip to the Roster meant it mostly did not happen.
+    // uid is null only if the roster refused the hero, which leaves
+    // nothing to favourite or store — such a card gets no controls.
+    if (uid) front.append(...this.cardControls(def, uid, card));
+
     inner.append(back, front);
     card.appendChild(inner);
 
@@ -307,6 +320,74 @@ class SummonScreen {
       this.app.showScreen('compendium');
     });
     return card;
+  }
+
+  // Favourite + store buttons for one summon card, in the same classes
+  // and the same two corners the Roster uses, so the gesture transfers.
+  // Returns the elements; the caller appends them to the card's front
+  // face (which is the positioned ancestor the CSS anchors against).
+  cardControls(def, uid, card) {
+    const fav = document.createElement('button');
+    fav.className = 'card-fav';
+    fav.type = 'button';
+
+    const store = document.createElement('button');
+    store.className = 'card-store';
+    store.type = 'button';
+
+    // Both buttons read state rather than remembering it, so a card
+    // repainted after some other card's deposit tells the truth.
+    const paint = () => {
+      const stored = !!GameState.storedEntry(uid);
+      const favd = !stored && GameState.isFavorite(uid);
+      card.classList.toggle('summon-stored', stored);
+
+      fav.textContent = favd ? '★' : '☆';
+      fav.classList.toggle('on', favd);
+      fav.classList.toggle('hidden', stored);
+      fav.setAttribute('aria-pressed', favd ? 'true' : 'false');
+      fav.title = favd
+        ? `Unfavourite ${def.name} — stops pinning them to the top`
+        : `Favourite ${def.name} — pins them to the top of the roster`;
+
+      store.textContent = stored ? '✓' : '▼';
+      store.disabled = stored;
+      // A full vault takes nobody, so the button goes away rather than
+      // sitting there failing. A card already stored keeps its ✓.
+      store.classList.toggle('hidden', !stored && GameState.storageFull());
+      store.title = stored
+        ? `${def.name} is in storage — withdraw from the Roster's vault`
+        : `Send ${def.name} to storage — gear returns to the inventory`;
+    };
+
+    // Each button is its own click target inside a card that is itself
+    // a link to the compendium: swallow the event so neither doubles as
+    // opening the hero's page.
+    fav.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (GameState.storedEntry(uid)) return;
+      GameState.toggleFavorite(uid);
+      paint();
+    });
+
+    store.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (GameState.storedEntry(uid)) return;
+      if (!GameState.deposit(uid)) {
+        this.errorEl.textContent = `Could not store ${def.name}.`;
+        paint();
+        return;
+      }
+      this.errorEl.textContent = '';
+      // Depositing frees a roster slot and fills a vault one, so the
+      // header counts and every other card's store button are stale.
+      this.updateInfo();
+      for (const repaint of this.cardActions) repaint();
+    });
+
+    paint();
+    this.cardActions.push(paint);
+    return [fav, store];
   }
 
   update() {}
