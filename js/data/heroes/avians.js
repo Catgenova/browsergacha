@@ -546,4 +546,124 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.set_fast,
   },
+
+  bo: {
+    id: 'bo',
+    element: 'water',
+    name: 'Bo',
+    title: 'Full Pouch',
+    rarity: 3,
+    // One stat, three jobs. Everything Bo does is priced off his own
+    // health pool -- the damage, the meal, the whole kit -- so HP is
+    // his offence, his sustain and his survival at once, and ATK is a
+    // dead roll on him.
+    //
+    // Which is exactly why the pool is smaller than it wants to be. The
+    // first pass gave him 5,905 at Lv 30, and an HP-priced kit turns a
+    // big pool into big EVERYTHING: he out-hit Ike, the sect's actual
+    // damage dealer, and out-tanked Talon, its 4-star wall. He now
+    // lands at 4,839 -- comfortably under Talon, which is where a
+    // 3-star tank belongs.
+    // (Ratios only; js/data/balance.js scales all three to the shared
+    // budget and leaves speed alone.)
+    stats: { hp: 2200, atk: 100, def: 180, speed: 96 },
+    tint: { body: '#e8ecf4', helm: '#1a3a8a', weapon: '#e8903a', shield: '#4a8ad8' },
+    sprite: {
+      displayH: 98,
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Boidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'bill_sweep', name: 'Bill Sweep',
+        icon: 'assets/icons/fc819.png',
+        description: "Rake the bill along the line: 3% of Bo's max HP as damage to the enemy FRONT row.",
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        // No crowd bonus on the damage itself -- his crowd bonus is the
+        // PASSIVE, which pays once per bird he catches. Every Gulldigger
+        // expresses the sect a different way; stacking the tag on top
+        // would just be Ike again with a bigger stomach.
+        //
+        // The rungs move in TWOS rather than the usual fives. The rate
+        // rule prices a percentage of a health pool in five-point steps
+        // because a pool is normally a healer's 3-4k; Bo's is 5,905,
+        // and five-point steps on a cooldown-free sweep had him hitting
+        // 984 a body at cap -- more than double Ike, who is the sect's
+        // actual damage dealer. A tank does not out-hit the striker.
+        effects: [{ type: 'damageHpPct', pct: 0.03 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+        ],
+      },
+      {
+        id: 'bill_full_of_sea', name: 'Bill Full of Sea',
+        icon: 'assets/icons/fc1041.png',
+        description: "Scoop up half the harbour and swallow it: heal 20% of Bo's max HP " +
+          'and take 25% less damage for 2 turns.',
+        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+          { type: 'buff', stat: 'damageTaken', mult: 0.75, turns: 2 },
+        ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+        // (heal rungs raise the mend; buffPower deepens the mitigation)
+      },
+      {
+        id: 'swallow_it_whole', name: 'Swallow It Whole',
+        icon: 'assets/icons/fc786.png',
+        description: "Something far too big for him, gone in one: 30% of Bo's max HP as " +
+          'damage to a single enemy, and Bo mends 25% of his own max HP on the way down.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        // Both numbers on this card are HP-priced, so ONE heal rung
+        // raises both of them -- the ladder cannot tell the bite from
+        // the swallow. That is why it is short: five rungs would have
+        // been worth ten, and a 50%-of-pool mend on a five-turn
+        // cooldown on top of the bite.
+        effects: [{ type: 'damageHpPct', pct: 0.30 }],
+        selfEffects: [{ type: 'healHpPct', pct: 0.25 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Full Pouch',
+      icon: 'assets/icons/fc1073.png',
+      description: 'Whatever he knocks down goes in the bill: Bo mends 4% of his max HP ' +
+        'every time he damages an enemy.',
+      hooks: {
+        // The sect's crowd bonus, eaten rather than dealt. A front-row
+        // sweep that catches three birds is three meals, so the wider
+        // the fight the harder he is to put down -- and it is priced
+        // off HIS pool rather than the damage, so a big fish and a
+        // small one feed him exactly the same. That is what separates
+        // it from a drain.
+        onDealtDamage(unit, { amount, target, battle }) {
+          if (!unit.alive || amount <= 0) return null;
+          if (!target || target.team === unit.team) return null;
+          const meal = Math.max(1, Math.round(unit.maxHp * 0.04));
+          const healed = unit.heal(meal, unit);
+          if (healed <= 0) return null;
+          if (battle) battle.addFloatingText(unit, `+${healed}`, '#8ae88a');
+          return null;
+        },
+      },
+    },
+    positional: POSITIONALS.deep_pouch,
+  },
 });

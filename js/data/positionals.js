@@ -181,6 +181,17 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Bo's hex: a pouch that big holds more of whatever you put in it.
+  def('deep_pouch', {
+    position: POSITION.FRONT,
+    name: 'Deep Pouch',
+    description: 'Front hex: every mend this hero receives is 30% stronger.',
+    // The receiving end of field_medic. Nothing on the roster read the
+    // patient's side of a heal before this, which is why a tank who is
+    // built to be healed had nowhere to put it.
+    hooks: { healTakenAdd: 0.30 },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

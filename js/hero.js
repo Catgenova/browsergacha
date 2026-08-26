@@ -966,8 +966,16 @@ class Unit {
     // One gate for every kind of mending there is, because every kind
     // of mending already comes through this method.
     if (this.healBlocked()) return 0;
+    // A `healTakenAdd` hook widens what this unit gets OUT of a mend,
+    // wherever the mend came from (Bo's pouch -- everything that goes
+    // in him goes further). Distinct from healBoostAdd, which widens
+    // what its owner hands OUT; this one is read on the patient.
+    let taken = amount;
+    for (const p of this.hookSources()) {
+      if (p.hooks && p.hooks.healTakenAdd) taken *= 1 + p.hooks.healTakenAdd;
+    }
     const before = this.hp;
-    this.hp = Math.min(this.maxHp, this.hp + amount);
+    this.hp = Math.min(this.maxHp, this.hp + Math.round(taken));
     const healed = this.hp - before;
     if (healed > 0 && typeof Meter !== 'undefined') {
       const by = source || this;
