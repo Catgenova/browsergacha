@@ -798,7 +798,14 @@ class Battle {
             res.kind === 'buff' && res.stat === 'damageTaken') {
           Sound.play('ward');
         }
-        if (res.resisted) {
+        if (res.missed) {
+          // The application roll failed, which is a different thing from
+          // being resisted: the hex never reached the contest at all.
+          // Reported separately so a player levelling a debuff skill can
+          // see the chance rungs working.
+          this.addFloatingText(res.target, 'MISS', '#8f8aa0');
+          this.log(`${caster.name}'s hex slips past ${res.target.name}.`, cls);
+        } else if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');
           this.log(`${res.target.name} resists ${caster.name}'s debuff!`, cls);
         } else if (res.stat === 'methane') {

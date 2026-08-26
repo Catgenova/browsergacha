@@ -165,22 +165,57 @@ Object.assign(HEROES, {
         description: 'Ring the bell over the front line: 50% DEF to every front-hex enemy.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [{ type: 'damageDef', mult: 0.5 }],
+        // No cooldown and no debuff: every rung is damage, 50% -> 100%.
+        levelUps: [
+          { mult: 0.10 }, { mult: 0.10 }, { mult: 0.10 },
+          { mult: 0.10 }, { mult: 0.10 },
+        ],
       },
       {
         id: 'full_peal', name: 'Full Peal',
         icon: 'assets/icons/fc306.png',
         description: 'The peal carries across the field: 50% DEF to ALL enemies.',
-        cooldown: 3, targeting: 'all-enemies', animation: 'attack',
+        // Base cooldown raised 3 -> 4 by the sweep rule; the last two
+        // rungs hand it back twice over, landing at 2.
+        cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [{ type: 'damageDef', mult: 0.5 }],
+        levelUps: [
+          { mult: 0.10 }, { mult: 0.10 }, { mult: 0.10 }, { mult: 0.10 },
+          { cooldown: -1 }, { cooldown: -1 },
+        ],
       },
       {
         id: 'the_reckoning', name: 'The Reckoning',
         icon: 'assets/icons/fc307.png',
-        description: 'Call in the debt: ALL enemies lose 30% DEF and 30% ATK for 2 turns.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        description: 'Call in the debt: ALL enemies lose 30% DEF and 30% ATK ' +
+          'for 2 turns — each break rolled separately at 50%.',
+        // Base cooldown raised 5 -> 6; fully levelled it cycles at 4.
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
+        // A pure debuff skill: under the old blanket multiplier its five
+        // levels bought literally nothing, because it has no damage or
+        // heal number to scale. `chance` is the new application gate,
+        // rolled before the accuracy contest, and the ladder walks it
+        // from a coin flip to a certainty.
         effects: [
-          { type: 'debuff', stat: 'def', mult: 0.7, turns: 2 },
-          { type: 'debuff', stat: 'atk', mult: 0.7, turns: 2 },
+          { type: 'debuff', stat: 'def', mult: 0.7, turns: 2, chance: 0.5 },
+          { type: 'debuff', stat: 'atk', mult: 0.7, turns: 2, chance: 0.5 },
+        ],
+        // The two breaks carry their own `chance` and so roll their own
+        // gate: at level 1 that is 25% for both, 50% for exactly one and
+        // 25% for neither, which is why the description says "each"
+        // rather than promising one roll for the pair.
+        //
+        // 20/20/10 reaches exactly 100%, then two severity rungs deepen
+        // BOTH stats together (they are applied as a pair), then the
+        // cooldown pair. At max: certain, -40%/-40%, on a 4-turn cycle.
+        levelUps: [
+          { debuffChance: 0.20 },
+          { debuffChance: 0.20 },
+          { debuffChance: 0.10 },
+          { debuffPower: 0.05 },
+          { debuffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],
