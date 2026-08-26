@@ -982,12 +982,39 @@ test('every swept skill obeys the level-up rules', () => {
         problems.push(`${where}: a cooldown-free skill bought cooldown rungs`);
       }
 
-      // Every gated hostile effect must be reachable to certainty, or
-      // the rungs spent on it stop short of what they promise.
+      // Every gated hex must land exactly on certainty at the top of its
+      // ladder: short of it, the rungs stop before what they promise;
+      // past it, the last rung is partly wasted. Two exemptions, both
+      // recorded in the process doc. A `bounce` chance is a chain-
+      // continuation roll, not a landing gate -- a wildfire that always
+      // leaps never stops. And hard CC on a cooldown-free skill keeps
+      // its authored gate: a freeze the caster can throw every single
+      // turn must never become certain.
       for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
-        if (e.chance === undefined) continue;
+        if (e.chance === undefined || e.type === 'bounce') continue;
         const top = e.chance + (lad.debuffChance || 0);
-        if (top > 1.000001) problems.push(`${where}: gate overshoots to ${top}`);
+        const spammableCC = e.type === 'freeze' && !a.cooldown;
+        if (spammableCC) {
+          if (top > 0.500001) {
+            problems.push(`${where}: a cooldown-free freeze reaches ${Math.round(top * 100)}%`);
+          }
+        } else if (Math.abs(top - 1) > 0.000001) {
+          problems.push(`${where}: gate tops out at ${Math.round(top * 100)}%, wanted 100%`);
+        }
+      }
+
+      // AP drains and buff strips are gated like any other hex: 50% at
+      // base, bought up to certain. Anything that takes a turn away or
+      // tears a blessing off has to pay the same admission.
+      for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
+        const drain = e.type === 'turnMeter' && e.amount < 0;
+        const strip = e.type === 'stripBuffs' || e.type === 'stealBuffs';
+        if (!drain && !strip) continue;
+        if (e.chance === undefined) {
+          problems.push(`${where}: ${drain ? 'an AP drain' : 'a buff strip'} with no 50% gate`);
+        } else if (Math.abs(e.chance - 0.5) > 0.000001) {
+          problems.push(`${where}: ${drain ? 'drain' : 'strip'} gate opens at ${e.chance}, wanted 0.5`);
+        }
       }
 
       // Severity rungs need something to deepen; duration rungs need a
@@ -1021,6 +1048,9 @@ test('every swept skill obeys the level-up rules', () => {
           !all.some((e) => e.type === 'cleanse' && e.count !== undefined)) {
         problems.push(`${where}: cleanse rungs but no capped cleanse to widen`);
       }
+      if (lad.stripCount && !all.some((e) => e.type === 'stripBuffs')) {
+        problems.push(`${where}: strip rungs but nothing that strips`);
+      }
       if (lad.per && !all.some((e) => e.per !== undefined)) {
         problems.push(`${where}: per rungs but nothing priced per head`);
       }
@@ -1045,6 +1075,9 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
     cain: [0, 4, 6], bit: [0, 4, 6], tanner: [0, 4, 6], florence: [0, 6, 8],
     vivian: [0, 6, 7], vex: [0, 6, 8], emily: [0, 6, 8], coral: [0, 7, 8],
     javarious: [0, 4, 5], lucian: [0, 4, 6],
+    franz: [0, 4, 6], carl: [0, 4, 6], esmerelda: [0, 4, 6], slick: [0, 4, 6],
+    samuels: [0, 4, 6], lin: [0, 4, 6], koe: [0, 4, 6], cleo: [0, 4, 6],
+    artur: [0, 4, 6], tumble: [0, 4, 6],
   };
   const wrong = [];
   for (const [id, cds] of Object.entries(EXPECTED)) {

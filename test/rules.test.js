@@ -43,6 +43,17 @@ function makeBattle() {
   };
   return battle;
 }
+// Max every skill on a unit. The sweep put a 50% application gate under
+// each debuff, so a test that asserts "the hex lands" is describing the
+// fully-levelled skill, not the base one. Cheaper and clearer than
+// stubbing the roll in a dozen places.
+function maxSkill(unit, ...idxs) {
+  for (const i of idxs) {
+    unit.abilities[i].level = g.Progression.skillCap(unit.abilities[i].def, i);
+  }
+  return unit;
+}
+
 function place(battle, def, team, slotIdx) {
   const u = new Unit(def, team, { level: 30, stars: def.rarity || 3 });
   u.slot = (team === TEAM.PLAYER ? battle.playerSlots : battle.enemySlots)[slotIdx];
@@ -1554,7 +1565,9 @@ test('andrew: pickwork drains AP, two masters gives and takes, undermine digs', 
   andrew.gearAccuracy = 10; // the dig must land to be readable
   foe.dodgeChance = () => 0;
 
-  // Skill 1: honest damage plus a flat 15-point AP cut.
+  // Skill 1: honest damage plus a flat 15-point AP cut. The cut is gated
+  // at 50%, so max the ladder — its chance rungs make the dig certain.
+  maxSkill(andrew, 0);
   foe.turnMeter = CONFIG.TURN_METER_MAX * 0.6;
   Abilities.execute(HEROES.andrew.abilities[0], andrew, foe, battle);
   assert(Math.abs(foe.turnMeter - CONFIG.TURN_METER_MAX * 0.45) < 1,
@@ -2589,6 +2602,7 @@ test("Esmerelda's kit: ribbon burns, gathering embers, moth to flame", () => {
   M.resetBattle();
   const battle = new B();
   const esme = new U(H.esmerelda, T.PLAYER, { level: 30, stars: 3 });
+  maxSkill(esme, 0, 2);   // the two burn gates, not the gathering
   const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
   const foeA = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   const foeB = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
@@ -2850,7 +2864,9 @@ test("Eli's sigils drain meters and the Quickening grants a real extra turn", ()
   foe.hp = foe.maxHp = 10 ** 9;
   foe.hookSources = () => []; foe.dodgeChance = () => 0;
 
-  // Sigil Bolt cuts the victim's meter by 20% of max.
+  // Sigil Bolt cuts the victim's meter by 20% of max. The bolt's drain is
+  // gated at 50%, so max the ladder — its chance rungs carry it to certain.
+  maxSkill(eli, 0);
   foe.turnMeter = 800;
   A.execute(eli.abilities[0].def, eli, foe, battle);
   assert(foe.turnMeter === 800 - C.TURN_METER_MAX * 0.2,
@@ -2963,6 +2979,7 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
   M.resetBattle();
   const battle = new B();
   const slick = new U(H.slick, T.PLAYER, { level: 30, stars: 3 });
+  maxSkill(slick, 0, 2);  // the two oil gates, not the self-buff
   const foeFront = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
   const foeBack = new U(DUMMIES.rat_archer, T.ENEMY, { level: 30, stars: 3 });
   const centerIdx = battle.playerSlots.findIndex((s) => s.position === P.CENTER);
@@ -3091,6 +3108,7 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
   M.resetBattle();
   const battle = new B();
   const lin = new U(H.lin, T.PLAYER, { level: 30, stars: 4 });
+  maxSkill(lin, 0);       // the taunt gate only
   const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
   const backMate = new U(DUMMIES.rat_archer, T.PLAYER, { level: 30, stars: 3 });
   const foeFront = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
@@ -3126,13 +3144,20 @@ test("Lin's kit: the taunt, the double burn, and the Ball Barricade", () => {
   assert(calls.length === 1 && calls[0].a === foeBack.abilities[0] &&
     calls[0].t === lin, 'the taunt did not command the turn');
 
-  // Blazing Ball: TWO separate burns on each front-row enemy.
-  A.execute(lin.abilities[1].def, lin, null, battle);
+  // Blazing Ball: TWO separate burns on each front-row enemy. Maxed,
+  // because each burn rolls its own 50% application gate now -- and the
+  // expected tick is read off the ladder rather than hard-coded, since
+  // the same max that guarantees the burns also deepens them.
+  maxSkill(lin, 1);
+  const ballDef = lin.abilities[1].def;
+  const ballLad = Progression.skillLadder(ballDef, Progression.skillCap(ballDef, 1));
+  const tick = Math.round(foeFront.maxHp *
+    (ballDef.effects[0].targetHpPct + (ballLad.debuffPower || 0)));
+  A.execute(ballDef, lin, null, battle);
   const burns = foeFront.statusEffects.filter(
     (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
-  assert(burns.length === 2 &&
-    burns.every((fx) => fx.amount === Math.round(foeFront.maxHp * 0.03)),
-    `the ball rolled ${burns.length} burns`);
+  assert(burns.length === 2 && burns.every((fx) => fx.amount === tick),
+    `the ball rolled ${burns.length} burns at ${burns.map((f) => f.amount)}, wanted 2 x ${tick}`);
   assert(!foeBack.statusEffects.some((fx) => fx.kind === 'dot'),
     'the ball reached the back row');
 
@@ -3312,6 +3337,10 @@ test("Cleo's kit: triage by the ball, stolen luck, and reading the flames", () =
   // 20% roll replaces the torn buff with a 3%-pool 2-turn burn.
   foeA.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.25, turns: 3 });
   foeA.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.25, turns: 3 });
+  // The strip is gated at 50%. Level 4 buys all three chance rungs (a
+  // certain strip) without reaching the stripCount rungs above them, so
+  // the tear stays at one buff.
+  cleo.abilities[2].level = 4;
   const Math2 = w.Math;
   const realRandom = Math2.random;
   try {
@@ -6208,6 +6237,80 @@ test("Morrow proves the buff-duration and heal rungs", () => {
   assert(Math.abs(pl.mult - 0.50) < 1e-9 && Math.abs(pl.perDeath - 0.25) < 1e-9,
     `Pallbearer rungs ${JSON.stringify(pl)}`);
   assert(P.skillCooldown(pall, 8) === 5, 'Pallbearer should cycle at 5 fully levelled');
+});
+
+test('AP drains and buff strips roll a 50% gate that skill ups buy to certain', () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    CONFIG: C, Progression: P } = w;
+  M.resetBattle();
+
+  // Taking a turn away and tearing a blessing off are hexes like any
+  // other: 50% before accuracy is even consulted, bought to certainty by
+  // the ladder. Both halves matter -- a gate nobody can close is a nerf,
+  // and a gate that never opens is a dead skill.
+  const drainBattle = new B();
+  const eli = new U(H.eli, T.PLAYER, { level: 30, stars: 3 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  drainBattle.placeUnit(eli, 5);
+  drainBattle.placeUnit(foe, 1);
+  foe.hp = foe.maxHp = 10 ** 9;
+  foe.hookSources = () => [];
+  foe.dodgeChance = () => 0;
+  foe.effectiveStat = ((base) => function (stat) {
+    // Resistance out of the way: the gate is what is being measured.
+    return stat === 'resistance' ? 0 : base.call(this, stat);
+  })(foe.effectiveStat);
+
+  const bolt = eli.abilities[0];
+  let landed = 0;
+  for (let i = 0; i < 600; i++) {
+    foe.turnMeter = C.TURN_METER_MAX;
+    A.execute(bolt.def, eli, foe, drainBattle);
+    if (foe.turnMeter < C.TURN_METER_MAX) landed++;
+  }
+  assert(landed > 240 && landed < 360,
+    `an unlevelled bolt should drain about half the time, drained ${landed}/600`);
+
+  bolt.level = P.skillCap(bolt.def, 0);
+  landed = 0;
+  for (let i = 0; i < 200; i++) {
+    foe.turnMeter = C.TURN_METER_MAX;
+    A.execute(bolt.def, eli, foe, drainBattle);
+    if (foe.turnMeter < C.TURN_METER_MAX) landed++;
+  }
+  assert(landed === 200, `a maxed bolt should never miss, drained ${landed}/200`);
+
+  // The same shape on the other side of the rule: Cleo's whole-team
+  // strip. Her chance rungs sit at the bottom of the ladder, so level 4
+  // closes the gate before the stripCount rungs widen the tear.
+  const stripBattle = new B();
+  const cleo = new U(H.cleo, T.PLAYER, { level: 30, stars: 5 });
+  const mark = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
+  stripBattle.placeUnit(cleo, 5);
+  stripBattle.placeUnit(mark, 1);
+  mark.hookSources = () => [];
+  mark.dodgeChance = () => 0;
+  mark.effectiveStat = ((base) => function (stat) {
+    return stat === 'resistance' ? 0 : base.call(this, stat);
+  })(mark.effectiveStat);
+
+  const fortunes = cleo.abilities[2];
+  const blessAndStrip = () => {
+    mark.statusEffects = [];
+    mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.25, turns: 3 });
+    A.execute(fortunes.def, cleo, null, stripBattle);
+    return !mark.statusEffects.some((fx) => fx.kind === 'buff');
+  };
+  let torn = 0;
+  for (let i = 0; i < 600; i++) if (blessAndStrip()) torn++;
+  assert(torn > 240 && torn < 360,
+    `an unlevelled strip should land about half the time, tore ${torn}/600`);
+
+  fortunes.level = 4;
+  torn = 0;
+  for (let i = 0; i < 200; i++) if (blessAndStrip()) torn++;
+  assert(torn === 200, `a strip bought to certain should never miss, tore ${torn}/200`);
 });
 
 report();

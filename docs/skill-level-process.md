@@ -43,6 +43,18 @@ something else.
 A debuff skill must be able to reach 100% application chance by max
 level, so the rungs spent on chance have to add up to +50.
 
+**AP drains and buff strips are debuffs for this purpose.** Cutting a
+target's action bar or tearing a blessing off them is as hostile as a
+DEF break, and it is often worth more — a drain steals a turn outright.
+Both therefore open at a 50% gate and are bought to certainty with
+`debuffChance` rungs, exactly like any other hex. A failed gate reads as
+MISS in the log and on the board, distinct from the RESIST that the
+accuracy contest produces afterward.
+
+The gate is only applied to effects that **author** a `chance`. A
+passive that drains meter, an enemy's kit, and every hero not yet swept
+all behave as they did before.
+
 ### 4. Buffs → duration, and severity
 
 - Level-ups can extend the **duration** in turns.
@@ -107,8 +119,14 @@ We go **hero by hero**. For each:
 
 ## Deviations recorded during the sweep
 
-Two places where the rules as written produce something wrong, and what
-was done instead. Both are deliberate and both should be revisited.
+Places where the rules as written produce something wrong, and what
+was done instead. All are deliberate, and all are pinned by tests so
+they cannot spread quietly to skills that were never meant to have them.
+
+**A `bounce` chance is not a gate.** Lucian's Wildfire Arc chains at a
+75% roll per leap. That number decides how far the fire travels, not
+whether it lands, so it is never bought up — a wildfire that always
+leaps never stops.
 
 **Hard CC on a cooldown-free skill keeps its authored gate.** Setting a
 freeze to a 50% base and letting rungs carry it to 100% is correct on a
