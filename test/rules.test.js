@@ -6580,4 +6580,46 @@ test('the last four: HP-priced damage takes the small rate, and blocks are gated
   }
 });
 
+test('a meter gift never knocks an overfilled unit backwards', () => {
+  const w = loadGame();
+  const { HEROES: H, Unit: U, TEAM: T, Battle: B, Meter: M, CONFIG: C } = w;
+  M.resetBattle();
+  // Meters overfill past 100% so turn order among everyone already ready
+  // stays concrete. Any passive that GIVES meter and clamps to the cap
+  // turns its own gift into a punishment: a unit sitting at 140% handed
+  // 5% would drop to 100%. Every gain path is checked here because the
+  // clamp was removed from the ability code once and left in six
+  // passives, where it went unnoticed.
+  const battle = new B();
+  const viv = new U(H.vivian, T.PLAYER, { level: 30, stars: 4 });
+  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  battle.placeUnit(viv, 5); battle.placeUnit(mate, 1);
+  B.active = battle;
+
+  const over = C.TURN_METER_MAX * 1.4;
+  viv.turnMeter = over;
+  mate.hp = Math.round(mate.maxHp * 0.5);
+  mate.heal(50, viv);
+  assert(viv.turnMeter > over,
+    `Sympathetic Growth cut an overfilled meter from ${over} to ${viv.turnMeter}`);
+
+  // Tanner hands the ally furthest from acting 10% at the start of his.
+  const battle2 = new B();
+  const prince = new U(H.tanner, T.PLAYER, { level: 30, stars: 5 });
+  const subject = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  battle2.placeUnit(prince, 5); battle2.placeUnit(subject, 1);
+  B.active = battle2;
+  subject.turnMeter = over;
+  prince.startTurn(battle2);
+  assert(subject.turnMeter > over,
+    `Tanner's duty cut an overfilled meter to ${subject.turnMeter}`);
+
+  // And the roster-wide guard: no gain path may clamp to the cap.
+  const src = require('fs').readFileSync('js/data/heroes/humans.js', 'utf8') +
+    require('fs').readFileSync('js/data/elemental_bosses.js', 'utf8');
+  const clamps = src.match(/turnMeter = Math\.min\(CONFIG\.TURN_METER_MAX/g) || [];
+  assert(clamps.length === 0,
+    `${clamps.length} passive(s) still clamp a meter gain to the cap`);
+});
+
 report();

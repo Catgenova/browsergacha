@@ -87,8 +87,7 @@ const ELEMENTAL_BOSSES = (() => {
         description: 'Each time it is struck, its action bar gains 4%.',
         hooks: {
           onStruck(unit) {
-            unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-              unit.turnMeter + CONFIG.TURN_METER_MAX * 0.04);
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.04;
           },
         },
       },

@@ -1683,8 +1683,7 @@ Object.assign(HEROES, {
           if (!mates.length) return null;
           const ally = mates.sort((a, b) => a.turnMeter - b.turnMeter)[0];
           const before = ally.turnMeter;
-          ally.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-            ally.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+          ally.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
           const gained = ally.turnMeter - before;
           // The turn this buys can credit its damage back to the prince.
           if (gained > 0 && ally.meterGifts) {
@@ -1956,8 +1955,7 @@ Object.assign(HEROES, {
       description: 'Gains 5% action bar whenever an ally is healed.',
       hooks: {
         onAllyHealed(unit) {
-          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.05);
+          unit.turnMeter += CONFIG.TURN_METER_MAX * 0.05;
           return { floats: [{ target: unit, text: '▲', color: '#7ae87a' }] };
         },
       },
@@ -3631,8 +3629,7 @@ Object.assign(HEROES, {
       hooks: {
         onStripBuff(unit, { count }) {
           if (!count || count <= 0) return null;
-          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.10 * count);
+          unit.turnMeter += CONFIG.TURN_METER_MAX * 0.10 * count;
           return null; // the strip line already says what happened
         },
       },
@@ -3959,8 +3956,7 @@ Object.assign(HEROES, {
         'up to undo it.',
       hooks: {
         onAllyDebuffed(unit) {
-          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.10);
+          unit.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
         },
       },
     },
@@ -4294,8 +4290,7 @@ Object.assign(HEROES, {
         onUnitDied(unit, { victim }) {
           if (!victim || victim.team === unit.team) return null;
           if (!victim.statusEffects.some((fx) => fx.kind === 'dot')) return null;
-          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.15);
+          unit.turnMeter += CONFIG.TURN_METER_MAX * 0.15;
           return { floats: [{ target: unit, text: '\u2740 +15 AP', color: '#c79aff' }] };
         },
       },
