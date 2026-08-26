@@ -1188,10 +1188,9 @@ class Unit {
     for (const p of this.hookSources()) {
       const hook = p.hooks && p.hooks.meterRefund;
       const refund = hook ? hook(this) : 0;
-      if (refund > 0) {
-        this.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-          this.turnMeter + CONFIG.TURN_METER_MAX * refund);
-      }
+      // Uncapped for the same reason as every other meter gain: the
+      // refund is a head start, and a head start must never subtract.
+      if (refund > 0) this.turnMeter += CONFIG.TURN_METER_MAX * refund;
     }
   }
 }

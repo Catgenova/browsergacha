@@ -5868,4 +5868,72 @@ test("Dorian's kit: he does not out-heal a healer, he removes the healer", () =>
   }
 });
 
+test('turn meters overfill, and gifts never push a unit backwards', () => {
+  const A = Abilities, H = HEROES;
+  const MAX = CONFIG.TURN_METER_MAX;
+  const battle = makeBattle();
+  const ids = Object.keys(H);
+  const giver = place(battle, H[ids[0]], TEAM.PLAYER, 0);
+  const target = place(battle, H[ids[1]], TEAM.PLAYER, 1);
+
+  // A unit already past 100% must GAIN from a meter push. This used to
+  // clamp to MAX, so gifting a unit sitting at 140% dropped them to
+  // 100% -- the buff was a nerf, and it silently flattened the very
+  // ordering the overfill exists to keep.
+  target.turnMeter = MAX * 1.4;
+  const before = target.turnMeter;
+  A.applyEffect({ type: 'turnMeter', amount: 0.30 }, giver, target, 1);
+  assert(target.turnMeter > before,
+    `meter gift shrank the bar: ${before} -> ${target.turnMeter}`);
+  assert(Math.abs(target.turnMeter - (before + MAX * 0.30)) < 1,
+    `gift did not land in full: expected ${before + MAX * 0.30}, got ${target.turnMeter}`);
+
+  // Drains still floor at zero rather than going negative.
+  target.turnMeter = MAX * 0.1;
+  A.applyEffect({ type: 'turnMeter', amount: -5 }, giver, target, 1);
+  assert(target.turnMeter >= 0, 'a drain drove the meter negative');
+});
+
+test('the next-up indicator agrees with who actually acts', () => {
+  const H = HEROES;
+  const MAX = CONFIG.TURN_METER_MAX;
+  const nextUp = (b) => Battle.prototype.nextUpUnit.call(b);
+  const battle = makeBattle();
+  const ids = Object.keys(H);
+  const a = place(battle, H[ids[0]], TEAM.PLAYER, 0);
+  const b = place(battle, H[ids[1]], TEAM.PLAYER, 1);
+  const c = place(battle, H[ids[2]], TEAM.ENEMY, 0);
+  battle.activeUnit = null;
+
+  // With several units over the line, the highest meter is next -- the
+  // same rule tick() sorts by, so the plate cannot promise a turn the
+  // engine then hands to someone else.
+  a.turnMeter = MAX * 1.2;
+  b.turnMeter = MAX * 1.9;
+  c.turnMeter = MAX * 1.5;
+  assert(nextUp(battle) === b, 'next-up disagreed with the highest meter');
+  const ready = battle.livingUnits()
+    .filter((u) => u.turnMeter >= MAX)
+    .sort((x, y) => y.turnMeter - x.turnMeter);
+  assert(ready[0] === nextUp(battle), 'indicator and tick() ordering diverged');
+
+  // Exactly one unit is ever flagged, however deep the queue.
+  const flagged = battle.livingUnits().filter((u) => u === nextUp(battle));
+  assert(flagged.length === 1, `${flagged.length} units flagged as next`);
+
+  // The unit currently acting is not its own "next": while someone is
+  // on screen, the indicator points at whoever follows them.
+  battle.activeUnit = b;
+  assert(nextUp(battle) === c,
+    'the acting unit was reported as next up instead of the one after it');
+  battle.activeUnit = null;
+
+  // With nobody ready it projects: fastest to arrive wins, not the
+  // highest meter, so the indicator still names someone mid-fill.
+  a.turnMeter = MAX * 0.9; b.turnMeter = MAX * 0.5; c.turnMeter = 0;
+  a.speed = 10; b.speed = 400; c.speed = 10;
+  assert(nextUp(battle) === b,
+    'projection ignored speed and picked the fuller-but-slower meter');
+});
+
 report();
