@@ -70,6 +70,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--gold-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gold); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -148,20 +154,23 @@
       <div class="meta">Lowest-HP ally &middot; <b>20% of THEIR max HP</b></div>
       <p>The ball finds whoever needs it most: heals the lowest-HP ally
       for <b>20% of their max HP</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Twin Fates</h3>
       <div class="meta">2 lowest-HP allies &middot; <b>25% each + cleanse 1</b></div>
       <p>Two readings at once: heals the <b>2 lowest-HP allies for 25%
       of their max HP</b> each and lifts <b>one debuff</b> from each.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +1 cleansed &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Fortunes Reversed</h3>
       <div class="meta">All enemies &middot; <b>strip 1 buff each</b></div>
-      <p>The wisps fly out and come back with stolen luck: <b>strips one
-      buff from every enemy</b>, oldest first.</p>
+      <p>The wisps fly out and come back with stolen luck: a <b>50% chance</b> to <b>strip one buff from each enemy</b>,
+      oldest first.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +1 taken &rsaquo; +1 taken &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

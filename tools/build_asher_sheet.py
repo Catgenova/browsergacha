@@ -113,6 +113,12 @@ html = r'''<title>Asher, Bell Thief of the Whisperchime</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--stolen-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 0; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bone); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -211,22 +217,25 @@ html = r'''<title>Asher, Bell Thief of the Whisperchime</title>
       <p>The hammer comes down on one of them for <b>130% ATK</b>. No
       trick to it &#x2014; but it is the swing that cashes in everything
       the other two skills put on him.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Helping Myself</h3>
       <div class="meta">Single enemy &middot; <b>150% ATK &middot; steal 1 buff</b></div>
-      <p><b>150% ATK</b>, and <b>one buff comes off them and onto
-      Asher</b> with whatever time it had left.</p>
+      <p><b>150% ATK</b>, and a <b>50% chance</b> that <b>one buff comes
+      off them and onto Asher</b> with whatever time it had left.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Nothing For You</h3>
       <div class="meta">Single enemy &middot; <b>175% ATK &middot; steal 2 &middot; seal 3 turns</b></div>
-      <p><b>175% ATK</b>, <b>two</b> of their buffs move onto Asher, and
-      the target is <b>sealed against every new blessing for 3
-      turns</b> &#x2014; their healer can still heal them, but nobody can
+      <p><b>175% ATK</b>, then two <b>50%</b> rolls made apart: one to move
+      <b>two</b> of their buffs onto Asher, one to <b>seal them against
+      every new blessing for 3 turns</b> &#x2014; their healer can still heal them, but nobody can
       rebuild what he just took.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

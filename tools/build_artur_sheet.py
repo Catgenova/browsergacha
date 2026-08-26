@@ -109,6 +109,12 @@ html = r'''<title>Artur, Scribe of Reverence</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--leaf-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--vellum); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -186,20 +192,23 @@ html = r'''<title>Artur, Scribe of Reverence</title>
       <div class="meta">Single ally &middot; <b>+30% Crit Chance, 2 turns &middot; +30% meter</b></div>
       <p>A sharp annotation in one ally's margin: <b>+30% Crit Chance for
       2 turns</b> and <b>30% turn meter</b> at once.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; +5% drain <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Illuminated Letter</h3>
       <div class="meta">Single ally &middot; <b>+60% Crit Damage, 2 turns &middot; +30% meter</b></div>
       <p>Gold leaf on one ally's initial: <b>+60% Crit Damage for 2
       turns</b> and <b>30% turn meter</b> at once.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Turn the Page</h3>
       <div class="meta">All allies &middot; <b>+15% turn meter</b></div>
       <p>The whole chapter advances: <b>every ally gains 15% turn
       meter</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% drain &rsaquo; +5% drain &rsaquo; +5% drain &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

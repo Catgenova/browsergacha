@@ -146,6 +146,12 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--canvas-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 19px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--torch); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -235,20 +241,23 @@ html = r'''<title>Carl, Strongman of the Firetroupe</title>
       <div class="meta">Single enemy &middot; <b>15% max HP</b></div>
       <p>The show opens: one clean bare-knuckle punch for <b>15% of
       Carl's own max HP</b> as damage. No wind-up, no apology.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Crowd-Pleaser</h3>
       <div class="meta">Single enemy &middot; <b>20% max HP</b></div>
       <p>Wind up and lay one enemy out for <b>20% of his own max HP</b>
       as damage, then flex for the crowd.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Main Event</h3>
       <div class="meta">Single enemy &middot; <b>25% max HP &middot; +50% vs front row</b></div>
       <p>The headline act: a two-fisted drive for <b>25% of his own max
       HP</b> &#x2014; a <b>FRONT-row</b> victim takes 50% more. Tanks first.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

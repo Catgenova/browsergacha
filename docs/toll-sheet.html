@@ -112,6 +112,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--bell-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 24px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gold); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -208,18 +214,22 @@
       <h3>First Toll</h3>
       <div class="meta">Enemy front hexes &middot; <b>50% DEF</b></div>
       <p>Ring the bell over the front line. Hits <b>every front-hex enemy</b> &mdash; up to three &mdash; for 50% of his DEF each.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Full Peal</h3>
       <div class="meta">All enemies &middot; <b>50% DEF</b></div>
       <p>The same swing, carried across the whole field. <b>Every living enemy</b> takes 50% of his DEF.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>The Reckoning</h3>
       <div class="meta">All enemies &middot; <b>&minus;30% DEF, &minus;30% ATK</b> &middot; 2 turns</div>
-      <p>No damage at all. The entire enemy formation loses <b>30% DEF and 30% ATK</b> for two turns &mdash; softening them for the bell while blunting what they can do back.</p>
+      <p>No damage at all. Two <b>50%</b> rolls made apart on every enemy &#x2014; one for
+      <b>-30% DEF</b>, one for <b>-30% ATK</b> &#x2014; for two turns, softening them for the bell while blunting what they can do back.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; +5% effect &rsaquo; +5% effect &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -248,7 +258,7 @@
     </table>
     <div class="table-cap">Totals across the formation, before the target's own defences. Like every damage
       path in the game, each hit then runs the DEF curve, guards, and dodge &mdash; a big DEF stat is not a
-      way around mitigation. Skill levels add +10% power per level (max Lv 5, Skill Tomes from the Endless Tower).</div>
+      way around mitigation. Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy.</div>
   </div>
 
   <h2><span class="glyph">&#9670;</span> Animations</h2>

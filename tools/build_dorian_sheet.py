@@ -112,6 +112,12 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--edge-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 0; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--linen); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -207,21 +213,27 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
       <p>The glaive comes across at knee height: <b>140% ATK</b>. No
       trick to it &#x2014; it is the stroke he spams into a target that
       can no longer be repaired.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Nothing For The Pain</h3>
       <div class="meta">Single enemy &middot; <b>150% ATK &middot; no healing, 2 turns</b></div>
-      <p><b>150% ATK</b>, and for two turns <b>nothing can heal them</b>
+      <p><b>150% ATK</b>, and a <b>50% chance</b> that for two turns
+      <b>nothing can heal them</b>
       &#x2014; no cast, no regen, no drain, no lifesteal.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>No Physician</h3>
       <div class="meta">Single enemy &middot; <b>190% ATK &middot; both locks, 2 turns</b></div>
-      <p>The lit blade: <b>190% ATK</b> to one enemy who for two turns can
-      neither <b>be healed</b> nor <b>take any new blessing</b>. Their
+      <p>The lit blade: <b>190% ATK</b> to one enemy, then two <b>50%</b>
+      rolls made apart &#x2014; one to cut them off from <b>being
+      healed</b> for two turns, one to seal them against <b>any new
+      blessing</b> for two. Their
       support can spend every turn they have and change nothing.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

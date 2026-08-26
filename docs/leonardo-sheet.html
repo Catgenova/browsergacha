@@ -121,6 +121,12 @@
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--gilt-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 600; font-size: 22px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gilt); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -221,20 +227,23 @@
       <div class="meta">All allies &middot; <b>+25% SPD, 2 turns</b></div>
       <p>The herald sets the pace. Cast on rotation it is <b>permanent</b> &#x2014;
       the whole party outruns the enemy line for the entire fight.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Call to Arms</h3>
       <div class="meta">All allies &middot; <b>+30% ATK, 2 turns</b></div>
       <p>A ringing proclamation before the blow lands. Time it ahead of the
       party's biggest turns.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 4-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 5-turn cooldown &rarr; 3 fully levelled</div>
       <h3>Rite of Absolution</h3>
       <div class="meta">All allies &middot; <b>lifts up to 2 debuffs each</b></div>
       <p>Poisons, slows, armor breaks, ATK curses &#x2014; the two oldest afflictions
       on <b>every ally</b> are struck from the record at once.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +1 cleansed &rsaquo; +1 cleansed &rsaquo; +1 cleansed &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

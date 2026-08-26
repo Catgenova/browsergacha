@@ -174,6 +174,12 @@ html = r'''<title>Cain, Chaplain of Cryst</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--water-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 700; font-size: 23px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--gleam); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -294,20 +300,23 @@ html = r'''<title>Cain, Chaplain of Cryst</title>
       <div class="meta">One ally &middot; <b>30% of Cain's max HP</b></div>
       <p>The daily office. Cast it on the wounded and it mends; cast it on
       the whole and <b>the surplus goes hunting</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Twin Mercies</h3>
       <div class="meta">Two most-wounded allies &middot; <b>35% of his max HP each</b></div>
       <p>The font finds the two emptiest vessels on its own &#x2014; no
       aiming, no self-bias. Triage as liturgy.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Quickening Waters</h3>
       <div class="meta">One ally &middot; <b>50% of his max HP</b> &middot; +30% SPD, 2 turns</div>
       <p>Half of everything he is, poured into one ally &#x2014; who stands
       up <b>faster than they went down</b>.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -335,8 +344,7 @@ html = r'''<title>Cain, Chaplain of Cryst</title>
         <tr><th>Quickening Waters</th><td>50</td><td>55</td><td>60</td><td>65</td><td class="max">70</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Cain. Bigger shares heal harder and overflow harder alike.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. Bigger shares heal harder and overflow harder alike.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

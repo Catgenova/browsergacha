@@ -1190,7 +1190,7 @@ Object.assign(HEROES, {
         id: 'angelica_rimeorb', name: 'Rimeorb',
         icon: 'assets/icons/fc1023.png',
         description: 'Conjure and hurl a sphere of packed rime: 125% ATK ' +
-          'and a 40% chance to freeze for 2 turns.',
+          'and a 50% chance to freeze for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -1512,8 +1512,8 @@ Object.assign(HEROES, {
       {
         id: 'bit_bore_sweep', name: 'Bore Sweep',
         icon: 'assets/icons/fc1013.png',
-        description: 'Grind the enemy FRONT row for 80% of Bit\'s DEF each ' +
-          'and strip 30% of their DEF for 1 turn.',
+        description: 'Grind the enemy FRONT row for 80% of Bit\'s DEF each, ' +
+          'with a 50% chance to strip 30% of their DEF for 1 turn.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damageDef', mult: 0.8 },
@@ -2002,7 +2002,8 @@ Object.assign(HEROES, {
       {
         id: 'pinprick', name: 'Pinprick',
         icon: 'assets/icons/fc89.png',
-        description: 'Stab the doll: 90% ATK to one enemy and -15% ATK for 2 turns.',
+        description: 'Stab the doll: 90% ATK to one enemy and a 50% chance ' +
+          'of -15% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.9 },
@@ -2019,7 +2020,9 @@ Object.assign(HEROES, {
       {
         id: 'creeping_malaise', name: 'Creeping Malaise',
         icon: 'assets/icons/fc1117.png',
-        description: 'Curse ALL enemies: -25% DEF and -15% SPD for 2 turns.',
+        description: 'Curse ALL enemies: a 50% chance each of -25% DEF, and ' +
+          'a 50% chance each of -15% SPD, for 2 turns. The two curses ' +
+          'are rolled apart.',
         cooldown: 6, targeting: 'all-enemies', animation: 'cast', impact: 'strike_purple',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'def', mult: 0.75, turns: 2 },
@@ -2037,7 +2040,8 @@ Object.assign(HEROES, {
       {
         id: 'doom_mark', name: 'Doom Mark',
         icon: 'assets/icons/fc1050.png',
-        description: 'Condemn one enemy: takes 40% more damage and loses 30% ATK for 3 turns.',
+        description: 'Condemn one enemy: a 50% chance they take 40% more ' +
+          'damage, and a 50% chance they lose 30% ATK, for 3 turns.',
         cooldown: 8, targeting: 'enemy', animation: 'attack3', impact: 'strike_purple',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'damageTaken', mult: 1.4, turns: 3 },
@@ -2429,9 +2433,9 @@ Object.assign(HEROES, {
       {
         id: 'lucian_cinder_lash', name: 'Cinder Lash',
         icon: 'assets/icons/fc1025.png',
-        description: 'Lash one enemy for 110% ATK and set them alight: ' +
-          'the burn eats 3% of their max HP at the start of each of ' +
-          'their turns, for 3 turns.',
+        description: 'Lash one enemy for 110% ATK with a 50% chance to set ' +
+          'them alight: the burn eats 3% of their max HP at the start ' +
+          'of each of their turns, for 3 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -2769,8 +2773,9 @@ Object.assign(HEROES, {
       {
         id: 'esmerelda_ribbon_lash', name: 'Ribbon Lash',
         icon: 'assets/icons/fc1036.png',
-        description: 'Lash one enemy with a burning silk for 110% ATK ' +
-          'and leave a burn eating 3% of their max HP per turn for 2 turns.',
+        description: 'Lash one enemy with a burning silk for 110% ATK, ' +
+          'with a 50% chance to leave a burn eating 3% of their max ' +
+          'HP per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -2807,8 +2812,8 @@ Object.assign(HEROES, {
         id: 'esmerelda_trailing_flame', name: 'Trailing Flame',
         icon: 'assets/icons/fc1038.png',
         description: 'Send the ribbons arcing over the wall: 125% ATK to ' +
-          'the enemy back row, each victim left with a burn eating 3% of ' +
-          'their max HP per turn for 2 turns.',
+          'the enemy back row, each with a 50% chance to be left ' +
+          'burning for 3% of their max HP per turn for 2 turns.',
         cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -2879,9 +2884,9 @@ Object.assign(HEROES, {
       {
         id: 'slick_splash_zone', name: 'Splash Zone',
         icon: 'assets/icons/fc1039.png',
-        description: 'Slop a wave of pitch over the enemy front row, ' +
-          'leaving them Oilslicked for 3 turns — burns tick twice as ' +
-          'hard on an oiled target.',
+        description: 'Slop a wave of pitch over the enemy front row: a 50% ' +
+          'chance each to leave them Oilslicked for 3 turns — burns ' +
+          'tick twice as hard on an oiled target.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
@@ -2914,8 +2919,8 @@ Object.assign(HEROES, {
       {
         id: 'slick_the_big_spill', name: 'The Big Spill',
         icon: 'assets/icons/fc1041.png',
-        description: 'Tip the whole barrel: every enemy is Oilslicked ' +
-          'for 3 turns.',
+        description: 'Tip the whole barrel: a 50% chance each that an enemy ' +
+          'is Oilslicked for 3 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
@@ -3111,9 +3116,9 @@ Object.assign(HEROES, {
       {
         id: 'lin_center_of_attention', name: 'Center of Attention',
         icon: 'assets/icons/fc1045.png',
-        description: 'A flourish nobody can ignore: taunts the enemy ' +
-          'back row — on its next turn each victim must throw its ' +
-          'skill 1 at Lin and nothing else.',
+        description: 'A flourish few can ignore: a 50% chance each to taunt ' +
+          'the enemy back row — on its next turn a taunted victim must ' +
+          'throw its skill 1 at Lin and nothing else.',
         cooldown: 0, targeting: 'back-enemies', animation: 'attack',
         effects: [
           // turns: 2 because statuses tick at the victim's turn start —
@@ -3129,9 +3134,9 @@ Object.assign(HEROES, {
       {
         id: 'lin_blazing_ball', name: 'Blazing Ball',
         icon: 'assets/icons/fc1046.png',
-        description: 'Set the ball alight and roll it down the line: ' +
-          'the enemy front row takes 2 burns, each eating 3% of their ' +
-          'max HP per turn for 2 turns.',
+        description: 'Set the ball alight and roll it down the line: two ' +
+          'burns roll at the enemy front row, each a separate 50% ' +
+          'chance, each eating 3% of their max HP per turn for 2 turns.',
         cooldown: 4, targeting: 'front-enemies', animation: 'skill2',
         effects: [
           { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },

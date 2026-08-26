@@ -178,6 +178,12 @@ html = r'''<title>Sawyer, Blade of the Nightflowers</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--violet-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: 2px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bloom); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -294,22 +300,25 @@ html = r'''<title>Sawyer, Blade of the Nightflowers</title>
       <div class="slot">Skill 1 &middot; no cooldown</div>
       <h3>Petalfall Cut</h3>
       <div class="meta">Single target &middot; <b>150% ATK</b> &middot; 2 random debuffs, 2 turns</div>
-      <p>Carve one enemy and scatter <b>two different hexes</b> from the seed
-      packet over them. The bread-and-butter cut that keeps the garden planted.</p>
+      <p>Carve one enemy, with a <b>50% chance</b> to scatter <b>two
+      different hexes</b> from the seed packet over them. The bread-and-butter cut that keeps the garden planted.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Night Bloom</h3>
       <div class="meta">Self &middot; <b>+30% ATK, +30% DEF, +30% SPD</b> &middot; 3 turns</div>
       <p>Comes into flower: all three war paints at once. The DEF is what lets
       a carry statline <b>stand in the front row</b> and keep cutting.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Deadheading</h3>
       <div class="meta">Single target &middot; <b>230% ATK</b> &middot; +50% vs the center hex</div>
       <p>Runs one enemy through. Against whoever holds the <b>center tile</b>,
       the thrust lands half again harder &#x2014; cut the central bloom first.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -338,8 +347,7 @@ html = r'''<title>Sawyer, Blade of the Nightflowers</title>
         <tr><th>&nbsp;&nbsp;&#x2026;against the center hex</th><td>345</td><td>380</td><td>414</td><td>449</td><td class="max">483</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve
-      by sacrificing another Sawyer. The hex draw, the war paints and the center bonus are fixed.</div>
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The hex draw, the war paints and the center bonus are fixed.</div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Animations</h2>

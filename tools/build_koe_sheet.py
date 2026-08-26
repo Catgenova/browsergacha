@@ -108,6 +108,12 @@ html = r'''<title>Koe, Mime of the Firetroupe</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--chalk-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 17px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--chalk); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -185,22 +191,25 @@ html = r'''<title>Koe, Mime of the Firetroupe</title>
       <div class="meta">Single ally &middot; <b>15% of THEIR max HP + cleanse 2</b></div>
       <p>Produce an invisible remedy: heal one ally for <b>15% of their
       own max HP</b> and lift <b>2 debuffs</b>, oldest first.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +1 cleansed &rsaquo; +1 cleansed <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Pull the Rope</h3>
       <div class="meta">Front-row allies &middot; <b>+30% SPD, 2 turns &middot; +20% meter</b></div>
       <p>Haul the front line forward on a rope only Koe can see:
       <b>30% SPD for 2 turns</b> and <b>20% turn meter</b>, paid
       immediately.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% boon &rsaquo; +5% boon &rsaquo; +1 turn &rsaquo; +5% drain &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>The Invisible Wall</h3>
       <div class="meta">Front-row allies &middot; <b>Bubble, 2 turns</b></div>
       <p>Press both palms flat and the wall is THERE: every front-row
       ally gains a <b>Bubble</b> that absorbs <b>one whole hit</b> before
       it pops.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +1 turn &rsaquo; +1 turn &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 5</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

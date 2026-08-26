@@ -1080,6 +1080,31 @@ test('every swept skill obeys the level-up rules', () => {
   assert(problems.length === 0, `rule violations:\n  ${problems.join('\n  ')}`);
 });
 
+test('every gated skill says so in its own description', () => {
+  const { HEROES } = g;
+  // A hex that rolls for it and a hex that always lands play completely
+  // differently, and the card text is the only place a player finds out
+  // which one they have. Twelve descriptions were left behind by the
+  // sweep -- one of them advertising a 40% freeze that had been 50% in
+  // the data the whole time -- so the rule is pinned rather than
+  // remembered. A `bounce` chance is exempt: it decides how far a chain
+  // travels, not whether anything lands.
+  const wrong = [];
+  for (const h of Object.values(HEROES)) {
+    (h.abilities || []).forEach((a, i) => {
+      const gates = (a.effects || [])
+        .filter((e) => e.chance !== undefined && e.type !== 'bounce');
+      if (!gates.length) return;
+      const want = [...new Set(gates.map((e) => `${Math.round(e.chance * 100)}%`))];
+      const missing = want.filter((w) => !(a.description || '').includes(w));
+      if (missing.length) {
+        wrong.push(`${h.id} s${i + 1} never mentions ${missing.join(', ')}`);
+      }
+    });
+  }
+  assert(wrong.length === 0, wrong.join('; '));
+});
+
 test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
   const { HEROES } = g;
   // The rule is a BASE change, so it has to be visible in the data, not

@@ -70,6 +70,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--leaf-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--vellum); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -147,20 +153,23 @@
       <div class="meta">Random enemy &middot; <b>125% ATK</b></div>
       <p>Let the pinwheel choose: <b>125% ATK</b> to a <b>random</b>
       enemy. No aim, no cooldown.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Stripwind</h3>
       <div class="meta">Single enemy &middot; <b>140% ATK &middot; strip 2</b></div>
-      <p>A cutting pass on one enemy: <b>140% ATK</b>, and <b>two
+      <p>A cutting pass on one enemy: <b>140% ATK</b>, and a <b>50% chance</b> that <b>two
       blessings</b> are torn away.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Squall</h3>
       <div class="meta">Enemy back row &middot; <b>120% ATK &middot; strip 1 each</b></div>
       <p>The wind reaches over the wall: <b>120% ATK</b> to the enemy
-      <b>back row</b>, tearing <b>one blessing</b> off each of them.</p>
+      <b>back row</b>, a <b>50% chance each</b> to tear <b>one blessing</b> off them.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

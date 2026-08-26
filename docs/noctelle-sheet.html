@@ -94,6 +94,12 @@
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--wing-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: 2px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--bloom); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -221,9 +227,10 @@
       and no resource but her own pool.</p>
       <p class="art-note">Art: she gathers a single dark orb in her free
       hand and looses it &#x2014; one focused shot, no spread.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Nightbloom</h3>
       <div class="meta">One ally &middot; <b>20% of her max HP</b> &middot; <b>lifts 1 debuff</b></div>
       <p>Her real heal, at double Silent Wing's rate, and the only
@@ -232,17 +239,20 @@
       <p class="art-note">Art: a pale flower blooms open on her staff
       head and a ring of light gathers &#x2014; the one strip of the three
       with no projectile in it.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% heal &rsaquo; +5% heal &rsaquo; +5% heal &rsaquo; +1 cleansed &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Moth Dust</h3>
       <div class="meta">Enemy back row &middot; <b>10% of her max HP</b> each &middot; <b>&#x2212;30% SPD, 2 turns</b></div>
-      <p>Her reach past the front line: every enemy in the <b>back row</b>
-      takes the hit and is <b>slowed 30% for two turns</b>. The slow is a
-      contested roll like any debuff; the damage is not.</p>
+      <p>Her reach past the front line: every enemy in the <b>back row</b> takes
+      the hit, then a <b>50% chance each</b> to be <b>slowed 30% for two
+      turns</b>. The slow rolls its gate and then the accuracy contest;
+      the damage answers to neither.</p>
       <p class="art-note">Art: her wings spread wide and a burst of
       luminous scales carries outward &#x2014; the only strip where the
       effect leaves her body in every direction.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -277,8 +287,7 @@
         <tr><th>&nbsp;&nbsp;&#x2026;against Wind</th><td>20</td><td>22</td><td>24</td><td>26</td><td class="max">28</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve by
-      sacrificing another Noctelle. The cleanse, the &#x2212;30% slow and the Wind doubling are
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The cleanse, the &#x2212;30% slow and the Wind doubling are
       <b>fixed</b>: levels move the percentages, not the riders.</div>
   </div>
 

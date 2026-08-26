@@ -114,6 +114,12 @@ html = r'''<title>Wren, Windbreak of the Whisperchime</title>
     padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--glass-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 19px; letter-spacing: 1px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--salt); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -211,22 +217,25 @@ html = r'''<title>Wren, Windbreak of the Whisperchime</title>
       <div class="meta">Enemy front row &middot; <b>10% of Wren's max HP</b></div>
       <p>A shoulder into the whole line: <b>10% of her own max HP</b> as
       damage to every enemy in the front row, every turn, forever.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; Cooldown 3</div>
+      <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Shoulder Check</h3>
       <div class="meta">Single enemy &middot; <b>15% of Wren's max HP</b></div>
       <p>Everything she has, into one of them: <b>15% of her own max
       HP</b> to a single target.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; Cooldown 5</div>
+      <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>Out You Come</h3>
       <div class="meta">Single enemy &middot; <b>10% of max HP &middot; rank swap</b></div>
       <p>Reach past the wall: <b>10% of her max HP</b> as damage, and the
       target <b>trades hexes with whoever was covering them</b>. Their
       caster ends up out in the open; their wall ends up shoved in
       behind.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; +5% power &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>

@@ -188,6 +188,12 @@ html = r'''<title>Aniani, Mirror Bulwark</title>
   }
   .ability .slot { font-size: 11px; letter-spacing: 2px; color: var(--prism-dim); text-transform: uppercase; }
   .ability h3 { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: 2px; }
+  .ability .ladder { margin-top: 10px; padding-top: 9px;
+    border-top: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .ability .ladder b { color: var(--ink); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+  .ability .ladder i { font-style: normal; color: var(--ink); }
   .ability .meta { font-size: 12px; color: var(--muted); }
   .ability .meta b { color: var(--silver); font-weight: 500; }
   .ability p { font-size: 13.5px; color: var(--ink); }
@@ -347,23 +353,26 @@ html = r'''<title>Aniani, Mirror Bulwark</title>
       <p>The mirrors swing forward and fire as one shaft of focused light.
       Her every-turn attack, and at full glass her <b>hardest single hit
       per turn</b> at 240% DEF.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror <i>&middot; max Lv 6</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 2 &middot; 3-turn cooldown</div>
+      <div class="slot">Skill 2 &middot; 4-turn cooldown &rarr; 2 fully levelled</div>
       <h3>Prism Wave</h3>
       <div class="meta">Enemy row &middot; <b>40% DEF</b> &middot; <b>+20% per mirror</b></div>
       <p>The same light, split and spread across <b>an entire enemy
       row</b>. Lower per head than the Lance and worth far more against
       three of them.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
     </div>
     <div class="ability">
-      <div class="slot">Skill 3 &middot; 5-turn cooldown</div>
+      <div class="slot">Skill 3 &middot; 6-turn cooldown &rarr; 4 fully levelled</div>
       <h3>Resonant Shatter</h3>
       <div class="meta">Single target &middot; <b>70% DEF</b> &middot; <b>+40% per mirror</b> &middot; then <b>reform 2</b></div>
       <p>The mirrors converge and detonate against one enemy &#x2014;
       <b>310% DEF</b> at full glass, her largest number in the kit. Then
       the crystal <b>reforms two mirrors</b>, so the burst pays for part of
       its own upkeep rather than emptying her.</p>
+      <div class="ladder"><b>Skill ups</b> &middot; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; +10% power, +5%/mirror &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 8</i></div>
     </div>
     <div class="ability passive-card">
       <div class="slot">Passive</div>
@@ -395,8 +404,7 @@ html = r'''<title>Aniani, Mirror Bulwark</title>
         <tr><th>Resonant Shatter, % DEF</th><td>310</td><td>341</td><td>372</td><td>403</td><td class="max">434</td></tr>
       </tbody>
     </table>
-    <div class="table-cap">Skill levels add +10% power per level (max Lv 5) &#x2014; raised in Improve by
-      sacrificing another Aniani. The level multiplier applies to the <b>whole mirror-boosted
+    <div class="table-cap">Skill levels follow each skill&#x27;s own ladder &#x2014; see the <b>Skill ups</b> line on each card, and the level cap that comes with it. Levels are raised in Improve by sacrificing another copy. The level multiplier applies to the <b>whole mirror-boosted
       number</b>, not just the flat part, so levelling her is worth most on a full set of glass.
       The 25% reflect, the six-mirror cap and the reforms are fixed.</div>
   </div>
