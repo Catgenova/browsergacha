@@ -1811,77 +1811,88 @@ test('the event calendar: one element doubled each weekday, all five on weekends
   assert(!E.isWeekend(day(0)), 'Monday is not a weekend, whatever it feels like');
 });
 
-test('summon banners: the Rare scroll runs Cryst, then the Firetroupe, then the Whisperchime', () => {
+test('summon banners: both scrolls rotate one sect a week, wrapping forever', () => {
   const E = g.Events;
-  const during = new Date(2026, 7, 25, 12);  // Aug 25 — the opening pair run
+  const during = new Date(2026, 7, 25, 12);       // Aug 25 — Cryst / Reverence
   const lastCall = new Date(2026, 7, 30, 23, 59); // Sunday, minutes to go
-  const after = new Date(2026, 7, 31, 0, 1); // Monday — the successors hold
-  const farOut = new Date(2027, 3, 1);       // until further notice means it
+  const after = new Date(2026, 7, 31, 0, 1);      // Monday — the wheel turns
+  const farOut = new Date(2027, 3, 1);            // and keeps turning
 
-  // One banner per scroll kind, running concurrently — before and after.
-  assert(E.activeBanners(during).length === 2,
-    `Aug 25 runs ${E.activeBanners(during).length} banners`);
-  assert(E.activeBanners(after).length === 2,
-    `Aug 31 runs ${E.activeBanners(after).length} banners`);
-  assert(E.currentBanner(during, 'rare').id === 'cryst_rateup',
-    'the Rare banner is not Cryst');
-  assert(E.currentBanner(during, 'temporal').id === 'reverence_rateup',
-    'the Temporal banner is not Reverence');
-  // Both hold every minute of Sunday, and neither survives its midnight.
+  // One banner per scroll kind, running concurrently, at every moment
+  // the calendar can produce — including long before and long after.
+  for (const when of [during, lastCall, after, farOut, new Date(2025, 0, 1)]) {
+    assert(E.activeBanners(when).length === 2,
+      `${when.toDateString()} runs ${E.activeBanners(when).length} banners`);
+    for (const scroll of ['rare', 'temporal']) {
+      assert(E.activeBanners(when).filter((b) => b.scroll === scroll).length === 1,
+        `the ${scroll} scroll doubled up or went dark on ${when.toDateString()}`);
+    }
+  }
+
+  // The Rare wheel: Cryst, the Firetroupe, the Whisperchime, and round
+  // again. The Temporal wheel is two long, so it simply alternates.
+  const rare = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'rare').id;
+  const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
+  const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup'];
+  const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup'];
+  assert(rare(2026, 7, 26) === 'cryst_rateup', 'the Rare scroll is not on Cryst today');
+  assert(temporal(2026, 7, 26) === 'reverence_rateup', 'the Temporal scroll is not on Reverence today');
+  // Twelve consecutive weeks from the epoch Monday, both scrolls.
+  for (let w = 0; w < 12; w++) {
+    const mon = new Date(2026, 7, 24 + w * 7, 12);
+    assert(E.currentBanner(mon, 'rare').id === RARE_WHEEL[w % 3],
+      `week ${w} of the Rare wheel is ${E.currentBanner(mon, 'rare').id}`);
+    assert(E.currentBanner(mon, 'temporal').id === TEMPORAL_WHEEL[w % 2],
+      `week ${w} of the Temporal wheel is ${E.currentBanner(mon, 'temporal').id}`);
+  }
+
+  // A week is a week: the sitting banner holds every minute up to its
+  // Monday midnight, and none of the minute after it.
   assert(E.currentBanner(lastCall, 'rare').id === 'cryst_rateup' &&
     E.currentBanner(lastCall, 'temporal').id === 'reverence_rateup',
     'the opening pair bowed out before Sunday was over');
-  assert(E.currentBanner(after, 'rare').id === 'firetroupe_rateup',
-    'the Firetroupe did not take the Rare scroll');
-  assert(E.currentBanner(after, 'temporal').id === 'nightflower_rateup' &&
-    E.currentBanner(farOut, 'temporal').id === 'nightflower_rateup',
-    'the Nightflowers did not take the Temporal scroll');
+  assert(rare(2026, 7, 31) === 'firetroupe_rateup' && rare(2026, 8, 6) === 'firetroupe_rateup',
+    'the Firetroupe did not hold their whole week');
+  assert(rare(2026, 8, 7) === 'whisperchime_rateup' && rare(2026, 8, 13) === 'whisperchime_rateup',
+    'the Whisperchime did not hold their whole week');
+  assert(rare(2026, 8, 14) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  assert(temporal(2026, 8, 7) === 'reverence_rateup',
+    'the Temporal wheel did not bounce back to Reverence');
 
-  // Second Rare handover: the Firetroupe run two weeks and the
-  // Whisperchime take the scroll at the midnight ending Sunday Sep 13.
-  const fireLast = new Date(2026, 8, 13, 23, 59);  // Sunday, minutes to go
-  const chime = new Date(2026, 8, 14, 0, 1);       // Monday — the wind arrives
-  assert(E.currentBanner(fireLast, 'rare').id === 'firetroupe_rateup',
-    'the Firetroupe bowed out before their Sunday was over');
-  assert(E.currentBanner(chime, 'rare').id === 'whisperchime_rateup' &&
-    E.currentBanner(farOut, 'rare').id === 'whisperchime_rateup',
-    'the Whisperchime did not take the Rare scroll');
-  assert(E.activeBanners(fireLast).filter((b) => b.scroll === 'rare').length === 1 &&
-    E.activeBanners(chime).filter((b) => b.scroll === 'rare').length === 1,
-    'the Rare scroll doubled up or went dark at the second handover');
-  // The Temporal side is untouched by any of it.
-  assert(E.currentBanner(chime, 'temporal').id === 'nightflower_rateup',
-    'the Rare handover disturbed the Temporal scroll');
+  // The window a banner reports is the week it actually holds, and its
+  // label names the Sunday it runs through.
+  const fire = E.bannerFor('rare', new Date(2026, 7, 31, 12));
+  assert(+fire.from === +new Date(2026, 7, 31) && +fire.until === +new Date(2026, 8, 7),
+    'the Firetroupe window is not their Monday-to-Monday week');
+  assert(fire.label.includes('through Sep 6'), `the label reads "${fire.label}"`);
+  assert(fire.mult === 2, 'the rate-up is not 2x');
 
-  // All-wind Whisperchime could never ride the Temporal scroll either,
-  // and every one of them is a Rare-pool element, so the tilt reaches
-  // the whole sect rather than part of it.
+  // A sect coming back around is a NEW run, so its featured pool is
+  // whole again rather than remembering what an earlier week handed out.
+  const cryst0 = E.bannerFor('rare', during).run;
+  const cryst3 = E.bannerFor('rare', new Date(2026, 8, 14, 12)).run;
+  assert(cryst0 !== cryst3, 'Cryst reran under the same pity key');
+  g.GameState.setBannerPity('cryst_rateup', { count: 7, claimed: ['polarus'], run: cryst0 });
+  assert(g.GameState.bannerPity('cryst_rateup', cryst0).claimed.length === 1,
+    'the run it was filled in forgot its own claim');
+  const back = g.GameState.bannerPity('cryst_rateup', cryst3);
+  assert(back.claimed.length === 0, 'a returning banner remembered an old run\'s claims');
+  assert(back.count === 7, 'a returning banner binned the pull counter');
+
+  // Elementally-locked sects can only ever ride the scroll that can
+  // draw them: the Temporal pool is Dark and Light only.
   assert(E.SUMMON_BANNERS.every((b) =>
-    b.sect !== 'whisperchime' || b.scroll !== 'temporal'),
-    'the Whisperchime were scheduled on a pool they cannot drop from');
-  const chimeMembers = Object.values(HEROES).filter((h) =>
-    RACES.sectOf(h) && RACES.sectOf(h).id === 'whisperchime');
-  assert(chimeMembers.length >= 8,
-    `only ${chimeMembers.length} Whisperchime on their own banner`);
-  for (const h of chimeMembers) {
-    assert(g.Elements.BASIC.includes(h.element),
-      `${h.id} is ${h.element}, which the Rare scroll cannot draw`);
-    assert(E.bannerWeight(h, chime, 'rare') === 2, `${h.id} unweighted on his own banner`);
-    assert(E.bannerWeight(h, after, 'rare') === 1, `${h.id} jumped the Firetroupe's banner`);
-  }
-  assert(E.bannerWeight(HEROES.lucian, chime, 'rare') === 1,
-    'the Firetroupe outstayed their banner');
-  // No gap and no overlap: exactly one banner per scroll at the seam.
-  for (const scroll of ['rare', 'temporal']) {
-    assert(E.activeBanners(lastCall).filter((b) => b.scroll === scroll).length === 1 &&
-      E.activeBanners(after).filter((b) => b.scroll === scroll).length === 1,
-      `the ${scroll} scroll doubled up or went dark at the handover`);
-  }
-  // All-water Cryst and all-fire Firetroupe can never ride the Temporal
-  // banner: neither drops from the light/dark-only Temporal pool.
-  assert(E.SUMMON_BANNERS.every((b) =>
-    !['cryst', 'firetroupe'].includes(b.sect) || b.scroll !== 'temporal'),
+    !['cryst', 'firetroupe', 'whisperchime'].includes(b.sect) || b.scroll !== 'temporal'),
     'an elementally-locked sect was scheduled on the Temporal scroll');
+  for (const b of E.SUMMON_BANNERS) {
+    const pool = b.scroll === 'temporal' ? g.Elements.TEMPORAL : g.Elements.BASIC;
+    const members = Object.values(HEROES).filter((h) =>
+      RACES.sectOf(h) && RACES.sectOf(h).id === b.sect);
+    for (const h of members) {
+      assert(pool.includes(h.element),
+        `${h.id} is ${h.element}, which the ${b.scroll} scroll cannot draw`);
+    }
+  }
 
   // Weights come off the banner for the scroll being pulled.
   assert(E.bannerWeight(HEROES.toll, during, 'temporal') === 2, 'Toll unweighted on his banner');
@@ -1890,10 +1901,13 @@ test('summon banners: the Rare scroll runs Cryst, then the Firetroupe, then the 
   assert(E.bannerWeight(HEROES.toll, during, 'rare') === 1, 'Toll crashed the Rare');
   assert(E.bannerWeight(HEROES.toll, after, 'temporal') === 1, 'Toll overstayed');
   assert(E.bannerWeight(HEROES.rat_brawler, during, 'rare') === 1, 'a rat on the banner');
-  // The handover moves the Rare tilt from Cryst to the Firetroupe.
   assert(E.bannerWeight(HEROES.polarus, after, 'rare') === 1, 'the King outstayed his banner');
   assert(E.bannerWeight(HEROES.lucian, during, 'rare') === 1, 'Lucian jumped his banner');
   assert(E.bannerWeight(HEROES.lucian, after, 'rare') === 2, 'Lucian missed his own banner');
+  const chime = new Date(2026, 8, 7, 12);
+  assert(E.bannerWeight(HEROES.asher, chime, 'rare') === 2, 'Asher unweighted on his own banner');
+  assert(E.bannerWeight(HEROES.asher, after, 'rare') === 1, 'Asher jumped the Firetroupe queue');
+  assert(E.bannerWeight(HEROES.lucian, chime, 'rare') === 1, 'the Firetroupe outstayed their week');
 
   // The tilt shows up in real draws: 3-star Temporal picks during the
   // Reverence banner land on sect members ~2x their per-capita share.
@@ -1916,8 +1930,8 @@ test('summon banners: the Rare scroll runs Cryst, then the Firetroupe, then the 
     `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
 
   // Rare-scroll elective pulls tilt the same way, toward whichever sect
-  // holds the scroll at the time: Cryst now, the Firetroupe for their
-  // fortnight, the Whisperchime after that and until further notice.
+  // holds the wheel that week: Cryst now, the Firetroupe next, the
+  // Whisperchime the week after that.
   const poolR = Object.values(HEROES).filter((h) => h.rarity === 3);
   const rareTilt = (sectId, when) => {
     const count = poolR.filter((h) =>
@@ -1937,7 +1951,7 @@ test('summon banners: the Rare scroll runs Cryst, then the Firetroupe, then the 
   };
   rareTilt('cryst', during);
   rareTilt('firetroupe', after);
-  rareTilt('whisperchime', farOut);
+  rareTilt('whisperchime', chime);
 
   // The banner is ELECTIVE: an un-elected pull stays flat even while
   // the banner runs.

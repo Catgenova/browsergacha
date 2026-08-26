@@ -132,7 +132,7 @@ const Gacha = (() => {
   // The banner's pity ledger, dressed for the UI: pulls made toward the
   // next guarantee, heroes already claimed, and who is still in the pool.
   function bannerPityInfo(b) {
-    const s = GameState.bannerPity(b.id);
+    const s = GameState.bannerPity(b.id, b.run || null);
     return { ...s, every: BANNER_PITY_EVERY,
       remaining: bannerFeatured(b).filter((id) => !s.claimed.includes(id)) };
   }
@@ -150,16 +150,17 @@ const Gacha = (() => {
     if (banner && typeof Events !== 'undefined' && Events.currentBanner) {
       const b = Events.currentBanner(new Date(), kind);
       if (b) {
-        const s = GameState.bannerPity(b.id);
+        const run = b.run || null;
+        const s = GameState.bannerPity(b.id, run);
         const remaining = bannerFeatured(b).filter((id) => !s.claimed.includes(id));
         if (remaining.length > 0) {
           const count = s.count + 1;
           if (count >= BANNER_PITY_EVERY) {
             const id = remaining[Math.floor(Math.random() * remaining.length)];
             pityDef = HEROES[id];
-            GameState.setBannerPity(b.id, { count: 0, claimed: [...s.claimed, id] });
+            GameState.setBannerPity(b.id, { count: 0, claimed: [...s.claimed, id], run });
           } else {
-            GameState.setBannerPity(b.id, { count, claimed: s.claimed });
+            GameState.setBannerPity(b.id, { count, claimed: s.claimed, run });
           }
         }
       }

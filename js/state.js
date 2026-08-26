@@ -1796,15 +1796,27 @@ const GameState = (() => {
     get pity() { return state.pity; },
     setPity(n) { state.pity = n; save(); },
     // The banner pity ledger, per banner id (see Gacha).
-    bannerPity(bannerId) {
+    //
+    // Banners now come back around on a rotation, so the ledger is read
+    // against a RUN key. The pull counter carries across runs — a week
+    // of progress toward the guarantee is never binned — but the list
+    // of heroes already handed over belongs to the run it was filled
+    // in, so a sect returning weeks later offers its whole featured
+    // pool again. A ledger saved before runs existed has no run stamp
+    // and is taken at face value.
+    bannerPity(bannerId, run = null) {
       const s = (state.bannerPity || {})[bannerId];
-      return s ? { count: s.count || 0, claimed: [...(s.claimed || [])] }
-        : { count: 0, claimed: [] };
+      if (!s) return { count: 0, claimed: [], run };
+      const stale = run !== null && s.run !== undefined && s.run !== run;
+      return { count: s.count || 0,
+        claimed: stale ? [] : [...(s.claimed || [])], run };
     },
     setBannerPity(bannerId, s) {
       if (!state.bannerPity) state.bannerPity = {};
+      const prev = (state.bannerPity || {})[bannerId] || {};
       state.bannerPity[bannerId] = {
-        count: s.count || 0, claimed: [...(s.claimed || [])] };
+        count: s.count || 0, claimed: [...(s.claimed || [])],
+        run: s.run !== undefined && s.run !== null ? s.run : prev.run };
       save();
     },
     // ---- World Rift ----
