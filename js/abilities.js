@@ -296,7 +296,7 @@ const Abilities = (() => {
         const lad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         const mult = effect.mult + (lad.mult || 0) +
           ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
-          (effect.perDeath || 0) * bodies;
+          ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -341,7 +341,11 @@ const Abilities = (() => {
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
-        const amount = Math.round(caster.effectiveStat('atk') * effect.mult * power * boost);
+        // ATK-priced, so it takes the ATK/DEF rate: `mult` points, not
+        // the smaller `heal` steps an HP-priced mend uses.
+        const hLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const amount = Math.round(
+          caster.effectiveStat('atk') * (effect.mult + (hLad.mult || 0)) * power * boost);
         // ATK-scaled, so an attack buff on the healer multiplied this
         // mend and its granter takes that share of the credit.
         if (target.healBlocked()) return { kind: 'heal', target, amount: 0, blocked: true };
@@ -354,8 +358,12 @@ const Abilities = (() => {
         // front-row targets. `targetPct` scales off the TARGET's pool
         // instead (Koe's mime remedy fits whoever receives it).
         const front = target.slot && target.slot.position === POSITION.FRONT;
-        const pct = front && effect.frontPct ? effect.frontPct
-          : (effect.pct ?? effect.targetPct);
+        // Heal rungs add points to the percentage. HP-priced numbers
+        // move in fives, not tens: a percentage of a health pool is a
+        // far larger figure than a percentage of an attack stat.
+        const healLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const pct = (front && effect.frontPct ? effect.frontPct
+          : (effect.pct ?? effect.targetPct)) + (healLad.heal || 0);
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
@@ -387,11 +395,14 @@ const Abilities = (() => {
       case 'hot': {
         // Heal-over-time: fixed amount (locked at cast) at the start of
         // each of the target's turns.
+        const hotLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         target.addStatusEffect({
           kind: 'hot',
-          amount: Math.round(caster.maxHp * effect.pct * power *
+          amount: Math.round(caster.maxHp * (effect.pct + (hotLad.heal || 0)) * power *
             (1 + (caster.healingBoost ? caster.healingBoost() : 0))),
-          turns: effect.turns,
+          // A heal-over-time is a friendly effect, so a duration rung
+          // lengthens it exactly as it lengthens a buff.
+          turns: effect.turns + (hotLad.duration || 0),
           source: caster, // so each tick is credited to whoever cast it
         });
         return { kind: 'hot', target, turns: effect.turns };
@@ -400,7 +411,10 @@ const Abilities = (() => {
         // Scaled off the caster's max HP rather than a combat stat, and
         // mitigated like everything else — a large HP pool is not a way
         // around the DEF curve any more than a large DEF stat is.
-        const raw = caster.maxHp * effect.pct * power *
+        // HP-priced damage moves in the same small steps an HP-priced
+        // heal does, so it takes the `heal` rate rather than `mult`.
+        const hpLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const raw = caster.maxHp * (effect.pct + (hpLad.heal || 0)) * power *
           caster.damageDealtMult(target, currentAbility) *
           Elements.mult(caster.element, target.element);
         return strike(caster, target, raw);
@@ -414,12 +428,17 @@ const Abilities = (() => {
         // healHpPct and hot already do, for a caster whose whole kit is
         // priced off her pool rather than her attack (Lenore).
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        // A shield is HP the target does not lose, so it takes the rate
+        // its own pricing implies: `heal` points on an HP-priced ward,
+        // `mult` points on an ATK-priced one. Duration lengthens it.
+        const shLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         const base = effect.pct !== undefined
-          ? caster.maxHp * effect.pct
-          : caster.effectiveStat('atk') * effect.mult;
+          ? caster.maxHp * (effect.pct + (shLad.heal || 0))
+          : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0));
         const amount = Math.round(base * power * boost);
-        const gained = target.addShield(amount, effect.turns, caster);
-        return { kind: 'shield', target, amount: gained, turns: effect.turns };
+        const shTurns = effect.turns + (shLad.duration || 0);
+        const gained = target.addShield(amount, shTurns, caster);
+        return { kind: 'shield', target, amount: gained, turns: shTurns };
       }
       case 'taunt': {
         // Force attackers onto this unit for a few turns.
@@ -435,7 +454,9 @@ const Abilities = (() => {
         // Strip debuffs (poisons included) from the target — all of
         // them, or only the oldest `count` when the effect names a
         // limit (Leonardo lifts two, not everything).
-        let left = effect.count || Infinity;
+        const cleanseLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        let left = effect.count
+          ? effect.count + (cleanseLad.cleanseCount || 0) : Infinity;
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
           if ((fx.kind !== 'debuff' && fx.kind !== 'dot') || left <= 0) return true;
@@ -446,7 +467,8 @@ const Abilities = (() => {
       }
       case 'revive': {
         if (target.alive) return null;
-        target.revive(effect.pct, caster);
+        const revLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        target.revive(effect.pct + (revLad.heal || 0), caster);
         return { kind: 'revive', target, amount: target.hp };
       }
       case 'turnMeter': {
@@ -455,16 +477,18 @@ const Abilities = (() => {
         // (Artur's Permanent Ink).
         if (effect.amount < 0) {
           // Taking meter is a contest; the helper owns the guard and
-          // the resistance roll alike.
-          return drainMeter(caster, target, -effect.amount);
+          // the resistance roll alike. A `meter` rung deepens the drain.
+          const mLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+          return drainMeter(caster, target, -effect.amount + (mLad.meter || 0));
         }
         const before = target.turnMeter;
         // No ceiling. Meters overfill past TURN_METER_MAX so that turn
         // order among everyone already at 100% stays concrete, and
         // clamping here made a gift into a punishment: pushing a unit
         // sitting at 140% "up" by 30% used to drop them to 100%.
+        const giftLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         target.turnMeter = Math.max(0,
-          target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX);
+          target.turnMeter + (effect.amount + (giftLad.meter || 0)) * CONFIG.TURN_METER_MAX);
         // Remember who paid for the push, so the turn it buys can credit
         // its damage back (see Unit.outgoingAssists).
         const gained = target.turnMeter - before;
@@ -479,11 +503,20 @@ const Abilities = (() => {
         // `targetHpPct` scales the tick off the VICTIM's max HP instead
         // (Lucian's burn), and `flavor` names the debuff for anything
         // that asks who is burning.
+        const dotLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined) {
+          const odds = Math.min(1, effect.chance + (dotLad.debuffChance || 0));
+          if (Math.random() >= odds) {
+            return { kind: 'debuff', target, stat: 'dot', missed: true };
+          }
+        }
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
+        // Severity rungs deepen the tick. A DoT priced off the victim's
+        // pool moves in the same small steps every HP-priced number does.
         const amount = effect.targetHpPct
-          ? Math.round(target.maxHp * effect.targetHpPct * power *
+          ? Math.round(target.maxHp * (effect.targetHpPct + (dotLad.debuffPower || 0)) * power *
               (1 + caster.dotBoost()))
           : Math.round(caster.effectiveStat('atk') * effect.pct *
               power * (1 + caster.dotBoost()));
@@ -508,7 +541,10 @@ const Abilities = (() => {
         const count = foes.filter((u) => u.statusEffects.some((fx) =>
           fx.kind === 'dot' && fx.flavor === effect.flavor)).length;
         const banked = caster.forgeBanked || 0;
-        const gain = Math.max(0, Math.min(effect.cap - banked, count * effect.per));
+        // A `per` rung raises how much ATK each burning enemy is worth.
+        const forgeLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const perHead = effect.per + (forgeLad.per || 0);
+        const gain = Math.max(0, Math.min(effect.cap - banked, count * perHead));
         if (gain > 0) {
           caster.forgeBanked = banked + gain;
           caster.baseAtk += gain;
@@ -557,6 +593,13 @@ const Abilities = (() => {
         // land. Debuffer passives can extend applied debuff durations.
         let turns = effect.turns;
         const ladder = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        // Duration rungs extend BUFFS only. An ability can carry a buff
+        // and a debuff at once -- Morrow's Wisteria wards himself while
+        // taunting the enemy team -- and a blanket rung would silently
+        // lengthen the hex as well as the ward. Debuff duration is not
+        // one of the four rules; if it ever becomes one it needs to say
+        // which half of a mixed skill it lengthens.
+        if (effect.type === 'buff' && ladder.duration) turns += ladder.duration;
         // Severity rungs move the debuff AWAY FROM NEUTRAL, so the same
         // rung reads correctly on a reduction and an amplification
         // alike: a -30% DEF break (mult 0.70) deepens to 0.65, while a
@@ -590,6 +633,18 @@ const Abilities = (() => {
             turns += 1;
           }
         }
+        // Buff severity rungs, mirroring debuffPower: `mult` moves away
+        // from 1, and an `add`-style grant (Eli's flat crit chance) takes
+        // the points straight on.
+        let addAmt = effect.add;
+        if (effect.type === 'buff' && ladder.buffPower) {
+          if (typeof mult === 'number') {
+            mult = mult < 1 ? Math.max(0, mult - ladder.buffPower) : mult + ladder.buffPower;
+          }
+          if (typeof addAmt === 'number') {
+            addAmt = addAmt < 0 ? addAmt - ladder.buffPower : addAmt + ladder.buffPower;
+          }
+        }
         if (effect.type === 'buff' && target.buffsSealed()) {
           return { kind: 'buff', target, stat: effect.stat, sealed: true };
         }
@@ -603,7 +658,7 @@ const Abilities = (() => {
           // contribution, and without this the mitigation it produces is
           // credited to the ally who was not hit.
           source: caster,
-          add: effect.add,
+          add: addAmt,
           turns,
         });
         return { kind: effect.type, target, stat: effect.stat, turns };
@@ -612,8 +667,12 @@ const Abilities = (() => {
         // `chance` gates the roll (default always); the Cryst sect pack
         // sharpens every freeze roll; resistance applies like any
         // debuff inside freeze() itself.
+        // A freeze is a chance-gated hostile effect like any other hex,
+        // so its gate takes debuffChance rungs too.
+        const fLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         if (effect.chance !== undefined &&
-            Math.random() >= effect.chance + (caster.synergyFreezeChance || 0)) {
+            Math.random() >= Math.min(1, effect.chance + (fLad.debuffChance || 0) +
+              (caster.synergyFreezeChance || 0))) {
           return null; // no trigger, no log noise
         }
         return freeze(caster, target, effect.turns || 2);
@@ -622,7 +681,8 @@ const Abilities = (() => {
         // A blue glass sphere around the target: it absorbs one whole
         // incoming hit, pops, and is gone. Recasting refreshes the timer
         // instead of stacking a second sphere.
-        const turns = effect.turns || 2;
+        const bubLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const turns = (effect.turns || 2) + (bubLad.duration || 0);
         const held = target.statusEffects.find((fx) => fx.kind === 'bubble');
         if (held) {
           held.turns = turns;
@@ -950,8 +1010,12 @@ const Abilities = (() => {
         const out = [];
         for (let i = 0; i < count; i++) {
           const pick = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          // The grab-bag's own `chance` rides on each drawn hex, so the
+          // application gate (and its rungs) works here exactly as it
+          // does on a named debuff. Without this the gate on the parent
+          // effect would be silently ignored.
           const res = applyEffect(
-            { type: 'debuff', turns: effect.turns, ...pick },
+            { type: 'debuff', turns: effect.turns, chance: effect.chance, ...pick },
             caster, target, power);
           if (res) out.push(res);
         }

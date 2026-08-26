@@ -1392,6 +1392,10 @@ test('dark resonance can stretch a debuff by one turn', () => {
   // adds one more on top when the coin lands.
   const debuff = hero.abilities[0].def.effects.find((e) => e.type === 'debuff');
   const base = debuff.turns + 1; // her passive extension
+  // Her hex is gated at 50% until its chance rungs are bought, and this
+  // test is about DURATION, not about landing: max the skill so the
+  // shared stub only decides the coin flip it is here to decide.
+  hero.abilities[0].level = Progression.skillCap(hero.abilities[0].def, 0);
   const origRandom = Math.random;
   const roll = (r) => {
     foe.statusEffects.length = 0;
@@ -1450,6 +1454,11 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
   for (const f of [centerFoe, frontFoe]) f.dodgeChance = () => 0;
   sawyer.baseCritChance = 0;  // the numbers must be readable, not lucky
   sawyer.gearAccuracy = 10;   // and the hexes must land to be counted
+  // Petalfall's grab-bag now rolls a 50% application gate per hex, so
+  // "both land" is a promise the skill only keeps once its chance rungs
+  // are bought. Max it: that is the level the assertion describes.
+  sawyer.abilities.find((a) => a.def === HEROES.sawyer.abilities[0]).level =
+    Progression.skillCap(HEROES.sawyer.abilities[0], 0);
 
   // Skill 1: two DIFFERENT debuffs, both for 2 turns.
   Abilities.execute(HEROES.sawyer.abilities[0], sawyer, frontFoe, battle);
@@ -1738,6 +1747,11 @@ test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock
     `core sample paid ${foeFront.maxHp - foeFront.hp}, expected ${expected}`);
 
   // Bore Sweep: hits the front row only, and strips 30% DEF for 1 turn.
+  // The strip is gated at 50% until its chance rungs are bought, so max
+  // the skill -- a guaranteed strip is what the fully-levelled skill
+  // promises, not what the base one does.
+  bit.abilities.find((a) => a.def === HEROES.bit.abilities[0]).level =
+    Progression.skillCap(HEROES.bit.abilities[0], 0);
   foeFront.hp = foeFront.maxHp; foeBack.hp = foeBack.maxHp;
   Abilities.execute(HEROES.bit.abilities[0], bit, foeFront, battle);
   assert(foeFront.hp < foeFront.maxHp, 'bore sweep missed the front');
@@ -2772,6 +2786,9 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
 
   // Cinder Lash: damage plus a burn ticking exactly 3% of the VICTIM's
   // max HP (rats carry no resistance, so the land roll is certain).
+  // The burn also rolls the 50% application gate now, so the skill is
+  // maxed -- at which point it is certain again.
+  lucian.abilities[0].level = Progression.skillCap(lucian.abilities[0].def, 0);
   A.execute(lucian.abilities[0].def, lucian, foeA, battle);
   const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
   assert(burn, 'the burn failed to land');
@@ -5348,6 +5365,12 @@ test("Morrow's kit: he volunteers for all of it and is fed by the result", () =>
   {
     const { b, mo, foes } = arena();
     for (const f of foes) f.debuffResistance = () => 0;
+    // Wisteria's taunt now rolls a 50% application gate before the
+    // accuracy contest, so "everyone is taunted" is only true once the
+    // chance rungs are bought. Max the skill and it is a certainty
+    // again -- which is the whole shape of the rework.
+    const wis = mo.abilities.find((x) => x.def === def.abilities[1]);
+    wis.level = Progression.skillCap(def.abilities[1], 1);
     const before = mo.effectiveStat('def');
     live(b, () => A.execute(def.abilities[1], mo, null, b));
     for (const f of foes) {
@@ -5356,7 +5379,11 @@ test("Morrow's kit: he volunteers for all of it and is fed by the result", () =>
     }
     assert(mo.effectiveStat('def') === Math.round(before * 1.50),
       `DEF ${before} -> ${mo.effectiveStat('def')}, wanted x1.5`);
-    assert(def.abilities[1].cooldown === 5, 'Wisteria drifted off a 5-turn cooldown');
+    // Base 6 since the sweep raised every skill 2 and 3 by a turn; the
+    // last two rungs bring it back to 4.
+    assert(def.abilities[1].cooldown === 6, 'Wisteria drifted off its 6-turn base cooldown');
+    assert(Progression.skillCooldown(def.abilities[1], 7) === 4,
+      'Wisteria does not reach a 4-turn cycle at max');
   }
 
   // ---- Pallbearer swings the weight of everyone already buried ----
@@ -6128,6 +6155,59 @@ test('severity rungs deepen a reduction and amplify an amplifier', () => {
   const up = lay(1.30, 'damageTaken');
   assert(up && Math.abs(up.mult - 1.35) < 1e-9,
     `an amplifier should rise to 1.35, got ${up && up.mult}`);
+});
+
+test("Morrow proves the buff-duration and heal rungs", () => {
+  const A = Abilities, H = HEROES, P = Progression;
+  const def = H.morrow;
+  const [ground, wis, pall] = def.abilities;
+
+  // The heal rung moves in FIVES because it is priced off a health
+  // pool, while the damage on the same skill moves in tens.
+  const gl = P.skillLadder(ground, P.skillCap(ground, 0));
+  assert(Math.abs(gl.mult - 0.30) < 1e-9, `damage rungs ${gl.mult}`);
+  assert(Math.abs(gl.heal - 0.10) < 1e-9, `heal rungs ${gl.heal}`);
+
+  const battle = makeBattle();
+  const mo = place(battle, def, TEAM.PLAYER, 0);
+  const st = mo.abilities.find((x) => x.def === ground);
+  // applyEffect alone cannot see the ladder -- it reads the ability
+  // currently being executed -- so drive the real cast path.
+  const mendViaCast = (level) => {
+    st.level = level;
+    mo.hp = 1;
+    A.execute(ground, mo, place(battle, def, TEAM.ENEMY, 0), battle);
+    return mo.hp - 1;
+  };
+  const low = mendViaCast(1);
+  const high = mendViaCast(P.skillCap(ground, 0));
+  assert(Math.abs(low - Math.round(mo.maxHp * 0.08)) <= 1,
+    `level 1 mend ${low}, wanted ${Math.round(mo.maxHp * 0.08)}`);
+  assert(Math.abs(high - Math.round(mo.maxHp * 0.18)) <= 1,
+    `maxed mend ${high}, wanted ${Math.round(mo.maxHp * 0.18)}`);
+
+  // The duration rung is BUFF-ONLY. Wisteria carries a taunt and a ward
+  // on one skill; rung 4 must lengthen the ward and leave the hex alone,
+  // or a defensive rung silently becomes an offensive one.
+  const wl = P.skillLadder(wis, P.skillCap(wis, 1));
+  assert(wl.duration === 1, `ward duration rungs ${wl.duration}`);
+  const wisSt = mo.abilities.find((x) => x.def === wis);
+  wisSt.level = P.skillCap(wis, 1);
+  const foe = place(battle, H.catherine, TEAM.ENEMY, 1);
+  foe.debuffResistance = () => 0;
+  mo.statusEffects = []; foe.statusEffects = [];
+  A.execute(wis, mo, foe, battle);
+  const ward = mo.statusEffects.find((fx) => fx.stat === 'def');
+  const taunt = foe.statusEffects.find((fx) => fx.stat === 'taunted');
+  assert(ward && ward.turns === 3, `ward lasted ${ward && ward.turns}, wanted 3`);
+  assert(taunt && taunt.turns === 1,
+    `the buff-duration rung leaked onto the taunt: ${taunt && taunt.turns} turns`);
+
+  // perDeath takes a rung like perMirror does.
+  const pl = P.skillLadder(pall, P.skillCap(pall, 2));
+  assert(Math.abs(pl.mult - 0.50) < 1e-9 && Math.abs(pl.perDeath - 0.25) < 1e-9,
+    `Pallbearer rungs ${JSON.stringify(pl)}`);
+  assert(P.skillCooldown(pall, 8) === 5, 'Pallbearer should cycle at 5 fully levelled');
 });
 
 report();

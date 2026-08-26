@@ -105,6 +105,26 @@ We go **hero by hero**. For each:
 4. Propose it as numbered points so it can be edited before it is built.
 5. Build, test, verify in-game, commit.
 
+## Deviations recorded during the sweep
+
+Two places where the rules as written produce something wrong, and what
+was done instead. Both are deliberate and both should be revisited.
+
+**Hard CC on a cooldown-free skill keeps its authored gate.** Setting a
+freeze to a 50% base and letting rungs carry it to 100% is correct on a
+skill with a cooldown. On a skill 1, which fires every single turn, a
+100% freeze is a permanent lockout — the enemy never acts again. Polarus
+and Angelica's skill 1 freezes therefore keep their authored 30% base
+and spend at most two rungs, reaching 50%. Their cooldown-gated freezes
+follow the rule in full.
+
+**A ladder may be shorter than its slot.** Some skills genuinely have
+fewer improvable axes than rungs available: Silas's Aiming Stance is a
+flag with no magnitude and no meaningful duration, so cooldown is its
+only axis and it carries two rungs, not seven. `skillCap` is the
+ladder's real length, capped by the slot — padding a ladder with rungs
+that buy nothing is worse than a short one.
+
 ## Migration
 
 The roster is swept hero by hero, so at any moment most abilities have
