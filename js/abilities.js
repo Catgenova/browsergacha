@@ -757,12 +757,20 @@ const Abilities = (() => {
         // spans every hex, so it always qualifies).
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => u.isBoss || u.slot.position === POSITION.BACK);
-      case 'random-enemy': {
-        // One enemy, chosen by the wind rather than by the player —
-        // Galen's pinwheel goes where it goes.
-        const pool = battle.livingUnits(caster.enemyTeam());
-        return pool.length > 0
-          ? [pool[Math.floor(Math.random() * pool.length)]] : [];
+      case 'random-enemy':
+      case 'random-enemies': {
+        // Enemies chosen by the wind rather than by the player — Galen's
+        // pinwheel goes where it goes, and Imani's chimes ring for
+        // whoever they ring for. `targetCount` names how many DISTINCT
+        // enemies to draw (one by default); a thin field simply gets
+        // everyone standing.
+        const pool = battle.livingUnits(caster.enemyTeam()).slice();
+        const want = Math.max(1, ability.targetCount || 1);
+        const picked = [];
+        while (picked.length < want && pool.length > 0) {
+          picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+        }
+        return picked;
       }
       case 'flank-enemies': {
         // Both outer rows at once — the front line and the back line —

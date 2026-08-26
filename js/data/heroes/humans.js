@@ -2981,7 +2981,7 @@ Object.assign(HEROES, {
         id: 'galen_gust', name: 'Gust',
         icon: 'assets/icons/fc1190.png',
         description: 'Let the pinwheel choose: 125% ATK to a RANDOM enemy.',
-        cooldown: 0, targeting: 'random-enemy', animation: 'attack', impact: 'slash',
+        cooldown: 0, targeting: 'random-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
         ],
@@ -3193,5 +3193,90 @@ Object.assign(HEROES, {
       },
     },
     positional: POSITIONALS.headwind,
+  },
+
+  imani: {
+    id: 'imani',
+    element: 'wind',
+    name: 'Imani',
+    title: 'Chimewright of the Whisperchime',
+    rarity: 4,
+    // The sect's namesake, sitting cross-legged behind a bar of bells
+    // she never stops ringing. Two of her three skills choose their own
+    // victims — the chime rings for whoever it rings for — and her
+    // passive is the exact inverse of Galen's: where he breaks what has
+    // been stripped bare, Imani hits hardest into an enemy still
+    // wearing everything their supports gave them.
+    stats: { hp: 1850, atk: 175, def: 120, speed: 116 },
+    tint: { body: '#4a6a3a', helm: '#f0ece0', weapon: '#e8c86a', skin: '#a06a4a' },
+    sprite: {
+      displayH: 96,
+      // Authored facing right (her cast reaches right of frame); she is
+      // near enough frontal either way. No flag.
+      strips: {
+        idle:  { src: 'assets/heroes/Imani/imaniidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Imani/imaniidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Imani/imaniidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Imani/imaniskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Imani/imaniskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Imani/imaniskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Imani/imanideath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'imani_single_note', name: 'Single Note',
+        icon: 'assets/icons/fc1250.png',
+        description: 'One bell, struck clean: 125% ATK to a single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.25 },
+        ],
+      },
+      {
+        id: 'imani_two_bells', name: 'Two Bells',
+        icon: 'assets/icons/fc1251.png',
+        description: 'The bar swings twice: 130% ATK to TWO random enemies.',
+        cooldown: 3, targeting: 'random-enemies', targetCount: 2,
+        animation: 'skill2', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.30 },
+        ],
+      },
+      {
+        id: 'imani_full_peal', name: 'All The Bells',
+        icon: 'assets/icons/fc1252.png',
+        description: 'Every bell at once: 130% ATK to THREE random ' +
+          'enemies, and the sound drags at them — -30% Speed for 2 turns.',
+        cooldown: 5, targeting: 'random-enemies', targetCount: 3,
+        animation: 'skill3', impact: 'slash',
+        effects: [
+          { type: 'damage', mult: 1.30 },
+          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Answering Bells',
+      icon: 'assets/icons/fc1260.png',
+      description: 'Deals 20% extra damage for every buff the target is ' +
+        'carrying — the more their supports have given them, the louder ' +
+        'the bells answer.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target) return 1;
+          const buffs = target.statusEffects.filter((fx) => fx.kind === 'buff').length;
+          return 1 + 0.20 * buffs;
+        },
+      },
+    },
+    positional: POSITIONALS.chime_bar,
   },
 });
