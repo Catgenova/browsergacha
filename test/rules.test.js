@@ -5348,6 +5348,12 @@ test("Morrow's kit: he volunteers for all of it and is fed by the result", () =>
   {
     const { b, mo, foes } = arena();
     for (const f of foes) f.debuffResistance = () => 0;
+    // Wisteria's taunt now rolls a 50% application gate before the
+    // accuracy contest, so "everyone is taunted" is only true once the
+    // chance rungs are bought. Max the skill and it is a certainty
+    // again -- which is the whole shape of the rework.
+    const wis = mo.abilities.find((x) => x.def === def.abilities[1]);
+    wis.level = Progression.skillCap(def.abilities[1], 1);
     const before = mo.effectiveStat('def');
     live(b, () => A.execute(def.abilities[1], mo, null, b));
     for (const f of foes) {
@@ -5356,7 +5362,11 @@ test("Morrow's kit: he volunteers for all of it and is fed by the result", () =>
     }
     assert(mo.effectiveStat('def') === Math.round(before * 1.50),
       `DEF ${before} -> ${mo.effectiveStat('def')}, wanted x1.5`);
-    assert(def.abilities[1].cooldown === 5, 'Wisteria drifted off a 5-turn cooldown');
+    // Base 6 since the sweep raised every skill 2 and 3 by a turn; the
+    // last two rungs bring it back to 4.
+    assert(def.abilities[1].cooldown === 6, 'Wisteria drifted off its 6-turn base cooldown');
+    assert(Progression.skillCooldown(def.abilities[1], 7) === 4,
+      'Wisteria does not reach a 4-turn cycle at max');
   }
 
   // ---- Pallbearer swings the weight of everyone already buried ----
@@ -6128,6 +6138,59 @@ test('severity rungs deepen a reduction and amplify an amplifier', () => {
   const up = lay(1.30, 'damageTaken');
   assert(up && Math.abs(up.mult - 1.35) < 1e-9,
     `an amplifier should rise to 1.35, got ${up && up.mult}`);
+});
+
+test("Morrow proves the buff-duration and heal rungs", () => {
+  const A = Abilities, H = HEROES, P = Progression;
+  const def = H.morrow;
+  const [ground, wis, pall] = def.abilities;
+
+  // The heal rung moves in FIVES because it is priced off a health
+  // pool, while the damage on the same skill moves in tens.
+  const gl = P.skillLadder(ground, P.skillCap(ground, 0));
+  assert(Math.abs(gl.mult - 0.30) < 1e-9, `damage rungs ${gl.mult}`);
+  assert(Math.abs(gl.heal - 0.10) < 1e-9, `heal rungs ${gl.heal}`);
+
+  const battle = makeBattle();
+  const mo = place(battle, def, TEAM.PLAYER, 0);
+  const st = mo.abilities.find((x) => x.def === ground);
+  // applyEffect alone cannot see the ladder -- it reads the ability
+  // currently being executed -- so drive the real cast path.
+  const mendViaCast = (level) => {
+    st.level = level;
+    mo.hp = 1;
+    A.execute(ground, mo, place(battle, def, TEAM.ENEMY, 0), battle);
+    return mo.hp - 1;
+  };
+  const low = mendViaCast(1);
+  const high = mendViaCast(P.skillCap(ground, 0));
+  assert(Math.abs(low - Math.round(mo.maxHp * 0.08)) <= 1,
+    `level 1 mend ${low}, wanted ${Math.round(mo.maxHp * 0.08)}`);
+  assert(Math.abs(high - Math.round(mo.maxHp * 0.18)) <= 1,
+    `maxed mend ${high}, wanted ${Math.round(mo.maxHp * 0.18)}`);
+
+  // The duration rung is BUFF-ONLY. Wisteria carries a taunt and a ward
+  // on one skill; rung 4 must lengthen the ward and leave the hex alone,
+  // or a defensive rung silently becomes an offensive one.
+  const wl = P.skillLadder(wis, P.skillCap(wis, 1));
+  assert(wl.duration === 1, `ward duration rungs ${wl.duration}`);
+  const wisSt = mo.abilities.find((x) => x.def === wis);
+  wisSt.level = P.skillCap(wis, 1);
+  const foe = place(battle, H.catherine, TEAM.ENEMY, 1);
+  foe.debuffResistance = () => 0;
+  mo.statusEffects = []; foe.statusEffects = [];
+  A.execute(wis, mo, foe, battle);
+  const ward = mo.statusEffects.find((fx) => fx.stat === 'def');
+  const taunt = foe.statusEffects.find((fx) => fx.stat === 'taunted');
+  assert(ward && ward.turns === 3, `ward lasted ${ward && ward.turns}, wanted 3`);
+  assert(taunt && taunt.turns === 1,
+    `the buff-duration rung leaked onto the taunt: ${taunt && taunt.turns} turns`);
+
+  // perDeath takes a rung like perMirror does.
+  const pl = P.skillLadder(pall, P.skillCap(pall, 2));
+  assert(Math.abs(pl.mult - 0.50) < 1e-9 && Math.abs(pl.perDeath - 0.25) < 1e-9,
+    `Pallbearer rungs ${JSON.stringify(pl)}`);
+  assert(P.skillCooldown(pall, 8) === 5, 'Pallbearer should cycle at 5 fully levelled');
 });
 
 report();

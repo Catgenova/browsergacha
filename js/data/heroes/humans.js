@@ -3685,19 +3685,40 @@ Object.assign(HEROES, {
         selfEffects: [
           { type: 'healHpPct', pct: 0.08 },
         ],
+        // Both halves of the skill level, at their own rates: the DEF
+        // damage in tens, the HP-priced mend in fives. 70% -> 100% DEF
+        // and 8% -> 18% of his pool.
+        levelUps: [
+          { mult: 0.10 }, { mult: 0.10 }, { mult: 0.10 },
+          { heal: 0.05 }, { heal: 0.05 },
+        ],
       },
       {
         id: 'morrow_wisteria', name: 'Wisteria',
         icon: 'assets/icons/fc1296.png',
-        description: 'The garden on his back comes into flower and every eye ' +
-          'follows it: the WHOLE enemy team is taunted onto him for 1 turn, ' +
-          'and Morrow takes +50% DEF for 2 turns.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill2',
+        description: 'The garden on his back comes into flower: each enemy has ' +
+          'a 50% chance to be taunted onto him for 1 turn, and Morrow takes ' +
+          '+50% DEF for 2 turns.',
+        // Base cooldown raised 5 -> 6; the last two rungs land it at 4.
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill2',
         effects: [
-          { type: 'debuff', stat: 'taunted', turns: 1 },
+          { type: 'debuff', stat: 'taunted', turns: 1, chance: 0.5 },
         ],
         selfEffects: [
           { type: 'buff', stat: 'def', mult: 1.50, turns: 2 },
+        ],
+        // The one skill on the roster that carries a debuff and a buff at
+        // once, which is why the duration rung is buff-only: rung 4
+        // lengthens his ward to 3 turns and deliberately leaves the taunt
+        // at 1. A taunt has no `mult`, so severity is not available to it
+        // -- chance is its whole ladder.
+        levelUps: [
+          { debuffChance: 0.20 },
+          { debuffChance: 0.20 },
+          { debuffChance: 0.10 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
       {
@@ -3706,9 +3727,23 @@ Object.assign(HEROES, {
         description: 'He brings down everything he has had to carry: 200% DEF ' +
           'to a single enemy, and 20% DEF more for every unit that has ' +
           'fallen this fight, either side.',
-        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slam',
+        // Base cooldown raised 6 -> 7; fully levelled it cycles at 5.
+        cooldown: 7, targeting: 'enemy', animation: 'skill3', impact: 'slam',
         effects: [
           { type: 'damageDef', mult: 2.00, perDeath: 0.20 },
+        ],
+        // Both halves again, same rule as Aniani's mirrors: the per-death
+        // term is what makes this skill his, so a rung that only raised
+        // the flat part would be worth a fraction of the same rung
+        // elsewhere. 200%+20/death becomes 250%+45/death.
+        levelUps: [
+          { mult: 0.10, perDeath: 0.05 },
+          { mult: 0.10, perDeath: 0.05 },
+          { mult: 0.10, perDeath: 0.05 },
+          { mult: 0.10, perDeath: 0.05 },
+          { mult: 0.10, perDeath: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
         ],
       },
     ],

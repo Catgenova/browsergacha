@@ -296,7 +296,7 @@ const Abilities = (() => {
         const lad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         const mult = effect.mult + (lad.mult || 0) +
           ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
-          (effect.perDeath || 0) * bodies;
+          ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -354,8 +354,12 @@ const Abilities = (() => {
         // front-row targets. `targetPct` scales off the TARGET's pool
         // instead (Koe's mime remedy fits whoever receives it).
         const front = target.slot && target.slot.position === POSITION.FRONT;
-        const pct = front && effect.frontPct ? effect.frontPct
-          : (effect.pct ?? effect.targetPct);
+        // Heal rungs add points to the percentage. HP-priced numbers
+        // move in fives, not tens: a percentage of a health pool is a
+        // far larger figure than a percentage of an attack stat.
+        const healLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const pct = (front && effect.frontPct ? effect.frontPct
+          : (effect.pct ?? effect.targetPct)) + (healLad.heal || 0);
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
@@ -557,6 +561,13 @@ const Abilities = (() => {
         // land. Debuffer passives can extend applied debuff durations.
         let turns = effect.turns;
         const ladder = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        // Duration rungs extend BUFFS only. An ability can carry a buff
+        // and a debuff at once -- Morrow's Wisteria wards himself while
+        // taunting the enemy team -- and a blanket rung would silently
+        // lengthen the hex as well as the ward. Debuff duration is not
+        // one of the four rules; if it ever becomes one it needs to say
+        // which half of a mixed skill it lengthens.
+        if (effect.type === 'buff' && ladder.duration) turns += ladder.duration;
         // Severity rungs move the debuff AWAY FROM NEUTRAL, so the same
         // rung reads correctly on a reduction and an amplification
         // alike: a -30% DEF break (mult 0.70) deepens to 0.65, while a

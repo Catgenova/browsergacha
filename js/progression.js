@@ -149,6 +149,8 @@ const Progression = (() => {
     // with all six up.
     if (l.mult) bits.push(`+${Math.round(l.mult * 100)}% power`);
     if (l.perMirror) bits.push(`+${Math.round(l.perMirror * 100)}%/mirror`);
+    if (l.perDeath) bits.push(`+${Math.round(l.perDeath * 100)}%/death`);
+    if (l.heal) bits.push(`+${Math.round(l.heal * 100)}% heal`);
     if (l.debuffChance) bits.push(`+${Math.round(l.debuffChance * 100)}% land chance`);
     if (l.debuffPower) bits.push(`+${Math.round(l.debuffPower * 100)}% effect`);
     if (l.duration) bits.push(`+${l.duration} turn${l.duration === 1 ? '' : 's'}`);
