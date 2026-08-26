@@ -654,6 +654,25 @@ class Unit {
       }
     }
     if (!this.alive) {
+      // A death rings through the whole field BEFORE the body is
+      // cleared, because what the fallen was carrying is exactly what
+      // the watchers care about (Sable is paid for a poisoned corpse).
+      // Guarded like the debuff ring: a hook that kills something must
+      // not set itself off.
+      if (!Unit.deathRinging) {
+        const b = typeof Battle !== 'undefined' ? Battle.active : null;
+        if (b) {
+          Unit.deathRinging = true;
+          try {
+            for (const watcher of b.livingUnits()) {
+              for (const p of (watcher.hookSources ? watcher.hookSources() : [])) {
+                const hook = p.hooks && p.hooks.onUnitDied;
+                if (hook) hook(watcher, { victim: this, battle: b });
+              }
+            }
+          } finally { Unit.deathRinging = false; }
+        }
+      }
       this.turnMeter = 0;
       this.statusEffects = [];
       // Death animation (freezes on its last frame) when the hero has one.

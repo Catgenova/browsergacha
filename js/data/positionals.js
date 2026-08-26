@@ -339,6 +339,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('deep_roots', {
+    position: POSITION.BACK,
+    name: 'Deep Roots',
+    description: 'Back hex: poisons he inflicts tick 30% harder — what is ' +
+      'planted from a distance has time to take hold.',
+    hooks: { dotBoostAdd: 0.30 },
+  });
+
   def('lamplight', {
     position: POSITION.BACK,
     name: 'Lamplight',
