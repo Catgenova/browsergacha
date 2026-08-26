@@ -353,4 +353,100 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.overwatch,
   },
+
+  peck: {
+    id: 'peck',
+    element: 'water',
+    name: 'Peck',
+    title: "Ship's Cook",
+    rarity: 3,
+    // Priced off his own health pool, so HP is his healing AND his
+    // warding and ATK is a dead stat -- and he is the sturdiest bird in
+    // the sect by a distance, because a crew this frail cannot afford
+    // to lose the galley. (Ratios only; js/data/balance.js scales all
+    // three to the shared budget and leaves speed alone.)
+    stats: { hp: 1900, atk: 110, def: 130, speed: 100 },
+    tint: { body: '#2a2a34', helm: '#1a5ac8', weapon: '#8a6a3a', shield: '#e88a3a' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Peckidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'ladle_out', name: 'Ladle Out',
+        icon: 'assets/icons/fc1041.png',
+        description: "A bowl pressed into somebody's wings: heal one ally for 15% of Peck's max HP.",
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', pct: 0.15 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ],
+      },
+      {
+        id: 'share_the_pot', name: 'Share the Pot',
+        icon: 'assets/icons/fc1073.png',
+        description: 'Set the cauldron down where everyone can reach it: heal ALL allies for ' +
+          "7% of Peck's max HP, and 2% more each for every ally beyond the first at the table.",
+        cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // Deliberately feeble at a thin table and the best team heal in
+        // the game at a full one. Benched against every all-allies mend
+        // at cap: at five bodies he sits just under Posie's High
+        // Summer, a 5-star; at three he is behind Ilyra; at seven he is
+        // ahead of both. The sect's whole argument, on the friendly
+        // side of the field.
+        effects: [{ type: 'healHpPct', pct: 0.07, perTarget: 0.02 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { perTarget: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'a_full_belly', name: 'A Full Belly',
+        icon: 'assets/icons/fc1113.png',
+        description: 'Second helpings all round: ALL allies gain a ward worth 8% of ' +
+          "Peck's max HP for 3 turns, and 2% more each for every ally beyond the first fed.",
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', pct: 0.08, perTarget: 0.02, turns: 3 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { perTarget: 0.02 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Goes Back in the Pot',
+      icon: 'assets/icons/fc866.png',
+      description: 'Healing somebody who is already full is not wasted on Peck: half of ' +
+        'any overheal he causes sets as a ward on that ally for 2 turns.',
+      hooks: {
+        // Fired by notifyOverheal, which every mend in the game already
+        // reports through -- so this catches his own pot, and any of it
+        // that lands on somebody who did not need it.
+        onOverheal(unit, { overflow, target }) {
+          if (!target || !target.alive || overflow <= 0) return null;
+          const kept = Math.round(overflow * 0.5);
+          if (kept <= 0) return null;
+          const gained = target.addShield(kept, 2, unit);
+          if (gained <= 0) return null;
+          return { floats: [{ target, text: `◇ ${gained}`, color: '#e8c86a' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.slow_simmer,
+  },
 });

@@ -405,8 +405,16 @@ const Abilities = (() => {
         // move in fives, not tens: a percentage of a health pool is a
         // far larger figure than a percentage of an attack stat.
         const healLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        // perTarget cuts both ways. On a sweep it prices the storm off
+        // the size of the crowd it catches; on a pot of stew it prices
+        // the helping off the number of mouths at the table. Same
+        // arithmetic, same sect, opposite side of the field -- and it
+        // is the only healing in the game that is BETTER for being
+        // shared out rather than thinner.
+        const mouths = Math.max(0, currentTargetCount - 1);
         const pct = (front && effect.frontPct ? effect.frontPct
-          : (effect.pct ?? effect.targetPct)) + (healLad.heal || 0);
+          : (effect.pct ?? effect.targetPct)) + (healLad.heal || 0) +
+          ((effect.perTarget || 0) + (healLad.perTarget || 0)) * mouths;
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
@@ -477,11 +485,21 @@ const Abilities = (() => {
         // its own pricing implies: `heal` points on an HP-priced ward,
         // `mult` points on an ATK-priced one. Duration lengthens it.
         const shLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        // A ward shared round the table takes the same crowd bonus a
+        // shared pot does.
+        const shared = ((effect.perTarget || 0) + (shLad.perTarget || 0)) *
+          Math.max(0, currentTargetCount - 1);
         const base = effect.pct !== undefined
-          ? caster.maxHp * (effect.pct + (shLad.heal || 0))
-          : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0));
+          ? caster.maxHp * (effect.pct + (shLad.heal || 0) + shared)
+          : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0) + shared);
         const amount = Math.round(base * power * boost);
-        const shTurns = effect.turns + (shLad.duration || 0);
+        // A `shieldExtraTurns` hook (Peck's centre hex) keeps the pot
+        // warm a turn longer than the recipe says.
+        let shExtra = 0;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.shieldExtraTurns) shExtra += p.hooks.shieldExtraTurns;
+        }
+        const shTurns = effect.turns + (shLad.duration || 0) + shExtra;
         const gained = target.addShield(amount, shTurns, caster);
         return { kind: 'shield', target, amount: gained, turns: shTurns };
       }
