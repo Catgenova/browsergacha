@@ -279,4 +279,78 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.first_blood,
   },
+
+  phil: {
+    id: 'phil',
+    element: 'water',
+    name: 'Phil',
+    title: 'Chum Slinger',
+    rarity: 2,
+    // Back-line damage on a body that can take a hit or two more than
+    // Hallow's -- he is the sect's cheap ranged option rather than its
+    // glass cannon. (Ratios only; js/data/balance.js scales all three to
+    // the shared budget and leaves speed alone.)
+    stats: { hp: 1050, atk: 245, def: 78, speed: 106 },
+    tint: { body: '#d8dce4', helm: '#1a5ac8', weapon: '#8a6a3a', shield: '#e8a04a' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Philidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // TWO skills, being a 2-star: the no-cooldown one and the short
+    // one, with no long cooldown at all. The contract test in
+    // data.test.js holds the count to the star rating.
+    abilities: [
+      {
+        id: 'slop_toss', name: 'Slop Toss',
+        icon: 'assets/icons/fc823.png',
+        description: 'Lob a handful over the enemy line: 65% ATK to the enemy BACK row, ' +
+          'and 5% more to each of them for every enemy beyond the first it lands among.',
+        cooldown: 0, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.65, perTarget: 0.05 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { perTarget: 0.02 },
+        ],
+      },
+      {
+        id: 'chum_the_water', name: 'Chum the Water',
+        icon: 'assets/icons/fc1117.png',
+        description: 'Upend the whole bucket over the rail: 110% ATK to the enemy BACK row, ' +
+          '8% more to each for every enemy beyond the first, and a 50% chance each to leave ' +
+          'them rotting for 25% ATK a turn over 3 turns.',
+        cooldown: 5, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.1, perTarget: 0.08 },
+          { type: 'dot', pct: 0.25, turns: 3, chance: 0.5, flavor: 'rot' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { perTarget: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Finds a Gap',
+      icon: 'assets/icons/fc1041.png',
+      description: 'A bucket of fish guts does not care what anyone is wearing: ' +
+        'everything Phil throws slips past 25% of the target\'s DEF.',
+      hooks: {
+        // Read by Abilities.strike, so it applies to every hit he lands
+        // -- the skills, the rot, and anything a hook throws for him.
+        // It is the sect's answer to the thing a crowd-scaling kit is
+        // worst against: a front rank built entirely out of armour.
+        defIgnoreAdd: 0.25,
+      },
+    },
+    positional: POSITIONALS.overwatch,
+  },
 });

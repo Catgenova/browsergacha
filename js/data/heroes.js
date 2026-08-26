@@ -1,8 +1,10 @@
 // Hero definitions. Every hero follows the same contract:
-//   - 3 active abilities: one no-cooldown, one short cooldown, one long
-//     cooldown. A 1-STAR is the exception and carries exactly one, which
-//     must be cooldown-free: the bottom of a sect is a body with a knife
-//     rather than a kit, and its single skill has to be pressable every turn.
+//   - one active ability per star, capped at 3: one no-cooldown, one short
+//     cooldown, one long cooldown. A 1-STAR carries only the first and a
+//     2-STAR only the first two — the bottom of a sect is a body with a
+//     knife rather than a kit. Slot 1 is always cooldown-free, for
+//     everyone: it is the only button a 1-star owns and the fallback for
+//     every other hero.
 //   - 1 passive ability: hooks.onTurnStart(unit, battle) -> null | {
 //       label, message, floats: [{ target, text, color }] }
 //   - 1 positional bonus, active only in the matching grid position

@@ -24,18 +24,20 @@ test('every hero has the full contract', () => {
     assert(h.id && h.name, `hero missing id/name: ${JSON.stringify(h).slice(0, 60)}`);
     assert(h.rarity >= 1 && h.rarity <= 5, `${h.id}: bad rarity ${h.rarity}`);
     assert(h.element, `${h.id}: no element`);
-    // Three actives for everyone -- except a 1-star, who gets exactly
-    // one. A hero at the bottom of a sect is a body with a knife, not a
-    // kit; the single skill IS the character, and there is no slot 2 or
-    // 3 for it to hide behind.
-    const wantSkills = h.rarity === 1 ? 1 : 3;
+    // A hero carries one active per star, up to the three the slot
+    // system has rungs for: a 1-star is a body with a knife, a 2-star
+    // gets a second button, and 3-star and up carry the full kit. The
+    // bottom of a sect is a character, not a smaller version of one --
+    // its single skill IS the character, with no slot 2 or 3 to hide
+    // behind.
+    const wantSkills = Math.min(3, h.rarity);
     assert((h.abilities || []).length === wantSkills,
       `${h.id}: ${(h.abilities || []).length} abilities, a ${h.rarity}-star has ${wantSkills}`);
-    if (h.rarity === 1) {
-      assert(h.abilities[0].cooldown === 0,
-        `${h.id}: a 1-star's only skill has a ${h.abilities[0].cooldown}-turn cooldown, ` +
-        'so it has turns with nothing at all to do');
-    }
+    // Slot 1 is always free to press. It is the only button a 1-star
+    // owns and the fallback for everyone else, so a cooldown on it
+    // would mean turns with nothing at all to do.
+    assert(h.abilities[0].cooldown === 0,
+      `${h.id}: skill 1 has a ${h.abilities[0].cooldown}-turn cooldown`);
     assert(passivesOf(h).length >= 1, `${h.id}: no passive`);
     assert(h.positional, `${h.id}: no positional`);
     assert(h.stats && h.stats.hp > 0, `${h.id}: no stats`);
@@ -192,7 +194,7 @@ test('every sect holds one race, once each, with its number', () => {
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
-    gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike', 'jack'] },
+    gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike', 'jack', 'phil'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

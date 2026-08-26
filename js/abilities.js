@@ -144,9 +144,18 @@ const Abilities = (() => {
       ? false
       : Math.random() < (target.dodgeChance ? target.dodgeChance() : 0);
     // ignoreDef: a fraction of the target's DEF the blow slips past
-    // (Ari's lancing shot) — the curve sees the rest.
+    // (Ari's lancing shot) — the curve sees the rest. A caster can also
+    // carry armour-blindness of its own through a `defIgnoreAdd` hook
+    // (Phil's slop, which does not care what anybody is wearing); that
+    // applies to EVERYTHING it throws, on top of whatever the effect
+    // already slips past. Capped short of 1 so no amount of stacking
+    // ever deletes DEF outright.
+    let pen = opts.ignoreDef || 0;
+    for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.defIgnoreAdd) pen += p.hooks.defIgnoreAdd;
+    }
     let dmg = damageFormula(raw,
-      target.effectiveStat('def') * (1 - (opts.ignoreDef || 0)));
+      target.effectiveStat('def') * (1 - Math.min(0.9, pen)));
     let crit = false;
     if (opts.crit) {
       // critAdd: a per-hit crit-chance rider (Samuels's knives), on top

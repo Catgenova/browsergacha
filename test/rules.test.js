@@ -6962,4 +6962,81 @@ test("Jack is one skill and a powder keg, and the keg only goes off for him", ()
   }
 });
 
+test('Phil throws past armour, and the harder the armour the more it is worth', () => {
+  const phil = HEROES.phil;
+  assert(phil.rarity === 2 && phil.abilities.length === 2,
+    `Phil is a ${phil.rarity}-star with ${phil.abilities.length} skills`);
+  assert(phil.passive.hooks.defIgnoreAdd > 0, 'Phil lost his armour-blindness');
+
+  // One back-hex victim of a stated DEF, hit by Slop Toss.
+  function hit(defStat, hero = phil) {
+    const battle = makeBattle();
+    const h = new Unit(hero, TEAM.PLAYER, { level: 30, stars: hero.rarity });
+    h.slot = battle.playerSlots[
+      battle.playerSlots.findIndex((sl) => sl.position === POSITION.BACK)];
+    battle.units.push(h);
+    const f = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 4 });
+    f.slot = battle.enemySlots.find((sl) => sl.position === POSITION.BACK);
+    f.hp = f.maxHp = 9e6;
+    f.baseDef = defStat;
+    battle.units.push(f);
+    const before = f.hp;
+    const real = Math.random;
+    Math.random = () => 0.99; // no crit, and the rot gate fails
+    Abilities.execute(hero.abilities[0], h, f, battle);
+    Math.random = real;
+    return before - f.hp;
+  }
+
+  // Measured against the same victim with the hook on and off, so the
+  // only thing that changed is the armour it slipped past.
+  const saved = phil.passive.hooks.defIgnoreAdd;
+  const gains = [];
+  for (const armour of [100, 400, 1200]) {
+    const withPen = hit(armour);
+    delete phil.passive.hooks.defIgnoreAdd;
+    const without = hit(armour);
+    phil.passive.hooks.defIgnoreAdd = saved;
+    assert(withPen > without,
+      `Finds a Gap did nothing against ${armour} DEF (${without} -> ${withPen})`);
+    gains.push(withPen / without);
+  }
+  // The whole argument for the passive: it is the sect's answer to a
+  // front rank made of armour, so it has to be worth MORE the tankier
+  // the target is, not a flat rider.
+  assert(gains[2] > gains[1] && gains[1] > gains[0],
+    `the gap paid ${gains.map((x) => `${Math.round((x - 1) * 100)}%`).join(' / ')} ` +
+    'against rising armour -- it should climb');
+
+  // It is his, not the targeting's: strip it and an identical sweep by
+  // another hero is unaffected either way.
+  const other = HEROES.hallow;
+  const before = hit(400, other);
+  delete phil.passive.hooks.defIgnoreAdd;
+  const after = hit(400, other);
+  phil.passive.hooks.defIgnoreAdd = saved;
+  assert(before === after, "Phil's armour-blindness leaked onto Hallow");
+
+  // And the rot lands with the gate forced open, at the printed size.
+  const battle = makeBattle();
+  const h = new Unit(phil, TEAM.PLAYER, { level: 30, stars: 2 });
+  h.slot = battle.playerSlots[
+    battle.playerSlots.findIndex((sl) => sl.position === POSITION.BACK)];
+  battle.units.push(h);
+  const f = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 4 });
+  f.slot = battle.enemySlots.find((sl) => sl.position === POSITION.BACK);
+  f.hp = f.maxHp = 9e6;
+  battle.units.push(f);
+  const real = Math.random;
+  Math.random = () => 0;
+  Abilities.execute(phil.abilities[1], h, f, battle);
+  Math.random = real;
+  const rot = f.statusEffects.filter((fx) => fx.kind === 'dot');
+  assert(rot.length === 1, `Chum the Water left ${rot.length} rots`);
+  assert(rot[0].turns === 3, `the rot runs ${rot[0].turns} turns`);
+  const want = Math.round(h.effectiveStat('atk') * 0.25);
+  assert(Math.abs(rot[0].amount - want) <= 1,
+    `the rot ticks ${rot[0].amount}, wanted about ${want}`);
+});
+
 report();
