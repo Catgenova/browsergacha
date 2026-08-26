@@ -47,6 +47,7 @@ function label(rung, ability) {
   if (rung.mult) out.push(`+${pct(rung.mult)}% power`);
   if (rung.perMirror) out.push(`+${pct(rung.perMirror)}%/mirror`);
   if (rung.perDeath) out.push(`+${pct(rung.perDeath)}%/death`);
+  if (rung.perTarget) out.push(`+${pct(rung.perTarget)}%/enemy hit`);
   if (rung.heal) out.push(`+${pct(rung.heal)}% ${mends ? 'heal' : 'power'}`);
   if (rung.debuffChance) out.push(`+${pct(rung.debuffChance)}% land chance`);
   if (rung.debuffPower) out.push(`+${pct(rung.debuffPower)}% effect`);

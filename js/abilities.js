@@ -232,6 +232,13 @@ const Abilities = (() => {
   // pays out on ONE of its hero's skills (Noctelle's Moth Dust) reads
   // this rather than every skill having to carry a rider.
   let currentAbility = null;
+  // How many units the current cast is landing on. A storm is worse in
+  // a crowd: `perTarget` prices a skill off the size of the group it
+  // catches, which is the whole reason a sweep-first sect exists.
+  // Distinct from perDeath (bodies already down) and perMirror (charges
+  // the caster is holding) -- this one counts who is being hit RIGHT
+  // NOW, and is 1 for an ordinary single-target strike.
+  let currentTargetCount = 1;
 
   // Freeze: the ice-flavored stun — the frozen unit loses its turns.
   // One door for every source (Polarus's bolt, the Crystalline counter,
@@ -310,9 +317,14 @@ const Abilities = (() => {
         // from ten points of an attack stat, so it rides the `heal` rung
         // like every other percentage-of-a-pool figure in the game.
         const rate = effect.type === 'damageHp' ? (lad.heal || 0) : (lad.mult || 0);
+        // perTarget counts every body BEYOND the first, so a sweep that
+        // catches one enemy is worth exactly its printed multiplier and
+        // the bonus is purely what the crowd adds.
+        const crowd = Math.max(0, currentTargetCount - 1);
         const mult = effect.mult + rate +
           ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
-          ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies;
+          ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies +
+          ((effect.perTarget || 0) + (lad.perTarget || 0)) * crowd;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -1304,21 +1316,33 @@ const Abilities = (() => {
     // Skill-level power: +10% per level past 1 on this ability's numbers.
     const power = caster.skillPowerFor ? caster.skillPowerFor(ability) : 1;
     const results = [];
-    for (const target of targets) {
-      for (const effect of ability.effects) {
-        const res = applyEffect(effect, caster, target, power);
-        // A composite effect (randomDebuffs) reports one result per
-        // debuff it landed, so the log narrates each hex separately.
+    // The size of the group this cast caught, held for the whole sweep
+    // so every victim is priced off the same crowd -- the last bird hit
+    // takes the same storm as the first, even if the first one died to
+    // it. Saved and restored because a chain-cast (Oak) resolves a
+    // second ability inside this one.
+    const prevCrowd = currentTargetCount;
+    currentTargetCount = Math.max(1, targets.length);
+    try {
+      for (const target of targets) {
+        for (const effect of ability.effects) {
+          const res = applyEffect(effect, caster, target, power);
+          // A composite effect (randomDebuffs) reports one result per
+          // debuff it landed, so the log narrates each hex separately.
+          if (Array.isArray(res)) results.push(...res);
+          else if (res) results.push(res);
+        }
+      }
+      // Optional rider effects the ability applies to the caster itself.
+      // A rider is aimed at ONE bird -- the caster -- however wide the
+      // sweep that carried it was.
+      currentTargetCount = 1;
+      for (const effect of ability.selfEffects || []) {
+        const res = applyEffect(effect, caster, caster, power);
         if (Array.isArray(res)) results.push(...res);
         else if (res) results.push(res);
       }
-    }
-    // Optional rider effects the ability applies to the caster itself.
-    for (const effect of ability.selfEffects || []) {
-      const res = applyEffect(effect, caster, caster, power);
-      if (Array.isArray(res)) results.push(...res);
-      else if (res) results.push(res);
-    }
+    } finally { currentTargetCount = prevCrowd; }
     // Cat set: any damaged target can lose 20% of its turn meter.
     const drainChance = caster.apDrainChance ? caster.apDrainChance() : 0;
     if (drainChance > 0) {
@@ -1333,6 +1357,36 @@ const Abilities = (() => {
         if (Math.random() < drainChance) {
           const drained = drainMeter(caster, victim, 0.20);
           if (drained) results.push(drained);
+        }
+      }
+    }
+    // A sweep that actually caught a crowd pays the caster's onSweepHit
+    // hooks, once per body it landed on (Hallow's Eye of the Storm).
+    // Counted per VICTIM rather than per cast, so a storm over seven
+    // birds is worth seven times a storm over one -- and a sweep that
+    // found a single target is worth nothing at all, which is the whole
+    // point of a sect built to fight wide.
+    if (targets.length > 1) {
+      const sweptSources = (caster.hookSources ? caster.hookSources() : [])
+        .filter((p) => p.hooks && p.hooks.onSweepHit);
+      if (sweptSources.length > 0) {
+        const struck = new Set();
+        for (const res of results) {
+          if (res.kind === 'damage' && res.amount > 0 && !res.dodged && !res.reflected) {
+            struck.add(res.target);
+          }
+        }
+        for (let i = 0; i < struck.size; i++) {
+          for (const p of sweptSources) {
+            const out = p.hooks.onSweepHit(caster, battle || currentBattle);
+            // Only the last one floats: seven identical arrows stacked
+            // on one sprite is noise, not information.
+            if (out && out.floats && i === struck.size - 1 && currentBattle &&
+                currentBattle.addFloatingText) {
+              out.floats.forEach(
+                (f) => currentBattle.addFloatingText(f.target, f.text, f.color));
+            }
+          }
         }
       }
     }

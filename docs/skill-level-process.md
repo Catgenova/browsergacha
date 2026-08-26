@@ -128,6 +128,7 @@ in `data.test.js` rejects it.
 |---|---|---|
 | `mult` | an ATK/DEF-priced modifier | +10% |
 | `perMirror`, `perDeath` | a per-stack term alongside the flat one | +5% |
+| `perTarget` | the crowd bonus on a sweep — what each victim adds beyond the first | +2% |
 | `heal` | anything priced off a health pool — a mend, a ward, a revive, a share of a wound kept, or **damage priced off the caster's own max HP** | +5% (+2% on a per-turn tick) |
 | `debuffChance` | the application gate | +10–20% |
 | `debuffPower` | the severity of a hex, including a poison tick | +10% |

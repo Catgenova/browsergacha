@@ -21,7 +21,8 @@ const FILES = [
   'js/abilities.js', 'js/progression.js', 'js/attune.js', 'js/gear.js', 'js/hero.js', 'js/data/positionals.js',
   // Test-only enemy bodies (see test/dummies.js); never registered into HEROES.
   'test/dummies.js',
-  'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/balance.js', 'js/data/enemies.js',
+  'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/avians.js',
+  'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];

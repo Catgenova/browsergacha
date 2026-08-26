@@ -164,7 +164,10 @@ test('every hero belongs to a race', () => {
   assert(raceless.length === 0, `raceless: ${raceless.slice(0, 6).join(', ')}`);
 });
 
-test('human sects hold real humans, once each, with their numbers', () => {
+test('every sect holds one race, once each, with its number', () => {
+  // Sects were a human institution until the Gulldiggers. The rule is
+  // no longer "a sect is human" but "a sect is ONE race" -- the race is
+  // declared per sect and every member has to answer to it.
   const expected = {
     cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
     hedge: { number: 3, members: ['vex', 'coral'] },
@@ -176,6 +179,9 @@ test('human sects hold real humans, once each, with their numbers', () => {
     nightflower: { number: 6, members: ['sawyer', 'noctelle', 'sable', 'evelune',
       'lysandra', 'morrow', 'valere', 'lenore', 'dorian'] },
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
+    // The first non-human sect. Filled one bird at a time; the shape it
+    // is being filled to is checked below.
+    gulldigger: { number: 8, race: 'avian', members: ['hallow'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -187,7 +193,8 @@ test('human sects hold real humans, once each, with their numbers', () => {
       `${id}: members ${sect.members.join(', ')}`);
     for (const m of sect.members) {
       assert(HEROES[m], `${id}: unknown hero ${m}`);
-      assert(RACES.of(HEROES[m]) === 'human', `${id}: ${m} is not human`);
+      const race = want.race || 'human';
+      assert(RACES.of(HEROES[m]) === race, `${id}: ${m} is not ${race}`);
       assert(!seen.has(m), `${m} stands in two sects`);
       seen.add(m);
       assert(RACES.sectOf(HEROES[m]) === sect, `sectOf(${m}) misses`);
@@ -195,6 +202,25 @@ test('human sects hold real humans, once each, with their numbers', () => {
   }
   assert(RACES.sectOf(HEROES.florence) === RACES.SECTS.cryst,
     'Tide marches with Cryst now');
+
+  // A non-human sect is built to a fixed shape rather than to whatever
+  // rarities its members happened to be written at: 1/2/3/2/1 across
+  // 1★ to 5★. Checked as a CEILING while the sect fills, so a bird
+  // added at the wrong rarity fails the moment it lands rather than
+  // eight heroes later.
+  const SHAPE = { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 };
+  for (const [id, want] of Object.entries(expected)) {
+    if (!want.race) continue;
+    const have = {};
+    for (const m of RACES.SECTS[id].members) {
+      const r = HEROES[m].rarity;
+      have[r] = (have[r] || 0) + 1;
+      assert(have[r] <= SHAPE[r],
+        `${id}: ${have[r]} heroes at ${r}-star, the shape allows ${SHAPE[r]}`);
+    }
+    assert(RACES.SECTS[id].members.length <= 9,
+      `${id}: ${RACES.SECTS[id].members.length} members, a sect holds nine`);
+  }
 });
 
 test('every hero resolves a full tag line', () => {
@@ -1074,6 +1100,16 @@ test('every swept skill obeys the level-up rules', () => {
       // odds the cast re-fires itself.
       if (lad.chain && !a.chain) {
         problems.push(`${where}: chain rungs but the skill never chains`);
+      }
+      // A perTarget rung steepens a crowd bonus, so there has to be one
+      // to steepen -- and a crowd bonus on a skill that can only ever
+      // catch one bird is a number that never fires.
+      if (lad.perTarget && !all.some((e) => e.perTarget !== undefined)) {
+        problems.push(`${where}: perTarget rungs but nothing priced per enemy hit`);
+      }
+      if (all.some((e) => e.perTarget !== undefined) &&
+          ['enemy', 'ally', 'self', 'dead-ally'].includes(a.targeting)) {
+        problems.push(`${where}: a crowd bonus on a single-target skill`);
       }
     });
   }

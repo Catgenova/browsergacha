@@ -6708,4 +6708,86 @@ test('a row sweep collapses onto the next row in rather than fizzling', () => {
     'a row sweep found a target on an empty side');
 });
 
+test('Hallow prices a storm off the size of the crowd it catches', () => {
+  // The Gulldigger mechanic: `perTarget` pays for every body BEYOND the
+  // first. Every other AoE dealer on the roster is paid the same for a
+  // sweep that lands on one enemy as for one that lands on seven.
+  const hallow = HEROES.hallow;
+  const squall = hallow.abilities[1];
+  const uncork = hallow.abilities[2];
+  assert(squall.effects[0].perTarget > 0 && uncork.effects[0].perTarget > 0,
+    'Hallow lost his crowd bonus');
+
+  // One field, N identical dummies, damage measured per body.
+  function sweep(ability, foeCount, hex = POSITION.CENTER, maxed = false) {
+    const battle = makeBattle();
+    const arr = battle.playerSlots;
+    const h = new Unit(hallow, TEAM.PLAYER, { level: 30, stars: 5 });
+    h.slot = arr[arr.findIndex((sl) => sl.position === hex)];
+    battle.units.push(h);
+    if (maxed) {
+      h.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    }
+    for (let i = 0; i < foeCount; i++) {
+      const f = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 4 });
+      f.slot = battle.enemySlots[i];
+      f.hp = f.maxHp = 9e6;
+      battle.units.push(f);
+    }
+    const foes = battle.livingUnits(TEAM.ENEMY);
+    const before = foes.map((u) => u.hp);
+    const real = Math.random;
+    Math.random = () => 0.99; // no crit, and the AP gate fails
+    Abilities.execute(ability, h, foes[0], battle);
+    Math.random = real;
+    return { each: before[0] - foes[0].hp, meter: h.turnMeter,
+      all: foes.map((u, i) => before[i] - u.hp) };
+  }
+
+  // Every victim of one cast takes the SAME storm -- the crowd is
+  // counted once, for the whole sweep.
+  const wide = sweep(squall, 5);
+  assert(new Set(wide.all).size === 1,
+    `one squall dealt ${[...new Set(wide.all)].join('/')} to different birds`);
+
+  // And the curve is exactly the printed one: base at a crowd of one,
+  // plus perTarget for each body after that.
+  const one = sweep(squall, 1).each;
+  for (const n of [3, 5, 7]) {
+    const got = sweep(squall, n).each;
+    const want = (squall.effects[0].mult + squall.effects[0].perTarget * (n - 1)) /
+      squall.effects[0].mult;
+    assert(Math.abs(got / one - want) < 0.02,
+      `Squall Line at ${n} bodies paid ${(got / one).toFixed(3)}x, wanted ${want.toFixed(3)}x`);
+  }
+
+  // The trade that makes it a decision: against a lone target his
+  // cooldown-free single-target press beats his own ultimate.
+  const solo = sweep(hallow.abilities[0], 1, POSITION.CENTER, true).each;
+  const ult = sweep(uncork, 1, POSITION.CENTER, true).each;
+  assert(solo > ult * 0.8,
+    `Uncork (${ult}) buries Cork Snap (${solo}) even against one bird`);
+
+  // Eye of the Storm pays per body struck, and only on a real sweep.
+  const step = CONFIG.TURN_METER_MAX * 0.05;
+  for (const n of [3, 5, 7]) {
+    const got = sweep(squall, n).meter;
+    assert(Math.abs(got - step * n) < 0.001,
+      `a ${n}-bird squall paid ${got} meter, wanted ${step * n}`);
+  }
+  assert(sweep(hallow.abilities[0], 5).meter === 0,
+    'a single-target strike paid the sweep passive');
+
+  // Stormglass reads the shape of the cast, not the aim of it: the back
+  // hex pays on a team sweep and never on Cork Snap.
+  const flatCtr = sweep(squall, 5, POSITION.CENTER).each;
+  const flatBack = sweep(squall, 5, POSITION.BACK).each;
+  assert(Math.abs(flatBack / flatCtr - 1.25) < 0.02,
+    `Stormglass paid ${(flatBack / flatCtr).toFixed(3)}x on a team sweep, wanted 1.25x`);
+  const snapCtr = sweep(hallow.abilities[0], 5, POSITION.CENTER).each;
+  const snapBack = sweep(hallow.abilities[0], 5, POSITION.BACK).each;
+  assert(snapCtr === snapBack,
+    'Stormglass paid out on a single-target strike');
+});
+
 report();

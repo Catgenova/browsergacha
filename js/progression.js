@@ -156,6 +156,7 @@ const Progression = (() => {
     if (l.mult) bits.push(`+${Math.round(l.mult * 100)}% power`);
     if (l.perMirror) bits.push(`+${Math.round(l.perMirror * 100)}%/mirror`);
     if (l.perDeath) bits.push(`+${Math.round(l.perDeath * 100)}%/death`);
+    if (l.perTarget) bits.push(`+${Math.round(l.perTarget * 100)}%/enemy hit`);
     // The `heal` rung is the HP-priced RATE, and HP-priced damage rides
     // it too (Wren's shoulder, Franz's bonk). Calling that "+25% heal" on
     // a skill that only ever hurts people would be a plain lie, so the
