@@ -601,6 +601,36 @@ const Abilities = (() => {
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
       }
+      case 'swapRank': {
+        // Haul a back-line enemy out from behind their wall, and put
+        // whoever was covering them in the back. The flower pairs by
+        // ROW — every back hex has exactly one front hex level with it
+        // — so "the one in front of you" is never ambiguous.
+        //
+        // The trade is symmetric, so it reads the same whichever end of
+        // the row was struck; the middle column has no partner and is
+        // left alone.
+        const battle = currentBattle;
+        if (!battle || !target.slot) return null;
+        const here = target.slot;
+        if (here.position === POSITION.CENTER) return null;
+        const wantFront = here.position === POSITION.BACK;
+        const slots = (battle.slotsFor ? battle.slotsFor(target.team) : [])
+          .filter((sl) => sl.position ===
+            (wantFront ? POSITION.FRONT : POSITION.BACK));
+        const partner = slots
+          .sort((a, b) => Math.abs(a.y - here.y) - Math.abs(b.y - here.y))[0];
+        if (!partner || partner === here) return null;
+        const other = battle.units.find(
+          (u) => u.slot === partner && u.team === target.team && u.alive);
+        // Both halves of the link are repaired: the hexes' occupants and
+        // the fighters' hexes, so nothing on the board disagrees.
+        here.unit = other || null;
+        partner.unit = target;
+        target.slot = partner;
+        if (other) other.slot = here;
+        return { kind: 'swapRank', target, other, toFront: wantFront };
+      }
       case 'rotateFormation': {
         // Spin a whole side one hex around its own middle. The six ring
         // hexes are ordered by their angle on SCREEN, so "clockwise"

@@ -457,6 +457,14 @@ const POSITIONALS = (() => {
   // Ilyra's hex: standing back, the wind bends around her.
   // Ryn's hex: out front, where the wind is already moving.
   // Imani's hex: the middle, where the whole chime hangs.
+  // Wren's hex: the wall itself, and her damage comes off her own bulk.
+  def('windbreak', {
+    position: POSITION.FRONT,
+    name: 'Windbreak',
+    description: 'Front hex: +20% max HP — she is the thing the wind breaks on.',
+    stat: 'hp', mult: 1.20,
+  });
+
   def('chime_bar', {
     position: POSITION.CENTER,
     name: 'Chime Bar',

@@ -65,7 +65,7 @@ test('no two abilities are mechanically identical', () => {
     'catherine', 'vex', 'vivian', 'leonardo', 'oak', 'silas', 'eli', 'florence',
     'sawyer', 'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
     'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
-    'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani']);
+    'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani', 'wren']);
   const seen = new Map();
   for (const h of heroes) for (const a of h.abilities) {
     const fp = fingerprint(a);
@@ -131,10 +131,17 @@ test('positionals name a real hex and carry text', () => {
 });
 
 test('passives never gate on the hero own hex (that is the positional layer)', () => {
+  // The rule is about the CASTER: where a hero stands is the
+  // positional layer's business, so a passive that quietly pays out
+  // only from one hex is a positional wearing a passive's coat.
+  // Reading where the TARGET stands is a different thing entirely —
+  // Wren bills enemies for standing outside their own favoured hex —
+  // so the check names the caster explicitly rather than banning the
+  // idea of positions in passives altogether.
   const offenders = [];
   for (const h of heroes) for (const p of passivesOf(h)) {
     const src = Object.values(p.hooks || {}).map(String).join('\n');
-    if (/unit\.slot|positionalActive/.test(src)) offenders.push(`${h.id}/${p.name}`);
+    if (/unit\.slot|unit\.positionalActive/.test(src)) offenders.push(`${h.id}/${p.name}`);
   }
   assert(offenders.length === 0, offenders.join(', '));
 });
@@ -162,7 +169,7 @@ test('human sects hold real humans, once each, with their numbers', () => {
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: [] },
-    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani'] },
+    whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

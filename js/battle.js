@@ -654,6 +654,13 @@ class Battle {
             ? `${res.target.name} finds no fires to draw from.`
             : `${res.target.name}'s forge is already at full heat.`, cls);
         }
+      } else if (res.kind === 'swapRank') {
+        this.addFloatingText(res.target, '⇄ HAULED', '#8ee8ff');
+        this.log(res.other
+          ? `${res.target.name} is dragged out of the back line — ` +
+            `${res.other.name} is shoved in behind to take their place!`
+          : `${res.target.name} is dragged out of the back line into the open!`,
+          'log-system');
       } else if (res.kind === 'rotate') {
         this.addFloatingText(caster, '↻ SPIN', '#8ee8ff', true);
         this.log(`The whirl takes hold — the enemy formation turns one hex ` +
