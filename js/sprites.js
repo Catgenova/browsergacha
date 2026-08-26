@@ -319,6 +319,10 @@ const Sprites = (() => {
         // Horizontal offset (display px) of the character's feet from the
         // frame center — for art where the body sits off-center.
         sheet.shadowOffsetX = spriteDef.shadowOffsetX || 0;
+        // Hand-tuning knob for the measured shadow radius: the art
+        // decides the size, this decides whether the art was right.
+        // See docs/shadow-process.md.
+        sheet.shadowScale = spriteDef.shadowScale || 1;
         measureContentBounds(sheet);
         return sheet;
       }
@@ -361,6 +365,13 @@ const Sprites = (() => {
   function measureContentBounds(sheet) {
     sheet.footPad = 0;
     sheet.headPad = 0;
+    // Placeholder and single-sheet art reach here without the def pass
+    // above, so default the knob rather than multiplying by undefined.
+    if (!sheet.shadowScale) sheet.shadowScale = 1;
+    // Null means "not measured" — the renderer falls back to the old
+    // frame-width estimate rather than drawing nothing (a tainted
+    // canvas on file:// takes this path).
+    sheet.shadowRX = null;
     try {
       const anim = sheet.animations.idle;
       const c = document.createElement('canvas');
@@ -405,6 +416,47 @@ const Sprites = (() => {
         if (n > 0) {
           sheet.shadowOffsetX = Math.round((sx / n - c.width / 2) * scale);
         }
+      }
+
+      // Ground footprint: how wide this character's contact with the
+      // ground actually is, which is what decides the size of the disc
+      // under them. The old radius was frameW * 0.3 for everyone, so a
+      // seated Imani, a wide-stance Carl and a slim Noctelle all cast
+      // the same shadow on art whose footprints differ by 3x.
+      //
+      // Two spans are measured. The foot band is the bottom tenth of
+      // the character's own height, which is the part actually standing
+      // on the ground. The body span is the full silhouette, mixed in
+      // at a quarter weight so a figure balanced on one toe still gets
+      // more than a coin of shade — a shadow reads as mass overhead,
+      // not only as contact area.
+      const span = (y0, y1) => {
+        let lo = c.width, hi = -1;
+        for (let y = y0; y <= y1; y++) {
+          for (let x = 0; x < c.width; x++) {
+            if (data[(y * c.width + x) * 4 + 3] > 40) {
+              if (x < lo) lo = x;
+              if (x > hi) hi = x;
+            }
+          }
+        }
+        return hi >= lo ? hi - lo + 1 : 0;
+      };
+      const footRows = Math.max(3, Math.round((bottom - top) * 0.10));
+      const footW = span(Math.max(top, bottom - footRows), bottom);
+      const bodyW = span(top, bottom);
+      if (footW > 0) {
+        // Weights arrived at by looking, not by theory (see the process
+        // doc). Pure contact area was tried first at 0.75/0.25 and read
+        // wrong at both ends: Catherine's closed stance shrank to a
+        // coin while Tide's floor-length dress and Wren's cape pushed
+        // them to the clamp. Roughly even weighting tracks what the eye
+        // calls "how big is this character" much better.
+        const massW = 0.55 * footW + 0.45 * bodyW;
+        // Clamped so neither a stray pixel nor a ground-sweeping cape
+        // can produce an absurd disc. Bounds are in display pixels.
+        sheet.shadowRX = Math.max(13, Math.min(32,
+          Math.round(massW * 0.5 * scale * sheet.shadowScale)));
       }
     } catch (e) { /* tainted canvas on file:// — keep zero padding */ }
   }
