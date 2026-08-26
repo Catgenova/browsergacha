@@ -45,62 +45,88 @@ const Events = (() => {
   }
 
   // ---- Summon banners ----
-  // Rate-ups: while a banner runs, its sect's heroes draw at `mult`
+  // Rate-ups: while a banner runs, its sect's heroes draw at BANNER_MULT
   // weight WITHIN whatever star band a pull rolls — the band rates
   // themselves never move, only the contest inside the band.
   //
-  // ONE banner per scroll kind, and they can run CONCURRENTLY — each
-  // scroll's elective pull tilts only its own banner's sect. A banner
-  // sect has to be summonable from its scroll's pool (Cryst is
-  // all-water, so it can never ride the light/dark-only Temporal
-  // banner — its home is the Rare scroll).
+  // ONE banner per scroll kind, and the two scrolls run CONCURRENTLY —
+  // each scroll's elective pull tilts only its own banner's sect.
   //
-  // `from`/`until` are [year, monthIndex, day] local midnights; `until`
-  // is exclusive. No `until` = the banner runs until further notice.
-  const SUMMON_BANNERS = [
-    // The opening pair close together at midnight ending Sunday Aug 30
-    // (until is exclusive, so Aug 31 00:00 is that midnight), and each
-    // scroll's successor opens the moment they do.
-    { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst',
-      scroll: 'rare', mult: 2, until: [2026, 7, 31],
-      label: 'Cryst Sect heroes at 2× draw weight within their star band — through Aug 30.' },
-    { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence',
-      scroll: 'temporal', mult: 2, until: [2026, 7, 31],
-      label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 30.' },
-    // The Firetroupe takes the Rare scroll: nine performers, all fire,
-    // which the Rare pool draws from freely. A two-week run, closing at
-    // the midnight that ends Sunday Sep 13.
-    { id: 'firetroupe_rateup', name: 'The Firetroupe', sect: 'firetroupe',
-      scroll: 'rare', mult: 2, from: [2026, 7, 31], until: [2026, 8, 14],
-      label: 'Firetroupe Sect heroes at 2× draw weight within their star band — through Sep 13.' },
-    // The Whisperchime follow them on the Rare scroll — eight wind
-    // heroes, and Wind is a Rare-pool element, so the tilt reaches all
-    // of them the moment the Firetroupe bow out.
-    { id: 'whisperchime_rateup', name: 'The Whisperchime', sect: 'whisperchime',
-      scroll: 'rare', mult: 2, from: [2026, 8, 14], // until further notice
-      label: 'Whisperchime Sect heroes at 2× draw weight within their star band.' },
-    // The Nightflowers take the Temporal scroll. That pool is Dark and
-    // Light only, so the tilt reaches a Nightflower only once she is
-    // wired as a dark or light hero — the sect stands empty until then
-    // and the banner rides flat.
-    { id: 'nightflower_rateup', name: 'The Nightflowers', sect: 'nightflower',
-      scroll: 'temporal', mult: 2, from: [2026, 7, 31], // until further notice
-      label: 'Nightflower Sect heroes at 2× draw weight within their star band.' },
-  ];
+  // The schedule is a ROTATION, not a list of dated windows: each scroll
+  // walks its own cycle one sect per week, wrapping forever, so a
+  // two-entry cycle simply alternates until more sects are written into
+  // it. Weeks turn at local Monday midnight, counted from BANNER_EPOCH.
+  //
+  // A banner sect has to be summonable from its scroll's pool: the
+  // Temporal pool is Dark and Light only, so all-water Cryst, all-fire
+  // Firetroupe and all-wind Whisperchime can only ever ride the Rare
+  // scroll.
+  const BANNER_EPOCH = new Date(2026, 7, 24); // a Monday
+  const BANNER_WEEK_MS = 7 * 24 * 3600 * 1000;
+  const BANNER_MULT = 2;
+  const BANNER_CYCLES = {
+    rare: [
+      { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst' },
+      { id: 'firetroupe_rateup', name: 'The Firetroupe', sect: 'firetroupe' },
+      { id: 'whisperchime_rateup', name: 'The Whisperchime', sect: 'whisperchime' },
+    ],
+    temporal: [
+      { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence' },
+      { id: 'nightflower_rateup', name: 'The Nightflowers', sect: 'nightflower' },
+    ],
+  };
+  const BANNER_SCROLLS = Object.keys(BANNER_CYCLES);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  // Every banner in its window right now.
+  // Which week of the rotation a moment falls in. Negative before the
+  // epoch, and the floor keeps it walking backwards correctly.
+  function bannerWeek(date = new Date()) {
+    return Math.floor((date - BANNER_EPOCH) / BANNER_WEEK_MS);
+  }
+
+  // The Monday midnight that opens week `n`, and the one that closes it.
+  function bannerWeekStart(n) {
+    return new Date(BANNER_EPOCH.getFullYear(), BANNER_EPOCH.getMonth(),
+      BANNER_EPOCH.getDate() + n * 7);
+  }
+
+  // The banner holding `scroll` at `date`, dressed with the window it
+  // runs in. `run` is the rotation week it belongs to — the same sect
+  // coming back around is a NEW run, with a fresh featured pool.
+  function bannerFor(scroll, date = new Date()) {
+    const cycle = BANNER_CYCLES[scroll];
+    if (!cycle || cycle.length === 0) return null;
+    const week = bannerWeek(date);
+    const entry = cycle[((week % cycle.length) + cycle.length) % cycle.length];
+    const from = bannerWeekStart(week);
+    const until = bannerWeekStart(week + 1);
+    // The window closes at a Monday midnight, so the last full day the
+    // banner is up is the Sunday before it.
+    const last = new Date(until.getFullYear(), until.getMonth(), until.getDate() - 1);
+    return { ...entry, scroll, mult: BANNER_MULT, week, run: `${entry.id}#${week}`,
+      from, until,
+      label: `${entry.name.replace(/^(The|Court of|Heralds of) /, '')} Sect heroes ` +
+        `at ${BANNER_MULT}× draw weight within their star band — through ` +
+        `${MONTHS[last.getMonth()]} ${last.getDate()}.` };
+  }
+
+  // Every banner in its window right now — one per scroll.
   function activeBanners(date = new Date()) {
-    return SUMMON_BANNERS.filter((b) =>
-      !(b.from && date < new Date(...b.from)) &&
-      !(b.until && date >= new Date(...b.until)));
+    return BANNER_SCROLLS.map((s) => bannerFor(s, date)).filter(Boolean);
   }
 
   // The running banner — for `scroll`, when given; the first one
   // otherwise (legacy callers that predate concurrent banners).
   function currentBanner(date = new Date(), scroll = null) {
-    return activeBanners(date).find((b) => !scroll || b.scroll === scroll)
-      || null;
+    if (scroll) return bannerFor(scroll, date);
+    return activeBanners(date)[0] || null;
   }
+
+  // Every sect that ever holds a banner, with the scroll it holds it on
+  // — the flat view, for anything checking the schedule as a whole.
+  const SUMMON_BANNERS = BANNER_SCROLLS.flatMap((scroll) =>
+    BANNER_CYCLES[scroll].map((b) => ({ ...b, scroll, mult: BANNER_MULT })));
 
   // The draw weight this hero carries in a summon pool today (1 or the
   // elected banner's mult). `scroll` names the scroll being pulled so
@@ -116,6 +142,7 @@ const Events = (() => {
     const b = currentBanner(date);
     return b ? b.label : '';
   }
+
 
   // ---- World Rift ----
   // A weekly damage race: one colossal elemental boss, unkillable on
@@ -193,7 +220,7 @@ const Events = (() => {
 
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
-    SUMMON_BANNERS, activeBanners, currentBanner, bannerWeight, bannerLabel,
+    SUMMON_BANNERS, BANNER_CYCLES, bannerWeek, bannerFor, activeBanners, currentBanner, bannerWeight, bannerLabel,
     WORLD_RIFT, WORLD_RIFT_MILESTONES,
     worldRiftWeek, worldRiftWeekKey, worldRiftElement,
     LOGIN_WEEK, LOGIN_CAL_WEEKDAY, calendarDayReward, LOGIN_MONTH_MILESTONES };
