@@ -771,7 +771,13 @@ class Battle {
           `${res.turns === 1 ? '' : 's'}.` +
           (res.target.alive ? '' : ` ${res.target.name} succumbs!`), cls);
       } else if (res.kind === 'stealBuff') {
-        if (res.resisted) {
+        if (res.missed) {
+          // The gate failed: his hand closed on nothing. Reported like
+          // every other failed gate, and distinct from the RESIST that
+          // the accuracy contest produces after it.
+          this.addFloatingText(res.target, 'MISS', '#8f8aa0');
+          this.log(`${caster.name} reaches for ${res.target.name}'s blessing and comes up empty.`, cls);
+        } else if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');
           this.log(`${res.target.name} keeps its blessing — the theft is resisted!`, cls);
         } else if (res.count === 0) {

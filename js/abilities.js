@@ -305,7 +305,12 @@ const Abilities = (() => {
         // IS the skill — raising only the flat part would make a
         // level-up worth a fraction of what it is worth on anyone else.
         const lad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
-        const mult = effect.mult + (lad.mult || 0) +
+        // A hit priced off the caster's own max HP takes the SMALL rate:
+        // ten points of a health pool is a different order of number
+        // from ten points of an attack stat, so it rides the `heal` rung
+        // like every other percentage-of-a-pool figure in the game.
+        const rate = effect.type === 'damageHp' ? (lad.heal || 0) : (lad.mult || 0);
+        const mult = effect.mult + rate +
           ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
           ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies;
         const elemMult = Elements.mult(caster.element, target.element);
@@ -872,11 +877,19 @@ const Abilities = (() => {
         // `count`. Taking something from an unwilling target is a
         // contest like any debuff, and a caster whose own buffs are
         // sealed still takes them away — he just cannot wear them.
+        // Same admission as a strip: reaching into someone's blessings
+        // is taking something from an unwilling target, so it rolls the
+        // 50% gate first and the accuracy contest second.
+        const thLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (thLad.debuffChance || 0))) {
+          return { kind: 'stealBuff', target, count: 0, missed: true };
+        }
         if (!takeLands(caster, target)) {
           return { kind: 'stealBuff', target, count: 0, resisted: true };
         }
         const taken = [];
-        let left = effect.count || 1;
+        let left = (effect.count || 1) + (thLad.stripCount || 0);
         target.statusEffects = target.statusEffects.filter((fx) => {
           if (fx.kind !== 'buff' || left <= 0) return true;
           left--; taken.push(fx);
@@ -906,6 +919,11 @@ const Abilities = (() => {
         // resists and expires like the rest, and `stat` is a flag
         // rather than a number the way freeze and the seal are.
         const turns = effect.turns || 2;
+        const hbLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (hbLad.debuffChance || 0))) {
+          return { kind: 'debuff', target, stat: 'healblock', missed: true };
+        }
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'healblock', resisted: true };
         }
@@ -925,6 +943,11 @@ const Abilities = (() => {
         // expires like the rest; `stat` is a flag, not a number, the
         // same way freeze is.
         const turns = effect.turns || 3;
+        const bbLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (bbLad.debuffChance || 0))) {
+          return { kind: 'debuff', target, stat: 'buffblock', missed: true };
+        }
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'buffblock', resisted: true };
         }

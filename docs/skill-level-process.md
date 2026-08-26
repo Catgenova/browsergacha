@@ -43,10 +43,11 @@ something else.
 A debuff skill must be able to reach 100% application chance by max
 level, so the rungs spent on chance have to add up to +50.
 
-**AP drains and buff strips are debuffs for this purpose.** Cutting a
-target's action bar or tearing a blessing off them is as hostile as a
-DEF break, and it is often worth more — a drain steals a turn outright.
-Both therefore open at a 50% gate and are bought to certainty with
+**Taking and denying are debuffs for this purpose.** Cutting a target's
+action bar, tearing or stealing a blessing, cutting them off from
+healing, sealing them against new blessings — all of it is as hostile as
+a DEF break, and some of it is worth more; a drain steals a turn
+outright. All of them therefore open at a 50% gate and are bought to certainty with
 `debuffChance` rungs, exactly like any other hex. A failed gate reads as
 MISS in the log and on the board, distinct from the RESIST that the
 accuracy contest produces afterward.
@@ -127,7 +128,7 @@ in `data.test.js` rejects it.
 |---|---|---|
 | `mult` | an ATK/DEF-priced modifier | +10% |
 | `perMirror`, `perDeath` | a per-stack term alongside the flat one | +5% |
-| `heal` | anything priced off a health pool, or a share of a wound kept | +5% (+2% on a per-turn tick) |
+| `heal` | anything priced off a health pool — a mend, a ward, a revive, a share of a wound kept, or **damage priced off the caster's own max HP** | +5% (+2% on a per-turn tick) |
 | `debuffChance` | the application gate | +10–20% |
 | `debuffPower` | the severity of a hex, including a poison tick | +10% |
 | `buffPower` | the severity of a boon | +5% |
@@ -142,6 +143,13 @@ in `data.test.js` rejects it.
 Severity rungs move a multiplier **away from neutral**, so one rule
 serves both directions: a `0.70` DEF break deepens to `0.60`, a `1.30`
 DEF boon rises to `1.40`.
+
+`heal` is the HP-priced **rate**, not a promise that the skill mends
+anybody. Wren's shoulder and Franz's bonk are priced off the caster's
+own max HP, so they take it too: ten points of a health pool is a
+different order of number from ten points of an attack stat. The readout
+picks its word from what the skill actually does, so those two print
+"+25% power" rather than advertising a heal that never happens.
 
 ## Deviations recorded during the sweep
 
@@ -174,13 +182,16 @@ that buy nothing is worse than a short one.
 
 ## Migration
 
-The roster is swept hero by hero, so at any moment most abilities have
-no ladder. An ability **without** `levelUps` keeps the legacy blanket
-multiplier and the legacy cap of 5; one **with** a ladder takes its
-slot's cap and its explicit rungs, and is excluded from the blanket
-multiplier so its rungs are not paid twice. Both paths are covered by
-tests, because a half-migrated system that quietly zeroed the unswept
-heroes would be worse than no migration at all.
+**The sweep is finished: all 47 heroes carry ladders**, and a test
+pins that so a hero added later cannot quietly ship without one.
+
+The legacy path stays wired all the same, because it is what a new
+hero lands on before their kit is laddered. An ability **without**
+`levelUps` keeps the legacy blanket multiplier and the legacy cap of 5;
+one **with** a ladder takes its slot's cap and its explicit rungs, and
+is excluded from the blanket multiplier so its rungs are not paid twice.
+Both paths are covered by tests — the legacy one against a synthetic
+ladderless skill, since no real hero exercises it any more.
 
 The proposal step is not optional. These are balance decisions, and the
 numbers are worth arguing about before they are code.

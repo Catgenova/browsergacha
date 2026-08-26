@@ -1009,11 +1009,15 @@ test('every swept skill obeys the level-up rules', () => {
       for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
         const drain = e.type === 'turnMeter' && e.amount < 0;
         const strip = e.type === 'stripBuffs' || e.type === 'stealBuffs';
-        if (!drain && !strip) continue;
+        // A block is a denial: it takes healing or blessings away from
+        // them for a few turns. Same admission as everything else.
+        const block = e.type === 'healBlock' || e.type === 'buffBlock';
+        if (!drain && !strip && !block) continue;
+        const what = drain ? 'an AP drain' : strip ? 'a buff strip' : 'a block';
         if (e.chance === undefined) {
-          problems.push(`${where}: ${drain ? 'an AP drain' : 'a buff strip'} with no 50% gate`);
+          problems.push(`${where}: ${what} with no 50% gate`);
         } else if (Math.abs(e.chance - 0.5) > 0.000001) {
-          problems.push(`${where}: ${drain ? 'drain' : 'strip'} gate opens at ${e.chance}, wanted 0.5`);
+          problems.push(`${where}: ${what} opens at ${e.chance}, wanted 0.5`);
         }
       }
 
@@ -1041,7 +1045,7 @@ test('every swept skill obeys the level-up rules', () => {
       // `healDealt` is priced off the wound rather than a pool, but it
       // is a mend measured in percent and moves in the same small steps.
       const HP_PRICED = (e) => /^heal/.test(e.type) || e.type === 'hot' ||
-        e.type === 'revive' || e.type === 'damageHpPct' ||
+        e.type === 'revive' || e.type === 'damageHpPct' || e.type === 'damageHp' ||
         e.healDealt !== undefined ||
         (e.type === 'shield' && e.pct !== undefined);
       if (lad.heal && !all.some(HP_PRICED)) {
@@ -1053,7 +1057,8 @@ test('every swept skill obeys the level-up rules', () => {
           !all.some((e) => e.type === 'cleanse' && e.count !== undefined)) {
         problems.push(`${where}: cleanse rungs but no capped cleanse to widen`);
       }
-      if (lad.stripCount && !all.some((e) => e.type === 'stripBuffs')) {
+      if (lad.stripCount && !all.some((e) =>
+        e.type === 'stripBuffs' || e.type === 'stealBuffs')) {
         problems.push(`${where}: strip rungs but nothing that strips`);
       }
       if (lad.per && !all.some((e) => e.per !== undefined)) {
@@ -1091,6 +1096,7 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
     franz: [0, 4, 6], carl: [0, 4, 6], esmerelda: [0, 4, 6], slick: [0, 4, 6],
     samuels: [0, 4, 6], lin: [0, 4, 6], koe: [0, 4, 6], cleo: [0, 4, 6],
     artur: [0, 4, 6], tumble: [0, 4, 6],
+    dorian: [0, 4, 6], noctelle: [0, 4, 6], asher: [0, 4, 6], wren: [0, 4, 6],
     posie: [0, 4, 6], galen: [0, 4, 6], ilyra: [0, 4, 6], ryn: [0, 4, 6],
     imani: [0, 4, 6], sable: [0, 4, 6], evelune: [0, 5, 6], lysandra: [0, 4, 6],
     valere: [0, 5, 8], lenore: [0, 6, 7],
