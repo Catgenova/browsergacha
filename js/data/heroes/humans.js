@@ -225,6 +225,9 @@ Object.assign(HEROES, {
     tint: { body: '#e8e4dc', helm: '#f0ece0', weapon: '#c8b88a', skin: '#e8c0a0' },
     sprite: {
       displayH: 90,
+      // Measured 14: a closed, formal stance on a paladin who is
+      // visually one of the heaviest things on the field.
+      shadowScale: 1.3,
       // Authored facing left (see the facing audit) — flagged, not
       // mirrored into the files; Sprites.facesLeft() flips it right.
       faceLeft: true,
@@ -1244,6 +1247,10 @@ Object.assign(HEROES, {
     // sways with his cane at length. Two gesturing fidgets.
     sprite: {
       displayH: 90,
+      // Measured 13: the prince stands with his heels together and
+      // his cane tucked in, so his contact patch is far narrower
+      // than his presence. Nudged up to read as a grown man.
+      shadowScale: 1.4,
       strips: {
         idle:  { src: 'assets/heroes/Tanner/tanneridle.png', frames: 13, fps: 6, loop: true },
         idle2: { src: 'assets/heroes/Tanner/tanneridle1.png', frames: 9, fps: 6, loop: false,
@@ -2328,6 +2335,9 @@ Object.assign(HEROES, {
     tint: { body: '#8a4a2a', helm: '#3a2418', weapon: '#c8ccd8', skin: '#e8a878' },
     sprite: {
       displayH: 96,
+      // Measured 15: three small bodies, and the band only catches
+      // the middle one's feet. Widened to sit under the trio.
+      shadowScale: 1.2,
       // Authored facing RIGHT (all three daggers stab to the right of
       // frame) — no faceLeft flag, unlike most of the troupe.
       strips: {
@@ -2786,6 +2796,10 @@ Object.assign(HEROES, {
     tint: { body: '#5a8a3a', helm: '#8a6a3a', weapon: '#e8e4d8', skin: '#e8c8a8' },
     sprite: {
       displayH: 96,
+      // Measured 23, but his idle is drawn mid-air above his own
+      // leaf-spin. A grounded disc that size reads as him standing
+      // in a hole; pulled in so he floats.
+      shadowScale: 0.8,
       // Two strips, and only two: the spin and the death. Every action
       // animation points AT THE SPIN on purpose — he is mid-tumble for
       // everything he does, so a skill is one full revolution and then
@@ -4078,6 +4092,12 @@ Object.assign(HEROES, {
     tint: { body: '#3a5a4a', helm: '#8a8a7a', weapon: '#c8c8b8', skin: '#e8c8a8' },
     sprite: {
       displayH: 96,
+      // Her cloak sweeps well behind her heels, and the shadow
+      // followed the cloth rather than the woman inside it. She
+      // measures ~38 raw, i.e. past the 32 clamp, so the scale has to
+      // drop her below the ceiling before it does anything visible —
+      // 0.85 looked like a no-op for exactly that reason.
+      shadowScale: 0.72,
       // The strips arrived out of order, and are wired to the skills
       // they actually animate: skill1's file is her THIRD skill, the
       // 'skill 2 3' file is her second, and skill3's file is her first.

@@ -254,9 +254,16 @@ class Renderer {
   drawShadow(unit) {
     const { ctx } = this;
     const g = this.battle.motionGround(unit);
-    const size = unit.animator ? unit.animator.sheet.size() : { w: 48 };
+    const sheet = unit.animator && unit.animator.sheet;
+    const size = sheet ? sheet.size() : { w: 48 };
     const s = Math.max(0.35, Math.min(1, 1 - g.height / 220));
-    const rx = Math.min(unit.isBoss ? 120 : 34, size.w * 0.3) * s;
+    // Measured ground footprint (see measureContentBounds) — unique per
+    // hero, because a seated chimewright and a slim moth do not stand on
+    // the same amount of ground. Falls back to the old frame-width
+    // estimate when the art could not be measured. Bosses keep their own
+    // ceiling: their art is far larger than a hero's.
+    const base = (sheet && sheet.shadowRX) || Math.min(34, size.w * 0.3);
+    const rx = Math.min(unit.isBoss ? 120 : 40, base) * s;
     ctx.save();
     ctx.fillStyle = `rgba(8, 14, 8, ${0.32 * (0.55 + 0.45 * s)})`;
     ctx.beginPath();
