@@ -7039,4 +7039,99 @@ test('Phil throws past armour, and the harder the armour the more it is worth', 
     `the rot ticks ${rot[0].amount}, wanted about ${want}`);
 });
 
+test('Peck feeds a full table better than a thin one, and wastes no overheal', () => {
+  const peck = HEROES.peck;
+  const pot = peck.abilities[1];
+  const belly = peck.abilities[2];
+  assert(pot.effects[0].perTarget > 0 && belly.effects[0].perTarget > 0,
+    'Peck lost his crowd bonus');
+  assert(peck.abilities[0].effects[0].perTarget === undefined,
+    'the single-bowl mend grew a crowd bonus');
+
+  // Peck plus `n - 1` starving mates, all at 1 HP.
+  function table(idx, n, hex = POSITION.CENTER, maxed = true) {
+    const battle = makeBattle();
+    const p = new Unit(peck, TEAM.PLAYER, { level: 30, stars: 3 });
+    p.slot = battle.playerSlots[
+      battle.playerSlots.findIndex((sl) => sl.position === hex)];
+    battle.units.push(p);
+    if (maxed) {
+      p.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    }
+    const mates = [p];
+    for (let i = 0; i < n - 1; i++) {
+      const m = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+      m.slot = battle.playerSlots.filter(
+        (sl) => !battle.units.some((u) => u.slot === sl))[0];
+      battle.units.push(m);
+      mates.push(m);
+    }
+    mates.forEach((u) => { u.hp = 1; });
+    const before = mates.map((u) => u.hp);
+    const real = Math.random;
+    Math.random = () => 0.99;
+    Abilities.execute(peck.abilities[idx], p, mates[mates.length - 1], battle);
+    Math.random = real;
+    return {
+      healed: mates.map((u, i) => u.hp - before[i]),
+      ward: mates.map((u) => u.shieldTotal()),
+      wardTurns: (p.statusEffects.find((fx) => fx.kind === 'shield') || {}).turns,
+    };
+  }
+
+  // One pot, one helping size: the crowd is counted once for the whole
+  // sitting, so the last bird served eats as well as the first.
+  const five = table(1, 5);
+  assert(new Set(five.healed).size === 1,
+    `one pot fed ${[...new Set(five.healed)].join('/')} to different birds`);
+
+  // And the helping GROWS with the table. This is the sect's whole
+  // argument on the friendly side, so it is pinned rather than assumed.
+  const sizes = [1, 3, 5, 7].map((n) => table(1, n).healed[0]);
+  for (let i = 1; i < sizes.length; i++) {
+    assert(sizes[i] > sizes[i - 1],
+      `the pot did not stretch: ${sizes.join(' -> ')}`);
+  }
+  const lad = Progression.skillLadder(pot, Progression.skillCap(pot, 1));
+  const step = (pot.effects[0].perTarget + (lad.perTarget || 0)) * 2;
+  assert(Math.abs((sizes[1] / sizes[0]) - 1 -
+    step / (pot.effects[0].pct + (lad.heal || 0))) < 0.02,
+    `two extra mouths moved the helping by ${(sizes[1] / sizes[0] - 1).toFixed(3)}`);
+
+  // The ward takes the same bonus, and Slow Simmer keeps it warm one
+  // turn longer -- from the centre hex only.
+  const wards = [1, 3, 5, 7].map((n) => table(2, n).ward[0]);
+  for (let i = 1; i < wards.length; i++) {
+    assert(wards[i] > wards[i - 1], `the ward did not stretch: ${wards.join(' -> ')}`);
+  }
+  const mid = table(2, 5, POSITION.CENTER).wardTurns;
+  const off = table(2, 5, POSITION.BACK).wardTurns;
+  assert(mid === off + 1,
+    `Slow Simmer gave ${mid} turns from the centre against ${off} elsewhere`);
+
+  // Nothing Goes Back in the Pot: mend somebody who is already full and
+  // half of the waste sets as a ward instead.
+  function overfeed(hero) {
+    const battle = makeBattle();
+    const h = new Unit(hero, TEAM.PLAYER, { level: 30, stars: hero.rarity });
+    h.slot = battle.playerSlots[
+      battle.playerSlots.findIndex((sl) => sl.position === POSITION.CENTER)];
+    battle.units.push(h);
+    const mate = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+    mate.slot = battle.playerSlots.filter(
+      (sl) => !battle.units.some((u) => u.slot === sl))[0];
+    battle.units.push(mate);
+    mate.hp = mate.maxHp; // nothing to mend: all of it is waste
+    const mend = hero.abilities.find((a) =>
+      Abilities.sideOf(a.targeting) === 'ally' &&
+      (a.effects || []).some((e) => /^heal/.test(e.type)));
+    assert(mend, `${hero.id} has no ally mend to overfeed with`);
+    Abilities.execute(mend, h, mate, battle);
+    return mate.shieldTotal();
+  }
+  assert(overfeed(peck) > 0, 'Peck let a full bowl go to waste');
+  assert(overfeed(HEROES.emily) === 0,
+    "another healer's overheal turned into a ward -- the passive leaked");
+});
+
 report();

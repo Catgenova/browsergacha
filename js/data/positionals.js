@@ -151,6 +151,14 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Peck's hex: the pot sits in the middle of the deck and stays hot.
+  def('slow_simmer', {
+    position: POSITION.CENTER,
+    name: 'Slow Simmer',
+    description: 'Center hex: the wards this hero hands out last 1 turn longer.',
+    hooks: { shieldExtraTurns: 1 },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',
