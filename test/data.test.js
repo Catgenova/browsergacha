@@ -1022,7 +1022,9 @@ test('every swept skill obeys the level-up rules', () => {
       const all = [...(a.effects || []), ...(a.selfEffects || [])];
       // Duration lengthens anything friendly that runs on a timer: a
       // buff, a shield, a heal-over-time, or a one-hit ward.
-      const TIMED = new Set(['buff', 'shield', 'hot', 'bubble']);
+      // `extendBuffs` belongs here too: it does nothing BUT add turns to
+      // a timer, so a duration rung is exactly what widens it.
+      const TIMED = new Set(['buff', 'shield', 'hot', 'bubble', 'extendBuffs']);
       if (lad.duration && !all.some((e) => TIMED.has(e.type))) {
         problems.push(`${where}: duration rungs but nothing timed to lengthen`);
       }
@@ -1030,14 +1032,17 @@ test('every swept skill obeys the level-up rules', () => {
         problems.push(`${where}: buffPower rungs but no buff`);
       }
       if (lad.debuffPower && !all.some((e) =>
-        (e.type === 'debuff' && e.mult !== undefined) ||
-        (e.type === 'dot' && e.targetHpPct !== undefined))) {
+        (e.type === 'debuff' && (e.mult !== undefined || e.add !== undefined)) ||
+        e.type === 'dot')) {
         problems.push(`${where}: debuffPower rungs but nothing with a magnitude to deepen`);
       }
       // The `heal` rung is the SMALL rate, used by everything priced off
       // a health pool -- mends, wards, revives, and HP-priced damage.
+      // `healDealt` is priced off the wound rather than a pool, but it
+      // is a mend measured in percent and moves in the same small steps.
       const HP_PRICED = (e) => /^heal/.test(e.type) || e.type === 'hot' ||
         e.type === 'revive' || e.type === 'damageHpPct' ||
+        e.healDealt !== undefined ||
         (e.type === 'shield' && e.pct !== undefined);
       if (lad.heal && !all.some(HP_PRICED)) {
         problems.push(`${where}: heal rungs but nothing priced off a health pool`);
@@ -1056,6 +1061,14 @@ test('every swept skill obeys the level-up rules', () => {
       }
       if (lad.meter && !all.some((e) => e.type === 'turnMeter')) {
         problems.push(`${where}: meter rungs but nothing that moves a meter`);
+      }
+      if (lad.refund && !all.some((e) => e.type === 'cooldownReduce')) {
+        problems.push(`${where}: refund rungs but no cooldowns handed back`);
+      }
+      // A chain rung lives on the ABILITY, not an effect: it widens the
+      // odds the cast re-fires itself.
+      if (lad.chain && !a.chain) {
+        problems.push(`${where}: chain rungs but the skill never chains`);
       }
     });
   }
@@ -1078,6 +1091,9 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
     franz: [0, 4, 6], carl: [0, 4, 6], esmerelda: [0, 4, 6], slick: [0, 4, 6],
     samuels: [0, 4, 6], lin: [0, 4, 6], koe: [0, 4, 6], cleo: [0, 4, 6],
     artur: [0, 4, 6], tumble: [0, 4, 6],
+    posie: [0, 4, 6], galen: [0, 4, 6], ilyra: [0, 4, 6], ryn: [0, 4, 6],
+    imani: [0, 4, 6], sable: [0, 4, 6], evelune: [0, 5, 6], lysandra: [0, 4, 6],
+    valere: [0, 5, 8], lenore: [0, 6, 7],
   };
   const wrong = [];
   for (const [id, cds] of Object.entries(EXPECTED)) {

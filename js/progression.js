@@ -163,6 +163,8 @@ const Progression = (() => {
     if (l.cleanseCount) bits.push(`+${l.cleanseCount} cleansed`);
     if (l.stripCount) bits.push(`+${l.stripCount} stripped`);
     if (l.meter) bits.push(`+${Math.round(l.meter * 100)}% drain`);
+    if (l.chain) bits.push(`+${Math.round(l.chain * 100)}% chain`);
+    if (l.refund) bits.push(`+${l.refund} turn${l.refund === 1 ? '' : 's'} back`);
     if (l.per) bits.push(`+${l.per} ATK each`);
     if (l.duration) bits.push(`+${l.duration} turn${l.duration === 1 ? '' : 's'}`);
     if (l.cooldown) bits.push(`${l.cooldown} CD`);
