@@ -68,10 +68,17 @@ const Events = (() => {
       scroll: 'temporal', mult: 2, until: [2026, 7, 31],
       label: 'Reverence Sect heroes at 2× draw weight within their star band — through Aug 30.' },
     // The Firetroupe takes the Rare scroll: nine performers, all fire,
-    // which the Rare pool draws from freely.
+    // which the Rare pool draws from freely. A two-week run, closing at
+    // the midnight that ends Sunday Sep 13.
     { id: 'firetroupe_rateup', name: 'The Firetroupe', sect: 'firetroupe',
-      scroll: 'rare', mult: 2, from: [2026, 7, 31], // until further notice
-      label: 'Firetroupe Sect heroes at 2× draw weight within their star band.' },
+      scroll: 'rare', mult: 2, from: [2026, 7, 31], until: [2026, 8, 14],
+      label: 'Firetroupe Sect heroes at 2× draw weight within their star band — through Sep 13.' },
+    // The Whisperchime follow them on the Rare scroll — eight wind
+    // heroes, and Wind is a Rare-pool element, so the tilt reaches all
+    // of them the moment the Firetroupe bow out.
+    { id: 'whisperchime_rateup', name: 'The Whisperchime', sect: 'whisperchime',
+      scroll: 'rare', mult: 2, from: [2026, 8, 14], // until further notice
+      label: 'Whisperchime Sect heroes at 2× draw weight within their star band.' },
     // The Nightflowers take the Temporal scroll. That pool is Dark and
     // Light only, so the tilt reaches a Nightflower only once she is
     // wired as a dark or light hero — the sect stands empty until then
