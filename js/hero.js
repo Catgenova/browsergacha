@@ -97,8 +97,12 @@ class Unit {
     // victim (burns tick twice as hard on the oiled).
     this.synergyOilOnHit = 0;
 
-    // Crystal mirrors (Echo): charges that halve incoming hits, breaking
-    // one per hit. Sprite variants per count live in unit.mirrorSheets.
+    // Crystal mirrors (Echo/Aniani): charges that do NOT mitigate. One
+    // breaks per hit taken, reflecting 25% of the damage that got
+    // through back at the attacker (see takeDamage), and every one of
+    // her skills pays a flat bonus per mirror still intact — so they
+    // are her damage as much as her answer to being hit.
+    // Sprite variants per count live in unit.mirrorSheets.
     this.mirrorMax = def.mirrors ? def.mirrors.max : 0;
     this.mirrors = def.mirrors ? (def.mirrors.start ?? def.mirrors.max) : 0;
     this.mirrorSheets = null; // count -> SpriteSheet, loaded with the animator

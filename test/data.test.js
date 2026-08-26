@@ -392,6 +392,36 @@ test('an old save survives the move from copies to heroes', () => {
 });
 
 
+test('campaign and hunt waves field 3-star enemies only', () => {
+  const { LOCATION_ENEMIES, ENEMIES, HEROES } = g;
+  // The roaming pool stands in for the retired 3-star cohorts, so it
+  // must stay at that weight: a 4- or 5-star in the pool hands random
+  // hunt waves a signature kit (mirrors, hex stacking, freeze lock)
+  // against a player who may still be on a starter team. Nodes that
+  // want a heavyweight pin it explicitly instead.
+  const offenders = [];
+  for (const [loc, ids] of Object.entries(LOCATION_ENEMIES)) {
+    assert(ids.length > 0, `location ${loc}: empty enemy pool`);
+    for (const id of ids) {
+      const e = ENEMIES[id];
+      assert(e, `location ${loc}: unknown enemy ${id}`);
+      if (e.rarity !== 3) offenders.push(`${loc}:${id} (${e.rarity}-star)`);
+    }
+  }
+  assert(offenders.length === 0,
+    `non-3-star enemies roaming: ${offenders.slice(0, 6).join(', ')}`);
+  // ENEMIES itself stays a full mirror of the roster — the explicit
+  // `enemies: [...]` escape hatch and the compendium both need it.
+  assert(Object.keys(ENEMIES).length === Object.keys(HEROES).length,
+    'ENEMIES no longer mirrors the whole hero roster');
+  // And the pool must not be empty of any element the game can attune,
+  // or an elemental hunt would have nothing to field.
+  const elements = new Set(LOCATION_ENEMIES[0].map((id) => ENEMIES[id].element));
+  assert(elements.size >= 4,
+    `roaming pool covers only ${elements.size} elements: ${[...elements].join(', ')}`);
+});
+
+
 test('every campaign chapter is a well-formed, walkable graph', () => {
   const { CAMPAIGN, BOSSES, LOCATION_ENEMIES, CONFIG } = g;
   const problems = [];

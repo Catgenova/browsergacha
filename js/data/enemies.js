@@ -62,9 +62,24 @@ const ENEMIES = (() => {
 // because the hunt picker, the campaign map and the compendium all read
 // this to decide which locations exist and are unlocked — narrowing a
 // location back down to its own cast is a matter of listing ids here.
+//
+// The pool is 3-star heroes ONLY. The generated cohorts they replaced
+// were 3-star statlines, so fielding the whole roster quietly handed
+// every campaign node and hunt wave 4- and 5-star kits: not just bigger
+// numbers, but signature mechanics (Aniani's mirrors, Sawyer's hexes,
+// Polarus's freeze lock) turned against a player who may still be on
+// their starter team. Restricting the pool restores the difficulty the
+// cohorts produced until purpose-built enemies are drawn.
+//
+// ENEMIES still mirrors the FULL roster on purpose — a campaign node
+// that wants a specific heavyweight can still pin it with
+// `enemies: [...]`, and the dungeon and boss tables are unaffected.
+// To widen this back out, drop the rarity filter.
+const ENEMY_MAX_RARITY = 3;
 const LOCATION_ENEMIES = (() => {
-  const everyone = Object.keys(ENEMIES);
+  const pool = Object.keys(ENEMIES)
+    .filter((id) => ENEMIES[id].rarity <= ENEMY_MAX_RARITY);
   const out = {};
-  for (let loc = 0; loc < CONFIG.BATTLE_BGS.length; loc++) out[loc] = everyone;
+  for (let loc = 0; loc < CONFIG.BATTLE_BGS.length; loc++) out[loc] = pool;
   return out;
 })();
