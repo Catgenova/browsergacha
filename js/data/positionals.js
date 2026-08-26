@@ -192,6 +192,15 @@ const POSITIONALS = (() => {
     hooks: { healTakenAdd: 0.30 },
   });
 
+  // Wanda's hex: from the stern she can see the whole deck, and the
+  // call reaches all of it.
+  def('weather_eye', {
+    position: POSITION.BACK,
+    name: 'Weather Eye',
+    description: 'Back hex: the action bar this hero hands out is 25% larger.',
+    hooks: { meterGiftAdd: 0.25 },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

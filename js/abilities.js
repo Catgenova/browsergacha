@@ -551,8 +551,20 @@ const Abilities = (() => {
         // clamping here made a gift into a punishment: pushing a unit
         // sitting at 140% "up" by 30% used to drop them to 100%.
         const giftLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
-        target.turnMeter = Math.max(0,
-          target.turnMeter + (effect.amount + (giftLad.meter || 0)) * CONFIG.TURN_METER_MAX);
+        // A call is worth more the more of the crew answers it: the
+        // sect's crowd bonus, on tempo. Fourth and last place perTarget
+        // lands -- damage, mends, wards and now the action bar.
+        const answering = ((effect.perTarget || 0) + (giftLad.perTarget || 0)) *
+          Math.max(0, currentTargetCount - 1);
+        // And a `meterGiftAdd` hook widens what its owner hands out
+        // (Wanda's back hex), the way healBoostAdd widens a mend.
+        let giftMult = 1;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.meterGiftAdd) giftMult += p.hooks.meterGiftAdd;
+        }
+        target.turnMeter = Math.max(0, target.turnMeter +
+          (effect.amount + (giftLad.meter || 0) + answering) *
+          giftMult * CONFIG.TURN_METER_MAX);
         // Remember who paid for the push, so the turn it buys can credit
         // its damage back (see Unit.outgoingAssists).
         const gained = target.turnMeter - before;
