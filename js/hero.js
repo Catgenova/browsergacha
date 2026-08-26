@@ -196,6 +196,14 @@ class Unit {
       if (fx.mult) value *= fx.mult;
     }
 
+    // Passive stat scaling. A hook here must read battle state only --
+    // never another effectiveStat -- or it recurses through this very
+    // line (Lysandra's stance reads whether her thread is still tied).
+    for (const p of this.hookSources()) {
+      const hook = p.hooks && p.hooks.statMult;
+      if (hook) value *= hook(this, stat) || 1;
+    }
+
     if (stat === 'critChance') return Math.min(1, Math.max(0, value));
     if (stat === 'critDamage') return value;
     return Math.round(value);
@@ -613,6 +621,37 @@ class Unit {
   // Returns the damage actually dealt. `attacker` (when known) is who
   // dealt it — crystal mirrors reflect a cut of the hit back at them.
   takeDamage(amount, attacker = null) {
+    // Soul Bond: whatever lands on her lands on the far end of the
+    // thread, unmitigated -- no DEF curve, no dodge, no second roll.
+    // Read BEFORE her own absorb, so what the bond pays is the blow
+    // that was thrown rather than what got past her shield: a shield is
+    // her business, not theirs.
+    //
+    // The guard is the whole safety of the mechanic. Without it a
+    // bonded enemy who reflects (crystal mirrors, thorns) would bounce
+    // damage back into her, which would mirror again, forever.
+    if (amount > 0 && !Unit.bondRinging) {
+      const b = typeof Battle !== 'undefined' ? Battle.active : null;
+      if (b) {
+        const bound = b.livingUnits().filter((u) => u !== this &&
+          u.statusEffects.some((fx) => fx.stat === 'soulbond' && fx.source === this));
+        if (bound.length) {
+          Unit.bondRinging = true;
+          try {
+            for (const far of bound) {
+              const paid = far.takeDamage(amount);
+              if (typeof Meter !== 'undefined') Meter.damage(this, paid);
+              if (b.addFloatingText) b.addFloatingText(far, `\u2740 -${paid}`, '#e05a9a');
+              if (b.log) {
+                b.log(`The thread pulls — ${far.name} takes ${paid} with ` +
+                  `${this.name}.` + (far.alive ? '' : ` ${far.name} is defeated!`),
+                  'log-system');
+              }
+            }
+          } finally { Unit.bondRinging = false; }
+        }
+      }
+    }
     // Crystal mirrors: every hit shatters one mirror, which reflects 25%
     // of the damage back at the attacker. The reflected hit is dealt
     // without an attacker, so mirrors can never chain off each other.
@@ -972,7 +1011,21 @@ class Unit {
     // Lumen Arrow fires only from Aiming Stance).
     return this.abilities.filter((a) => a.cooldownRemaining === 0 &&
       (!a.def.requires ||
-        this.statusEffects.some((fx) => fx.stat === a.def.requires)));
+        this.statusEffects.some((fx) => fx.stat === a.def.requires)) &&
+      !this.blockedByOwnStatus(a.def));
+  }
+
+  // The inverse of `requires`: `blockedWhile` names a status this unit
+  // has put on someone ELSE, and the ability stays unavailable for as
+  // long as anyone alive is still wearing it. Lysandra cannot throw a
+  // second thread while the first is still tied to something living.
+  blockedByOwnStatus(abilityDef) {
+    const stat = abilityDef && abilityDef.blockedWhile;
+    if (!stat) return false;
+    const b = typeof Battle !== 'undefined' ? Battle.active : null;
+    if (!b) return false;
+    return b.livingUnits().some((u) => u !== this &&
+      u.statusEffects.some((fx) => fx.stat === stat && fx.source === this));
   }
 
   // Returns an array of display results:

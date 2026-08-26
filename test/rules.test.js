@@ -939,13 +939,23 @@ test('star ups and skill ups are paid for in heroes', () => {
 
   // Fodder: same character (skill up + rank), and strangers at the same
   // rank (rank only). Same rating, because that is what a star up eats.
-  const sameChar = [GameState.addHero(hero.id).uid, GameState.addHero(hero.id).uid];
+  //
+  // Every arrival rolls for a blessing, and a blessed copy pins itself
+  // as a favourite -- which makes it refuse to be fodder. That roll is
+  // random, so fodder is explicitly unpinned here; without it this test
+  // fails roughly one run in eight, on a rule it is not testing.
+  const fodderHero = (id) => {
+    const uid = GameState.addHero(id).uid;
+    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
+    return uid;
+  };
+  const sameChar = [fodderHero(hero.id), fodderHero(hero.id)];
   const strangers = [];
   for (const other of Object.values(HEROES)) {
     if (strangers.length >= need) break;
     if (other.id === hero.id) continue;
     if ((other.rarity || 1) !== stars) continue;
-    strangers.push(GameState.addHero(other.id).uid);
+    strangers.push(fodderHero(other.id));
   }
   assert(strangers.length === need, `could not find ${need} strangers at ${stars} stars`);
 
@@ -5111,6 +5121,170 @@ test("Evelune's kit: she creates almost nothing and multiplies everything", () =
       off.slot.position !== POSITION.CENTER, 'sanity: same hex twice');
     assert(mid.effectiveStat('speed') === Math.round(off.effectiveStat('speed') * 1.25),
       `centre ${mid.effectiveStat('speed')} vs off-centre ${off.effectiveStat('speed')}`);
+  }
+});
+
+test("Lysandra's kit: one thread, and their own line kills their carry", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.lysandra;
+  assert(def && def.element === 'dark' && def.rarity === 4, 'Lysandra drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Lysandra left the Nightflowers');
+  assert(def.role === 'dps', 'Lysandra is not binned as a DPS');
+
+  const arena = (front = true) => {
+    const b = makeBattle();
+    const ly = place(b, def, TEAM.PLAYER, front ? 1 : 5);
+    const foes = [1, 2, 3, 4].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    ly.baseCritChance = -1;
+    return { b, ly, foes };
+  };
+  const live = (b, fn) => {
+    const prev = Battle.active; Battle.active = b;
+    try { return fn(); } finally { Battle.active = prev; }
+  };
+
+  // ---- Running Stitch mends her for a fifth of what it cost them ----
+  {
+    const { b, ly, foes } = arena();
+    ly.hp = Math.round(ly.maxHp * 0.5);
+    const before = ly.hp;
+    const res = live(b, () => A.execute(def.abilities[0], ly, foes[0], b));
+    const hit = res.find((r) => r.kind === 'damage');
+    const mend = res.find((r) => r.kind === 'heal');
+    assert(mend && mend.target === ly, 'the stitch mended nobody');
+    assert(mend.amount === Math.round(hit.amount * 0.20),
+      `mended ${mend.amount} for a ${hit.amount} cut`);
+    assert(ly.hp === before + mend.amount, 'she did not actually gain it');
+  }
+
+  // ---- Slip Knot catches the front row and taunts it ----
+  {
+    const { b, ly, foes } = arena();
+    const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
+    assert(front.length > 0, 'sanity: no enemy front row');
+    live(b, () => A.execute(def.abilities[1], ly, null, b));
+    for (const f of foes) {
+      const pulled = f.statusEffects.some((fx) => fx.stat === 'taunted');
+      assert(pulled === front.includes(f),
+        `${f.def.id} on the ${f.slot.position} hex was ${pulled ? '' : 'not '}taunted`);
+    }
+  }
+
+  // ---- Soul Bond: everything she takes, they take, unmitigated ----
+  {
+    const { b, ly, foes } = arena();
+    const mark = foes[0];
+    const bystander = foes[1];
+    live(b, () => A.execute(def.abilities[2], ly, mark, b));
+    assert(mark.statusEffects.some((fx) => fx.stat === 'soulbond' && fx.source === ly),
+      'the thread did not tie');
+    const theirs = mark.hp, others = bystander.hp, hers = ly.hp;
+    live(b, () => ly.takeDamage(500));
+    assert(hers - ly.hp === 500, 'she did not take the blow herself');
+    assert(theirs - mark.hp === 500,
+      `the bond paid ${theirs - mark.hp} for a 500 blow`);
+    assert(bystander.hp === others, 'an unbound enemy paid too');
+
+    // A shield of hers is HER business: the thread still pays in full.
+    ly.addStatusEffect({ kind: 'shield', amount: 10 ** 6, turns: 5 });
+    const t2 = mark.hp, h2 = ly.hp;
+    live(b, () => ly.takeDamage(400));
+    assert(ly.hp === h2, 'sanity: the shield did not hold');
+    assert(t2 - mark.hp === 400, 'the thread stopped paying behind a shield');
+    ly.statusEffects = ly.statusEffects.filter((fx) => fx.kind !== 'shield');
+
+    // Poison she is carrying pays the thread too -- ALL damage counts.
+    const t3 = mark.hp;
+    live(b, () => ly.takeDamage(37));
+    assert(t3 - mark.hp === 37, 'a small tick did not carry');
+  }
+
+  // ---- One thread at a time, and it frees on death ----
+  {
+    const { b, ly, foes } = arena();
+    const bond = def.abilities[2];
+    assert(bond.blockedWhile === 'soulbond', 'the gate came off Soul Bond');
+    const state = ly.abilities.find((a) => a.def === bond);
+    live(b, () => {
+      A.execute(bond, ly, foes[0], b);
+      state.cooldownRemaining = 0;                  // cooldown is not the gate
+      assert(ly.blockedByOwnStatus(bond), 'a second thread was allowed');
+      assert(!ly.readyAbilities().some((a) => a.def === bond),
+        'Soul Bond is offered while its own thread holds');
+      // Cut the thread and it comes back.
+      A.applyEffect({ type: 'cleanse' }, ly, foes[0], 1);
+      assert(!ly.blockedByOwnStatus(bond), 'cutting the thread did not free it');
+      // Tie it again, then kill the far end.
+      A.execute(bond, ly, foes[1], b);
+      state.cooldownRemaining = 0;
+      assert(ly.blockedByOwnStatus(bond), 'the second thread did not hold');
+      foes[1].hp = 1;
+      foes[1].takeDamage(10);
+      assert(!foes[1].alive, 'sanity: the bound enemy lived');
+      assert(!ly.blockedByOwnStatus(bond), 'a dead end still held the thread');
+      assert(ly.readyAbilities().some((a) => a.def === bond),
+        'Soul Bond stayed shut after its target fell');
+    });
+    // ...but the cooldown still has to be up.
+    state.cooldownRemaining = 2;
+    live(b, () => assert(!ly.readyAbilities().some((a) => a.def === bond),
+      'Soul Bond ignored its own cooldown'));
+  }
+
+  // ---- A bonded enemy who reflects cannot start a loop ----
+  {
+    const { b, ly, foes } = arena();
+    const mark = foes[0];
+    live(b, () => {
+      A.execute(def.abilities[2], ly, mark, b);
+      // Their thorns: any damage they take comes straight back at her.
+      const real = mark.takeDamage.bind(mark);
+      mark.takeDamage = (n, who) => { const paid = real(n, who); ly.takeDamage(paid); return paid; };
+      const before = ly.hp;
+      ly.takeDamage(100);
+      // One pass out, one pass back: 100 of her own plus 100 reflected.
+      assert(before - ly.hp === 200,
+        `the loop ran ${(before - ly.hp) / 100} times instead of twice`);
+    });
+  }
+
+  // ---- Pull It Taut: the stance holds only while the thread does ----
+  {
+    const { b, ly, foes } = arena();
+    live(b, () => {
+      const loose = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
+      A.execute(def.abilities[2], ly, foes[0], b);
+      const tied = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
+      assert(tied.atk === Math.round(loose.atk * 1.25),
+        `ATK ${loose.atk} -> ${tied.atk}, wanted x1.25`);
+      assert(tied.def === Math.round(loose.def * 1.25),
+        `DEF ${loose.def} -> ${tied.def}, wanted x1.25`);
+      // Other stats are untouched.
+      const spd = ly.effectiveStat('speed');
+      A.applyEffect({ type: 'cleanse' }, ly, foes[0], 1);
+      assert(ly.effectiveStat('atk') === loose.atk, 'the stance outlived the thread');
+      assert(ly.effectiveStat('speed') === spd, 'the stance moved a stat it should not');
+    });
+  }
+
+  // ---- Spool: the anvil holds harder on a front hex ----
+  {
+    assert(def.positional.name === 'Spool' &&
+      def.positional.position === POSITION.FRONT &&
+      def.positional.stat === 'def' && def.positional.mult === 1.30,
+      'the front-hex bonus drifted');
+    const { ly: on } = arena(true);
+    const { ly: off } = arena(false);
+    assert(on.slot.position === POSITION.FRONT &&
+      off.slot.position !== POSITION.FRONT, 'sanity: same hex twice');
+    assert(on.effectiveStat('def') === Math.round(off.effectiveStat('def') * 1.30),
+      `front ${on.effectiveStat('def')} vs back ${off.effectiveStat('def')}`);
   }
 });
 

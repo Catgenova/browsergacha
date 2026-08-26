@@ -84,6 +84,25 @@ const StatusIcons = (() => {
         line(ctx, u, [[10.2, 3.6], [1.8, 8.4]]);
         ctx.fillStyle = c; disc(ctx, u, 6, 6, 1.1);
       } },
+    soulbond: { title: 'Soul Bound', note: 'takes every point of damage its binder takes',
+      color: '#e05a9a', good: false,
+      draw(ctx, u, c) {
+        // A needle through a knot: the eye, the shaft, and a loop of
+        // thread pulled tight around it.
+        ctx.strokeStyle = c; ctx.lineWidth = 1.2 * u; ctx.lineCap = 'round';
+        line(ctx, u, [[2.2, 9.8], [9.4, 2.6]]);
+        ctx.beginPath();
+        ctx.arc(9.4, 2.6, 0, 0, 0);
+        ctx.closePath();
+        ctx.lineWidth = 1 * u;
+        ctx.beginPath();
+        ctx.arc(4.6 * u, 5.2 * u, 2.2 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = c;
+        disc(ctx, u, 9.5, 2.5, 1.2);
+        ctx.fillStyle = PLATE;
+        disc(ctx, u, 9.5, 2.5, 0.5);
+      } },
     buffblock: { title: 'Sealed', note: 'cannot receive any new buff',
       color: '#c79aff', good: false,
       draw(ctx, u, c) {
@@ -304,7 +323,7 @@ const StatusIcons = (() => {
 
   // The battle-legend order: control first, then damage over time, then
   // the marks, then the stat modifiers and resources.
-  const LEGEND = ['stun', 'freeze', 'buffblock', 'taunted', 'blocker', 'burn', 'dot', 'hot',
+  const LEGEND = ['stun', 'freeze', 'buffblock', 'soulbond', 'taunted', 'blocker', 'burn', 'dot', 'hot',
     'vulnerable', 'ward', 'methane', 'oilslicked', 'veil', 'slag',
     'crystalline', 'aiming', 'taunt', 'bubble', 'shield', 'mirrors',
     'atk', 'def', 'speed', 'accuracy', 'critChance', 'critDamage'];

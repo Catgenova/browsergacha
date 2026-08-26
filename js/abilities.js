@@ -619,6 +619,19 @@ const Abilities = (() => {
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
       }
+      case 'soulBond': {
+        // Tie the thread. An ordinary debuff so it cleanses, resists
+        // and is read off the plate like anything else hostile -- but
+        // it does not expire on a clock: it holds until the target dies
+        // or somebody cuts it. Only one at a time; the ability that
+        // casts it is gated on that (see Unit.blockedByOwnStatus).
+        if (!debuffLands(caster, target)) {
+          return { kind: 'debuff', target, stat: 'soulbond', resisted: true };
+        }
+        target.addStatusEffect({ kind: 'debuff', stat: 'soulbond',
+          turns: Infinity, source: caster });
+        return { kind: 'soulBond', target };
+      }
       case 'cooldownReduce': {
         // Hand an ally their skills back early. The ability being cast
         // is skipped -- a refresh that refreshed itself would never go

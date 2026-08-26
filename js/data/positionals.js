@@ -339,6 +339,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('spool', {
+    position: POSITION.FRONT,
+    name: 'Spool',
+    description: 'Front hex: +30% DEF — the thread only holds if the anvil ' +
+      'holding it does.',
+    stat: 'def', mult: 1.30,
+  });
+
   def('first_chair', {
     position: POSITION.CENTER,
     name: 'First Chair',
