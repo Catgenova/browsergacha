@@ -4620,4 +4620,158 @@ test("Asher's kit: he wears what he takes, and shuts the door behind him", () =>
   }
 });
 
+test("Noctelle's kit: the wound and the mend are the same number", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.noctelle;
+  assert(def && def.element === 'dark' && def.rarity === 3, 'Noctelle drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Noctelle left the Nightflowers');
+  assert(def.role === 'support', 'Noctelle is not binned as a support');
+
+  // `back` picks which hex she stands on: her own back hex turns the
+  // drain into a second mend, so the tests that care about the plain
+  // drain put her somewhere else.
+  const arena = (back = false) => {
+    const b = makeBattle();
+    const noc = place(b, def, TEAM.PLAYER, back ? 5 : 1);
+    const allies = [2, 3].map((i) => place(b, H.rat_knight, TEAM.PLAYER, i));
+    const foes = [1, 2, 3].map((i) => place(b, H.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;                     // no DEF curve in the way
+    }
+    for (const a of allies) { a.maxHp = 5000; a.hp = 1000; }
+    noc.baseCritChance = -1;
+    return { b, noc, allies, foes };
+  };
+
+  // ---- Silent Wing: 10% of HER pool, handed to whoever is worst off ----
+  {
+    const { b, noc, allies, foes } = arena();
+    allies[0].hp = 400;                              // the one in the worst shape
+    allies[1].hp = 3000;
+    noc.hp = noc.maxHp;
+    const before = allies[0].hp;
+    const res = A.execute(def.abilities[0], noc, foes[0], b);
+    const hit = res.find((r) => r.kind === 'damage');
+    const mend = res.find((r) => r.kind === 'heal');
+    const want = Math.round(noc.maxHp * 0.10 * g.Elements.mult('dark', foes[0].element));
+    assert(Math.abs(hit.amount - want) <= 1,
+      `Silent Wing dealt ${hit.amount}, expected ${want} (10% of ${noc.maxHp})`);
+    assert(mend && mend.target === allies[0],
+      'the mend did not find the ally in the worst shape');
+    assert(mend.amount === hit.amount,
+      `mended ${mend.amount} for a wound of ${hit.amount}`);
+    assert(allies[0].hp === before + hit.amount, 'the ally did not actually gain it');
+    assert(allies[1].hp === 3000, 'the healthier ally was mended instead');
+    // Off her own hex, the drain feeds one person only.
+    assert(res.filter((r) => r.kind === 'heal').length === 1,
+      'the drain paid twice from the wrong hex');
+  }
+
+  // ---- Nightbloom: 20% of her pool, and one debuff lifted ----
+  {
+    const { b, noc, allies } = arena();
+    const mark = allies[0];
+    mark.hp = 1000;
+    mark.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.7, turns: 4 });
+    mark.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.7, turns: 4 });
+    const res = A.execute(def.abilities[1], noc, mark, b);
+    const mend = res.find((r) => r.kind === 'heal');
+    assert(mend.amount === Math.round(noc.maxHp * 0.20),
+      `Nightbloom mended ${mend.amount}, expected ${Math.round(noc.maxHp * 0.20)}`);
+    assert(mark.statusEffects.filter((fx) => fx.kind === 'debuff').length === 1,
+      'Nightbloom lifted the wrong number of debuffs');
+  }
+
+  // ---- Moth Dust: the back row, slowed, and doubled against Wind ----
+  {
+    const { b, noc, foes } = arena();
+    const back = foes.filter((f) => f.slot.position === POSITION.BACK);
+    assert(back.length > 0, 'sanity: no enemy back row to hit');
+    const res = A.execute(def.abilities[2], noc, back[0], b);
+    const hits = res.filter((r) => r.kind === 'damage');
+    assert(hits.length === back.length,
+      `Moth Dust hit ${hits.length} of ${back.length} back-row enemies`);
+    for (const f of back) {
+      assert(f.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'speed' &&
+        fx.mult === 0.70 && fx.turns === 2), `${f.def.id} was not slowed`);
+    }
+    // Moth Dust drains nobody: only Silent Wing carries the rider.
+    assert(!res.some((r) => r.kind === 'heal'), 'Moth Dust mended someone');
+  }
+
+  // ---- Dust On The Wind doubles ONE skill, against ONE element ----
+  {
+    const { b, noc, foes } = arena();
+    // Moth Dust only reaches the BACK row, so the target it is measured
+    // against has to be standing there.
+    const mark = foes.find((f) => f.slot.position === POSITION.BACK);
+    assert(mark, 'sanity: no enemy back row to measure against');
+    const dust = def.abilities[2], wing = def.abilities[0];
+    const windy = { element: 'wind' }, dusty = { element: 'dark' };
+    assert(noc.damageDealtMult(windy, dust) === 2,
+      'Moth Dust is not doubled against a Wind hero');
+    assert(noc.damageDealtMult(dusty, dust) === 1,
+      'Moth Dust is doubled against something that is not Wind');
+    assert(noc.damageDealtMult(windy, wing) === 1,
+      'Silent Wing rode the Moth Dust bonus');
+    assert(noc.damageDealtMult(windy, null) === 1,
+      'the bonus fired with no ability in hand');
+
+    // And it shows up in the damage, not just the multiplier: the same
+    // skill into a Wind target lands for twice what a Dark one takes.
+    mark.element = 'dark';
+    const plain = (() => { const h = mark.hp;
+      A.applyEffect({ type: 'damageHp', mult: 0.10 }, noc, mark, 1); return h - mark.hp; })();
+    mark.element = 'wind';
+    const doubled = A.execute(dust, noc, mark, b)
+      .filter((r) => r.kind === 'damage' && r.target === mark)[0];
+    const elem = g.Elements.mult('dark', 'wind') / g.Elements.mult('dark', 'dark');
+    assert(Math.abs(doubled.amount / (plain * elem) - 2) < 0.02,
+      `Moth Dust into Wind dealt ${doubled.amount} vs ${plain} plain`);
+  }
+
+  // ---- Lamplight: on her back hex the drain feeds her too ----
+  {
+    assert(def.positional.name === 'Lamplight' &&
+      def.positional.position === POSITION.BACK &&
+      def.positional.hooks.drainSelfShare === 1, 'the back-hex bonus drifted');
+    const { b, noc, allies, foes } = arena(true);
+    assert(noc.slot.position === POSITION.BACK, 'sanity: she is not on a back hex');
+    allies[0].hp = 400;
+    noc.hp = Math.round(noc.maxHp * 0.5);
+    const before = noc.hp;
+    const res = A.execute(def.abilities[0], noc, foes[0], b);
+    const hit = res.find((r) => r.kind === 'damage');
+    const mends = res.filter((r) => r.kind === 'heal');
+    assert(mends.length === 2, `the hex paid ${mends.length} mends, wanted 2`);
+    const mine = mends.find((m) => m.target === noc);
+    assert(mine && mine.amount === hit.amount,
+      `she kept ${mine && mine.amount} of a ${hit.amount} wound`);
+    // She spends 10% of her pool and gets the same back, so the skill
+    // is free to her -- that is the whole point of the hex.
+    assert(noc.hp === Math.min(noc.maxHp, before + hit.amount),
+      'the self-mend did not land');
+  }
+
+  // ---- She is an ally too: alone, the drain simply comes back ----
+  {
+    const b = makeBattle();
+    const noc = place(b, def, TEAM.PLAYER, 1);
+    const foe = place(b, H.rat_knight, TEAM.ENEMY, 1);
+    foe.hp = foe.maxHp = 10 ** 7;
+    foe.dodgeChance = () => 0;
+    foe.effectiveStat = () => 0;
+    noc.baseCritChance = -1;
+    noc.hp = Math.round(noc.maxHp * 0.5);
+    const before = noc.hp;
+    const res = A.execute(def.abilities[0], noc, foe, b);
+    const hit = res.find((r) => r.kind === 'damage');
+    assert(noc.hp === before + hit.amount,
+      'with nobody else standing, the drain went nowhere');
+  }
+});
+
 report();

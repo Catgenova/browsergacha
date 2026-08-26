@@ -473,6 +473,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('lamplight', {
+    position: POSITION.BACK,
+    name: 'Lamplight',
+    description: 'Back hex: the life she drains feeds her too — Silent Wing ' +
+      'mends her for the same amount it gives away.',
+    hooks: { drainSelfShare: 1 },
+  });
+
   def('chime_bar', {
     position: POSITION.CENTER,
     name: 'Chime Bar',

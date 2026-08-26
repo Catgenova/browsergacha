@@ -65,6 +65,12 @@ const EFFECTS = {
     grid: { cols: 3, rows: 2 }, frames: 6, fps: 14, displayH: 130,
     tint: '#ffd76a',
   },
+  // Violet glow for the Nightflowers' mending, which is never quite
+  // wholesome — the same charge sheet, turned toward the dark end.
+  heal_purple: {
+    src: 'assets/charge effect_spritesheets.png',
+    grid: { cols: 5, rows: 2 }, fps: 16, displayH: 96, hue: 100,
+  },
   // Golden holy glow for Emily's blessings.
   heal_gold: {
     src: 'assets/charge effect_spritesheets.png',

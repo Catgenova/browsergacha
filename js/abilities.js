@@ -205,6 +205,11 @@ const Abilities = (() => {
   // The battle the current execute() is resolving in, for effects that
   // fire deeper in the pipeline than the battle reference travels.
   let currentBattle = null;
+  // The ability being resolved, for hooks that fire deeper in the
+  // pipeline than the ability reference travels. A passive that only
+  // pays out on ONE of its hero's skills (Noctelle's Moth Dust) reads
+  // this rather than every skill having to carry a rider.
+  let currentAbility = null;
 
   // Freeze: the ice-flavored stun — the frozen unit loses its turns.
   // One door for every source (Polarus's bolt, the Crystalline counter,
@@ -269,7 +274,7 @@ const Abilities = (() => {
           (effect.perMirror || 0) * (caster.mirrors || 0);
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
-          caster.damageDealtMult(target) * elemMult;
+          caster.damageDealtMult(target, currentAbility) * elemMult;
         // Combo hits: multiplied damage against a marked status — by
         // stat (methane fog) or by kind (detonating poisons).
         // Conditional on the CASTER's own state (Javarious at full HP).
@@ -295,9 +300,19 @@ const Abilities = (() => {
           if (p.hooks && p.hooks.targetHpBonus) hpFrac += p.hooks.targetHpBonus;
         }
         if (hpFrac > 0) raw += target.maxHp * hpFrac;
-        return { ...strike(caster, target, raw,
+        const hit = { ...strike(caster, target, raw,
           { crit: true, critAdd: effect.critAdd, ignoreDef: effect.ignoreDef }),
           elem: elemMult };
+        // `healDealt` turns the wound into a mend: a share of the damage
+        // ACTUALLY dealt (post-mitigation, post-dodge) is handed to
+        // someone on the caster's side. `to` picks who — 'lowest-ally'
+        // hunts the ally in the worst shape, 'self' keeps it. A dodged
+        // or absorbed hit heals nothing, which is the point.
+        if (effect.healDealt && hit.amount > 0) {
+          const mends = drainToAllies(effect.healDealt, caster, hit.amount);
+          if (mends.length) return [hit, ...mends];
+        }
+        return hit;
       }
       case 'heal': {
         const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
@@ -359,7 +374,7 @@ const Abilities = (() => {
         // mitigated like everything else — a large HP pool is not a way
         // around the DEF curve any more than a large DEF stat is.
         const raw = caster.maxHp * effect.pct * power *
-          caster.damageDealtMult(target) *
+          caster.damageDealtMult(target, currentAbility) *
           Elements.mult(caster.element, target.element);
         return strike(caster, target, raw);
       }
@@ -896,10 +911,53 @@ const Abilities = (() => {
   // the dice.
   let chainDepth = 0;
 
+  // Hand a share of damage dealt back to the caster's side as healing.
+  // `spec` is { to, frac }: 'lowest-ally' finds the ally in the worst
+  // shape (the caster included — she is an ally), 'self' is the caster.
+  // A `drainSelfShare` hook (Noctelle's back-hex Lamplight) adds a
+  // SECOND mend to the caster on top, so the drain feeds two people.
+  function drainToAllies(spec, caster, dealt) {
+    const b = currentBattle ||
+      (typeof Battle !== 'undefined' ? Battle.active : null);
+    const frac = spec.frac === undefined ? 1 : spec.frac;
+    const share = Math.round(dealt * frac);
+    if (share <= 0) return [];
+    const allies = b ? b.livingUnits(caster.team) : [caster];
+    let mark = caster;
+    if (spec.to === 'lowest-ally' && allies.length) {
+      mark = allies.slice().sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0];
+    }
+    const out = [];
+    const mend = (who, amount) => {
+      if (!who || !who.alive || amount <= 0) return;
+      const healed = who.heal(amount, caster, { assists: caster.healAssists(false) });
+      notifyOverheal(caster, amount - healed, who);
+      out.push({ kind: 'heal', target: who, amount: healed, drained: true });
+    };
+    mend(mark, share);
+    let selfShare = 0;
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.drainSelfShare) selfShare += p.hooks.drainSelfShare;
+    }
+    // Already the lowest ally: the hex pays her once, not twice.
+    if (selfShare > 0 && mark !== caster) {
+      mend(caster, Math.round(dealt * frac * selfShare));
+    }
+    return out;
+  }
+
   function execute(ability, caster, chosenTarget, battle) {
     // Remembered for effects that fire deeper in the pipeline than the
     // battle reference travels (freeze's team-wide watcher hooks).
     currentBattle = battle || currentBattle;
+    const prevAbility = currentAbility;
+    currentAbility = ability;
+    try {
+      return executeInner(ability, caster, chosenTarget, battle);
+    } finally { currentAbility = prevAbility; }
+  }
+
+  function executeInner(ability, caster, chosenTarget, battle) {
     const targets = resolveTargets(ability, caster, chosenTarget, battle);
     // Skill-level power: +10% per level past 1 on this ability's numbers.
     const power = caster.skillPowerFor ? caster.skillPowerFor(ability) : 1;
