@@ -963,15 +963,15 @@ class Battle {
         'self-and-wounded-allies', 'lowest-allies'].includes(a.def.targeting);
       return !(defensiveOnly && targetsAllies && !anyImpaired);
     });
-    // Skip group-target abilities whose target set is currently empty
-    // (e.g. a back-row nuke when no enemy holds a back hex).
-    const groupTargetings = ['all-enemies', 'back-enemies', 'front-enemies', 'front-allies',
-      'all-allies', 'self-and-wounded-allies'];
+    // Skip group-target abilities whose target set is currently empty.
+    // Row sweeps now collapse inward rather than fizzling, so this
+    // mostly catches a revive with nobody to raise -- but the check is
+    // the cheap kind and the list is Abilities' to keep, not ours.
     const withTargets = (usable.length > 0 ? usable : ready).filter((a) => {
       if (a.def.targeting === 'dead-ally') {
         return this.units.some((u) => !u.alive && u.team === unit.team);
       }
-      return !groupTargetings.includes(a.def.targeting) ||
+      return !Abilities.GROUP_TARGETINGS.includes(a.def.targeting) ||
         Abilities.resolveTargets(a.def, unit, null, this).length > 0;
     });
     const pool = withTargets.length > 0 ? withTargets : ready;

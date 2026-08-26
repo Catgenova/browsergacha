@@ -347,6 +347,14 @@ body {
   cursor: not-allowed;
 }
 
+/* A row sweep whose printed row is empty: it still fires, but it lands
+   somewhere other than the card says. A dashed edge is enough to make
+   the player check the tooltip, without reading as disabled. */
+.ability-btn.sweep-collapsed {
+  border-style: dashed;
+  border-color: #c8a86a;
+}
+
 .ability-btn .ability-icon {
   display: block;
   width: 28px;

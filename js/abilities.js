@@ -1097,6 +1097,57 @@ const Abilities = (() => {
     return ['enemy', 'enemy-row', 'ally', 'dead-ally'].includes(targeting);
   }
 
+  // Targetings that resolve to a group the moment they are cast, with no
+  // click in between. Both the AI (js/battle.js) and the ability bar
+  // (js/ui.js) need to know whether such a set is empty before spending
+  // a turn on it, and they used to keep separate lists of these names.
+  const GROUP_TARGETINGS = ['all-enemies', 'all-allies',
+    'front-enemies', 'back-enemies', 'front-and-center-enemies',
+    'flank-enemies', 'random-enemy', 'random-enemies',
+    'front-allies', 'self-and-wounded-allies', 'lowest-allies'];
+
+  // A sweep aimed at one hex row, and the rows it falls back through.
+  // `order[0]` is what the card says it hits; the rest is where it goes
+  // when nobody is standing there.
+  const ROW_SWEEPS = {
+    'back-enemies': { side: 'enemy',
+      order: [POSITION.BACK, POSITION.CENTER, POSITION.FRONT] },
+    'front-allies': { side: 'ally',
+      order: [POSITION.FRONT, POSITION.CENTER, POSITION.BACK] },
+  };
+
+  function sweepPool(sweep, caster, battle) {
+    return battle.livingUnits(
+      sweep.side === 'ally' ? caster.team : caster.enemyTeam());
+  }
+
+  // A row sweep whose row is empty collapses onto the next row in from
+  // it rather than fizzling: a back-row skill that finds nobody in the
+  // back reaches the centre instead, and only stops when the whole side
+  // is down. The turn is never wasted, and a sweep stays a sweep --
+  // it lands on a ROW, not on one unlucky body. A boss spans every hex,
+  // so it satisfies the first row it is checked against.
+  function collapseRow(pool, order) {
+    for (const position of order) {
+      const row = pool.filter((u) => u.isBoss || u.slot.position === position);
+      if (row.length > 0) return row;
+    }
+    return [];
+  }
+
+  // Where a row sweep will ACTUALLY land, when that differs from where
+  // it is aimed. Null when the printed row is occupied and the two are
+  // the same, so a caller only has to speak up when they are not.
+  function rowFallback(ability, caster, battle) {
+    const sweep = ROW_SWEEPS[ability.targeting];
+    if (!sweep) return null;
+    const pool = sweepPool(sweep, caster, battle);
+    const holds = (p) => pool.some((u) => u.isBoss || u.slot.position === p);
+    if (holds(sweep.order[0])) return null;
+    const landed = sweep.order.find(holds);
+    return landed ? { side: sweep.side, aimed: sweep.order[0], landed } : null;
+  }
+
   // Expand targeting into the concrete list of units affected.
   function resolveTargets(ability, caster, chosenTarget, battle) {
     switch (ability.targeting) {
@@ -1113,9 +1164,13 @@ const Abilities = (() => {
         return battle.livingUnits(caster.enemyTeam())
           .filter((u) => u.isBoss || Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
       case 'front-allies':
-        // Every living ally standing in a front-position hex.
-        return battle.livingUnits(caster.team)
-          .filter((u) => u.slot.position === POSITION.FRONT);
+      case 'back-enemies': {
+        // Every living unit standing in the named hex row -- and, when
+        // nobody is standing there, the next row in (see collapseRow).
+        // A boss spans every hex, so it always qualifies.
+        const sweep = ROW_SWEEPS[ability.targeting];
+        return collapseRow(sweepPool(sweep, caster, battle), sweep.order);
+      }
       case 'lowest-allies': {
         // The `allyCount` most-wounded living allies, the caster
         // included on equal terms — pure triage, no self bias (Cain).
@@ -1146,11 +1201,6 @@ const Abilities = (() => {
         return pool.length > 0
           ? [pool[Math.floor(Math.random() * pool.length)]] : [];
       }
-      case 'back-enemies':
-        // Every living enemy standing in a back-position hex (a boss
-        // spans every hex, so it always qualifies).
-        return battle.livingUnits(caster.enemyTeam())
-          .filter((u) => u.isBoss || u.slot.position === POSITION.BACK);
       case 'random-enemy':
       case 'random-enemies': {
         // Enemies chosen by the wind rather than by the player — Galen's
@@ -1382,5 +1432,5 @@ const Abilities = (() => {
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
   return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
-    sideOf, needsTarget, takeLands, drainMeter };
+    sideOf, needsTarget, takeLands, drainMeter, rowFallback, GROUP_TARGETINGS };
 })();
