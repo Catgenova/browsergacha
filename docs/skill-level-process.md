@@ -117,6 +117,32 @@ We go **hero by hero**. For each:
 4. Propose it as numbered points so it can be edited before it is built.
 5. Build, test, verify in-game, commit.
 
+## The rung vocabulary
+
+Every rung is one of these. A rung that does not name something the
+ability actually has is a rung that buys nothing, and the invariant test
+in `data.test.js` rejects it.
+
+| Rung | Raises | Step |
+|---|---|---|
+| `mult` | an ATK/DEF-priced modifier | +10% |
+| `perMirror`, `perDeath` | a per-stack term alongside the flat one | +5% |
+| `heal` | anything priced off a health pool, or a share of a wound kept | +5% (+2% on a per-turn tick) |
+| `debuffChance` | the application gate | +10–20% |
+| `debuffPower` | the severity of a hex, including a poison tick | +10% |
+| `buffPower` | the severity of a boon | +5% |
+| `duration` | turns on anything friendly that runs on a timer | +1 |
+| `cleanseCount`, `stripCount` | how many effects are lifted or torn | +1 |
+| `meter` | how deep an action bar is cut or filled | +5% |
+| `per` | a per-head price | flat |
+| `chain` | the odds a cast re-fires itself | +5% |
+| `refund` | turns of cooldown handed back to allies | +1 |
+| `cooldown` | the skill's own cooldown, last two rungs only | −1 |
+
+Severity rungs move a multiplier **away from neutral**, so one rule
+serves both directions: a `0.70` DEF break deepens to `0.60`, a `1.30`
+DEF boon rises to `1.40`.
+
 ## Deviations recorded during the sweep
 
 Places where the rules as written produce something wrong, and what
@@ -139,7 +165,10 @@ follow the rule in full.
 **A ladder may be shorter than its slot.** Some skills genuinely have
 fewer improvable axes than rungs available: Silas's Aiming Stance is a
 flag with no magnitude and no meaningful duration, so cooldown is its
-only axis and it carries two rungs, not seven. `skillCap` is the
+only axis and it carries two rungs, not seven. Sable's Open The Flower
+is the same shape from the other side: it detonates poison already on
+the field and has no magnitude of its own, so it too carries only the
+cooldown pair. Evelune's Play It Again carries three. `skillCap` is the
 ladder's real length, capped by the slot — padding a ladder with rungs
 that buy nothing is worse than a short one.
 

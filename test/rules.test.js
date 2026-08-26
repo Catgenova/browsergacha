@@ -4098,6 +4098,8 @@ test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => 
     for (let i = 0; i < 3; i++) {
       mark.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
     }
+    // The strip is gated at 50%; its chance rungs buy it back to certain.
+    maxSkill(galen, 1);
     const res = A.execute(def.abilities[1], galen, mark, b);
     const stripped = res.find((r) => r.kind === 'stripBuff');
     assert(stripped && stripped.count === 2, `Stripwind tore ${stripped && stripped.count}`);
@@ -4112,6 +4114,7 @@ test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => 
     for (const f of foes) f.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.1, turns: 5 });
     const back = foes.filter((f) => f.slot.position === POSITION.BACK);
     assert(back.length > 0, 'nobody is holding the enemy back row');
+    maxSkill(galen, 2);   // close the 50% strip gate
     const res = A.execute(def.abilities[2], galen, null, b);
     const hit = res.filter((r) => r.kind === 'damage').map((r) => r.target);
     assert(hit.length === back.length && hit.every((u) => back.includes(u)),
@@ -4164,6 +4167,11 @@ test("Galen's kit: the wind picks the mark, and breaks what it stripped", () => 
     const stubborn = foes[0];
     stubborn.debuffResistance = () => 0.60;
     stubborn.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.1, turns: 5 });
+    // Max the skill so the 50% gate is closed: what is being measured
+    // here is the RESIST that follows it, not the gate itself. At level
+    // 1 a 0.95 roll would fail the gate and never reach the contest --
+    // which is exactly the distinction the two readouts exist to draw.
+    maxSkill(galen, 1);
     R.random = () => 0.95;
     const res = A.execute(def.abilities[1], galen, stubborn, b);
     delete R.random;
@@ -4408,6 +4416,7 @@ test("Imani's kit: the chime picks its own victims, and answers their blessings"
   // ---- Skill 3 also drags at their speed ----
   {
     const { b, imani, foes } = arena();
+    maxSkill(imani, 2);   // close the 50% gate on the drag
     const before = foes.map((f) => f.effectiveStat('speed'));
     const hit = A.execute(def.abilities[2], imani, null, b)
       .filter((r) => r.kind === 'damage').map((r) => r.target);
@@ -4914,6 +4923,7 @@ test("Sable's kit: he plants ordinary poison, then calls it all due at once", ()
     const { b, sable, foes } = arena();
     assert(def.abilities[0].targeting === 'random-enemies' &&
       def.abilities[0].targetCount === 2, 'Seedfall stopped scattering');
+    maxSkill(sable, 0);   // close the 50% gate on the seed
     const res = A.execute(def.abilities[0], sable, null, b);
     const hits = res.filter((r) => r.kind === 'damage');
     assert(hits.length === 2, `Seedfall hit ${hits.length}, wanted 2`);
@@ -4934,6 +4944,7 @@ test("Sable's kit: he plants ordinary poison, then calls it all due at once", ()
   // ---- Grave Garden seeds the whole field ----
   {
     const { b, sable, foes } = arena();
+    maxSkill(sable, 2);   // close the 50% gate on the seed
     const res = A.execute(def.abilities[2], sable, null, b);
     assert(res.filter((r) => r.kind === 'damage').length === foes.length,
       'Grave Garden missed part of the field');
@@ -4945,6 +4956,7 @@ test("Sable's kit: he plants ordinary poison, then calls it all due at once", ()
   // ---- Open The Flower pays exactly what waiting would have ----
   {
     const { b, sable, foes } = arena();
+    maxSkill(sable, 2);                            // close the seed's gate
     A.execute(def.abilities[2], sable, null, b);   // seed everyone
     const owed = foes.map((f) => f.statusEffects
       .filter((fx) => fx.kind === 'dot')
@@ -5020,6 +5032,7 @@ test("Sable's kit: he plants ordinary poison, then calls it all due at once", ()
     assert(back.sable.slot.position === POSITION.BACK &&
       front.sable.slot.position !== POSITION.BACK, 'sanity: same hex twice');
     const seedOn = (a) => {
+      maxSkill(a.sable, 2);   // close the seed's gate on both hexes
       A.execute(def.abilities[2], a.sable, null, a.b);
       return a.foes[0].statusEffects.find((fx) => fx.kind === 'dot').amount;
     };
@@ -5061,6 +5074,7 @@ test("Evelune's kit: she creates almost nothing and multiplies everything", () =
   {
     const { b, eve, foes } = arena();
     const mark = foes[0];
+    maxSkill(eve, 0);   // close the 50% gate on the discord
     mark.turnMeter = CONFIG.TURN_METER_MAX * 0.8;
     const before = mark.turnMeter;
     const res = noSpread(() => A.execute(def.abilities[0], eve, mark, b));
@@ -5227,6 +5241,7 @@ test("Lysandra's kit: one thread, and their own line kills their carry", () => {
     const { b, ly, foes } = arena();
     const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
     assert(front.length > 0, 'sanity: no enemy front row');
+    maxSkill(ly, 1);   // close the 50% gate on the loop
     live(b, () => A.execute(def.abilities[1], ly, null, b));
     for (const f of foes) {
       const pulled = f.statusEffects.some((fx) => fx.stat === 'taunted');
@@ -5519,7 +5534,7 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
   assert(def && def.element === 'dark' && def.rarity === 4, 'Valere drifted');
   assert(RACES.sectOf(def).id === 'nightflower', 'Valere left the Nightflowers');
   assert(def.role === 'support', 'Valere is not binned as a support');
-  assert(def.abilities[1].cooldown === 4 && def.abilities[2].cooldown === 7,
+  assert(def.abilities[1].cooldown === 5 && def.abilities[2].cooldown === 8,
     'his cooldowns drifted');
 
   const arena = (back = false) => {
@@ -5544,6 +5559,10 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
   // ---- The Whole Bouquet is the enabler: resistance comes off ----
   {
     const { b, va, foes } = arena();
+    // Level 4 buys all three chance rungs -- both blooms certain --
+    // without reaching the debuffPower rung above them, so the two
+    // magnitudes measured below stay at their authored values.
+    va.abilities[1].level = 4;
     for (const f of foes) delete f.debuffResistance;   // read the real figure
     const before = foes.map((f) => f.debuffResistance());
     live(b, () => A.execute(def.abilities[1], va, null, b));
@@ -5564,6 +5583,10 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
     mark.debuffResistance = () => 10;          // nothing should ever land
     const R = g.Math;
     try {
+      // The rose's 50% gate is a separate question from whether they can
+      // refuse it: max the skill so the flower is always OFFERED, and
+      // what is measured below is purely the passive's bypass.
+      maxSkill(va, 0);
       R.random = () => 0.99;                   // every roll fails
       live(b, () => A.execute(def.abilities[0], va, mark, b));
       assert(!mark.statusEffects.some((fx) => fx.kind === 'debuff'),
@@ -5591,6 +5614,12 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
   {
     const { b, va, mates, foes } = arena();
     const mark = foes[0];
+    // The transfer is ungated -- it moves his own side's afflictions
+    // rather than forcing a new one -- but the DEF break riding along
+    // with it is a hex like any other. Level 4 buys all three chance
+    // rungs so the break is certain, and stops below the debuffPower
+    // rungs so its magnitude is still the authored one.
+    va.abilities[2].level = 4;
     mates[0].addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.5, turns: 4 });
     mates[0].addStatusEffect({ kind: 'dot', amount: 99, turns: 3, source: foes[1] });
     mates[1].addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.6, turns: 2 });
@@ -5612,7 +5641,8 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
       'a moved debuff lost its terms');
     const dot = worn.find((fx) => fx.kind === 'dot');
     assert(dot && dot.source === va, 'a moved poison still credits the enemy who cast it');
-    // ...and the rider lands regardless, so it is never a dead turn.
+    // ...and the rider, once its gate is bought closed, lands on top of
+    // everything that was moved, so the cast is never a dead turn.
     assert(worn.some((fx) => fx.stat === 'def' && fx.mult === 0.70 && fx.turns === 3),
       'the guaranteed cut did not land');
   }
@@ -5660,11 +5690,14 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
     assert(on.va.slot.position === POSITION.BACK &&
       off.va.slot.position !== POSITION.BACK, 'sanity: same hex twice');
     const turnsOf = (a) => {
+      maxSkill(a.va, 0);   // close the rose's 50% gate on both hexes
       live(a.b, () => A.execute(def.abilities[0], a.va, a.foes[0], a.b));
       return a.foes[0].statusEffects.find((fx) => fx.stat === 'atk').turns;
     };
-    assert(turnsOf(on) === turnsOf(off) + 1,
-      `back hex ${turnsOf(on)} turns vs ${turnsOf(off)} off it`);
+    // Measured once each: calling these inside the message would cast
+    // again and read a second, different rose.
+    const onHex = turnsOf(on), offHex = turnsOf(off);
+    assert(onHex === offHex + 1, `back hex ${onHex} turns vs ${offHex} off it`);
   }
 });
 
@@ -5674,7 +5707,7 @@ test("Lenore's kit: the bell is priced off her own pool, and a death rings it so
   assert(def && def.element === 'dark' && def.rarity === 3, 'Lenore drifted');
   assert(RACES.sectOf(def).id === 'nightflower', 'Lenore left the Nightflowers');
   assert(def.role === 'support', 'Lenore is not binned as a support');
-  assert(def.abilities[1].cooldown === 5 && def.abilities[2].cooldown === 6,
+  assert(def.abilities[1].cooldown === 6 && def.abilities[2].cooldown === 7,
     'her cooldowns drifted');
   // Every figure she hands out is a share of HER pool, never her ATK.
   for (const ab of def.abilities) {
@@ -6320,6 +6353,124 @@ test('AP drains and buff strips roll a 50% gate that skill ups buy to certain', 
   torn = 0;
   for (let i = 0; i < 200; i++) if (blessAndStrip()) torn++;
   assert(torn === 200, `a strip bought to certain should never miss, tore ${torn}/200`);
+});
+
+test('the batch-four rungs buy what they promise: chain, refund, extend, tick, keep', () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, Meter: M,
+    Progression: P } = w;
+  M.resetBattle();
+  const max = (unit, i) => { unit.abilities[i].level = P.skillCap(unit.abilities[i].def, i); };
+
+  // Five kits in this batch needed a rung the engine had never had to
+  // pay before. Each one is only worth writing down if it moves a number
+  // a player can see, so each is measured at level 1 against its cap.
+
+  // -- Posie's `chain`: the bough swings on more often --------------
+  {
+    const battle = new B();
+    const posie = new U(H.posie, T.PLAYER, { level: 30, stars: 4 });
+    const hurt = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+    battle.placeUnit(posie, 5); battle.placeUnit(hurt, 1);
+    B.active = battle;
+    const swings = (levelled) => {
+      posie.abilities[1].level = levelled ? P.skillCap(posie.abilities[1].def, 1) : 1;
+      let links = 0;
+      for (let i = 0; i < 900; i++) {
+        hurt.hp = 1;
+        const heals = A.execute(posie.abilities[1].def, posie, hurt, battle)
+          .filter((r) => r.kind === 'heal');
+        links += heals.length;
+      }
+      return links / 900;
+    };
+    const base = swings(false), bought = swings(true);
+    // 50% -> 60% takes the expected chain from 1/(1-p) = 2.0 links to
+    // 2.5. Measured over 900 casts the gap is far wider than the noise.
+    assert(bought > base + 0.2,
+      `the chain rung bought nothing: ${base.toFixed(2)} -> ${bought.toFixed(2)} links`);
+  }
+
+  // -- Evelune's `refund` and `duration` ----------------------------
+  {
+    const battle = new B();
+    const eve = new U(H.evelune, T.PLAYER, { level: 30, stars: 4 });
+    const mate = new U(H.ryn, T.PLAYER, { level: 30, stars: 3 });
+    battle.placeUnit(eve, 5); battle.placeUnit(mate, 1);
+    B.active = battle;
+    const handBack = () => {
+      for (const a of mate.abilities) a.cooldownRemaining = 4;
+      A.execute(eve.abilities[1].def, eve, null, battle);
+      return 4 - mate.abilities[1].cooldownRemaining;
+    };
+    assert(handBack() === 1, 'the unlevelled refresh gave back more than a turn');
+    max(eve, 1);
+    assert(handBack() === 2, 'the refund rung handed back nothing');
+
+    // extendBuffs takes `duration`: the chord is held one turn longer.
+    const held = () => {
+      mate.statusEffects = [];
+      mate.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 2 });
+      A.execute(eve.abilities[2].def, eve, null, battle);
+      return mate.statusEffects.find((fx) => fx.kind === 'buff').turns;
+    };
+    assert(held() === 3, 'the plain chord did not hold the blessing a turn longer');
+    max(eve, 2);
+    assert(held() === 4, 'the duration rung did not lengthen the chord');
+  }
+
+  // -- Sable's `debuffPower` on an ATK-priced tick -------------------
+  {
+    const battle = new B();
+    const sable = new U(H.sable, T.PLAYER, { level: 30, stars: 4 });
+    const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+    battle.placeUnit(sable, 5); battle.placeUnit(foe, 1);
+    B.active = battle;
+    foe.hp = foe.maxHp = 10 ** 9;
+    foe.dodgeChance = () => 0;
+    foe.debuffResistance = () => 0;
+    const tick = () => {
+      foe.statusEffects = [];
+      A.execute(sable.abilities[2].def, sable, null, battle);
+      const dot = foe.statusEffects.find((fx) => fx.kind === 'dot');
+      return dot ? dot.amount : 0;
+    };
+    max(sable, 2);   // gate closed, and the severity rung with it
+    const deep = tick();
+    // Level 5 buys all four rungs below the severity one: the gate is
+    // shut (level 4 leaves it at 90% and the seed misses one cast in ten)
+    // but the tick is still the authored 30% ATK.
+    sable.abilities[2].level = 5;
+    const shallow = tick();
+    assert(shallow > 0 && deep > 0, 'the seed never landed');
+    // 30% ATK a turn -> 40%: a third more per tick.
+    assert(Math.abs(deep / shallow - 4 / 3) < 0.03,
+      `the severity rung paid ${(deep / shallow).toFixed(3)}x, wanted 1.333x`);
+  }
+
+  // -- Lysandra's `heal`: a wider share of the wound kept ------------
+  {
+    const battle = new B();
+    const ly = new U(H.lysandra, T.PLAYER, { level: 30, stars: 4 });
+    const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+    battle.placeUnit(ly, 1); battle.placeUnit(foe, 1);
+    B.active = battle;
+    foe.hp = foe.maxHp = 10 ** 9;
+    foe.dodgeChance = () => 0;
+    ly.baseCritChance = -1;
+    const kept = () => {
+      ly.hp = Math.round(ly.maxHp * 0.4);
+      const before = ly.hp;
+      const res = A.execute(ly.abilities[0].def, ly, foe, battle);
+      const dealt = res.find((r) => r.kind === 'damage').amount;
+      return (ly.hp - before) / dealt;
+    };
+    const plain = kept();
+    assert(Math.abs(plain - 0.20) < 0.01, `the stitch kept ${plain.toFixed(3)}, wanted 0.20`);
+    max(ly, 0);
+    const wide = kept();
+    assert(Math.abs(wide - 0.25) < 0.01, `the heal rung kept ${wide.toFixed(3)}, wanted 0.25`);
+  }
 });
 
 report();

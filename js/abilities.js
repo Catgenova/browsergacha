@@ -345,7 +345,13 @@ const Abilities = (() => {
         // hunts the ally in the worst shape, 'self' keeps it. A dodged
         // or absorbed hit heals nothing, which is the point.
         if (effect.healDealt && hit.amount > 0) {
-          const mends = drainToAllies(effect.healDealt, caster, hit.amount);
+          // The share kept is priced off damage, so it takes the small
+          // `heal` rate rather than the ATK/DEF one.
+          const mends = drainToAllies(
+            { ...effect.healDealt,
+              frac: (effect.healDealt.frac === undefined ? 1 : effect.healDealt.frac) +
+                (lad.heal || 0) },
+            caster, hit.amount);
           if (mends.length) return [hit, ...mends];
         }
         return hit;
@@ -532,7 +538,7 @@ const Abilities = (() => {
         const amount = effect.targetHpPct
           ? Math.round(target.maxHp * (effect.targetHpPct + (dotLad.debuffPower || 0)) * power *
               (1 + caster.dotBoost()))
-          : Math.round(caster.effectiveStat('atk') * effect.pct *
+          : Math.round(caster.effectiveStat('atk') * (effect.pct + (dotLad.debuffPower || 0)) *
               power * (1 + caster.dotBoost()));
         // Clinging-flame passives can extend inflicted DoT durations.
         let dotTurns = effect.turns;
@@ -804,7 +810,8 @@ const Abilities = (() => {
         // is skipped -- a refresh that refreshed itself would never go
         // on cooldown at all -- and a skill already ready is untouched
         // rather than driven negative.
-        const by = effect.turns || 1;
+        const cdLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const by = (effect.turns || 1) + (cdLad.refund || 0);
         let moved = 0;
         for (const a of (target.abilities || [])) {
           if (a.def === currentAbility) continue;
@@ -820,7 +827,8 @@ const Abilities = (() => {
         // longer. Buffs only -- a debuff is somebody else's chord --
         // and it creates nothing, so a target with nothing on stays
         // with nothing on.
-        const by = effect.turns || 1;
+        const exLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const by = (effect.turns || 1) + (exLad.duration || 0);
         let held = 0;
         for (const fx of target.statusEffects) {
           if (fx.kind !== 'buff') continue;
@@ -1303,7 +1311,10 @@ const Abilities = (() => {
     // jump more often), and a kit can raise its own depth rail: hers is
     // meant to run "indefinitely", which in practice means long enough
     // that the rail is never the thing that stops it.
-    let chainChance = ability.chain ? ability.chain.chance : 0;
+    let chainChance = ability.chain
+      ? ability.chain.chance +
+        ((caster.skillBonusFor ? caster.skillBonusFor(ability) : {}).chain || 0)
+      : 0;
     if (ability.chain) {
       for (const p of (caster.hookSources ? caster.hookSources() : [])) {
         if (p.hooks && p.hooks.chainChanceAdd) chainChance += p.hooks.chainChanceAdd;

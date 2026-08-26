@@ -3679,6 +3679,13 @@ Object.assign(HEROES, {
         effects: [
           { type: 'healHpPct', pct: 0.20 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ]
       },
       {
         id: 'posie_windfall', name: 'Windfall',
@@ -3686,7 +3693,7 @@ Object.assign(HEROES, {
         description: 'Heal one ally for 20% of THEIR own max HP — and the ' +
           'bough has a 50% chance to swing on to the lowest-HP ally and ' +
           'heal again, over and over while the rolls hold.',
-        cooldown: 3, targeting: 'ally', animation: 'skill2',
+        cooldown: 4, targeting: 'ally', animation: 'skill2',
         effects: [
           { type: 'healHpPct', targetPct: 0.20 },
         ],
@@ -3694,17 +3701,34 @@ Object.assign(HEROES, {
         // off, and keeps going. The rail is set far past where a run of
         // coin flips realistically reaches (12 links is one in 4,096).
         chain: { id: 'posie_windfall', chance: 0.50, to: 'lowest-ally', maxDepth: 12 },
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { chain: 0.05 },
+          { chain: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'posie_high_summer', name: 'High Summer',
         icon: 'assets/icons/fc1172.png',
         description: "The whole bough opens at once: heal every ally for " +
           "25% of Posie's max HP and raise their Resistance by 30% for 2 turns.",
-        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        cooldown: 6, targeting: 'all-allies', animation: 'skill3',
         effects: [
           { type: 'healHpPct', pct: 0.25 },
           { type: 'buff', stat: 'resistance', add: 0.30, turns: 2 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -3763,28 +3787,53 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.25 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ]
       },
       {
         id: 'galen_stripwind', name: 'Stripwind',
         icon: 'assets/icons/fc1191.png',
-        description: 'A cutting pass on one enemy: 140% ATK, and two ' +
-          'blessings are torn away.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        description: 'A cutting pass on one enemy: 140% ATK, with a 50% chance ' +
+          'to tear two blessings away.',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.40 },
-          { type: 'stripBuffs', count: 2 },
+          { type: 'stripBuffs', count: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'galen_squall', name: 'Squall',
         icon: 'assets/icons/fc1192.png',
         description: 'The wind reaches over the wall: 120% ATK to the ' +
-          'enemy BACK row, tearing one blessing off each of them.',
-        cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
+          'enemy BACK row, with a 50% chance to tear one blessing ' +
+          'off each of them.',
+        cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.20 },
-          { type: 'stripBuffs', count: 1 },
+          { type: 'stripBuffs', count: 1, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -3848,6 +3897,13 @@ Object.assign(HEROES, {
           { type: 'healHpPct', pct: 0.15 },
           { type: 'cleanse', count: 1 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+        ]
       },
       {
         id: 'ilyra_following_wind', name: 'Following Wind',
@@ -3855,22 +3911,39 @@ Object.assign(HEROES, {
         description: "The front rank gets the weather at its back: heals " +
           "the FRONT row for 20% of Ilyra's max HP each and lifts one " +
           'debuff from each.',
-        cooldown: 3, targeting: 'front-allies', animation: 'skill2',
+        cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
           { type: 'cleanse', count: 1 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'ilyra_changing_weather', name: 'Changing Weather',
         icon: 'assets/icons/fc1212.png',
         description: "The whole field turns over: heals EVERY ally for 15% " +
           "of Ilyra's max HP and lifts one debuff from each.",
-        cooldown: 5, targeting: 'all-allies', animation: 'skill3',
+        cooldown: 6, targeting: 'all-allies', animation: 'skill3',
         effects: [
           { type: 'healHpPct', pct: 0.15 },
           { type: 'cleanse', count: 1 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cleanseCount: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -3936,25 +4009,49 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.00 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ]
       },
       {
         id: 'ryn_shear', name: 'Shear',
         icon: 'assets/icons/fc1231.png',
         description: 'Both blades through the same gap: 140% ATK to a single enemy.',
-        cooldown: 3, targeting: 'enemy', animation: 'skill2', impact: 'slash',
+        cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.40 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'ryn_scything_gale', name: 'Scything Gale',
         icon: 'assets/icons/fc1232.png',
         description: 'A running cut down the whole line: 130% ATK to the ' +
           'enemy FRONT row.',
-        cooldown: 5, targeting: 'front-enemies', animation: 'skill3', impact: 'slash',
+        cooldown: 6, targeting: 'front-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.30 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4025,28 +4122,53 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.25 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ]
       },
       {
         id: 'imani_two_bells', name: 'Two Bells',
         icon: 'assets/icons/fc1251.png',
         description: 'The bar swings twice: 130% ATK to TWO random enemies.',
-        cooldown: 3, targeting: 'random-enemies', targetCount: 2,
+        cooldown: 4, targeting: 'random-enemies', targetCount: 2,
         animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.30 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'imani_full_peal', name: 'All The Bells',
         icon: 'assets/icons/fc1252.png',
         description: 'Every bell at once: 130% ATK to THREE random ' +
-          'enemies, and the sound drags at them — -30% Speed for 2 turns.',
-        cooldown: 5, targeting: 'random-enemies', targetCount: 3,
+          'enemies, with a 50% chance for the sound to drag at each — ' +
+          '-30% Speed for 2 turns.',
+        cooldown: 6, targeting: 'random-enemies', targetCount: 3,
         animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.30 },
-          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2 },
+          { type: 'debuff', stat: 'speed', mult: 0.70, turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4104,13 +4226,21 @@ Object.assign(HEROES, {
         id: 'sable_seedfall', name: 'Seedfall',
         icon: 'assets/icons/fc1283.png',
         description: 'Scatters seed across the field: 70% ATK to two random ' +
-          'enemies, each left poisoned for 30% ATK a turn over 3 turns.',
+          'enemies, each with a 50% chance to be left poisoned for ' +
+          '30% ATK a turn over 3 turns.',
         cooldown: 0, targeting: 'random-enemies', targetCount: 2,
         animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.70 },
-          { type: 'dot', pct: 0.30, turns: 3 },
+          { type: 'dot', pct: 0.30, turns: 3, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+        ]
       },
       {
         id: 'sable_open_the_flower', name: 'Open The Flower',
@@ -4118,22 +4248,36 @@ Object.assign(HEROES, {
         description: 'The bloom on his staff opens and every seeded enemy ' +
           'answers: all poison on the field comes due at once, dealing every ' +
           'remaining tick immediately and burning itself out.',
-        cooldown: 3, targeting: 'all-enemies', animation: 'skill2',
+        cooldown: 4, targeting: 'all-enemies', animation: 'skill2',
         effects: [
           { type: 'detonate' },
         ],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'sable_grave_garden', name: 'Grave Garden',
         icon: 'assets/icons/fc1285.png',
         description: 'The whole field goes to seed: 110% ATK to every enemy, ' +
-          'and each is poisoned for 30% ATK a turn over 3 turns.',
-        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+          'each with a 50% chance to be poisoned for 30% ATK a turn ' +
+          'over 3 turns.',
+        cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.10 },
-          { type: 'dot', pct: 0.30, turns: 3 },
+          { type: 'dot', pct: 0.30, turns: 3, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4191,23 +4335,35 @@ Object.assign(HEROES, {
       {
         id: 'evelune_struck_note', name: 'Struck Note',
         icon: 'assets/icons/fc1287.png',
-        description: 'One note, struck hard: 130% ATK to a single enemy, and ' +
-          'the discord costs them 20 AP.',
+        description: 'One note, struck hard: 130% ATK to a single enemy, with a ' +
+          '50% chance the discord costs them 20 AP.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.30 },
-          { type: 'turnMeter', amount: -0.20 },
+          { type: 'turnMeter', amount: -0.20, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+        ]
       },
       {
         id: 'evelune_play_it_again', name: 'Play It Again',
         icon: 'assets/icons/fc1288.png',
         description: 'The same phrase, sooner: every ally gets 1 turn back ' +
           'off all of their cooldowns.',
-        cooldown: 4, targeting: 'all-allies', animation: 'skill2',
+        cooldown: 5, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'cooldownReduce', turns: 1 },
         ],
+        levelUps: [
+          { refund: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'evelune_hold_the_chord', name: 'Hold The Chord',
@@ -4215,11 +4371,20 @@ Object.assign(HEROES, {
         description: 'A chord held open over the whole line: mends every ally ' +
           "for 15% of Evelune's max HP, and every blessing the team is " +
           'wearing lasts 1 turn longer.',
-        cooldown: 5, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
+        cooldown: 6, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
         effects: [
           { type: 'healHpPct', pct: 0.15 },
           { type: 'extendBuffs', turns: 1 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4288,18 +4453,33 @@ Object.assign(HEROES, {
         effects: [
           { type: 'damage', mult: 1.30, healDealt: { to: 'self', frac: 0.20 } },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { heal: 0.05 },
+        ]
       },
       {
         id: 'lysandra_slip_knot', name: 'Slip Knot',
         icon: 'assets/icons/fc1292.png',
         description: 'A loop thrown over the whole line: 110% ATK to the ' +
-          'enemy FRONT row, and every one of them is taunted onto her ' +
-          'needle for 1 turn.',
-        cooldown: 3, targeting: 'front-enemies', animation: 'skill2', impact: 'slash',
+          'enemy FRONT row, each with a 50% chance to be taunted onto ' +
+          'her needle for 1 turn.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
-          { type: 'debuff', stat: 'taunted', turns: 1 },
+          { type: 'debuff', stat: 'taunted', turns: 1, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'lysandra_soul_bond', name: 'Soul Bond',
@@ -4310,11 +4490,20 @@ Object.assign(HEROES, {
           'thread run through them. While it holds, every point of damage ' +
           'Lysandra takes is dealt to them as well, unmitigated. She cannot ' +
           'throw a second thread until that one is dead or cut.',
-        cooldown: 5, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+        cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.60 },
           { type: 'soulBond' },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4500,38 +4689,62 @@ Object.assign(HEROES, {
       {
         id: 'valere_a_rose_for_you', name: 'A Rose For You',
         icon: 'assets/icons/fc1299.png',
-        description: 'A gift they cannot refuse: 90% ATK to one enemy, and ' +
-          'their ATK falls 30% for 2 turns.',
+        description: 'A gift they can rarely refuse: 90% ATK to one enemy, and a ' +
+          '50% chance their ATK falls 30% for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.90 },
-          { type: 'debuff', stat: 'atk', mult: 0.70, turns: 2 },
+          { type: 'debuff', stat: 'atk', mult: 0.70, turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+        ]
       },
       {
         id: 'valere_the_whole_bouquet', name: 'The Whole Bouquet',
         icon: 'assets/icons/fc1300.png',
-        description: 'Every bloom at once: the WHOLE enemy team loses 30% ' +
-          'Resistance and 20% DEF for 2 turns. Nothing they are handed ' +
-          'after this is easy to refuse.',
-        cooldown: 4, targeting: 'all-enemies', animation: 'skill2',
+        description: 'Every bloom at once: a 50% chance each that an enemy loses ' +
+          '30% Resistance, and a 50% chance each that they lose 20% ' +
+          'DEF, for 2 turns. The two blooms are offered separately.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill2',
         effects: [
-          { type: 'debuff', stat: 'resistance', add: -0.30, turns: 2 },
-          { type: 'debuff', stat: 'def', mult: 0.80, turns: 2 },
+          { type: 'debuff', stat: 'resistance', add: -0.30, turns: 2, chance: 0.5 },
+          { type: 'debuff', stat: 'def', mult: 0.80, turns: 2, chance: 0.5 },
         ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'valere_something_rarer', name: 'Something Rarer',
         icon: 'assets/icons/fc1301.png',
         description: 'He presents one enemy with everything his own side was ' +
           'carrying: every debuff and poison on Valere\'s team moves onto ' +
-          'them with the time it had left, and their DEF falls 30% for 3 ' +
-          'turns regardless.',
-        cooldown: 7, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
+          'them with the time it had left, and a 50% chance their DEF ' +
+          'falls 30% for 3 turns on top.',
+        cooldown: 8, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
-          { type: 'debuff', stat: 'def', mult: 0.70, turns: 3 },
+          { type: 'debuff', stat: 'def', mult: 0.70, turns: 3, chance: 0.5 },
           { type: 'transferDebuffs' },
         ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.1 },
+          { debuffPower: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
@@ -4590,6 +4803,13 @@ Object.assign(HEROES, {
         effects: [
           { type: 'healHpPct', pct: 0.20 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+        ]
       },
       {
         id: 'lenore_muffled_peal', name: 'Muffled Peal',
@@ -4597,22 +4817,39 @@ Object.assign(HEROES, {
         description: 'Rung muffled, the way it is rung for the dead: the ' +
           'whole team braces at +30% DEF for 2 turns and recovers 10% of ' +
           "Lenore's max HP a turn while the sound holds.",
-        cooldown: 5, targeting: 'all-allies', animation: 'skill2', impact: 'heal_purple',
+        cooldown: 6, targeting: 'all-allies', animation: 'skill2', impact: 'heal_purple',
         effects: [
           { type: 'buff', stat: 'def', mult: 1.30, turns: 2 },
           { type: 'hot', pct: 0.10, turns: 2 },
         ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
       {
         id: 'lenore_open_ring', name: 'Open Ring',
         icon: 'assets/icons/fc1305.png',
         description: 'The bell opened all the way: every ally recovers 20% ' +
           "of Lenore's max HP and takes a shield worth 10% of it for 2 turns.",
-        cooldown: 6, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
+        cooldown: 7, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
           { type: 'shield', pct: 0.10, turns: 2 },
         ],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ]
       },
     ],
     passive: {
