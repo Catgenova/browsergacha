@@ -202,6 +202,37 @@ class Battle {
     }
   }
 
+  // Who acts next, for the turn-order readout on the plates.
+  //
+  // Two regimes, because "next" means different things depending on
+  // whether the queue has anyone in it. When units are already at or
+  // past 100% the answer is exact — the highest meter goes first, which
+  // is the same sort tick() uses, so the indicator cannot disagree with
+  // what actually happens. When nobody is ready yet it is a projection:
+  // whoever reaches 100% soonest at their current speed.
+  //
+  // The unit currently taking its turn is excluded: while someone acts,
+  // "next" means the one after them, not the one on screen.
+  nextUpUnit() {
+    const pool = this.livingUnits().filter((u) => u !== this.activeUnit);
+    if (pool.length === 0) return null;
+    const ready = pool.filter((u) => u.turnMeter >= CONFIG.TURN_METER_MAX);
+    if (ready.length > 0) {
+      return ready.reduce((a, b) => (b.turnMeter > a.turnMeter ? b : a));
+    }
+    // Projection. A unit with no speed never arrives, so it is skipped
+    // rather than being handed an infinite wait and winning by default.
+    let best = null;
+    let bestWait = Infinity;
+    for (const u of pool) {
+      const speed = u.effectiveStat('speed');
+      if (speed <= 0) continue;
+      const wait = (CONFIG.TURN_METER_MAX - u.turnMeter) / speed;
+      if (wait < bestWait) { bestWait = wait; best = u; }
+    }
+    return best;
+  }
+
   beginTurn(unit) {
     this.activeUnit = unit;
     unit.turnMeter = CONFIG.TURN_METER_MAX;
@@ -853,10 +884,10 @@ class Battle {
       if (u.synergyApOnEnemyTurn > 0 && ended && ended.team !== u.team) {
         gain += u.synergyApOnEnemyTurn;
       }
-      if (gain > 0) {
-        u.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
-          u.turnMeter + CONFIG.TURN_METER_MAX * gain);
-      }
+      // Uncapped, like every other meter gain: a unit already over 100%
+      // must not be pushed backwards by being given more (see the
+      // turnMeter effect in abilities.js).
+      if (gain > 0) u.turnMeter += CONFIG.TURN_METER_MAX * gain;
     }
   }
 

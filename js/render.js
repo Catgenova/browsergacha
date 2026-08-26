@@ -83,6 +83,10 @@ class Renderer {
     ctx.setTransform(q, 0, 0, q, 0, 0);
     ctx.clearRect(0, 0, CONFIG.CANVAS_W, CONFIG.CANVAS_H);
 
+    // Who moves next, resolved once per frame rather than once per
+    // plate — every plate needs the answer and it is the same answer.
+    this.nextUp = this.battle.nextUpUnit ? this.battle.nextUpUnit() : null;
+
     this.drawBackground();
     this.drawFormation(this.battle.playerSlots, 'rgba(120, 150, 220, 0.6)');
     this.drawFormation(this.battle.enemySlots, 'rgba(220, 120, 110, 0.6)');
@@ -574,15 +578,38 @@ class Renderer {
     ctx.fillStyle = hpFrac > 0.5 ? '#4ad46a' : hpFrac > 0.25 ? '#e8c84a' : '#e85a4a';
     ctx.fillRect(x - w / 2, top, w * hpFrac, h);
 
-    // Turn meter bar
+    // Turn meter bar.
+    //
+    // Meters overfill past 100% so that turn order stays concrete when a
+    // dozen units are all "ready" at once, and the bar has to show that
+    // or the player sees a wall of identical full bars and cannot tell
+    // who moves. Three states:
+    //
+    //   under 100%   blue, filling
+    //   100%+        full gold bar, with the overflow drawn back over it
+    //                in darker orange as a second lap
+    //   next to act  the same two, in red — the one unit who moves next
+    //
+    // Nobody acts below 100%, so the blue-to-gold change is also the
+    // line between "waiting" and "queued".
     const tmTop = top + h + 2;
-    const tmFrac = Math.min(1, unit.turnMeter / CONFIG.TURN_METER_MAX);
+    const tmH = h - 1;
+    const raw = unit.turnMeter / CONFIG.TURN_METER_MAX;
+    const tmFrac = Math.min(1, raw);
+    const overflow = Math.min(1, Math.max(0, raw - 1));
+    const isNext = this.nextUp === unit;
     ctx.fillStyle = '#0e0c14';
-    ctx.fillRect(x - w / 2 - 1, tmTop - 1, w + 2, h - 1 + 2);
+    ctx.fillRect(x - w / 2 - 1, tmTop - 1, w + 2, tmH + 2);
     ctx.fillStyle = '#3a3450';
-    ctx.fillRect(x - w / 2, tmTop, w, h - 1);
-    ctx.fillStyle = tmFrac >= 1 ? '#ffd76a' : '#8ecbff';
-    ctx.fillRect(x - w / 2, tmTop, w * tmFrac, h - 1);
+    ctx.fillRect(x - w / 2, tmTop, w, tmH);
+    ctx.fillStyle = isNext ? '#e8443a' : (tmFrac >= 1 ? '#ffd76a' : '#8ecbff');
+    ctx.fillRect(x - w / 2, tmTop, w * tmFrac, tmH);
+    // The overflow lap. A unit at 180% shows a bar 80% covered in the
+    // darker shade, so depth of queue is readable at a glance.
+    if (overflow > 0) {
+      ctx.fillStyle = isNext ? '#8f2018' : '#c8701a';
+      ctx.fillRect(x - w / 2, tmTop, w * overflow, tmH);
+    }
 
     // Name (shadowed for readability over bright field art)
     ctx.save();

@@ -453,8 +453,12 @@ const Abilities = (() => {
           return drainMeter(caster, target, -effect.amount);
         }
         const before = target.turnMeter;
-        target.turnMeter = Math.max(0, Math.min(CONFIG.TURN_METER_MAX,
-          target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX));
+        // No ceiling. Meters overfill past TURN_METER_MAX so that turn
+        // order among everyone already at 100% stays concrete, and
+        // clamping here made a gift into a punishment: pushing a unit
+        // sitting at 140% "up" by 30% used to drop them to 100%.
+        target.turnMeter = Math.max(0,
+          target.turnMeter + effect.amount * CONFIG.TURN_METER_MAX);
         // Remember who paid for the push, so the turn it buys can credit
         // its damage back (see Unit.outgoingAssists).
         const gained = target.turnMeter - before;
