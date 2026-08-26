@@ -619,6 +619,35 @@ const Abilities = (() => {
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
       }
+      case 'detonate': {
+        // Cash a damage-over-time in for everything it had left: the
+        // remaining ticks land at once and the poison is gone. Not a
+        // new debuff and not a recolour of one -- the player reads the
+        // ordinary poison plate and knows exactly what is about to be
+        // spent.
+        //
+        // EVERY dot on the target goes up, not only the caster's own,
+        // so a Firetroupe burn is as good a fuse as Sable's own poison.
+        // Ticks are locked in at cast, so the sum is exact: detonating
+        // deals precisely what waiting would have.
+        const fuses = target.statusEffects.filter((fx) => fx.kind === 'dot');
+        if (fuses.length === 0) return null;
+        const frac = effect.frac === undefined ? 1 : effect.frac;
+        let total = 0, turns = 0;
+        for (const fx of fuses) {
+          total += fx.amount * Math.max(0, fx.turns) * frac;
+          turns += Math.max(0, fx.turns);
+        }
+        total = Math.round(total);
+        target.statusEffects = target.statusEffects.filter((fx) => fx.kind !== 'dot');
+        if (total <= 0) return { kind: 'detonate', target, amount: 0, fuses: fuses.length };
+        // Through the same pipe a tick uses: you cannot dodge a poison
+        // already in you, and there is no incoming blow to reflect.
+        const hit = strike(caster, target, total,
+          { dodge: false, reflect: false, redirect: false });
+        return { kind: 'detonate', target, amount: hit.amount,
+          fuses: fuses.length, turns };
+      }
       case 'stealBuffs': {
         // Not a strip: the blessing comes OFF them and goes ON him,
         // carrying whatever turns it had left. Oldest first, up to

@@ -686,6 +686,12 @@ class Battle {
               'catches a 2-turn burn.', cls);
           }
         }
+      } else if (res.kind === 'detonate') {
+        this.addFloatingText(res.target, `☠ ${res.amount}`, '#a8e85a');
+        this.log(`${res.target.name}'s poison comes due all at once — ` +
+          `${res.amount} damage from ${res.turns} remaining turn` +
+          `${res.turns === 1 ? '' : 's'}.` +
+          (res.target.alive ? '' : ` ${res.target.name} succumbs!`), cls);
       } else if (res.kind === 'stealBuff') {
         if (res.resisted) {
           this.addFloatingText(res.target, 'RESIST', '#c8c2da');

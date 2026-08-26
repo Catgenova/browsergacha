@@ -3280,6 +3280,94 @@ Object.assign(HEROES, {
     positional: POSITIONALS.chime_bar,
   },
 
+  sable: {
+    id: 'sable',
+    element: 'dark',
+    name: 'Sable',
+    title: 'Gravetender of the Nightflowers',
+    rarity: 3,
+    // A back-line dark carry who does not so much attack as PLANT.
+    // Every swing seeds ordinary poison -- the same plate a player
+    // already knows on sight, not a recoloured one -- and his second
+    // skill is the flower opening: every poison on the field comes due
+    // at once. Nothing is wasted when a seeded enemy falls, because
+    // that is exactly when he is paid.
+    stats: { hp: 1350, atk: 180, def: 90, speed: 108 },
+    tint: { body: '#2a2038', helm: '#6a4a8a', weapon: '#e8d8f0', skin: '#e8d8c8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Sable/sableidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Sable/sableidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Sable/sableidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Sable/sableskill1.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Sable/sableskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Sable/sableskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Sable/sabledeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'dps',
+    abilities: [
+      {
+        id: 'sable_seedfall', name: 'Seedfall',
+        icon: 'assets/icons/fc1283.png',
+        description: 'Scatters seed across the field: 70% ATK to two random ' +
+          'enemies, each left poisoned for 30% ATK a turn over 3 turns.',
+        cooldown: 0, targeting: 'random-enemies', targetCount: 2,
+        animation: 'attack', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 0.70 },
+          { type: 'dot', pct: 0.30, turns: 3 },
+        ],
+      },
+      {
+        id: 'sable_open_the_flower', name: 'Open The Flower',
+        icon: 'assets/icons/fc1284.png',
+        description: 'The bloom on his staff opens and every seeded enemy ' +
+          'answers: all poison on the field comes due at once, dealing every ' +
+          'remaining tick immediately and burning itself out.',
+        cooldown: 3, targeting: 'all-enemies', animation: 'skill2',
+        effects: [
+          { type: 'detonate' },
+        ],
+      },
+      {
+        id: 'sable_grave_garden', name: 'Grave Garden',
+        icon: 'assets/icons/fc1285.png',
+        description: 'The whole field goes to seed: 110% ATK to every enemy, ' +
+          'and each is poisoned for 30% ATK a turn over 3 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'skill3',
+        impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.10 },
+          { type: 'dot', pct: 0.30, turns: 3 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'What Grows Back',
+      icon: 'assets/icons/fc1286.png',
+      description: 'Nothing seeded is ever wasted: whenever a poisoned enemy ' +
+        'dies, Sable gains 15 AP.',
+      hooks: {
+        onUnitDied(unit, { victim }) {
+          if (!victim || victim.team === unit.team) return null;
+          if (!victim.statusEffects.some((fx) => fx.kind === 'dot')) return null;
+          unit.turnMeter = Math.min(CONFIG.TURN_METER_MAX,
+            unit.turnMeter + CONFIG.TURN_METER_MAX * 0.15);
+          return { floats: [{ target: unit, text: '\u2740 +15 AP', color: '#c79aff' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.deep_roots,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',

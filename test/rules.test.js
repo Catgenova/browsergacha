@@ -4810,4 +4810,154 @@ test("Noctelle's kit: the wound and the mend are the same number", () => {
   }
 });
 
+test("Sable's kit: he plants ordinary poison, then calls it all due at once", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.sable;
+  assert(def && def.element === 'dark' && def.rarity === 3, 'Sable drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Sable left the Nightflowers');
+  assert(def.role === 'dps', 'Sable is not binned as a DPS');
+
+  // The seed is the game's ORDINARY poison -- no bespoke flavor, so it
+  // wears the plate every player already reads at a glance.
+  for (const ab of [def.abilities[0], def.abilities[2]]) {
+    const dot = ab.effects.find((e) => e.type === 'dot');
+    assert(dot, `${ab.id} plants nothing`);
+    assert(dot.flavor === undefined, `${ab.id} invented a debuff flavour`);
+    assert(dot.pct === 0.30 && dot.turns === 3, `${ab.id}'s poison drifted`);
+  }
+
+  const arena = (back = false) => {
+    const b = makeBattle();
+    const sable = place(b, def, TEAM.PLAYER, back ? 5 : 1);
+    const foes = [1, 2, 3].map((i) => place(b, DUMMIES.rat_knight, TEAM.ENEMY, i));
+    for (const f of foes) {
+      f.hp = f.maxHp = 10 ** 7;
+      f.dodgeChance = () => 0;
+      f.debuffResistance = () => 0;
+      f.effectiveStat = () => 0;
+    }
+    sable.baseCritChance = -1;
+    return { b, sable, foes };
+  };
+
+  // ---- Seedfall reaches two distinct enemies and seeds both ----
+  {
+    const { b, sable, foes } = arena();
+    assert(def.abilities[0].targeting === 'random-enemies' &&
+      def.abilities[0].targetCount === 2, 'Seedfall stopped scattering');
+    const res = A.execute(def.abilities[0], sable, null, b);
+    const hits = res.filter((r) => r.kind === 'damage');
+    assert(hits.length === 2, `Seedfall hit ${hits.length}, wanted 2`);
+    assert(hits[0].target !== hits[1].target, 'Seedfall seeded the same enemy twice');
+    for (const h of hits) {
+      assert(h.target.statusEffects.some((fx) => fx.kind === 'dot'),
+        `${h.target.def.id} took the hit but no seed`);
+    }
+    // Untouched enemies stay clean.
+    const seeded = new Set(hits.map((h) => h.target));
+    for (const f of foes) {
+      if (seeded.has(f)) continue;
+      assert(!f.statusEffects.some((fx) => fx.kind === 'dot'),
+        'an enemy Seedfall never reached was poisoned anyway');
+    }
+  }
+
+  // ---- Grave Garden seeds the whole field ----
+  {
+    const { b, sable, foes } = arena();
+    const res = A.execute(def.abilities[2], sable, null, b);
+    assert(res.filter((r) => r.kind === 'damage').length === foes.length,
+      'Grave Garden missed part of the field');
+    for (const f of foes) {
+      assert(f.statusEffects.some((fx) => fx.kind === 'dot'), `${f.def.id} went unseeded`);
+    }
+  }
+
+  // ---- Open The Flower pays exactly what waiting would have ----
+  {
+    const { b, sable, foes } = arena();
+    A.execute(def.abilities[2], sable, null, b);   // seed everyone
+    const owed = foes.map((f) => f.statusEffects
+      .filter((fx) => fx.kind === 'dot')
+      .reduce((n, fx) => n + fx.amount * fx.turns, 0));
+    assert(owed.every((n) => n > 0), 'nothing was owed to detonate');
+    const before = foes.map((f) => f.hp);
+    const res = A.execute(def.abilities[1], sable, null, b);
+    const blasts = res.filter((r) => r.kind === 'detonate');
+    assert(blasts.length === foes.length, `detonated ${blasts.length} of ${foes.length}`);
+    foes.forEach((f, i) => {
+      assert(before[i] - f.hp === owed[i],
+        `${f.def.id} paid ${before[i] - f.hp} for ${owed[i]} owed`);
+      assert(!f.statusEffects.some((fx) => fx.kind === 'dot'),
+        'the poison survived its own detonation');
+    });
+    // A clean field detonates to nothing rather than misreporting.
+    const again = A.execute(def.abilities[1], sable, null, b);
+    assert(!again.some((r) => r.kind === 'detonate'),
+      'an unseeded field still reported a detonation');
+  }
+
+  // ---- Any poison is a fuse, not only his own ----
+  {
+    const { b, sable, foes } = arena();
+    const mark = foes[0];
+    // A burn from someone else entirely.
+    mark.addStatusEffect({ kind: 'dot', flavor: 'burn', amount: 200, turns: 2,
+      source: foes[1] });
+    const before = mark.hp;
+    const res = A.execute(def.abilities[1], sable, mark, b);
+    const blast = res.find((r) => r.kind === 'detonate' && r.target === mark);
+    assert(blast && before - mark.hp === 400,
+      `a borrowed burn paid ${before - mark.hp}, wanted 400`);
+  }
+
+  // ---- What Grows Back pays only for a POISONED enemy corpse ----
+  {
+    const { b, sable, foes } = arena();
+    const prev = Battle.active;
+    Battle.active = b;
+    try {
+      sable.turnMeter = 0;
+      // An unpoisoned enemy dying pays nothing.
+      foes[0].hp = 1;
+      foes[0].takeDamage(50);
+      assert(!foes[0].alive, 'sanity: the enemy did not die');
+      assert(sable.turnMeter === 0, 'an unseeded corpse paid out');
+      // A poisoned one pays 15 AP.
+      foes[1].addStatusEffect({ kind: 'dot', amount: 10, turns: 2, source: sable });
+      foes[1].hp = 1;
+      foes[1].takeDamage(50);
+      assert(!foes[1].alive, 'sanity: the poisoned enemy did not die');
+      assert(Math.abs(sable.turnMeter - CONFIG.TURN_METER_MAX * 0.15) < 1e-6,
+        `a poisoned corpse paid ${sable.turnMeter}`);
+      // An ALLY dying poisoned pays nothing -- the hook rings for both
+      // sides, so the side check has to be real.
+      const mate = place(b, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+      mate.addStatusEffect({ kind: 'dot', amount: 10, turns: 2, source: foes[2] });
+      const held = sable.turnMeter;
+      mate.hp = 1;
+      mate.takeDamage(10 ** 7);
+      assert(!mate.alive, 'sanity: the ally did not die');
+      assert(sable.turnMeter === held, 'a fallen ally paid Sable');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- Deep Roots makes the seed bite harder from the back hex ----
+  {
+    assert(def.positional.name === 'Deep Roots' &&
+      def.positional.position === POSITION.BACK &&
+      def.positional.hooks.dotBoostAdd === 0.30, 'the back-hex bonus drifted');
+    const back = arena(true), front = arena(false);
+    assert(back.sable.slot.position === POSITION.BACK &&
+      front.sable.slot.position !== POSITION.BACK, 'sanity: same hex twice');
+    const seedOn = (a) => {
+      A.execute(def.abilities[2], a.sable, null, a.b);
+      return a.foes[0].statusEffects.find((fx) => fx.kind === 'dot').amount;
+    };
+    const deep = seedOn(back), shallow = seedOn(front);
+    assert(Math.abs(deep / shallow - 1.30) < 0.02,
+      `back hex seeded ${deep} vs ${shallow} off it`);
+  }
+});
+
 report();
