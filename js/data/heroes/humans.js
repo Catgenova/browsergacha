@@ -3726,6 +3726,98 @@ Object.assign(HEROES, {
     positional: POSITIONALS.long_stems,
   },
 
+  lenore: {
+    id: 'lenore',
+    element: 'dark',
+    name: 'Lenore',
+    title: 'Passing Bell of the Nightflowers',
+    rarity: 3,
+    // The sect's mourner, and the accessible half of its centre hex --
+    // where Evelune sells tempo, Lenore sells bulk. Every figure she
+    // heals is a share of her OWN pool, so the gear that keeps her
+    // standing is the gear that mends. Her passive is the whole hero:
+    // a bell rung for a death is a bell she gets to ring again sooner.
+    stats: { hp: 1850, atk: 110, def: 140, speed: 106 },
+    tint: { body: '#2c2244', helm: '#c8a84a', weapon: '#d8c078', skin: '#e8d8c8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle:  { src: 'assets/heroes/Lenore/lenoreidle.png', frames: 'auto', fps: 7, loop: true },
+        idle2: { src: 'assets/heroes/Lenore/lenoreidle1.png', frames: 'auto', fps: 6, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        idle3: { src: 'assets/heroes/Lenore/lenoreidle2.png', frames: 'auto', fps: 7, loop: false,
+                 variantOf: 'idle', every: [8, 15] },
+        attack: { src: 'assets/heroes/Lenore/lenoreskill1.png', frames: 'auto', fps: 10,
+                  loop: false },
+        skill2: { src: 'assets/heroes/Lenore/lenoreskill2.png', frames: 'auto', fps: 11,
+                  loop: false },
+        skill3: { src: 'assets/heroes/Lenore/lenoreskill3.png', frames: 'auto', fps: 11,
+                  loop: false },
+        death:  { src: 'assets/heroes/Lenore/lenoredeath.png', frames: 'auto', fps: 8,
+                  loop: false, freeze: true },
+      },
+    },
+    role: 'support',
+    abilities: [
+      {
+        id: 'lenore_single_toll', name: 'Single Toll',
+        icon: 'assets/icons/fc1303.png',
+        description: 'One ring, for whoever needs it: the ally in the worst ' +
+          "shape recovers 20% of Lenore's max HP.",
+        cooldown: 0, targeting: 'lowest-allies', allyCount: 1,
+        animation: 'attack', impact: 'heal_purple',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+        ],
+      },
+      {
+        id: 'lenore_muffled_peal', name: 'Muffled Peal',
+        icon: 'assets/icons/fc1304.png',
+        description: 'Rung muffled, the way it is rung for the dead: the ' +
+          'whole team braces at +30% DEF for 2 turns and recovers 10% of ' +
+          "Lenore's max HP a turn while the sound holds.",
+        cooldown: 5, targeting: 'all-allies', animation: 'skill2', impact: 'heal_purple',
+        effects: [
+          { type: 'buff', stat: 'def', mult: 1.30, turns: 2 },
+          { type: 'hot', pct: 0.10, turns: 2 },
+        ],
+      },
+      {
+        id: 'lenore_open_ring', name: 'Open Ring',
+        icon: 'assets/icons/fc1305.png',
+        description: 'The bell opened all the way: every ally recovers 20% ' +
+          "of Lenore's max HP and takes a shield worth 10% of it for 2 turns.",
+        cooldown: 6, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
+        effects: [
+          { type: 'healHpPct', pct: 0.20 },
+          { type: 'shield', pct: 0.10, turns: 2 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Passing Bell',
+      icon: 'assets/icons/fc1306.png',
+      description: 'A bell rung for a death is a bell she rings again ' +
+        'sooner: whenever an ally falls, every one of her cooldowns drops ' +
+        'by 1 turn.',
+      hooks: {
+        onUnitDied(unit, { victim }) {
+          if (!unit.alive || !victim || victim === unit) return null;
+          if (victim.team !== unit.team) return null;
+          let moved = 0;
+          for (const a of unit.abilities) {
+            if (a.cooldownRemaining <= 0) continue;
+            a.cooldownRemaining -= 1;
+            moved++;
+          }
+          if (moved === 0) return null;
+          return { floats: [{ target: unit, text: '\u266a -1 CD', color: '#8ee8ff' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.bell_tower,
+  },
+
   noctelle: {
     id: 'noctelle',
     element: 'dark',

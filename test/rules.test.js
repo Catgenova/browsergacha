@@ -5599,4 +5599,138 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
   }
 });
 
+test("Lenore's kit: the bell is priced off her own pool, and a death rings it sooner", () => {
+  const A = Abilities, H = HEROES;
+  const def = H.lenore;
+  assert(def && def.element === 'dark' && def.rarity === 3, 'Lenore drifted');
+  assert(RACES.sectOf(def).id === 'nightflower', 'Lenore left the Nightflowers');
+  assert(def.role === 'support', 'Lenore is not binned as a support');
+  assert(def.abilities[1].cooldown === 5 && def.abilities[2].cooldown === 6,
+    'her cooldowns drifted');
+  // Every figure she hands out is a share of HER pool, never her ATK.
+  for (const ab of def.abilities) {
+    for (const e of (ab.effects || [])) {
+      if (['healHpPct', 'hot', 'shield'].includes(e.type)) {
+        assert(e.pct !== undefined && e.mult === undefined,
+          `${ab.id}'s ${e.type} is not priced off her max HP`);
+      }
+    }
+  }
+
+  const arena = (centre = true) => {
+    const b = new Battle();
+    const mk = (d, team, slot) => {
+      const u = new Unit(d, team, { level: 30, stars: d.rarity || 3 });
+      b.placeUnit(u, slot);
+      return u;
+    };
+    const le = mk(def, TEAM.PLAYER, centre ? 0 : 1);
+    const mates = [2, 3].map((i) => mk(DUMMIES.rat_knight, TEAM.PLAYER, i));
+    const foe = mk(DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    for (const m of mates) { m.maxHp = 8000; m.hp = 2000; }
+    return { b, le, mates, foe };
+  };
+  const live = (b, fn) => {
+    const prev = Battle.active; Battle.active = b;
+    try { return fn(); } finally { Battle.active = prev; }
+  };
+
+  // ---- Single Toll finds the worst-off ally, not a chosen one ----
+  {
+    const { b, le, mates } = arena();
+    mates[0].hp = 400;                       // the one in the worst shape
+    mates[1].hp = 7000;
+    const before = mates[0].hp, spared = mates[1].hp;
+    live(b, () => A.execute(def.abilities[0], le, mates[1], b));
+    assert(mates[0].hp - before === Math.round(le.maxHp * 0.20),
+      `the toll mended ${mates[0].hp - before}, wanted ${Math.round(le.maxHp * 0.20)}`);
+    assert(mates[1].hp === spared,
+      'the toll went to the ally that was picked rather than the one bleeding');
+  }
+
+  // ---- Muffled Peal: the whole team braces AND regenerates ----
+  {
+    const { b, le, mates } = arena();
+    const defs = mates.map((m) => m.effectiveStat('def'));
+    live(b, () => A.execute(def.abilities[1], le, null, b));
+    const want = Math.round(le.maxHp * 0.10);
+    for (const u of [le, ...mates]) {
+      assert(u.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'def' &&
+        fx.mult === 1.30 && fx.turns === 2), `${u.def.id} did not brace`);
+      const hot = u.statusEffects.find((fx) => fx.kind === 'hot');
+      assert(hot && hot.amount === want && hot.turns === 2,
+        `${u.def.id}'s regen is ${hot && hot.amount}, wanted ${want}`);
+      assert(hot.source === le, 'the regen does not credit the bell');
+    }
+    mates.forEach((m, i) => assert(m.effectiveStat('def') === Math.round(defs[i] * 1.30),
+      'the brace did not move DEF'));
+  }
+
+  // ---- Open Ring: a mend and a shield, both off her pool ----
+  {
+    const { b, le, mates } = arena();
+    const before = mates.map((m) => m.hp);
+    live(b, () => A.execute(def.abilities[2], le, null, b));
+    const mend = Math.round(le.maxHp * 0.20), wall = Math.round(le.maxHp * 0.10);
+    mates.forEach((m, i) => {
+      assert(m.hp - before[i] === mend, `${m.def.id} mended ${m.hp - before[i]}`);
+      assert(m.shieldTotal() === wall, `${m.def.id} has ${m.shieldTotal()} of shield`);
+    });
+    assert(le.shieldTotal() === wall, 'the bell-ringer shielded everyone but herself');
+    // And the shield really is a pool that eats damage before HP.
+    const hp = mates[0].hp;
+    live(b, () => mates[0].takeDamage(wall));
+    assert(mates[0].hp === hp && mates[0].shieldTotal() === 0,
+      'the shield did not absorb the blow whole');
+  }
+
+  // ---- The Passing Bell: an ALLY death takes a turn off everything ----
+  {
+    const { b, le, mates, foe } = arena();
+    live(b, () => {
+      for (const a of le.abilities) a.cooldownRemaining = 4;
+      le.abilities[0].cooldownRemaining = 0;      // a ready skill stays ready
+      // An ENEMY falling is not her grief.
+      foe.hp = 1; foe.takeDamage(10);
+      assert(!foe.alive, 'sanity: the enemy lived');
+      assert(le.abilities[1].cooldownRemaining === 4,
+        'an enemy death rang her bell');
+      // An ally falling does.
+      mates[0].hp = 1; mates[0].takeDamage(10 ** 7);
+      assert(!mates[0].alive, 'sanity: the ally lived');
+      assert(le.abilities[1].cooldownRemaining === 3 &&
+        le.abilities[2].cooldownRemaining === 3,
+        `a fallen ally moved her to ${le.abilities[1].cooldownRemaining}`);
+      assert(le.abilities[0].cooldownRemaining === 0,
+        'a ready skill was pushed below zero');
+      // A second death takes another turn, one at a time.
+      mates[1].hp = 1; mates[1].takeDamage(10 ** 7);
+      assert(le.abilities[1].cooldownRemaining === 2, 'the second bell did not ring');
+      // Her own death rings nothing.
+      le.abilities[1].cooldownRemaining = 4;
+      le.hp = 1; le.takeDamage(10 ** 7);
+      assert(!le.alive, 'sanity: she lived');
+      assert(le.abilities[1].cooldownRemaining === 4, 'she rang her own passing bell');
+    });
+  }
+
+  // ---- Bell Tower: the middle keeps ringing every turn ----
+  {
+    assert(def.positional.name === 'Bell Tower' &&
+      def.positional.position === POSITION.CENTER, 'the centre-hex bonus drifted');
+    const mid = arena(true), off = arena(false);
+    assert(mid.le.slot.position === POSITION.CENTER &&
+      off.le.slot.position !== POSITION.CENTER, 'sanity: same hex twice');
+    const tick = (a) => {
+      const before = a.mates.map((m) => m.hp);
+      live(a.b, () => a.le.startTurn(a.b));
+      return a.mates.map((m, i) => m.hp - before[i]);
+    };
+    const rung = tick(mid), silent = tick(off);
+    const want = Math.round(mid.le.maxHp * 0.05);
+    assert(rung.every((n) => n === want), `the tower mended ${rung}, wanted ${want}`);
+    assert(silent.every((n) => n === 0), `it rang off its own hex: ${silent}`);
+  }
+});
+
 report();
