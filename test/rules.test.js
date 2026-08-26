@@ -7134,4 +7134,95 @@ test('Peck feeds a full table better than a thin one, and wastes no overheal', (
     "another healer's overheal turned into a ward -- the passive leaked");
 });
 
+test('Talon sets deeper the more of them pull, and takes the strain for the crew', () => {
+  const talon = HEROES.talon;
+  assert(talon.passive.hooks.damageTakenMult, 'Talon lost Ground Tackle');
+
+  // A real Battle: Ground Tackle counts the living, and Set Fast fires
+  // out of takeDamage, so both need Battle.active.
+  //
+  // The victims are rat_brawlers, NOT rat_knights. The knight's own
+  // passive (Bulwark) gives it 15% mitigation once three of its allies
+  // stand, so a bench that varies enemy COUNT against knights measures
+  // the knight rather than the hero -- which is exactly the trap this
+  // comment exists to stop the next person walking into.
+  function field(nFoes, hex = POSITION.FRONT, frontOnly = true) {
+    const battle = new Battle();
+    const t = new Unit(talon, TEAM.PLAYER, { level: 30, stars: 4 });
+    battle.placeUnit(t, battle.playerSlots.findIndex((sl) => sl.position === hex));
+    t.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    const idx = frontOnly
+      ? battle.enemySlots.map((sl, i) => [sl, i])
+        .filter(([sl]) => sl.position === POSITION.FRONT).map(([, i]) => i)
+      : battle.enemySlots.map((sl, i) => i);
+    const foes = [];
+    for (let i = 0; i < nFoes; i++) {
+      const f = new Unit(DUMMIES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 4 });
+      battle.placeUnit(f, idx[i]);
+      f.hp = f.maxHp = 9e6;
+      foes.push(f);
+    }
+    return { battle, t, foes };
+  }
+
+  // Ground Tackle: 5% off per living enemy, and it stops at six so a
+  // seven-hex field and a boss room are worth the same.
+  const taken = [1, 2, 4, 6, 7].map((n) =>
+    field(n, POSITION.FRONT, false).t.damageTakenMult(null));
+  for (let i = 1; i < 4; i++) {
+    assert(taken[i] < taken[i - 1],
+      `Ground Tackle did not deepen: ${taken.map((x) => x.toFixed(2)).join(' -> ')}`);
+  }
+  assert(Math.abs(taken[3] - taken[4]) < 0.001,
+    `the seventh enemy still paid: ${taken[3].toFixed(2)} vs ${taken[4].toFixed(2)}`);
+  assert(Math.abs(taken[3] - 0.70) < 0.001,
+    `a full line leaves him on x${taken[3].toFixed(2)}, wanted x0.70`);
+
+  // His swing is priced off DEF and takes the sect's crowd bonus.
+  const swing = [1, 2, 3].map((n) => {
+    const { battle, t, foes } = field(n);
+    const before = foes.map((u) => u.hp);
+    const real = Math.random;
+    Math.random = () => 0.99;
+    Abilities.execute(t.abilities[0].def, t, foes[0], battle);
+    Math.random = real;
+    const dealt = foes.map((u, i) => before[i] - u.hp);
+    assert(dealt.every((d) => d === dealt[0]),
+      `one swing dealt ${[...new Set(dealt)].join('/')} to different bodies`);
+    return dealt[0];
+  });
+  for (let i = 1; i < swing.length; i++) {
+    assert(swing[i] > swing[i - 1],
+      `Anchor Swing did not deepen with the crowd: ${swing.join(' -> ')}`);
+  }
+
+  // Snub the Cable: the first team-wide mitigation on the roster, and
+  // buffPower deepens it AWAY from neutral rather than toward it.
+  {
+    const { battle, t } = field(3);
+    const mate = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+    battle.placeUnit(mate, battle.playerSlots.findIndex(
+      (sl) => sl.position === POSITION.BACK));
+    const plain = mate.damageTakenMult(null);
+    Abilities.execute(t.abilities[1].def, t, mate, battle);
+    const covered = mate.damageTakenMult(null);
+    assert(covered < plain, `the crew took x${covered} against x${plain} uncovered`);
+    const printed = talon.abilities[1].effects[0].mult;
+    assert(covered < printed - 0.001,
+      `a maxed Snub sat at x${covered}, no deeper than its printed x${printed}`);
+  }
+
+  // Set Fast: swinging at an anchor costs the swinger, and only while
+  // he is standing on the hex it names.
+  for (const [hex, shouldPay] of [[POSITION.FRONT, true], [POSITION.CENTER, false]]) {
+    const { t, foes } = field(2, hex);
+    foes[0].turnMeter = CONFIG.TURN_METER_MAX * 0.9;
+    const before = foes[0].turnMeter;
+    t.takeDamage(100, foes[0]);
+    const paid = before - foes[0].turnMeter;
+    assert(shouldPay ? paid > 0 : paid === 0,
+      `on the ${hex} hex the attacker paid ${Math.round(paid)} meter`);
+  }
+});
+
 report();

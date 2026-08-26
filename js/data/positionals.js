@@ -159,6 +159,28 @@ const POSITIONALS = (() => {
     hooks: { shieldExtraTurns: 1 },
   });
 
+  // Talon's hex: swing at an anchor and it is your footing that goes.
+  def('set_fast', {
+    position: POSITION.FRONT,
+    name: 'Set Fast',
+    description: 'Front hex: +20% DEF, and anyone who strikes him loses 10% of their action bar.',
+    hooks: {
+      statMult: (u, stat) => (stat === 'def' ? 1.20 : 1),
+      onStruck(unit, { attacker, battle }) {
+        if (!attacker || !attacker.alive || attacker.team === unit.team) return null;
+        // Straight off the bar rather than through drainMeter: this is
+        // the attacker's own swing costing them, not a hex Talon threw,
+        // so there is no application gate to roll and nothing to
+        // resist.
+        const before = attacker.turnMeter;
+        attacker.turnMeter = Math.max(0, attacker.turnMeter - CONFIG.TURN_METER_MAX * 0.10);
+        if (attacker.turnMeter >= before) return null;
+        if (battle) battle.addFloatingText(attacker, '\u2693', '#8ecfe8');
+        return null;
+      },
+    },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

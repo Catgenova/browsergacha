@@ -449,4 +449,101 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.slow_simmer,
   },
+
+  talon: {
+    id: 'talon',
+    element: 'water',
+    name: 'Talon',
+    title: 'Ground Tackle',
+    rarity: 4,
+    // The wall the rest of the sect is built behind. Four Gulldiggers
+    // are among the frailest bodies on the roster -- Hallow at 825,
+    // Jack at 805, Phil at 885 -- and Talon is the answer to all three
+    // of them at once. His damage is priced off DEF, so the stat that
+    // keeps him alive is also the stat that makes him hit.
+    // (Ratios only; js/data/balance.js scales all three to the shared
+    // budget and leaves speed alone.)
+    stats: { hp: 2600, atk: 90, def: 280, speed: 94 },
+    tint: { body: '#2a3a6a', helm: '#1a2a4a', weapon: '#8a8a94', shield: '#c8a86a' },
+    sprite: {
+      displayH: 100, // hunched, but he is the biggest bird on the deck
+      strips: {
+        idle: { src: 'assets/heroes/gulldigger/Talonidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'anchor_swing', name: 'Anchor Swing',
+        icon: 'assets/icons/fc1045.png',
+        description: 'Bring the whole anchor round: 70% of Talon\'s DEF to the enemy FRONT row, ' +
+          'and 5% more to each of them for every enemy beyond the first it reaches.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damageDef', mult: 0.7, perTarget: 0.05 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { perTarget: 0.02 },
+        ],
+      },
+      {
+        id: 'snub_the_cable', name: 'Snub the Cable',
+        icon: 'assets/icons/fc1113.png',
+        description: 'Take the strain for the whole crew: ALL allies take 20% less damage ' +
+          'for 2 turns.',
+        cooldown: 4, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // The first team-wide mitigation in the game. Nothing on the
+        // roster reduced incoming damage for the whole side before
+        // this, which is a strange gap until you notice that no sect
+        // needed it as badly as one made out of paper.
+        effects: [{ type: 'buff', stat: 'damageTaken', mult: 0.80, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'let_go_the_anchor', name: 'Let Go the Anchor',
+        icon: 'assets/icons/fc786.png',
+        description: 'Drop the whole weight of it: 140% of Talon\'s DEF to the enemy FRONT row, ' +
+          '10% more to each for every enemy beyond the first, and Talon takes a ward worth ' +
+          '20% of his max HP for 3 turns.',
+        cooldown: 7, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damageDef', mult: 1.4, perTarget: 0.10 }],
+        selfEffects: [{ type: 'shield', pct: 0.20, turns: 3 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { perTarget: 0.02 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ground Tackle',
+      icon: 'assets/icons/fc1053.png',
+      description: 'The more of them pull on it, the deeper it sets: Talon takes 5% less ' +
+        'damage for every living enemy, down to 30% less against a full line.',
+      hooks: {
+        // The sect's crowd bonus, worn by the one Gulldigger who is not
+        // hitting anybody with it. Capped at six bodies so a seven-hex
+        // field and a full boss room are worth the same.
+        damageTakenMult(unit) {
+          const b = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!b) return 1;
+          const foes = b.livingUnits(unit.enemyTeam()).length;
+          return 1 - 0.05 * Math.min(6, foes);
+        },
+      },
+    },
+    positional: POSITIONALS.set_fast,
+  },
 });
