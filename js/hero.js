@@ -925,6 +925,26 @@ class Unit {
     // through — ability, passive hook or set bonus alike. The guard
     // keeps a hook that answers by applying another status from
     // setting itself off.
+    // A blessing landing rings through the receiver's OWN side, so a
+    // passive that answers the team being buffed (Evelune's chord)
+    // hears it here -- the one place every buff passes through,
+    // ability and hook alike. The ring is guarded, so a hook that
+    // answers by applying another buff cannot set itself off, and a
+    // spread copy never spreads again.
+    if (e.kind === 'buff' && !Unit.buffRinging) {
+      const bb = typeof Battle !== 'undefined' ? Battle.active : null;
+      if (bb) {
+        Unit.buffRinging = true;
+        try {
+          for (const ally of bb.livingUnits(this.team)) {
+            for (const p of (ally.hookSources ? ally.hookSources() : [])) {
+              const hook = p.hooks && p.hooks.onAllyBuffed;
+              if (hook) hook(ally, { receiver: this, effect: e, battle: bb });
+            }
+          }
+        } finally { Unit.buffRinging = false; }
+      }
+    }
     if ((e.kind !== 'debuff' && e.kind !== 'dot') || Unit.debuffRinging) return true;
     const battle = typeof Battle !== 'undefined' ? Battle.active : null;
     if (!battle) return true;

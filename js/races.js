@@ -27,7 +27,7 @@ const RACES = (() => {
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
     'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
     'tumble', 'posie', 'galen', 'ilyra', 'ryn', 'imani', 'wren', 'asher',
-    'noctelle', 'sable',
+    'noctelle', 'sable', 'evelune',
   ]);
 
   const NAMES = {
@@ -77,7 +77,7 @@ const RACES = (() => {
     // roster — the same courtesy Shadowflower got. Members land as the
     // heroes themselves are wired.
     nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
-                 members: ['noctelle', 'sable'] },
+                 members: ['noctelle', 'sable', 'evelune'] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',

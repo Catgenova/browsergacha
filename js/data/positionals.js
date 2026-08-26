@@ -339,6 +339,14 @@ const POSITIONALS = (() => {
     hooks: { accuracyAdd: 0.30 },
   });
 
+  def('first_chair', {
+    position: POSITION.CENTER,
+    name: 'First Chair',
+    description: 'Center hex: +25% SPD — from the middle of the ring the ' +
+      'whole formation plays to her time.',
+    stat: 'speed', mult: 1.25,
+  });
+
   def('deep_roots', {
     position: POSITION.BACK,
     name: 'Deep Roots',

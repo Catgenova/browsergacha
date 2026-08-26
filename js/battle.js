@@ -686,6 +686,19 @@ class Battle {
               'catches a 2-turn burn.', cls);
           }
         }
+      } else if (res.kind === 'cooldownReduce') {
+        if (res.moved > 0) {
+          this.addFloatingText(res.target, `♪ -${res.turns} CD`, '#8ee8ff');
+          this.log(`${res.target.name} hears it again — skills come back ` +
+            `${res.turns} turn${res.turns === 1 ? '' : 's'} early.`, cls);
+        }
+      } else if (res.kind === 'extendBuffs') {
+        if (res.count > 0) {
+          this.addFloatingText(res.target, `♪ +${res.turns}`, '#ffd76a');
+          this.log(`The chord holds — ${res.count} blessing` +
+            `${res.count === 1 ? '' : 's'} on ${res.target.name} last ` +
+            `${res.turns} turn${res.turns === 1 ? '' : 's'} longer.`, cls);
+        }
       } else if (res.kind === 'detonate') {
         this.addFloatingText(res.target, `☠ ${res.amount}`, '#a8e85a');
         this.log(`${res.target.name}'s poison comes due all at once — ` +

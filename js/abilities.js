@@ -619,6 +619,36 @@ const Abilities = (() => {
         } finally { Unit.hookOwner = prevOwner; }
         return { kind: 'stripBuff', target, count: removed, burned };
       }
+      case 'cooldownReduce': {
+        // Hand an ally their skills back early. The ability being cast
+        // is skipped -- a refresh that refreshed itself would never go
+        // on cooldown at all -- and a skill already ready is untouched
+        // rather than driven negative.
+        const by = effect.turns || 1;
+        let moved = 0;
+        for (const a of (target.abilities || [])) {
+          if (a.def === currentAbility) continue;
+          if (a.cooldownRemaining <= 0) continue;
+          const was = a.cooldownRemaining;
+          a.cooldownRemaining = Math.max(0, was - by);
+          moved += was - a.cooldownRemaining;
+        }
+        return { kind: 'cooldownReduce', target, turns: by, moved };
+      }
+      case 'extendBuffs': {
+        // Hold the note: every blessing the target is wearing runs
+        // longer. Buffs only -- a debuff is somebody else's chord --
+        // and it creates nothing, so a target with nothing on stays
+        // with nothing on.
+        const by = effect.turns || 1;
+        let held = 0;
+        for (const fx of target.statusEffects) {
+          if (fx.kind !== 'buff') continue;
+          fx.turns += by;
+          held++;
+        }
+        return { kind: 'extendBuffs', target, turns: by, count: held };
+      }
       case 'detonate': {
         // Cash a damage-over-time in for everything it had left: the
         // remaining ticks land at once and the poison is gone. Not a
