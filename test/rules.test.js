@@ -8487,7 +8487,7 @@ test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () =
     } finally { Battle.active = prev; }
   }
 
-  // ---- 4pc Catches Twice ----
+  // ---- 4pc Encore: a crit that lands again ----
   {
     const { battle, units } = party(4);
     const caster = units[0];
@@ -9440,6 +9440,120 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
       `three Gulldiggers reached ${reachOf(3)} — the centre is not theirs yet`);
     assert(reachOf(4) === 'center,front',
       `four Gulldiggers reached ${reachOf(4)}, wanted the centre folded in`);
+  }
+});
+
+// The last sect. The Phoenix Court light the fires that the Firetroupe's
+// oil doubles, and their pack is about making those fires LAST: longer
+// by rekindling, harder per tick, and a turn longer again on top.
+test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer', () => {
+  const court = RACES.SECTS.phoenixcourt.members;
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[court[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  const burn = (caster, target, turns = 3) =>
+    Abilities.applyEffect({ type: 'dot', amount: 500, turns, flavor: 'burn' },
+      caster, target, 1);
+
+  // ---- 2pc Catches Twice: extends rather than stacks ----
+  {
+    const { battle, units } = party(2);
+    // Flurry owns the original hook; measure on a bird who does not.
+    const caster = units.find((u) => u.def.id !== 'flurry') || units[1];
+    const foe = roomy(place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      burn(caster, foe);
+      const first = foe.statusEffects.filter(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+      assert(first.length === 1, `the first burn laid ${first.length} fires`);
+      const turnsAfterOne = first[0].turns;
+
+      burn(caster, foe);
+      const fires = foe.statusEffects.filter(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+      assert(fires.length === 1,
+        `a second burn laid a SECOND fire (${fires.length}) instead of feeding the first`);
+      assert(fires[0].turns === turnsAfterOne + 1,
+        `the fire went ${turnsAfterOne} -> ${fires[0].turns}, wanted one more turn`);
+    } finally { Battle.active = prev; }
+
+    // One Court bird does not rekindle -- unless it is Flurry, who
+    // carries the passive herself.
+    const one = party(1);
+    const foe1 = roomy(place(one.battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
+    Battle.active = one.battle;
+    try {
+      burn(one.units[0], foe1);
+      burn(one.units[0], foe1);
+      const n = foe1.statusEffects.filter(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn').length;
+      const want = one.units[0].def.id === 'flurry' ? 1 : 2;
+      assert(n === want, `one Court bird left ${n} fires, wanted ${want}`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 3pc Draught: every tick lands harder ----
+  {
+    const bare = new Unit(HEROES[court[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(3);
+    assert(Math.abs(units[0].gearDotBoost - (bare.gearDotBoost + 0.20)) < 1e-9,
+      `Draught set the boost to ${units[0].gearDotBoost}`);
+    assert(party(2).units[0].gearDotBoost === bare.gearDotBoost,
+      'Draught fanned the fire at two Court birds');
+  }
+
+  // ---- 4pc Long Burn: a turn longer, and it COMPOUNDS with 2pc ----
+  {
+    const { battle, units } = party(4);
+    const caster = units.find((u) => u.def.id !== 'flurry') || units[1];
+    const foe = roomy(place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      burn(caster, foe, 3);
+      const fire = foe.statusEffects.find(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+      assert(fire.turns === 4, `a 3-turn burn landed at ${fire.turns}, wanted 4`);
+      // Rekindled on top: the extension is added to the already-longer
+      // fire, so one cast and one rekindle is worth two of neither.
+      burn(caster, foe, 3);
+      assert(fire.turns === 5,
+        `the rekindled fire sits at ${fire.turns}, wanted 5`);
+    } finally { Battle.active = prev; }
+
+    // Three do not carry it.
+    const three = party(3);
+    const foe3 = roomy(place(three.battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
+    Battle.active = three.battle;
+    try {
+      burn(three.units[0], foe3, 3);
+      const f = foe3.statusEffects.find(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+      assert(f.turns === 3, `three Court birds stretched the fire to ${f.turns}`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- the element tier gave Flurry her name back ----
+  {
+    const fire4 = RACES.ELEMENT_PARTY_BONUSES.fire.find((t) => t.count === 4);
+    assert(fire4.name !== 'Catches Twice',
+      'the fire element tier is using Flurry\'s name again');
+    assert(HEROES.flurry.passive.name === 'Catches Twice',
+      'Flurry no longer owns her own passive name');
+    const court2 = RACES.SECT_PARTY_BONUSES.phoenixcourt.find((t) => t.count === 2);
+    assert(court2.name === 'Catches Twice', 'the Court lost the name');
   }
 });
 

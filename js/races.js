@@ -245,7 +245,11 @@ const RACES = (() => {
         label: '+25% damage to an enemy already burning',
       },
       {
-        count: 4, name: 'Catches Twice',
+        count: 4, name: 'Encore',
+        // Renamed off "Catches Twice", which is Flurry's passive and
+        // means something else entirely -- a burn rekindling rather
+        // than a crit landing again. The Phoenix Court's 2pc now
+        // carries that name, which is where it always belonged.
         // Read in Abilities.strike, where the crit is settled. The
         // follow-up is a real blow at half the swing -- dodge, wards and
         // the DEF curve all answer it -- but it never crits and never
@@ -334,6 +338,39 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    phoenixcourt: [
+      {
+        count: 2, name: 'Catches Twice',
+        // Flurry's passive and Flurry's name. A burn laid on something
+        // already alight adds a turn to the fire that is there instead
+        // of laying a second one beside it -- so the Court's fires get
+        // LONGER rather than more numerous, which is what the two tiers
+        // above are built to cash.
+        //
+        // The hook is a turn count, so Flurry holding both rekindles for
+        // two. The sect's own firebird is better at the sect's trick,
+        // as Tumble, Lenore and Hallow are at theirs.
+        hooks: { burnRekindle: 1 },
+        label: 'a burn laid on a burning enemy extends it instead of stacking',
+      },
+      {
+        count: 3, name: 'Draught',
+        // Sarena's. Fans feed a fire: every tick lands harder, which
+        // multiplies into the Firetroupe's oil rather than competing
+        // with it -- oil doubles the tick, this deepens what is doubled.
+        mods: { dotBoost: 0.20 },
+        label: 'burns tick 20% harder',
+      },
+      {
+        count: 4, name: 'Long Burn',
+        // Every fire the party sets outlasts itself by a turn. The
+        // cheapest way to make both tiers above worth more, and it
+        // compounds with the rekindle: a fire that is extended and then
+        // burns a turn longer is worth two of the same cast.
+        hooks: { dotExtraTurns: 1 },
+        label: "the party's damage-over-time lasts 1 extra turn",
+      },
+    ],
     gulldigger: [
       {
         count: 2, name: 'Eye of the Storm',
@@ -625,6 +662,7 @@ const RACES = (() => {
     startShield: (u, v) => { u.synergyStartShield += v; },
     debuffExtraChance: (u, v) => { u.synergyDebuffExtraChance += v; },
     oilOnHit: (u, v) => { u.synergyOilOnHit += v; },
+    dotBoost: (u, v) => { u.gearDotBoost += v; },
     reflect: (u, v) => { u.gearReflect += v; },
     extraTurn: (u, v) => { u.gearExtraTurn += v; },
     cdr: (u, v) => { u.gearCdr += v; },
