@@ -346,9 +346,11 @@ const RACES = (() => {
         // are priced per fire, so every extra plate is worth a full
         // Draught and a full Long Burn of its own.
         //
-        // The hook counts fires, so Flurry holding both lights three at
-        // once. The sect's own firebird is better at the sect's trick,
-        // as Tumble, Lenore and Hallow are at theirs.
+        // The tier owns this outright. Flurry used to carry the same
+        // hook on her passive, which compounded: a Flurry standing with
+        // her own sect spread twice and left three plates on a single
+        // re-burn, and the two tiers above then priced all three. Her
+        // passive front-loads fires now instead of multiplying them.
         hooks: { burnRekindle: 1 },
         label: 'a burn laid on a burning enemy lights a second fire',
       },

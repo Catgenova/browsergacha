@@ -1129,11 +1129,19 @@ Object.assign(HEROES, {
       },
     ],
     passive: {
-      name: 'Catches Twice',
+      name: 'Catches Quick',
       icon: 'assets/icons/fc1066.png',
-      description: 'Fire spreads: when Flurry sets a burn on an enemy who is already ' +
-        'burning, she lights a second fire instead of one.',
-      hooks: { burnRekindle: 1 },
+      // She used to carry `burnRekindle` as well as the Court's 2pc,
+      // which meant a Flurry standing with the sect spread TWICE and
+      // lit three fires on a single re-burn. The tier owns the spread
+      // now; her passive moved to an axis the Court does not sell.
+      // Fires, tick size and duration are all bought elsewhere in the
+      // pack, so hers front-loads what is already there: the fire bites
+      // the moment it catches instead of waiting a turn. It adds to the
+      // pack rather than multiplying through it.
+      description: 'Flurry\'s fires take at once: every burn she sets deals its ' +
+        'first tick the instant it lands, instead of waiting for the enemy\'s turn.',
+      hooks: { dotBitesOnApply: true },
     },
     positional: POSITIONALS.vanguard_press,
   },

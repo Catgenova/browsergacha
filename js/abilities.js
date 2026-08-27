@@ -698,6 +698,28 @@ const Abilities = (() => {
           target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
             flavor: effect.flavor || null, source: caster });
         }
+        // A caster with `dotBitesOnApply` (Flurry) lights fires that
+        // take AT ONCE: every fresh plate pays one tick the moment it
+        // lands instead of waiting for the victim's turn to come round.
+        // Deliberately a DIFFERENT axis from the Court's tiers, which
+        // buy fires, tick size and duration -- this front-loads what is
+        // already there, so it adds rather than multiplying into them.
+        //
+        // Through the same pipe a tick uses, oil doubling included: you
+        // cannot dodge a poison already in you, and there is no
+        // incoming blow to reflect.
+        let bites = false;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.dotBitesOnApply) bites = true;
+        }
+        if (bites) {
+          const oiled = effect.flavor === 'burn' && target.oiled && target.oiled();
+          const bite = oiled ? amount * 2 : amount;
+          for (let i = 0; i <= spread && target.alive; i++) {
+            strike(caster, target, bite,
+              { dodge: false, reflect: false, assist: false, redirect: false });
+          }
+        }
         // A caster can be paid for the moment something catches
         // (Stoddard hears the smoke go up). Fired on the LANDING only,
         // so a resisted or missed application pays nothing.
