@@ -334,6 +334,57 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    nightflower: [
+      {
+        count: 2, name: 'Wilting Garden',
+        // Counts hexes AND poisons, the same reckoning Sawyer's own
+        // passive uses -- a flower droops the same whichever killed it.
+        // He keeps the deeper rate and the higher ceiling.
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.statusEffects) return 1;
+            const hexes = target.statusEffects.filter(
+              (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+            return 1 + 0.08 * Math.min(5, hexes);
+          },
+        },
+        label: '+8% damage per debuff on the target, to +40%',
+      },
+      {
+        count: 3, name: 'The Passing Bell',
+        // Lenore's passive, rung by everyone. Each hero carries the hook
+        // and shortens their OWN cooldowns, so a party of seven answers
+        // one death seven times over.
+        hooks: {
+          onUnitDied(unit, { victim } = {}) {
+            if (!unit.alive || !victim || victim === unit) return null;
+            if (victim.team !== unit.team) return null;
+            let moved = 0;
+            for (const a of unit.abilities || []) {
+              if (a.cooldownRemaining <= 0) continue;
+              a.cooldownRemaining -= 1;
+              moved++;
+            }
+            if (moved === 0) return null;
+            return { floats: [{ target: unit, text: '\u266a -1 CD', color: '#8ee8ff' }] };
+          },
+        },
+        label: 'when an ally falls, every cooldown drops by 1',
+      },
+      {
+        count: 4, name: 'Cut Flowers',
+        // Read off the battle's own body count, which already tallies
+        // BOTH SIDES and survives a field that has cleared its dead.
+        hooks: {
+          damageDealtMult(unit) {
+            const b = typeof Battle !== 'undefined' ? Battle.active : null;
+            const fallen = (b && b.deaths) || 0;
+            return 1 + 0.05 * Math.min(5, fallen);
+          },
+        },
+        label: '+5% damage for every unit that has died this fight, to +25%',
+      },
+    ],
     firetroupe: [
       {
         count: 2, name: 'Slick Hands',
