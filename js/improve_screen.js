@@ -220,6 +220,34 @@ class ImproveScreen {
         `<b>${atRank}/${need}</b> chosen. Raises the level cap to ` +
         `${Progression.maxLevel(pr.stars + 1)}; the level is kept.`;
 
+    // What the star up buys, shown before it is paid for. Dim until the
+    // sacrifices are actually picked, so the panel reads as a forecast
+    // rather than a promise it cannot keep yet.
+    const previewHtml = (() => {
+      const pv = GameState.starUpPreview(uid);
+      if (!pv) return '';
+      const n = (v) => Math.round(v || 0).toLocaleString();
+      const row = (label, now, next) => {
+        const up = next > now;
+        return `<div class="imp-pv-row"><span class="imp-pv-k">${label}</span>` +
+          `<span class="imp-pv-now">${n(now)}</span>` +
+          `<span class="imp-pv-arrow">&rarr;</span>` +
+          `<span class="imp-pv-next${up ? ' up' : ''}">${n(next)}</span></div>`;
+      };
+      return `<div class="imp-preview${willStar ? ' armed' : ''}">
+        <div class="imp-pv-head">${pv.stars.now}&#9733; &rarr; ${pv.stars.next}&#9733;${
+          willStar ? '' : ' <span class="imp-note">(if you pick enough)</span>'}</div>
+        ${row('HP', pv.stats.hp.now, pv.stats.hp.next)}
+        ${row('ATK', pv.stats.atk.now, pv.stats.atk.next)}
+        ${row('DEF', pv.stats.def.now, pv.stats.def.next)}
+        ${row('SPD', pv.speed.now, pv.speed.next)}
+        ${row('Power', pv.power.now, pv.power.next)}
+        ${row('Level cap', pv.levelCap.now, pv.levelCap.next)}
+        <div class="imp-pv-note">Skill caps are set by the skill, not the
+          star, so they do not move.</div>
+      </div>`;
+    })();
+
     this.detailEl.innerHTML = `
       <div class="imp-head rarity-${def.rarity}">${Elements.badge(def.element)} ${def.name}${
         GameState.teamSlotOf(uid) !== null
@@ -230,6 +258,7 @@ class ImproveScreen {
 
       <div class="imp-section">Star up</div>
       <div class="imp-line">${canStar}</div>
+      ${previewHtml}
 
       <div class="imp-section">Skills</div>
       ${skillsHtml}

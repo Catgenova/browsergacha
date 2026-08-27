@@ -7959,4 +7959,60 @@ test('the skill readout states the numbers the fight actually uses', () => {
     (wrong.length > 6 ? ` (+${wrong.length - 6} more)` : ''));
 });
 
+// The star-up forecast has to be the numbers the Team screen will show
+// afterwards, or it is a sales pitch. Star ups are irreversible and cost
+// up to nine heroes.
+test('the star-up forecast matches what the hero actually becomes', () => {
+  const st = loadGame();
+  const G = st.GameState, P = st.Progression;
+  const added = G.addHero('talon');
+  const uid = added.uid;
+  const pv = G.starUpPreview(uid);
+  assert(pv, 'no forecast for a hero below the star cap');
+
+  const pr = G.progressOf(uid);
+  assert(pv.stars.now === pr.stars && pv.stars.next === pr.stars + 1,
+    `forecast reads ${pv.stars.now}->${pv.stars.next} for a ${pr.stars}-star`);
+
+  // The "after" figures must come down the same path the Team screen
+  // DISPLAYS: scaled stats, then gear.
+  const worn = G.equippedPieces(uid);
+  const truth = st.Gear.applyToStats(
+    P.scaledStats(st.HEROES.talon, pr.level, pr.stars + 1), worn);
+  for (const k of ['hp', 'atk', 'def']) {
+    assert(pv.stats[k].next === truth[k],
+      `forecast says ${k} ${pv.stats[k].next}, the hero becomes ${truth[k]}`);
+  }
+  assert(pv.power.next === P.power(truth),
+    `forecast power ${pv.power.next}, actual ${P.power(truth)}`);
+
+  // A star is +25% on the three scaled stats, and SPEED IS IDENTITY --
+  // turn order must not drift as heroes climb.
+  for (const k of ['hp', 'atk', 'def']) {
+    const ratio = pv.stats[k].next / pv.stats[k].now;
+    assert(ratio > 1, `${k} does not grow with a star`);
+  }
+  assert(pv.speed.next === pv.speed.now, 'a star up moved SPD');
+  assert(pv.levelCap.next === P.maxLevel(pr.stars + 1), 'wrong level cap forecast');
+
+  // And the claim the panel makes in words: skill caps are set by the
+  // skill, not the star, so they must NOT move.
+  st.HEROES.talon.abilities.forEach((a, i) => {
+    assert(P.skillCap(a, i) === P.skillCap(a, i),
+      'skillCap is not a pure function of the ability and its slot');
+  });
+  const capsBefore = st.HEROES.talon.abilities.map((a, i) => P.skillCap(a, i));
+  const capsAfter = st.HEROES.talon.abilities.map((a, i) => P.skillCap(a, i));
+  assert(capsBefore.join() === capsAfter.join(), 'skill caps moved with stars');
+
+  // Nothing to forecast at the ceiling. progressOf hands out a COPY, so
+  // the hero is seeded at ten stars through a save instead of poked.
+  const capped = loadGame({ save: { schemaVersion: 7, nextHeroUid: 2,
+    roster: { 1: { heroId: 'talon', level: 40, xp: 0, stars: 10,
+      equipment: {}, skills: {} } } } });
+  assert(capped.GameState.progressOf('1').stars === 10, 'the seed did not take');
+  assert(capped.GameState.starUpPreview('1') === null,
+    'a 10-star was offered a star up');
+});
+
 report();
