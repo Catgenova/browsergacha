@@ -193,6 +193,47 @@
   </section>
 
   <section>
+    <h2>The rarity curve</h2>
+    <h3 style="margin-bottom:6px">What a star is worth, measured</h3>
+    <p class="sub">The goal: a 5&#9733; around <b>1.25&times;</b> its bucket median, a
+      3&#9733; <b>on</b> it, and the cheap shelves below. Each row is the median of
+      every hero on that shelf, across all six buckets.</p>
+    <div class="scroll" style="margin-top:14px">
+      <table>
+        <thead><tr>
+          <th scope="col">Shelf</th><th scope="col" class="num st">Heroes</th>
+          <th scope="col" class="num key">Median</th><th scope="col" class="num">Target</th>
+          <th scope="col" class="dev">vs target</th><th scope="col" class="num x">Gap</th>
+          <th scope="col" class="num">Median power</th>
+        </tr></thead>
+        <tbody>%%CURVEROWS%%</tbody>
+      </table>
+    </div>
+    <div class="key-note" style="margin-top:14px">
+      <span>the curve is upside down</span>
+      <span>cheapest shelf benches <b>%%PWSPREAD%%&times;</b> the power of the dearest</span>
+    </div>
+    <p class="sub" style="margin-top:14px">That last column is the finding, and no
+      per-skill pass can move it. Base stat budgets are deliberately equal for
+      everybody (<code>js/data/balance.js</code> normalises every hero to one
+      power budget, and says so: rarity is meant to live in starting stars, level
+      cap and summon odds, nowhere else). But the star multiplier in
+      <code>js/progression.js</code> compounds <b>1.25&times; per star gained ABOVE
+      a hero&#39;s base rarity</b> &mdash; so a 1&#9733; climbing to 10&#9733; takes
+      nine steps and a 5&#9733; takes five. At the shared endgame that is
+      <b>2.44&times;</b> in favour of the cheap hero, for 45 duplicates against 35.
+      Equal base stats times an inverted multiplier is an inverted roster, and the
+      table above is reading that back.</p>
+    <p class="sub">Righting it is a design decision, not a tuning one, because the
+      two rules currently contradict each other. Either rarity earns a bigger base
+      budget (a per-shelf target in <code>balance.js</code>, which is the only way
+      to reach 1.25&times; at equal stars and levels), or the star multiplier keys
+      off <code>stars</code> alone so a 10&#9733; is a 10&#9733; whatever it started
+      as &mdash; which flattens the curve rather than tilting it. Both change every
+      hero in the game and the duplicate economy underneath them.</p>
+  </section>
+
+  <section>
     <h2>Off the median</h2>
     <h3 style="margin-bottom:6px">%%NFLAG%% of %%NHEROES%% heroes sit past double or under half</h3>
     <p class="sub">Ranked by distance from their own bucket's median. By sect:

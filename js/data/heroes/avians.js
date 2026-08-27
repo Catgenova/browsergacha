@@ -61,9 +61,12 @@ Object.assign(HEROES, {
         id: 'squall_line', name: 'Squall Line',
         icon: 'assets/icons/fc823.png',
         description: 'Tip the bottle across the whole enemy line: 60% ATK to ALL enemies, ' +
-          'and 5% more to each of them for every enemy beyond the first that the squall catches.',
+          'and 3% more to each of them for every enemy beyond the first that the squall catches.',
+        // His cheap sweep, and it was compounding twice: it hits every
+        // body on the field AND gets deeper for each one. The crowd
+        // bonus is the half that scales, so it is the half that moves.
         cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.05 }],
+        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.03 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
@@ -229,13 +232,18 @@ Object.assign(HEROES, {
       {
         id: 'shivwork', name: 'Shivwork',
         icon: 'assets/icons/fc819.png',
-        description: 'In under the guard and out again: 60% ATK to the enemy FRONT row, ' +
-          'and 5% more to each of them for every enemy beyond the first he gets among.',
+        description: 'In under the guard and out again: 40% ATK to the enemy FRONT row, ' +
+          'and 3% more to each of them for every enemy beyond the first he gets among.',
+        // A 1-star was benching above the 3-star shelf. A cooldown-free
+        // row sweep with a crowd bonus is a lot of skill for the bottom
+        // of the roster, so every term comes down: base 60% -> 40%,
+        // crowd 5% -> 3%, and the ladder buys 20% instead of 30%. The
+        // rung count is untouched -- one skill is his whole ladder.
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.05 }],
+        effects: [{ type: 'damage', mult: 0.4, perTarget: 0.03 }],
         levelUps: [
           { mult: 0.1 },
-          { mult: 0.1 },
+          { perTarget: 0.02 },
           { mult: 0.1 },
           { perTarget: 0.02 },
           { perTarget: 0.02 },
@@ -403,8 +411,10 @@ Object.assign(HEROES, {
         // ahead of both. The sect's whole argument, on the friendly
         // side of the field.
         effects: [{ type: 'healHpPct', pct: 0.05, perTarget: 0.02 }],
+        // One `heal` rung instead of two. At a full table the crowd
+        // bonus is already most of the mend; doubling the base on top of
+        // it was the part that ran away.
         levelUps: [
-          { heal: 0.05 },
           { heal: 0.05 },
           { perTarget: 0.02 },
           { cooldown: -1 },
@@ -418,8 +428,9 @@ Object.assign(HEROES, {
           "Peck's max HP for 3 turns, and 2% more each for every ally beyond the first fed.",
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.05, perTarget: 0.02, turns: 3 }],
+        // Same cut as the pot, for the same reason: `heal` rungs price
+        // the ward too.
         levelUps: [
-          { heal: 0.05 },
           { heal: 0.05 },
           { perTarget: 0.02 },
           { duration: 1 },
@@ -498,11 +509,16 @@ Object.assign(HEROES, {
         // this, which is a strange gap until you notice that no sect
         // needed it as badly as one made out of paper.
         effects: [{ type: 'buff', stat: 'damageTaken', mult: 0.80, turns: 2 }],
+        // Three power rungs took this to 35% off ALL incoming damage for
+        // the whole side, on a two-turn cooldown against a three-turn
+        // duration -- permanent uptime, and it put a 4-star ahead of
+        // every 5-star tank on the bench. One rung now, so it tops out
+        // at 25%. The ladder is deliberately shorter than its slot
+        // allows (the contract permits that); the skill's own level cap
+        // comes down with it, which is the rest of the cut.
         levelUps: [
           { buffPower: 0.05 },
-          { buffPower: 0.05 },
           { duration: 1 },
-          { buffPower: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],

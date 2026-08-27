@@ -1728,14 +1728,14 @@ test('cain: mercy in shares of himself, and the overflow lashes the healthiest',
   assert(mateA.hp === Math.min(mateA.maxHp, 1 + Math.round(cain.maxHp * 0.30)),
     `tidemend left ${mateA.hp}/${mateA.maxHp}`);
 
-  // Twin Mercies: exactly the two most-wounded allies, 35% each; a
+  // Twin Mercies: exactly the two most-wounded allies, 25% each; a
   // full-health Cain is not among them.
   mateA.hp = 1;
   mateB.hp = Math.round(mateB.maxHp * 0.5);
   cain.hp = cain.maxHp;
   Abilities.execute(HEROES.cain.abilities[1], cain, null, battle);
-  assert(mateA.hp === 1 + Math.round(cain.maxHp * 0.35), `mercy A left ${mateA.hp}`);
-  assert(mateB.hp === Math.round(mateB.maxHp * 0.5) + Math.round(cain.maxHp * 0.35)
+  assert(mateA.hp === 1 + Math.round(cain.maxHp * 0.25), `mercy A left ${mateA.hp}`);
+  assert(mateB.hp === Math.round(mateB.maxHp * 0.5) + Math.round(cain.maxHp * 0.25)
     || mateB.hp === mateB.maxHp, `mercy B left ${mateB.hp}/${mateB.maxHp}`);
 
   // Quickening Waters: 50% of his pool plus the send-off.
@@ -2003,6 +2003,13 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     RACES.sectOf(h) && RACES.sectOf(h).id === 'reverence').length;
   assert(revCount > 0, 'no 3-star Reverence heroes in the temporal pool');
   const draws = 6000;
+  // Upper bound on a SAMPLED proportion, so it has to be a confidence
+  // margin rather than a flat ratio. `tilted * 1.06` was 2.5 standard
+  // errors at this sample size -- about one run in fifty tripped on a
+  // draw that was merely lucky, and the balance passes that gate on this
+  // suite ate the failure. Four sigma is still far below what a 3x
+  // weight could produce, so an actually-wrong weight is still caught.
+  const ceiling = (p, n) => p + 4 * Math.sqrt((p * (1 - p)) / n);
   let hits = 0;
   for (let i = 0; i < draws; i++) {
     const def = g.Gacha.pickHero(3, ['light', 'dark'], 'temporal', during);
@@ -2012,7 +2019,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   const expectedFlat = revCount / pool3.length;
   const expectedTilted = (revCount * 2) / (pool3.length + revCount);
   const seen = hits / draws;
-  assert(seen > (expectedFlat + expectedTilted) / 2 && seen < expectedTilted * 1.06,
+  assert(seen > (expectedFlat + expectedTilted) / 2 && seen < ceiling(expectedTilted, draws),
     `banner share ${seen.toFixed(3)} vs flat ${expectedFlat.toFixed(3)} / tilted ${expectedTilted.toFixed(3)}`);
 
   // Rare-scroll elective pulls tilt the same way, toward whichever sect
@@ -2036,7 +2043,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     // and must not overshoot what a 2x weight can even produce. A
     // ratio-of-flat bound would be meaningless here: a sect can be most
     // of its own star band now, so flat * 1.4 is often above 1.
-    assert(share > (flat + tilted) / 2 && share < tilted * 1.06,
+    assert(share > (flat + tilted) / 2 && share < ceiling(tilted, draws),
       `${sectId} share ${share.toFixed(3)} vs flat ${flat.toFixed(3)} / tilted ${tilted.toFixed(3)}`);
   };
   rareTilt('cryst', during);
@@ -4056,8 +4063,8 @@ test("Posie's kit: two pools, a bough that keeps swinging, a summer ward", () =>
   ally.hp = 1;
   const before = ally.debuffResistance();
   A.execute(def.abilities[2], p4, null, b4);
-  assert(ally.hp - 1 === Math.round(p4.maxHp * 0.25),
-    `High Summer healed ${ally.hp - 1}, expected 25% of ${p4.maxHp}`);
+  assert(ally.hp - 1 === Math.round(p4.maxHp * 0.10),
+    `High Summer healed ${ally.hp - 1}, expected 10% of ${p4.maxHp}`);
   assert(Math.abs(ally.debuffResistance() - before - 0.30) < 1e-9,
     `resistance went ${before} -> ${ally.debuffResistance()}`);
   // And that resistance has to actually do something: it is the stat
@@ -4257,8 +4264,8 @@ test("Ilyra's kit: the same mercy at three widths, paid for by the enemy", () =>
     ilyra.hp = 1;
     A.execute(def.abilities[2], ilyra, null, b);
     for (const m of mates) {
-      assert(m.hp - 1 === Math.round(ilyra.maxHp * 0.15),
-        `Changing Weather gave ${m.hp - 1}, expected 15% of ${ilyra.maxHp}`);
+      assert(m.hp - 1 === Math.round(ilyra.maxHp * 0.05),
+        `Changing Weather gave ${m.hp - 1}, expected 5% of ${ilyra.maxHp}`);
     }
     assert(ilyra.hp > 1, 'Changing Weather left the caster out');
   }
@@ -5367,10 +5374,10 @@ test("Lysandra's kit: one thread, and their own line kills their carry", () => {
       const loose = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
       A.execute(def.abilities[2], ly, foes[0], b);
       const tied = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
-      assert(tied.atk === Math.round(loose.atk * 1.25),
-        `ATK ${loose.atk} -> ${tied.atk}, wanted x1.25`);
-      assert(tied.def === Math.round(loose.def * 1.25),
-        `DEF ${loose.def} -> ${tied.def}, wanted x1.25`);
+      assert(tied.atk === Math.round(loose.atk * 1.15),
+        `ATK ${loose.atk} -> ${tied.atk}, wanted x1.15`);
+      assert(tied.def === Math.round(loose.def * 1.15),
+        `DEF ${loose.def} -> ${tied.def}, wanted x1.15`);
       // Other stats are untouched.
       const spd = ly.effectiveStat('speed');
       A.applyEffect({ type: 'cleanse' }, ly, foes[0], 1);
@@ -5805,7 +5812,7 @@ test("Lenore's kit: the bell is priced off her own pool, and a death rings it so
     const { b, le, mates } = arena();
     const before = mates.map((m) => m.hp);
     live(b, () => A.execute(def.abilities[2], le, null, b));
-    const mend = Math.round(le.maxHp * 0.20), wall = Math.round(le.maxHp * 0.10);
+    const mend = Math.round(le.maxHp * 0.10), wall = Math.round(le.maxHp * 0.10);
     mates.forEach((m, i) => {
       assert(m.hp - before[i] === mend, `${m.def.id} mended ${m.hp - before[i]}`);
       assert(m.shieldTotal() === wall, `${m.def.id} has ${m.shieldTotal()} of shield`);

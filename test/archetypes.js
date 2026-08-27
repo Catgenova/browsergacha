@@ -194,7 +194,18 @@ function seat(battle, def, team, wantPosition) {
   return unit;
 }
 
-function runOne(def, cast, seedValue) {
+// The 7v7 mirror is a full-formation slugfest, and a slugfest pays a
+// sweep three or four times over while a single-target kit gets one
+// swing. That is a real thing about the game, but it is not the ONLY
+// thing: every boss in the campaign is one body. Measured only in the
+// crowd, all four single-target 5-star front-liners read as broken --
+// Asher, Javarious, Dorian and Sawyer at 0.37x to 0.60x -- while every
+// AoE kit in the same bucket reads as strong.
+//
+// So each hero is measured twice, in the same team, against two shapes
+// of opponent: the seven-body line it already faced, and ONE opponent
+// carrying the whole enemy side's health. `solo` is the second reading.
+function runOne(def, cast, seedValue, boss = false) {
   g.seed(seedValue);
   Meter.resetBattle();
   const battle = new Battle();
@@ -203,7 +214,20 @@ function runOne(def, cast, seedValue) {
   const position = def.positional ? def.positional.position : POSITION.FRONT;
   const hero = seat(battle, def, TEAM.PLAYER, position);
   for (const ally of cast.allies) seat(battle, ally, TEAM.PLAYER, ally.positional.position);
-  for (const foe of cast.foes) seat(battle, foe, TEAM.ENEMY, foe.positional.position);
+  if (boss) {
+    // One opponent, pooled: the same total health and the same total
+    // attack the seven would have brought, so the fight is the same
+    // size and only its SHAPE has changed.
+    const stand = cast.foes[Math.floor(cast.foes.length / 2)];
+    const solo = seat(battle, stand, TEAM.ENEMY, POSITION.FRONT);
+    if (solo) {
+      solo.maxHp *= cast.foes.length;
+      solo.hp = solo.maxHp;
+      solo.baseAtk *= cast.foes.length;
+    }
+  } else {
+    for (const foe of cast.foes) seat(battle, foe, TEAM.ENEMY, foe.positional.position);
+  }
 
   // Damage taken is not on the ledger (it credits whoever dealt it), so
   // the tested hero counts its own — combat only, never attrition.
@@ -447,8 +471,13 @@ const pad = (s, n) => String(s).padStart(n);
 
 function measure(def, cast) {
   const runs = [];
-  for (let i = 0; i < SIMS; i++) runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
+  const solos = [];
+  for (let i = 0; i < SIMS; i++) {
+    runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
+    solos.push(runOne(def, castWithout(cast, def), 1000 + i * 7919, true));
+  }
   const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
+  const avgSolo = (pick) => solos.reduce((s, r) => s + pick(r), 0) / solos.length;
   // direct + poison + assist must reconstruct dps. If they do not, one of
   // the three is being attributed to the wrong hero and every split on the
   // page is fiction.
@@ -485,6 +514,12 @@ function measure(def, cast) {
     // Survival time saturates in a mirror — nobody dies inside the
     // window — so this is what separates one tank from another.
     ehp: maxHp / Math.max(0.05, 1 - mitRatio),
+    // The same kit against ONE opponent. A sweep collapses to a single
+    // hit here and a single-target kit loses nothing, so the ratio
+    // between this and `dps` is the plainest statement of which shape
+    // of fight a hero is for.
+    solo: avgSolo((r) => r.damage / r.seconds),
+    'solo heal/s': avgSolo((r) => r.healing / r.seconds),
     boons: avg((r) => r.boons),
     hexes: avg((r) => r.hexes),
     deaths: runs.filter((r) => r.died).length,
@@ -498,6 +533,7 @@ const COLUMNS = [
   ['assist', 'assist', 7, 1],
   ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 7, 1],
   ['worth/s', 'worth/s', 8, 1],
+  ['solo', 'solo', 8, 1],
   ['boons', 'boons', 6, 2], ['hexes', 'hexes', 6, 2],
   ['taken/s', 'taken/s', 8, 1], ['mit%', 'mit%', 5, 1], ['ehp', 'ehp', 8, 0],
 ];

@@ -150,6 +150,44 @@ for label, axis_label, r in flagged:
 sect_line = ', '.join(f'{n} {s}' for s, n in
                       sorted(sects.items(), key=lambda kv: -kv[1]))
 
+# ---- The rarity curve -----------------------------------------------------
+# The design goal is 5-star around 1.25x their bucket median, 3-star ON the
+# median, and the cheap shelves below it. This block reads the curve straight
+# off the same CSV rather than trusting a per-skill balance pass to have moved
+# it, and it prints the median BENCHED POWER beside it -- because if power is
+# inverted by rarity, no amount of skill tuning can right the curve.
+TARGET = {5: 1.25, 4: 1.10, 3: 1.00, 2: 0.85, 1: 0.70}
+curve_rows = []
+for star in (5, 4, 3, 2, 1):
+    band = [r for r in rows if int(r['rarity']) == star]
+    if not band:
+        continue
+    med = statistics.median([r['_x'] for r in band])
+    pw = statistics.median([float(r['power']) for r in band])
+    want = TARGET[star]
+    off = med - want
+    tag = 'over' if off > 0.12 else ('under' if off < -0.12 else 'mid')
+    curve_rows.append(f'''<tr class="{tag}">
+    <th scope="row">{star}&#9733;</th>
+    <td class="num st">{len(band)}</td>
+    <td class="num key">{med:.2f}&times;</td>
+    <td class="num">{want:.2f}&times;</td>
+    <td class="dev">{bar(med / want)}</td>
+    <td class="num x">{off:+.2f}</td>
+    <td class="num">{pw:,.0f}</td>
+  </tr>''')
+
+# Base-stat budgets are equalised (js/data/balance.js), so any spread in
+# benched power at the SAME stars and level comes from the star multiplier
+# in js/progression.js, which compounds 1.25x per star gained ABOVE a hero's
+# base rarity -- so the cheaper the hero, the more steps they climb.
+pw_by_star = {int(r['rarity']): [] for r in rows}
+for r in rows:
+    pw_by_star[int(r['rarity'])].append(float(r['power']))
+_hi = statistics.median(pw_by_star[min(pw_by_star)])
+_lo = statistics.median(pw_by_star[max(pw_by_star)])
+power_spread = f'{_hi / _lo:.2f}'
+
 TEMPLATE = Path('tools/bench_report.template.html').read_text()
 page = (TEMPLATE
         .replace('%%HEADER%%', html.escape(head))
@@ -157,6 +195,8 @@ page = (TEMPLATE
         .replace('%%NFLAG%%', str(len(flagged)))
         .replace('%%SECTLINE%%', html.escape(sect_line))
         .replace('%%FLAGROWS%%', ''.join(flag_rows))
+        .replace('%%CURVEROWS%%', ''.join(curve_rows))
+        .replace('%%PWSPREAD%%', power_spread)
         .replace('%%BUCKETS%%', ''.join(table_rows)))
 
 # The published page is wrapped in a skeleton we do not control, so

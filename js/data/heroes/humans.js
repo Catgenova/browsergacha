@@ -36,7 +36,7 @@ Object.assign(HEROES, {
       name: 'Aniani',
       title: 'Mirror Bulwark',
       rarity: 5,
-      stats: { hp: 2400, atk: 110, def: 265, speed: 96 },
+      stats: { hp: 2400, atk: 88, def: 265, speed: 96 },
       tint: { body: '#9ab8c8', helm: '#d8e8f0', weapon: '#8ad8ff', shield: '#c8a83a' },
       mirrors: { max: 6, start: 6 },
       sprite: { displayH: 92, strips: strips(6) },
@@ -136,7 +136,7 @@ Object.assign(HEROES, {
     rarity: 5,
     // Slow and enormously thick: the retaliation is the damage, so the
     // statline pays for staying upright rather than for acting often.
-    stats: { hp: 2650, atk: 96, def: 300, speed: 84 },
+    stats: { hp: 2650, atk: 77, def: 300, speed: 84 },
     tint: { body: '#c8c0a8', helm: '#f0e8c8', weapon: '#ffe9a8', shield: '#d8c070' },
     // Every sheet is 256px square frames: 9 across, except the death at
     // 11. Skills 1 and 2 share one strip — both are the same swing of the
@@ -1412,10 +1412,13 @@ Object.assign(HEROES, {
         id: 'cain_twin_mercies', name: 'Twin Mercies',
         icon: 'assets/icons/fc1016.png',
         description: 'The two most-wounded allies are each restored for ' +
-          '35% of Cain\'s own max HP.',
-        cooldown: 4, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
+          '25% of Cain\'s own max HP.',
+        // Two full mends off a four-turn cooldown was the best rate on
+        // the board by throughput. The cooldown was doing the damage,
+        // so it moves first; the size follows it down.
+        cooldown: 6, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
         effects: [
-          { type: 'healHpPct', pct: 0.35 },
+          { type: 'healHpPct', pct: 0.25 },
         ],
         levelUps: [
           { heal: 0.05 },
@@ -1483,7 +1486,7 @@ Object.assign(HEROES, {
     rarity: 5,
     // A mining construct the court built out of its own crystal: every
     // number in his kit is DEF-scaled, so the wall IS the weapon.
-    stats: { hp: 2450, atk: 85, def: 295, speed: 90 },
+    stats: { hp: 2450, atk: 68, def: 295, speed: 90 },
     tint: { body: '#4aa8e8', helm: '#8ad8ff', weapon: '#c8963a', shield: '#7ae0e8' },
     // 256px square frames: 9 across, except skill 3 at 15. Three idles —
     // the heavy sway and two drill-arm fidgets.
@@ -3716,15 +3719,19 @@ Object.assign(HEROES, {
         id: 'posie_high_summer', name: 'High Summer',
         icon: 'assets/icons/fc1172.png',
         description: "The whole bough opens at once: heal every ally for " +
-          "25% of Posie's max HP and raise their Resistance by 30% for 2 turns.",
-        cooldown: 6, targeting: 'all-allies', animation: 'skill3',
+          "10% of Posie's max HP and raise their Resistance by 30% for 2 turns.",
+        // The largest team mend in the game, and it was paying a quarter
+        // of her pool to everyone every six turns -- the biggest single
+        // number on the bench. Cut at both ends: the base is 10%, the
+        // ladder buys 5% instead of 15%, and the cooldown starts two
+        // turns later. Her ceiling is now the Resistance she hands out
+        // and how long it lasts, not the size of the mend.
+        cooldown: 8, targeting: 'all-allies', animation: 'skill3',
         effects: [
-          { type: 'healHpPct', pct: 0.25 },
+          { type: 'healHpPct', pct: 0.10 },
           { type: 'buff', stat: 'resistance', add: 0.30, turns: 2 },
         ],
         levelUps: [
-          { heal: 0.05 },
-          { heal: 0.05 },
           { heal: 0.05 },
           { buffPower: 0.05 },
           { duration: 1 },
@@ -3930,16 +3937,17 @@ Object.assign(HEROES, {
       {
         id: 'ilyra_changing_weather', name: 'Changing Weather',
         icon: 'assets/icons/fc1212.png',
-        description: "The whole field turns over: heals EVERY ally for 15% " +
+        description: "The whole field turns over: heals EVERY ally for 5% " +
           "of Ilyra's max HP and lifts one debuff from each.",
-        cooldown: 6, targeting: 'all-allies', animation: 'skill3',
+        // A 3-star was out-mending most of the 5-stars. The mend is now
+        // the smaller half of the skill and the cleanse is the point of
+        // it -- which is what a weather-turner should be selling.
+        cooldown: 8, targeting: 'all-allies', animation: 'skill3',
         effects: [
-          { type: 'healHpPct', pct: 0.15 },
+          { type: 'healHpPct', pct: 0.05 },
           { type: 'cleanse', count: 1 },
         ],
         levelUps: [
-          { heal: 0.05 },
-          { heal: 0.05 },
           { heal: 0.05 },
           { heal: 0.05 },
           { cleanseCount: 1 },
@@ -4495,10 +4503,11 @@ Object.assign(HEROES, {
           { type: 'damage', mult: 1.60 },
           { type: 'soulBond' },
         ],
+        // Five multiplier rungs on top of a passive that pays +25% ATK
+        // for having cast the skill at all: the two compounded, and she
+        // read as a 5-star on the bench. Two rungs now, and the passive
+        // is trimmed to match.
         levelUps: [
-          { mult: 0.1 },
-          { mult: 0.1 },
-          { mult: 0.1 },
           { mult: 0.1 },
           { mult: 0.1 },
           { cooldown: -1 },
@@ -4509,7 +4518,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Pull It Taut',
       icon: 'assets/icons/fc1294.png',
-      description: 'Committed while the thread is tied: +25% ATK and +25% ' +
+      description: 'Committed while the thread is tied: +15% ATK and +15% ' +
         'DEF for as long as a Soul Bond of hers is still on something living.',
       hooks: {
         statMult(unit, stat) {
@@ -4518,7 +4527,7 @@ Object.assign(HEROES, {
           if (!b) return 1;
           const tied = b.livingUnits().some((u) => u !== unit &&
             u.statusEffects.some((fx) => fx.stat === 'soulbond' && fx.source === unit));
-          return tied ? 1.25 : 1;
+          return tied ? 1.15 : 1;
         },
       },
     },
@@ -4834,16 +4843,18 @@ Object.assign(HEROES, {
       {
         id: 'lenore_open_ring', name: 'Open Ring',
         icon: 'assets/icons/fc1305.png',
-        description: 'The bell opened all the way: every ally recovers 20% ' +
+        description: 'The bell opened all the way: every ally recovers 10% ' +
           "of Lenore's max HP and takes a shield worth 10% of it for 2 turns.",
+        // The `heal` rungs raise the ward as well as the mend, so this
+        // ladder was buying two things at once and had to be the short
+        // one. Base halved, ladder halved; the ward it carries is
+        // untouched.
         cooldown: 7, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
         effects: [
-          { type: 'healHpPct', pct: 0.20 },
+          { type: 'healHpPct', pct: 0.10 },
           { type: 'shield', pct: 0.10, turns: 2 },
         ],
         levelUps: [
-          { heal: 0.05 },
-          { heal: 0.05 },
           { heal: 0.05 },
           { heal: 0.05 },
           { duration: 1 },
