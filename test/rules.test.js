@@ -8281,8 +8281,13 @@ test('element party bonuses pay the element that earned them, in tiers', () => {
     const bareFire = new Unit(HEROES[fireId], TEAM.PLAYER, { level: 30, stars: 3 });
     const { units } = party(2, [fireId]);
     const windUnit = units[0], fireUnit = units[2];
-    assert(windUnit.speed === Math.round(bare.speed * 1.10),
-      `wind SPD ${windUnit.speed}, wanted ${Math.round(bare.speed * 1.10)}`);
+    // Every wind hero is a Whisperchime hero, so this is both layers --
+    // derived rather than typed, like light's, so a sect tier that ever
+    // touches SPD is caught instead of quietly absorbed.
+    const wantSpd = Math.round(bare.speed *
+      partyStatMult('spdPct', 'wind', 'whisperchime', 2));
+    assert(windUnit.speed === wantSpd,
+      `wind SPD ${windUnit.speed}, wanted ${wantSpd}`);
     assert(fireUnit.speed === bareFire.speed,
       'the fire hero collected the wind element bonus');
   }
@@ -9178,6 +9183,145 @@ test('Nightflower sect pack: a wilting garden, a passing bell, cut flowers', () 
       battle.deaths = 12;
       assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.25) < 1e-9,
         `a full graveyard paid ${units[0].damageDealtMult(foe, null)}, wanted the +25% cap`);
+    } finally { Battle.active = prev; }
+  }
+});
+
+// The Whisperchime trade in boons: taken off the enemy, absent from the
+// enemy, or the enemy stood somewhere they should not be.
+test('Whisperchime sect pack: a tax, bare branches, and being out of place', () => {
+  const chime = RACES.SECTS.whisperchime.members;
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[chime[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Chime Tax: the WHOLE ring is paid, not just the stripper --
+  {
+    const { battle, units } = party(2);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 3 });
+      foe.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.2, turns: 3 });
+      units.forEach((u) => { u.turnMeter = 0; });
+      const stripper = units[0];
+      Abilities.applyEffect({ type: 'stripBuffs', count: 2 }, stripper, foe, 1);
+      // Two boons torn, so 20% of a bar each -- to EVERY hero, including
+      // the one who did not swing. Tumble collects TWICE: the pack is
+      // his own passive opened out, and he still owns the original, so
+      // the sect's taxman is better at the sect's tax. Same shape as
+      // Lenore double-ringing the Nightflowers' bell.
+      const share = CONFIG.TURN_METER_MAX * 0.20;
+      for (const u of units) {
+        const want = u.def.id === 'tumble' ? share * 2 : share;
+        assert(u.turnMeter > 0,
+          `${u.def.name} collected no tax (${u.turnMeter})`);
+        assert(Math.abs(u.turnMeter - want) < CONFIG.TURN_METER_MAX * 0.02,
+          `${u.def.name} collected ${u.turnMeter}, wanted ${want}`);
+      }
+    } finally { Battle.active = prev; }
+
+    // A lone Whisperchime pays no tax to anybody but themselves.
+    const one = party(1);
+    const foe1 = place(one.battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    Battle.active = one.battle;
+    try {
+      foe1.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 3 });
+      one.units[0].turnMeter = 0;
+      const before = one.units[0].turnMeter;
+      Abilities.applyEffect({ type: 'stripBuffs', count: 1 }, one.units[0], foe1, 1);
+      const gained = one.units[0].turnMeter - before;
+      // Tumble carries Chime Tax himself, so a lone Tumble still gains.
+      // What must NOT happen is the PACK paying at one hero.
+      const isTumble = one.units[0].def.id === 'tumble';
+      if (!isTumble) {
+        assert(gained === 0, `a lone Whisperchime collected ${gained}`);
+      }
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 3pc Bare Branches: ANY buff shelters them ----
+  {
+    const { battle, units } = party(3);
+    // Galen carries this himself; measure on somebody who does not.
+    const caster = units.find((u) => u.def.id !== 'galen') || units[1];
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      // Read as a RATIO. At three Whisperchime the party also holds
+      // wind's Crosswind, which multiplies the same channel off the
+      // caster's speed -- an absolute reading would be measuring both.
+      // Bare over blessed cancels everything that does not depend on
+      // the target.
+      foe.statusEffects.length = 0;
+      const bareMult = caster.damageDealtMult(foe, null);
+      // A DEBUFF is not a buff -- it must not shelter them.
+      foe.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.8, turns: 3 });
+      assert(Math.abs(caster.damageDealtMult(foe, null) - bareMult) < 1e-9,
+        'a hex sheltered an enemy from Bare Branches');
+      foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 3 });
+      const blessedMult = caster.damageDealtMult(foe, null);
+      assert(Math.abs(bareMult / blessedMult - 1.20) < 1e-9,
+        `bare ${bareMult} over blessed ${blessedMult} is not the 1.20 the pack pays`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Out Of Place: only somebody who HAS a hex can be out of it -
+  {
+    const { battle, units } = party(4);
+    const caster = units.find((u) => u.def.id !== 'wren') || units[1];
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      // A hero seated ON their favoured hex, then moved off it.
+      const foe = new Unit(HEROES.catherine, TEAM.ENEMY, { level: 30, stars: 4 });
+      const slots = battle.enemySlots;
+      foe.slot = slots.find((s) => s.position === foe.positional.position);
+      battle.units.push(foe);
+      foe.statusEffects.push({ kind: 'buff', stat: 'atk', mult: 1.01, turns: 9 });
+      // Ratios again: wind's Crosswind rides the same channel.
+      assert(foe.positionalActive(), 'the fixture did not seat them at home');
+      const atHome = caster.damageDealtMult(foe, null);
+      foe.slot = slots.find((s) => s.position !== foe.positional.position);
+      assert(!foe.positionalActive(), 'the fixture did not displace them');
+      const displaced = caster.damageDealtMult(foe, null);
+      assert(Math.abs(displaced / atHome - 1.25) < 1e-9,
+        `displaced ${displaced} over at-home ${atHome} is not the 1.25 the pack pays`);
+
+      // A BOSS has no positional and can never be out of place, so it
+      // reads exactly like an enemy standing at home.
+      const boss = { positional: null, statusEffects: [{ kind: 'buff' }] };
+      assert(Math.abs(caster.damageDealtMult(boss, null) - atHome) < 1e-9,
+        'something with no favoured hex was called displaced');
+    } finally { Battle.active = prev; }
+
+    // Three do not carry it.
+    const three = party(3);
+    const foe3 = new Unit(HEROES.catherine, TEAM.ENEMY, { level: 30, stars: 4 });
+    foe3.slot = three.battle.enemySlots.find(
+      (s) => s.position !== foe3.positional.position);
+    foe3.statusEffects.push({ kind: 'buff', stat: 'atk', mult: 1.01, turns: 9 });
+    three.battle.units.push(foe3);
+    Battle.active = three.battle;
+    try {
+      // Same ratio test one tier short: displaced must read the same as
+      // a boss with no hex at all, because the tier is not held.
+      const c3 = three.units[0];
+      const noHex = { positional: null, statusEffects: [{ kind: 'buff' }] };
+      assert(Math.abs(c3.damageDealtMult(foe3, null) -
+        c3.damageDealtMult(noHex, null)) < 1e-9,
+        'out of place paid at three Whisperchime');
     } finally { Battle.active = prev; }
   }
 });
