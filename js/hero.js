@@ -158,6 +158,12 @@ class Unit {
       fx.kind === 'debuff' && fx.stat === 'freeze');
   }
 
+  // Oilslicked: the Firetroupe's mark. Burns tick for DOUBLE on an oiled
+  // target (see the dot loop), and their pack pays extra for hitting one.
+  oiled() {
+    return this.statusEffects.some((fx) => fx.stat === 'oilslicked');
+  }
+
   get alive() {
     return this.hp > 0;
   }
@@ -1202,9 +1208,7 @@ class Unit {
       // Oilslicked (the Firetroupe's mark): burns tick for DOUBLE on an
       // oiled target. Checked at tick time, so a slick applied after
       // the burn still feeds it.
-      const oiled = fx.flavor === 'burn' && this.statusEffects.some(
-        (o) => o.stat === 'oilslicked');
-      const tick = oiled ? fx.amount * 2 : fx.amount;
+      const tick = (fx.flavor === 'burn' && this.oiled()) ? fx.amount * 2 : fx.amount;
       const dealt = (typeof Abilities !== 'undefined' && fx.source)
         // The tick's size was locked in when the poison was cast, so
         // whatever buffs the caster carries NOW did not buy it: no assist

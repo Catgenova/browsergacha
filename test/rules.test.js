@@ -8905,4 +8905,140 @@ test('Reverence sect pack: a chapter that grows, a vow, and last rites', () => {
   }
 });
 
+// The Firetroupe's pack applies its own mark at 2 and cashes it at 4 --
+// the first pack whose tiers feed each other. Oil is not a recoloured
+// hex: a burn ticks for DOUBLE on an oiled target, so this is also the
+// Firetroupe making the Phoenix Court's fires worth twice as much.
+test('Firetroupe sect pack: oil laid down, a hurt crowd, and a grease fire', () => {
+  const troupe = RACES.SECTS.firetroupe.members;
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[troupe[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Slick Hands: the channel, and the mark it lays ----
+  {
+    const bare = new Unit(HEROES[troupe[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    assert(bare.synergyOilOnHit === 0, 'a bare hero already slicks');
+    const { battle, units } = party(2);
+    assert(Math.abs(units[0].synergyOilOnHit - 0.10) < 1e-9,
+      `Slick Hands set the channel to ${units[0].synergyOilOnHit}`);
+
+    // Landed, with the roll forced, it marks the victim.
+    const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 200);
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      Math.random = () => 0;                    // every roll succeeds
+      Abilities.strike(units[0], foe, 500, {});
+      assert(foe.oiled(), 'a landed hit left no oil');
+    } finally { Math.random = real; Battle.active = prev; }
+  }
+
+  // ---- the oil's own payoff: burns tick DOUBLE on an oiled target ----
+  {
+    const { battle, units } = party(2);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      // A burn tick goes through Abilities.strike, so the DEF curve
+      // answers it: a small tick against a thick-hided rat rounds to
+      // nothing and both readings come back zero. Squishy target, tick
+      // big enough that the curve leaves something to compare.
+      const bit = (oil) => {
+        const foe = roomy(place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 500);
+        foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+        foe.addStatusEffect({ kind: 'dot', amount: 20000, turns: 3,
+          flavor: 'burn', source: units[0] });
+        if (oil) {
+          foe.addStatusEffect({ kind: 'debuff', stat: 'oilslicked',
+            turns: 3, source: units[0] });
+        }
+        const before = foe.hp;
+        // startTurn is where dots actually tick; tickStatusEffects only
+        // counts turns down.
+        foe.startTurn(battle);
+        battle.units = battle.units.filter((u) => u !== foe);
+        return before - foe.hp;
+      };
+      const dry = bit(false), oily = bit(true);
+      assert(oily > dry * 1.5,
+        `a burn ticked ${dry} dry and ${oily} oiled — it should be double`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 3pc The Crowd Loves It: counts the PARTY, not the enemy ----
+  {
+    const { battle, units } = party(3);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      units.forEach((u) => { u.hp = u.maxHp; });
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'the crowd cheered a healthy party');
+      units[1].hp = Math.round(units[1].maxHp * 0.4);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.05) < 1e-9,
+        `one hurt ally paid ${units[0].damageDealtMult(foe, null)}`);
+      units[2].hp = Math.round(units[2].maxHp * 0.2);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.10) < 1e-9,
+        `two hurt allies paid ${units[0].damageDealtMult(foe, null)}`);
+      // BELOW HALF, not merely dented. A hero at 70% is hurt and does
+      // not count -- without this the threshold is unpinned and could
+      // drift anywhere under full health.
+      units[0].hp = Math.round(units[0].maxHp * 0.70);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.10) < 1e-9,
+        `a hero at 70% HP joined the crowd (${units[0].damageDealtMult(foe, null)})`);
+      units[0].hp = Math.round(units[0].maxHp * 0.49);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.15) < 1e-9,
+        `at 49% they should count (${units[0].damageDealtMult(foe, null)})`);
+      units[0].hp = units[0].maxHp;
+      // A wounded ENEMY is not the crowd.
+      foe.hp = Math.round(foe.maxHp * 0.1);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.10) < 1e-9,
+        'a wounded enemy counted toward the crowd');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Grease Fire: reads the target's mark ----
+  {
+    const { battle, units } = party(4);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      units.forEach((u) => { u.hp = u.maxHp; });   // silence the 3pc
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'grease fire paid on a dry target');
+      foe.addStatusEffect({ kind: 'debuff', stat: 'oilslicked',
+        turns: 2, source: units[0] });
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.20) < 1e-9,
+        `an oiled target paid ${units[0].damageDealtMult(foe, null)}`);
+    } finally { Battle.active = prev; }
+
+    // Three do not carry it.
+    const three = party(3);
+    const foe3 = place(three.battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    three.units.forEach((u) => { u.hp = u.maxHp; });
+    foe3.addStatusEffect({ kind: 'debuff', stat: 'oilslicked', turns: 2,
+      source: three.units[0] });
+    const prev2 = Battle.active;
+    Battle.active = three.battle;
+    try {
+      assert(Math.abs(three.units[0].damageDealtMult(foe3, null) - 1) < 1e-9,
+        'grease fire paid out at three Firetroupe');
+    } finally { Battle.active = prev2; }
+  }
+});
+
 report();
