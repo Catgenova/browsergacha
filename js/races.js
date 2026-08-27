@@ -334,6 +334,46 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    reverence: [
+      {
+        count: 2, name: 'Chapter House',
+        // Scales with the size of the chapter, not with the tier: two
+        // Reverence pay +10%, four pay +20%, a full seven pay +35% -- to
+        // EVERYONE fielded, the outsiders included. Priced off the count
+        // at build, which is the only way a max-HP bonus can scale at
+        // all (maxHp is set once and never recomputed).
+        modsFor: (count) => ({ hpPct: 0.05 * count }),
+        label: '+5% max HP for each Reverence hero fielded',
+      },
+      {
+        count: 3, name: 'Vow of Reverence',
+        // Catherine's passive, opened to the party. Marked with its own
+        // flag rather than hers: sharing one would mean her 12% ward
+        // blocked the pack's 10% whenever she was fielded, so the sect
+        // pack would go quiet in exactly the party it belongs to.
+        hooks: {
+          onAllyHealed(unit, healedUnit) {
+            if (!healedUnit || !healedUnit.alive) return null;
+            if (healedUnit.statusEffects.some((fx) => fx.vowPack)) return null;
+            healedUnit.addStatusEffect({
+              kind: 'buff', stat: 'def', mult: 1.10, turns: 2, vowPack: true,
+            });
+            return { floats: [{ target: healedUnit, text: 'VOW \u25B2', color: '#ffe8a8' }] };
+          },
+        },
+        label: 'an ally restored to health gains +10% DEF for 2 turns',
+      },
+      {
+        count: 4, name: 'Last Rites',
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.maxHp) return 1;
+            return target.hp / target.maxHp < 0.25 ? 1.30 : 1;
+          },
+        },
+        label: '+30% damage to enemies below 25% HP',
+      },
+    ],
     cryst: [
       {
         count: 2, name: 'Cold Iron Court',
@@ -477,7 +517,13 @@ const RACES = (() => {
       if (tiers.length === 0) continue;
       for (const unit of units) {
         for (const tier of tiers) {
-          if (tier.mods) applyModsToUnit(unit, tier.mods);
+          // `modsFor` is for a tier that scales with HOW MANY of the
+          // sect turned up. The count is settled at battle build, so
+          // this stays a flat write rather than a live hook -- which
+          // matters for max HP, the one stat that is a plain property
+          // and cannot be recomputed mid-fight.
+          const mods = tier.modsFor ? tier.modsFor(count) : tier.mods;
+          if (mods) applyModsToUnit(unit, mods);
           if (tier.hooks) applyHooksToUnit(unit, tier);
         }
       }

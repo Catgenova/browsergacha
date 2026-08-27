@@ -86,13 +86,37 @@ function place(battle, def, team, slotIdx) {
 // as well as water's. Each element test asks for members no sect pack
 // can reach, so it measures one thing.
 function elementOnly(element, world = g) {
-  return Object.values(world.HEROES)
-    .filter((h) => h.element === element)
-    .filter((h) => {
-      const sect = world.RACES.sectOf(h);
-      return !sect || !(world.RACES.SECT_PARTY_BONUSES[sect.id] || []).length;
-    })
-    .map((h) => h.id);
+  const all = Object.values(world.HEROES).filter((h) => h.element === element);
+  const clean = all.filter((h) => {
+    const sect = world.RACES.sectOf(h);
+    return !sect || !(world.RACES.SECT_PARTY_BONUSES[sect.id] || []).length;
+  });
+  // Some elements cannot be isolated at all: every light hero is a
+  // Reverence hero, so fielding four light IS fielding four Reverence
+  // and both sets always land together. Where that is true the test
+  // takes the whole element and accounts for the sect explicitly --
+  // see partyStatMult below.
+  return (clean.length >= 4 ? clean : all).map((h) => h.id);
+}
+
+// The multiplier the party bonuses SHOULD produce on a flat stat, read
+// off both tables rather than typed in. Fielding n heroes of one sect is
+// also fielding n of its element, and the two layers stack -- so an
+// element test that hard-codes its own number quietly starts testing two
+// things the moment that sect gets a pack. Derived, it keeps testing
+// that the engine applies what the tables say, whatever they say.
+function partyStatMult(key, element, sectId, n, world = g) {
+  const R = world.RACES;
+  let m = 1;
+  const fold = (tiers, count) => {
+    for (const t of tiers) {
+      const mods = t.modsFor ? t.modsFor(count) : t.mods;
+      if (mods && mods[key]) m *= 1 + mods[key];
+    }
+  };
+  fold(R.elementTiers(element, n), n);
+  if (sectId) fold(R.sectTiers(sectId, n), n);
+  return m;
 }
 
 // A body big enough to MEASURE against. Damage is clamped to the health
@@ -8493,8 +8517,10 @@ test('light party bonuses: a bigger pool, a last bell, and an opening ward', () 
   {
     const bare = new Unit(HEROES[lightIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
     const { units } = party(2);
-    assert(units[0].maxHp === Math.round(bare.maxHp * 1.15),
-      `max HP ${units[0].maxHp}, wanted ${Math.round(bare.maxHp * 1.15)}`);
+    // Every light hero is Reverence, so this is both sets at once.
+    const want = Math.round(bare.maxHp * partyStatMult('hpPct', 'light', 'reverence', 2));
+    assert(units[0].maxHp === want,
+      `max HP ${units[0].maxHp}, wanted ${want}`);
     assert(units[0].hp === units[0].maxHp,
       'the hero did not arrive at the top of their new pool');
   }
@@ -8537,6 +8563,9 @@ test('light party bonuses: a bigger pool, a last bell, and an opening ward', () 
     const bare = new Unit(HEROES[lightIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
     assert(ward > Math.round(bare.maxHp * 0.15),
       'the ward was priced off the pool the hero walked in with');
+    assert(u.maxHp === Math.round(bare.maxHp *
+      partyStatMult('hpPct', 'light', 'reverence', 4)),
+      'the pool the ward was priced off is not both sets applied');
 
     // Three light heroes get no ward at all.
     const three = party(3);
@@ -8762,6 +8791,117 @@ test('Cryst sect pack: paid to everyone, and the ice is what pays', () => {
     const { summary } = party(4);
     assert(summary.some((b) => b.sect === 'cryst'), 'no Cryst pack in the summary');
     assert(summary.some((b) => b.element === 'water'), 'no water resonance in the summary');
+  }
+});
+
+// Reverence's pack. Its 2pc is the first tier that scales with HOW MANY
+// of the sect turned up rather than with the tier reached, which is the
+// only shape a max-HP bonus can scale in: maxHp is written once at build
+// and never recomputed.
+test('Reverence sect pack: a chapter that grows, a vow, and last rites', () => {
+  const rev = RACES.SECTS.reverence.members;
+
+  const party = (n, tagalong = null) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[rev[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    if (tagalong) {
+      const u = new Unit(HEROES[tagalong], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, units.length);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Chapter House: grows with the chapter, pays the party ----
+  {
+    const outsider = Object.values(HEROES).find((h) => h.element === 'fire').id;
+    const bareGuest = new Unit(HEROES[outsider], TEAM.PLAYER, { level: 30, stars: 3 });
+    // Two Reverence and one guest: the guest is not light, so the only
+    // thing touching them is the sect -- 5% x 2 = 10%.
+    const { units } = party(2, outsider);
+    const guest = units[units.length - 1];
+    assert(guest.maxHp === Math.round(bareGuest.maxHp * 1.10),
+      `two Reverence paid the guest ${guest.maxHp}, wanted ` +
+      `${Math.round(bareGuest.maxHp * 1.10)}`);
+
+    // Four Reverence pay 20%, not 10%: the tier reads the COUNT.
+    const four = party(4, outsider);
+    const guest4 = four.units[four.units.length - 1];
+    assert(guest4.maxHp === Math.round(bareGuest.maxHp * 1.20),
+      `four Reverence paid the guest ${guest4.maxHp}, wanted ` +
+      `${Math.round(bareGuest.maxHp * 1.20)}`);
+    assert(guest4.hp === guest4.maxHp, 'the guest did not arrive full');
+  }
+
+  // ---- 3pc Vow of Reverence: a ward on being mended ----
+  {
+    const { battle, units } = party(3);
+    const healer = units[0];
+    const mate = units[1];
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      mate.hp = Math.round(mate.maxHp * 0.5);
+      const before = mate.effectiveStat('def');
+      battle.onUnitHealed(mate, 50);
+      const vow = mate.statusEffects.find((fx) => fx.vowPack);
+      assert(vow, 'the vow did not land on a mended ally');
+      assert(Math.abs(vow.mult - 1.10) < 1e-9, `the vow gave ${vow.mult}`);
+      assert(mate.effectiveStat('def') > before, 'the vow moved no DEF');
+
+      // It must not re-stack on every tick of healing.
+      battle.onUnitHealed(mate, 50);
+      battle.onUnitHealed(mate, 50);
+      assert(mate.statusEffects.filter((fx) => fx.vowPack).length === 1,
+        'the vow stacked on repeated healing');
+
+      // And it must NOT be blocked by Catherine's own ward, or the pack
+      // would go quiet in the very party it belongs to.
+      const cath = units.find((u) => u.def.id === 'catherine');
+      if (cath) {
+        const other = units.find((u) => u !== cath && u !== mate) || mate;
+        other.hp = Math.round(other.maxHp * 0.5);
+        battle.onUnitHealed(other, 50);
+        const both = other.statusEffects.filter(
+          (fx) => fx.vowPack || fx.reverence).length;
+        assert(both >= 1, 'neither ward landed');
+      }
+    } finally { Battle.active = prev; }
+
+    // Two Reverence do not swear it.
+    const two = party(2);
+    Battle.active = two.battle;
+    try {
+      two.units[1].hp = Math.round(two.units[1].maxHp * 0.5);
+      two.battle.onUnitHealed(two.units[1], 50);
+      assert(!two.units[1].statusEffects.some((fx) => fx.vowPack),
+        'the vow landed at two Reverence');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Last Rites: an execute, read off the TARGET ----
+  {
+    const { battle, units } = party(4);
+    const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 50);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      foe.hp = foe.maxHp;
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'last rites were read over a healthy enemy');
+      foe.hp = Math.round(foe.maxHp * 0.30);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'last rites were read at 30% HP');
+      foe.hp = Math.round(foe.maxHp * 0.20);
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.30) < 1e-9,
+        `at 20% HP last rites paid ${units[0].damageDealtMult(foe, null)}`);
+    } finally { Battle.active = prev; }
   }
 });
 
