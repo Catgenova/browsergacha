@@ -105,6 +105,11 @@ function elementOnly(element, world = g) {
 // element test that hard-codes its own number quietly starts testing two
 // things the moment that sect gets a pack. Derived, it keeps testing
 // that the engine applies what the tables say, whatever they say.
+function sectOfIds(ids, world = g) {
+  const sect = world.RACES.sectOf(world.HEROES[ids[0]]);
+  return sect ? sect.id : null;
+}
+
 function partyStatMult(key, element, sectId, n, world = g) {
   const R = world.RACES;
   let m = 1;
@@ -8377,8 +8382,13 @@ test('water party bonuses: armour, a bounce, and a front line that holds', () =>
   {
     const bare = new Unit(HEROES[waterIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
     const { units } = party(2);
-    assert(units[0].baseDef === Math.round(bare.baseDef * 1.15),
-      `DEF ${units[0].baseDef}, wanted ${Math.round(bare.baseDef * 1.15)}`);
+    // Both water sects have packs now, so there are no pack-free water
+    // heroes left to isolate with: derive from whichever sect the
+    // fixture actually fielded.
+    const wantDef = Math.round(bare.baseDef *
+      partyStatMult('defPct', 'water', sectOfIds(waterIds), 2));
+    assert(units[0].baseDef === wantDef,
+      `DEF ${units[0].baseDef}, wanted ${wantDef}`);
   }
 
   // ---- 3pc Riptide: a CHANCE to bounce, capped with everything else ----
@@ -8453,8 +8463,12 @@ test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () =
   {
     const bare = new Unit(HEROES[fireIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
     const { units } = party(2);
-    assert(units[0].baseAtk === Math.round(bare.baseAtk * 1.15),
-      `ATK ${units[0].baseAtk}, wanted ${Math.round(bare.baseAtk * 1.15)}`);
+    // Derived ahead of need: once the Phoenix Court has a pack there
+    // will be no pack-free fire heroes either.
+    const wantAtk = Math.round(bare.baseAtk *
+      partyStatMult('atkPct', 'fire', sectOfIds(fireIds), 2));
+    assert(units[0].baseAtk === wantAtk,
+      `ATK ${units[0].baseAtk}, wanted ${wantAtk}`);
   }
 
   // ---- 3pc Moth to Flame: reads the TARGET's state, live ----
@@ -9323,6 +9337,109 @@ test('Whisperchime sect pack: a tax, bare branches, and being out of place', () 
         c3.damageDealtMult(noHex, null)) < 1e-9,
         'out of place paid at three Whisperchime');
     } finally { Battle.active = prev; }
+  }
+});
+
+// The Gulldiggers fight wide. Their pack is paid per body a sweep
+// catches, pays extra where a boarding party lands, and at the top
+// MAKES the crowd bigger rather than hitting it harder.
+test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () => {
+  const gull = RACES.SECTS.gulldigger.members;
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[gull[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Eye of the Storm: once per BODY, not once per cast ----
+  {
+    const { battle, units } = party(2);
+    // Hallow owns the original hook; measure on a bird who does not.
+    const caster = units.find((u) => u.def.id !== 'hallow') || units[1];
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const foes = [1, 2, 4].map((i) =>
+        roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, i), 400));
+      foes.forEach((f) => { f.dodgeChance = () => 0; f.reflectChance = () => 0; });
+      caster.turnMeter = 0;
+      Abilities.execute({ id: 'probe_sweep', name: 'Probe Sweep', cooldown: 0,
+        targeting: 'all-enemies', effects: [{ type: 'damage', mult: 0.4 }] },
+        caster, foes[0], battle);
+      // Three bodies struck, so three payments of 3%.
+      const paid = caster.turnMeter / CONFIG.TURN_METER_MAX;
+      assert(Math.abs(paid - 0.09) < 0.005,
+        `a sweep over three paid ${(paid * 100).toFixed(1)}% of a bar, wanted 9%`);
+
+      // A SINGLE-target hit pays nothing at all -- that is the point.
+      caster.turnMeter = 0;
+      Abilities.execute({ id: 'probe_jab', name: 'Probe Jab', cooldown: 0,
+        targeting: 'enemy', effects: [{ type: 'damage', mult: 0.4 }] },
+        caster, foes[0], battle);
+      assert(caster.turnMeter === 0,
+        `a single-target hit paid ${caster.turnMeter}`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 3pc Gaff and Haul: a front hex, and only a front hex ----
+  {
+    const { battle, units } = party(3);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const front = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+        battle.enemySlots.findIndex((s) => s.position === POSITION.FRONT));
+      const back = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+        battle.enemySlots.findIndex((s) => s.position === POSITION.BACK));
+      const caster = units[0];
+      const centre = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+        battle.enemySlots.findIndex((s) => s.position === POSITION.CENTER));
+      const onFront = caster.damageDealtMult(front, null);
+      const onBack = caster.damageDealtMult(back, null);
+      const onCentre = caster.damageDealtMult(centre, null);
+      assert(Math.abs(onFront / onBack - 1.20) < 1e-9,
+        `front ${onFront} over back ${onBack} is not the 1.20 the pack pays`);
+      // FRONT only, not "anywhere but the back". This is the same
+      // distinction Long Reach turns on at 4pc: the centre bird a front
+      // sweep drags in is still standing on a CENTRE hex, so the reach
+      // widens the sweep without relabelling the field.
+      assert(Math.abs(onCentre - onBack) < 1e-9,
+        `a centre hex paid ${onCentre}, the same as a front rank`);
+      // A BOSS has no hex, so it is not a front rank.
+      const boss = { statusEffects: [], slot: null };
+      assert(Math.abs(caster.damageDealtMult(boss, null) - onBack) < 1e-9,
+        'a boss was billed as a front rank');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Long Reach: the sweep gets WIDER, not harder ----
+  {
+    const reachOf = (n) => {
+      const { battle, units } = party(n);
+      const prev = Battle.active;
+      Battle.active = battle;
+      try {
+        // One enemy on a front hex, one on the centre.
+        place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+          battle.enemySlots.findIndex((s) => s.position === POSITION.FRONT));
+        place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+          battle.enemySlots.findIndex((s) => s.position === POSITION.CENTER));
+        const caught = Abilities.resolveTargets(
+          { targeting: 'front-enemies' }, units[0], null, battle);
+        return caught.map((u) => u.slot.position).sort().join(',');
+      } finally { Battle.active = prev; }
+    };
+    assert(reachOf(3) === 'front',
+      `three Gulldiggers reached ${reachOf(3)} — the centre is not theirs yet`);
+    assert(reachOf(4) === 'center,front',
+      `four Gulldiggers reached ${reachOf(4)}, wanted the centre folded in`);
   }
 });
 
