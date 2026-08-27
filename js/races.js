@@ -334,6 +334,47 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    gulldigger: [
+      {
+        count: 2, name: 'Eye of the Storm',
+        // Fired once per BODY a multi-target skill lands on, so a storm
+        // over seven pays seven times and a sweep that found one target
+        // pays nothing. Hallow keeps the deeper rate; he also collects
+        // both, being the bird the hook was written for.
+        hooks: {
+          onSweepHit(unit) {
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.03;
+            return null; // Hallow's own arrow already floats
+          },
+        },
+        label: 'every enemy a sweep strikes pays the caster 3% turn meter',
+      },
+      {
+        count: 3, name: 'Gaff and Haul',
+        // Where a boarding party actually lands. Bosses have no hex, so
+        // they are not a front rank and do not pay.
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.slot &&
+              target.slot.position === POSITION.FRONT ? 1.20 : 1;
+          },
+        },
+        label: '+20% damage to enemies on a front hex',
+      },
+      {
+        count: 4, name: 'Long Reach',
+        // Ike's pike, handed to the crew. Not a damage number at all --
+        // it folds the enemy CENTRE hex into every front-row sweep the
+        // party throws, so each one catches one more body. Which is
+        // what feeds the two tiers below it.
+        //
+        // Note the centre bird it drags in is still standing on a CENTRE
+        // hex, so Gaff and Haul does not pay for them. The reach widens
+        // the sweep; it does not relabel the field.
+        hooks: { reachesCenter: true },
+        label: "front-row sweeps also reach the enemy centre hex",
+      },
+    ],
     whisperchime: [
       {
         count: 2, name: 'Chime Tax',
