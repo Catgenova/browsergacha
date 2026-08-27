@@ -152,6 +152,43 @@ const RACES = (() => {
   // Only wind is written so far. An element with no table simply pays
   // nothing -- the machinery does not assume five entries.
   const ELEMENT_PARTY_BONUSES = {
+    // NOTE ON THE FIRST TWO TIERS. Both are correct and both currently
+    // do NOTHING, because nothing in the game carries resistance --
+    // zero on all 65 heroes, every enemy and every boss. The landing
+    // contest is `max(0.15, 1 - max(0, resistance - accuracy))`, so at
+    // resistance 0 it is already a certainty and neither more accuracy
+    // nor piercing a ward that is not there can improve on it.
+    //
+    // They wake up the moment anything on the enemy side has resistance
+    // -- an enemy hero casting one of the four resistance buffs on the
+    // roster today, or bosses and elites being given a base value.
+    // test/rules.test.js states both halves: that they are inert at
+    // resistance 0, and that they work against a target that has some.
+    dark: [
+      {
+        count: 2, name: 'Unerring',
+        mods: { accuracy: 0.25 },
+        label: '+25% Accuracy',
+      },
+      {
+        count: 3, name: 'Read the Wards',
+        // Piercing is not extra accuracy: accuracy is subtracted from
+        // whatever resistance survives, so the two only agree at 100%
+        // resistance. Read in Abilities.debuffLands, which governs every
+        // taking -- hexes, strips and meter drains alike.
+        hooks: { resistPierce: 0.20 },
+        label: 'ignores 20% of enemy Resistance',
+      },
+      {
+        count: 4, name: 'Lingering',
+        // The one live tier of the three. DEBUFFS only, not
+        // damage-over-time: the channel is read inside the debuff branch
+        // (abilities.js), so a burn or a poison does not get the coin
+        // flip and the label must not promise it one.
+        mods: { debuffExtraChance: 0.50 },
+        label: 'a landed debuff has a 50% chance to last an extra turn',
+      },
+    ],
     light: [
       {
         count: 2, name: 'Congregation',
@@ -305,6 +342,7 @@ const RACES = (() => {
     spdFlat: (u, v) => { u.speed += v; },
     dodge: (u, v) => { u.gearDodge += v; },
     startShield: (u, v) => { u.synergyStartShield += v; },
+    debuffExtraChance: (u, v) => { u.synergyDebuffExtraChance += v; },
     reflect: (u, v) => { u.gearReflect += v; },
     extraTurn: (u, v) => { u.gearExtraTurn += v; },
     cdr: (u, v) => { u.gearCdr += v; },

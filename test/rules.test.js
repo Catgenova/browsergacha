@@ -8532,4 +8532,111 @@ test('light party bonuses: a bigger pool, a last bell, and an opening ward', () 
   }
 });
 
+// Dark's set is about landing what you throw. Two of its three tiers are
+// currently INERT, and that is recorded here rather than left in a
+// commit message: the landing contest is
+//   max(0.15, 1 - max(0, resistance - accuracy))
+// and nothing in the game carries resistance, so at 0 it is already a
+// certainty. Both halves are stated -- that they do nothing today, and
+// that they work the moment a target has a ward to beat. If resistance
+// is ever given to bosses or elites, the first assertion is the one that
+// will fail, which is exactly the reminder wanted at that moment.
+test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () => {
+  const darkIds = Object.values(HEROES).filter((h) => h.element === 'dark')
+    .map((h) => h.id);
+  assert(darkIds.length >= 4, 'not enough dark heroes to test four');
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[darkIds[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- The premise: NOTHING has resistance right now ----
+  {
+    const warded = Object.values(HEROES).filter((h) => {
+      const u = new Unit(h, TEAM.ENEMY, { level: 30, stars: h.rarity || 3 });
+      return u.debuffResistance() > 0;
+    });
+    assert(warded.length === 0,
+      `${warded.length} hero(es) now carry base resistance ` +
+      `(${warded.slice(0, 3).map((h) => h.name).join(', ')}) — dark's 2pc and ` +
+      '3pc are no longer inert, and their labels can stop apologising');
+  }
+
+  // ---- 2pc Unerring: the stat moves, even though it buys nothing yet --
+  {
+    const bare = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2);
+    assert(Math.abs(units[0].debuffAccuracy() - (bare.debuffAccuracy() + 0.25)) < 1e-9,
+      `accuracy ${units[0].debuffAccuracy()} vs a base of ${bare.debuffAccuracy()}`);
+  }
+
+  // ---- 2pc + 3pc, measured against a target that DOES have a ward ----
+  {
+    const { battle, units } = party(3);
+    const caster = units[0];
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      // A 60% ward. Unpierced and unopposed that is a 40% landing rate.
+      foe.debuffResistance = () => 0.60;
+      // Accuracy 0.25 and pierce 0.20 => seen = 0.60*0.80 = 0.48,
+      // chance = 1 - (0.48 - 0.25) = 0.77.
+      const lands = (roll) => {
+        Math.random = () => roll;
+        return Abilities.takeLands(caster, foe);
+      };
+      assert(lands(0.76), 'a roll under the improved chance was refused');
+      assert(!lands(0.78), 'a roll over the improved chance still landed');
+
+      // A bare hero of the same body faces the full ward: chance 0.40.
+      const bare = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(bare, 5);
+      const bareLands = (roll) => {
+        Math.random = () => roll;
+        return Abilities.takeLands(bare, foe);
+      };
+      assert(bareLands(0.39), 'the unaided caster was refused under its own chance');
+      assert(!bareLands(0.41), 'the unaided caster landed above its own chance');
+    } finally { Math.random = real; Battle.active = prev; }
+  }
+
+  // ---- and at resistance 0, the two tiers change nothing at all ----
+  {
+    const { battle, units } = party(3);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const bare = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    battle.placeUnit(bare, 5);
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      assert(foe.debuffResistance() === 0, 'the dummy grew a ward');
+      Math.random = () => 0.99;
+      assert(Abilities.takeLands(units[0], foe) === Abilities.takeLands(bare, foe),
+        'accuracy changed the outcome against an unwarded target');
+    } finally { Math.random = real; Battle.active = prev; }
+  }
+
+  // ---- 4pc Lingering: the live tier ----
+  {
+    const bare = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    assert(bare.synergyDebuffExtraChance === 0, 'a bare hero already lingers');
+    const { units } = party(4);
+    assert(Math.abs(units[0].synergyDebuffExtraChance - 0.50) < 1e-9,
+      `Lingering set the channel to ${units[0].synergyDebuffExtraChance}`);
+    assert(party(3).units[0].synergyDebuffExtraChance === 0,
+      'Lingering paid out at three dark heroes');
+  }
+});
+
 report();
