@@ -230,6 +230,40 @@ const Abilities = (() => {
         Unit.retaliating = false;
       }
     }
+    // Catches Twice (fire 4pc): a CRIT can land a second time, for half
+    // the swing. A real second blow -- it re-enters strike, so the DEF
+    // curve, dodge, reflect, wards and a planted blocker all answer it
+    // exactly as they answered the first.
+    //
+    // Two rules keep it from running away. It is guarded like the
+    // crystal counter above, so an echo can never echo; and it is thrown
+    // with `crit: false`, so the follow-up is a plain blow rather than a
+    // second lottery ticket that could roll its way into a third.
+    if (crit && dealt > 0 && !Unit.echoing && caster.alive && target.alive &&
+        caster.team !== target.team) {
+      let chance = 0;
+      for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+        if (p.hooks && p.hooks.critEcho) chance += p.hooks.critEcho;
+      }
+      if (chance > 0 && Math.random() < Math.min(1, chance)) {
+        Unit.echoing = true;
+        let again = null;
+        try {
+          again = strike(caster, target, raw * 0.5, { ...opts, crit: false });
+        } finally {
+          Unit.echoing = false;
+        }
+        const battle = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        if (battle && again && again.amount > 0) {
+          battle.addFloatingText(target, `\u{1F525} ${again.amount}`, '#ff9a4a');
+          battle.log(`The fire catches twice — ${target.name} takes another ` +
+            `${again.amount}.`, 'log-system');
+        }
+        return { kind: 'damage', target, amount: dealt, crit,
+          echo: again ? again.amount : 0 };
+      }
+    }
     return { kind: 'damage', target, amount: dealt, crit };
   }
 
