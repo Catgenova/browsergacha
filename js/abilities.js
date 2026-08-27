@@ -163,7 +163,12 @@ const Abilities = (() => {
     // ever deletes DEF outright.
     let pen = opts.ignoreDef || 0;
     for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
-      if (p.hooks && p.hooks.defIgnoreAdd) pen += p.hooks.defIgnoreAdd;
+      const add = p.hooks && p.hooks.defIgnoreAdd;
+      if (!add) continue;
+      // A number for blindness that never varies (Phil's slop does not
+      // care what anybody is wearing); a FUNCTION for blindness that
+      // reads the target (Cryst's quiver only slips past a frozen one).
+      pen += typeof add === 'function' ? (add(caster, target) || 0) : add;
     }
     let dmg = damageFormula(raw,
       target.effectiveStat('def') * (1 - Math.min(0.9, pen)));

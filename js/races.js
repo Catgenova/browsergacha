@@ -321,6 +321,71 @@ const RACES = (() => {
     ],
   };
 
+  // ---- Sect party bonuses ----------------------------------------------
+  //
+  // Same 2/3/4 thresholds as the element sets, and stacking with them --
+  // but paid to the WHOLE PARTY rather than only to the sect. That is
+  // the difference between the two: an element pays its own, while a
+  // sect is a committed core that lifts everybody standing with it,
+  // including the hero who belongs to neither.
+  //
+  // Because every sect is single-element, a sect tier always lands on
+  // top of an element tier: four Cryst are also four water. So these
+  // lean conditional and enabling rather than adding a third flat stat
+  // lift on top of the two the party already holds.
+  const SECT_PARTY_BONUSES = {
+    cryst: [
+      {
+        count: 2, name: 'Cold Iron Court',
+        mods: { defPct: 0.10 },
+        label: '+10% DEF',
+      },
+      {
+        count: 3, name: 'Crystquiver',
+        // Armour-blindness that READS THE TARGET, which is why
+        // defIgnoreAdd now accepts a function as well as a number. Ari's
+        // name: the quiver finds the seam only once the ice has made
+        // one. Capped short of 1 inside strike, like every other
+        // penetration source.
+        hooks: {
+          defIgnoreAdd(unit, target) {
+            return target && target.frozen && target.frozen() ? 0.20 : 0;
+          },
+        },
+        label: 'ignores 20% of DEF against a frozen enemy',
+      },
+      {
+        count: 4, name: 'Frostbite',
+        // Counted across the whole enemy side, not just the hero being
+        // hit: the field being cold is the condition, so freezing one
+        // enemy makes every swing at every OTHER enemy harder too.
+        hooks: {
+          damageDealtMult(unit) {
+            const b = typeof Battle !== 'undefined' ? Battle.active : null;
+            if (!b || !unit.enemyTeam) return 1;
+            const held = b.livingUnits(unit.enemyTeam())
+              .filter((u) => u.frozen && u.frozen()).length;
+            return 1 + 0.05 * held;
+          },
+        },
+        label: '+5% damage for every frozen enemy on the field',
+      },
+    ],
+  };
+
+  function sectCounts(units) {
+    const out = {};
+    for (const u of units) {
+      const sect = sectOf(u.def || u);
+      if (sect) out[sect.id] = (out[sect.id] || 0) + 1;
+    }
+    return out;
+  }
+
+  function sectTiers(sectId, count) {
+    return (SECT_PARTY_BONUSES[sectId] || []).filter((t) => count >= t.count);
+  }
+
   function elementCounts(units) {
     const out = {};
     for (const u of units) {
@@ -405,6 +470,20 @@ const RACES = (() => {
       active.push({ element, title: `${ELEMENT_NAMES[element]} resonance`,
         count, labels: tiers.map((t) => `${t.name}: ${t.label}`) });
     }
+    // Sect packs, after the elements. Paid to EVERY hero fielded, not
+    // only to the sect that earned it.
+    for (const [sectId, count] of Object.entries(sectCounts(units))) {
+      const tiers = sectTiers(sectId, count);
+      if (tiers.length === 0) continue;
+      for (const unit of units) {
+        for (const tier of tiers) {
+          if (tier.mods) applyModsToUnit(unit, tier.mods);
+          if (tier.hooks) applyHooksToUnit(unit, tier);
+        }
+      }
+      active.push({ sect: sectId, title: `${SECTS[sectId].name} sect`,
+        count, labels: tiers.map((t) => `${t.name}: ${t.label}`) });
+    }
     // Opening wards, granted LAST -- after every tier above has finished
     // shaping max HP, so a ward priced as a share of the pool is a share
     // of the FINAL pool. The turn count is effectively battle-long: this
@@ -426,11 +505,29 @@ const RACES = (() => {
       const tiers = ELEMENT_PARTY_BONUSES[element] || [];
       if (tiers.length === 0) continue;
       out.push({
-        element, name: ELEMENT_NAMES[element], count,
+        kind: 'element', key: element, element,
+        name: `${ELEMENT_NAMES[element]} resonance`, count,
         tiers: tiers.map((t) => ({ ...t, earned: count >= t.count })),
       });
     }
-    return out.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    for (const [sectId, count] of Object.entries(sectCounts(defs))) {
+      const tiers = SECT_PARTY_BONUSES[sectId] || [];
+      if (tiers.length === 0) continue;
+      // A sect is one element, so the group borrows its colour.
+      const member = defs.find((d) => {
+        const s = sectOf(d);
+        return s && s.id === sectId;
+      });
+      out.push({
+        kind: 'sect', key: sectId, element: member ? member.element : null,
+        name: `${SECTS[sectId].name} sect`, count,
+        tiers: tiers.map((t) => ({ ...t, earned: count >= t.count })),
+      });
+    }
+    // Sects after elements at the same size, so a party reads as its
+    // elements first and the deeper commitment second.
+    return out.sort((a, b) => b.count - a.count ||
+      (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === 'element' ? -1 : 1));
   }
 
   // The orders still standing. Anything offering sects as a CHOICE --
@@ -457,5 +554,6 @@ const RACES = (() => {
 
   return { of, NAMES, SECTS, liveSects, sectOf,
     ELEMENT_NAMES, ELEMENT_PARTY_BONUSES, elementCounts, elementTiers,
+    SECT_PARTY_BONUSES, sectCounts, sectTiers,
     applyParty, previewParty };
 })();

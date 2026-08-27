@@ -149,6 +149,15 @@ class Unit {
       fx.kind === 'dot' && fx.flavor === 'burn');
   }
 
+  // Frozen: the ice-flavoured stun, held as a debuff rather than a
+  // status of its own (Abilities.freeze). Read often enough now -- by
+  // Cryst's pack and by anything that wants to hit a held target harder
+  // -- to be worth a name instead of the same `some()` in six places.
+  frozen() {
+    return this.statusEffects.some((fx) =>
+      fx.kind === 'debuff' && fx.stat === 'freeze');
+  }
+
   get alive() {
     return this.hp > 0;
   }

@@ -239,7 +239,7 @@ class TeamScreen {
       const earned = grp.tiers.filter((t) => t.earned).length;
       return `<div class="pb-group${earned ? ' pb-group-live' : ''}">
         <div class="pb-head"${colour ? ` style="color:${colour}"` : ''}>
-          ${grp.name} resonance <span class="pb-count">${grp.count} fielded</span></div>
+          ${grp.name} <span class="pb-count">${grp.count} fielded</span></div>
         ${rows}</div>`;
     }).join('');
   }
