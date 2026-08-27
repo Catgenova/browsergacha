@@ -2281,6 +2281,14 @@ body {
      .boss-arena on #battle-wrap) open the band upward to y 70 — boss
      art stands ~230px tall and would lose its head to the tight
      crop. */
+  /* The fluid default every registered canvas takes on a phone. It used
+     to be written inline by sizeCanvases(), which outranked the crop
+     rule below and broke it; as a stylesheet rule the more specific
+     crop selector wins, which is what was intended all along. */
+  html.is-mobile canvas {
+    width: 100%;
+    height: auto;
+  }
   html.is-mobile #battle-canvas-crop {
     order: 1;
     display: block;

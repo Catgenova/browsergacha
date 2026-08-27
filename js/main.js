@@ -67,9 +67,18 @@ const App = {
     for (const c of this.hiDpiCanvases) {
       let cssW;
       if (mobile) {
-        // Fluid width, aspect held by the backing store's own ratio.
-        c.el.style.width = '100%';
-        c.el.style.height = 'auto';
+        // Fluid width, aspect held by the backing store's own ratio --
+        // but owned by the STYLESHEET, not by an inline style. The
+        // battle canvas sits inside a crop wrapper that pulls it left
+        // and scales it up to compensate (width 127.66%, margin-left
+        // -13.83%); an inline `width: 100%` here beat that rule on
+        // specificity, so the canvas kept the negative margin and lost
+        // the matching zoom. It ended up shifted 51px off the left of
+        // its own crop -- clipping the player's front rank away and
+        // leaving a dead strip on the right. Clearing the inline width
+        // lets each canvas take the width its own rule asks for.
+        c.el.style.width = '';
+        c.el.style.height = '';
         cssW = c.el.getBoundingClientRect().width || c.w;
       } else {
         c.el.style.width = `${c.w}px`;

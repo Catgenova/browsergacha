@@ -1040,16 +1040,30 @@ class Battle {
   unitAt(px, py, includeDead = false) {
     // Hit test against a box around each unit's sprite (which is
     // anchored feet-on-tile, so its center sits above the slot center).
+    // Formation hexes are close together and sprites are taller than the
+    // tiles they stand on, so several boxes overlap almost everywhere on
+    // the player's side. Returning the first MATCH in roster order meant
+    // a point squarely on one hero could select the one behind them --
+    // arbitrary, and unfixable by aiming better. Take every candidate
+    // and keep the NEAREST, which is deterministic and is what the
+    // player was pointing at. Matters most on a phone, where the whole
+    // board is a few hundred pixels wide.
     const pool = includeDead ? this.units.filter((u) => u.slot) : this.livingUnits();
+    let best = null;
+    let bestD = Infinity;
     for (const u of pool) {
       const size = u.animator ? u.animator.sheet.size() : { w: 48, h: 48 };
       const centerY = u.slot.y - size.h / 2 + 5;
       const halfW = size.w / 2 + 6;
       const halfH = size.h / 2 + 6;
-      if (Math.abs(px - u.slot.x) <= halfW && Math.abs(py - centerY) <= halfH) {
-        return u;
-      }
+      if (Math.abs(px - u.slot.x) > halfW || Math.abs(py - centerY) > halfH) continue;
+      // Normalised by the box, so a big sprite does not out-reach a
+      // small one standing right where the player tapped.
+      const dx = (px - u.slot.x) / halfW;
+      const dy = (py - centerY) / halfH;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = u; }
     }
-    return null;
+    return best;
   }
 }
