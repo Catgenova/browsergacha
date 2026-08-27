@@ -1409,10 +1409,23 @@ test('favourites and team members are never sacrifice material', () => {
   const w = loadGame();
   const G = w.GameState;
   const cheap = Object.values(w.HEROES).find((h) => (h.rarity || 1) === lowestRarity(w));
-  const target = G.addHero(cheap.id).uid;
-  const fav = G.addHero(cheap.id).uid;
-  const fielded = G.addHero(cheap.id).uid;
-  const spare = G.addHero(cheap.id).uid;
+  // The summon lottery is stubbed off for the duration. A blessed copy
+  // arrives ALREADY favourited (addHero pins keepers), and toggleFavorite
+  // toggles -- so on the roughly one run in a thousand where the roll
+  // hits, this test turned the flag OFF and then asserted a favourite
+  // could not be spent. It failed about that often, which is exactly
+  // often enough to look like something else.
+  const realRoll = w.Blessing.roll;
+  w.Blessing.roll = () => null;
+  let target; let fav; let fielded; let spare;
+  try {
+    target = G.addHero(cheap.id).uid;
+    fav = G.addHero(cheap.id).uid;
+    fielded = G.addHero(cheap.id).uid;
+    spare = G.addHero(cheap.id).uid;
+  } finally {
+    w.Blessing.roll = realRoll;
+  }
   G.toggleFavorite(fav);
   G.setTeamSlot(0, fielded);
   assert(!G.canSacrifice(fav, target), 'a favourite can be sacrificed');
@@ -1594,6 +1607,22 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
   const wilted = frontFoe.maxHp - frontFoe.hp;
   assert(wilted > clean * 1.15 && wilted < clean * 1.25,
     `wilting garden off: ${clean} clean vs ${wilted} hexed`);
+
+  // And the CEILING, which nothing pinned until now. The card has always
+  // read "up to +60%"; the code capped at three hexes and paid +30%, so
+  // it promised twice what it gave. Read straight off the hook rather
+  // than through a swing, so the cap is the only thing being measured.
+  {
+    const mult = (n) => {
+      const dummy = { statusEffects: Array.from({ length: n },
+        () => ({ kind: 'debuff', stat: 'speed', mult: 0.9, turns: 2 })) };
+      return HEROES.sawyer.passive.hooks.damageDealtMult(sawyer, dummy);
+    };
+    assert(Math.abs(mult(3) - 1.30) < 1e-9, `three hexes paid ${mult(3)}`);
+    assert(Math.abs(mult(6) - 1.60) < 1e-9,
+      `six hexes paid ${mult(6)}, and the card promises +60%`);
+    assert(Math.abs(mult(9) - 1.60) < 1e-9, `nine hexes paid ${mult(9)} — uncapped`);
+  }
 });
 
 test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', () => {
@@ -9038,6 +9067,118 @@ test('Firetroupe sect pack: oil laid down, a hurt crowd, and a grease fire', () 
       assert(Math.abs(three.units[0].damageDealtMult(foe3, null) - 1) < 1e-9,
         'grease fire paid out at three Firetroupe');
     } finally { Battle.active = prev2; }
+  }
+});
+
+// The Nightflowers' pack is built on death and on what the enemy is
+// already carrying -- the live half of dark, since two of that element's
+// three tiers sleep until resistance exists.
+test('Nightflower sect pack: a wilting garden, a passing bell, cut flowers', () => {
+  const night = RACES.SECTS.nightflower.members;
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[night[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Wilting Garden: hexes AND poisons, capped at five ----
+  {
+    const { battle, units } = party(2);
+    // Sawyer counts both himself, so pick a member who is NOT him: his
+    // own passive would ride along and the reading would be two things.
+    const caster = units.find((u) => u.def.id !== 'sawyer') || units[1];
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      foe.statusEffects.length = 0;
+      assert(Math.abs(caster.damageDealtMult(foe, null) - 1) < 1e-9,
+        'the garden wilted a clean target');
+      foe.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.9, turns: 3 });
+      assert(Math.abs(caster.damageDealtMult(foe, null) - 1.08) < 1e-9,
+        `one hex paid ${caster.damageDealtMult(foe, null)}`);
+      // A POISON counts too -- a flower droops the same whichever did it.
+      foe.addStatusEffect({ kind: 'dot', amount: 10, turns: 3,
+        flavor: 'poison', source: caster });
+      assert(Math.abs(caster.damageDealtMult(foe, null) - 1.16) < 1e-9,
+        `a hex and a poison paid ${caster.damageDealtMult(foe, null)}`);
+      // Capped at five.
+      for (let i = 0; i < 8; i++) {
+        foe.addStatusEffect({ kind: 'debuff', stat: 'critChance',
+          add: -0.05, turns: 3 });
+      }
+      assert(Math.abs(caster.damageDealtMult(foe, null) - 1.40) < 1e-9,
+        `a smothered target paid ${caster.damageDealtMult(foe, null)}, wanted the +40% cap`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 3pc The Passing Bell: an ALLY's death, everyone's cooldowns ----
+  {
+    const { battle, units } = party(3);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      for (const u of units) {
+        for (const a of u.abilities) a.cooldownRemaining = 3;
+      }
+      const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+      for (const a of foe.abilities || []) a.cooldownRemaining = 3;
+
+      // An ENEMY falling rings nothing.
+      foe.hp = 1;
+      foe.takeDamage(99999, units[0]);
+      assert(units[0].abilities.every((a) => a.cooldownRemaining === 3),
+        'an enemy death rang the bell');
+
+      // An ALLY falling shortens every survivor's cooldowns.
+      const doomed = units[units.length - 1];
+      doomed.hp = 1;
+      doomed.takeDamage(99999, foe);
+      const survivors = units.filter((u) => u.alive);
+      assert(survivors.length >= 2, 'the fixture killed too much');
+      for (const u of survivors) {
+        assert(u.abilities.every((a) => a.cooldownRemaining === 2),
+          `${u.def.name} still sits at ${u.abilities[0].cooldownRemaining}`);
+      }
+    } finally { Battle.active = prev; }
+
+    // Two Nightflowers do not ring it.
+    const two = party(2);
+    Battle.active = two.battle;
+    try {
+      for (const a of two.units[0].abilities) a.cooldownRemaining = 3;
+      const doomed = two.units[1];
+      doomed.hp = 1;
+      doomed.takeDamage(99999, two.units[0]);
+      assert(two.units[0].abilities.every((a) => a.cooldownRemaining === 3),
+        'the bell rang at two Nightflowers');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Cut Flowers: the body count, BOTH sides ----
+  {
+    const { battle, units } = party(4);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      battle.deaths = 0;
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'cut flowers paid before anyone fell');
+      battle.deaths = 2;
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.10) < 1e-9,
+        `two dead paid ${units[0].damageDealtMult(foe, null)}`);
+      battle.deaths = 12;
+      assert(Math.abs(units[0].damageDealtMult(foe, null) - 1.25) < 1e-9,
+        `a full graveyard paid ${units[0].damageDealtMult(foe, null)}, wanted the +25% cap`);
+    } finally { Battle.active = prev; }
   }
 });
 

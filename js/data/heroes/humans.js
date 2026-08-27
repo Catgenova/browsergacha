@@ -901,7 +901,10 @@ Object.assign(HEROES, {
           if (!target) return 1;
           const hexes = target.statusEffects.filter(
             (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
-          return 1 + 0.10 * Math.min(3, hexes);
+          // Six, not three: the card has always read "up to +60%" and
+          // the cap has always been three, which paid +30%. The card is
+          // the promise, so the code moved.
+          return 1 + 0.10 * Math.min(6, hexes);
         },
       },
     },
