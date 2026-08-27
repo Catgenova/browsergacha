@@ -152,18 +152,17 @@ const RACES = (() => {
   // Only wind is written so far. An element with no table simply pays
   // nothing -- the machinery does not assume five entries.
   const ELEMENT_PARTY_BONUSES = {
-    // NOTE ON THE FIRST TWO TIERS. Both are correct and both currently
-    // do NOTHING, because nothing in the game carries resistance --
-    // zero on all 65 heroes, every enemy and every boss. The landing
-    // contest is `max(0.15, 1 - max(0, resistance - accuracy))`, so at
-    // resistance 0 it is already a certainty and neither more accuracy
-    // nor piercing a ward that is not there can improve on it.
+    // These two tiers are LIVE now, and were not always. The landing
+    // contest is `max(0.15, 1 - max(0, resistance - accuracy))`, and for
+    // a long time nothing in the game carried any resistance at all --
+    // so it was already a certainty and neither more accuracy nor
+    // piercing an absent ward could improve on it.
     //
-    // They wake up the moment anything on the enemy side has resistance
-    // -- an enemy hero casting one of the four resistance buffs on the
-    // roster today, or bosses and elites being given a base value.
-    // test/rules.test.js states both halves: that they are inert at
-    // resistance 0, and that they work against a target that has some.
+    // Everything now starts at 15 accuracy and 15 resistance, and a BOSS
+    // holds 65. Against an ordinary body 15 against 15 is still a
+    // certainty and these tiers still buy nothing; against a boss they
+    // are the difference between a coin flip and a sure thing, which is
+    // the fight a debuff kit was always meant to build for.
     dark: [
       {
         count: 2, name: 'Unerring',
@@ -758,13 +757,20 @@ const RACES = (() => {
     return active;
   }
 
+  // The smallest party that earns anything. A group with only one hero
+  // fielded is not on its way to a bonus in any meaningful sense -- the
+  // first tier needs two -- so the readout leaves it out rather than
+  // listing every lone element in a mixed party and burying the groups
+  // that are actually live.
+  const PREVIEW_MIN = 2;
+
   // What a prospective party WOULD earn, without building a battle --
   // the team screen's readout. Takes hero defs rather than units.
   function previewParty(defs) {
     const out = [];
     for (const [element, count] of Object.entries(elementCounts(defs))) {
       const tiers = ELEMENT_PARTY_BONUSES[element] || [];
-      if (tiers.length === 0) continue;
+      if (tiers.length === 0 || count < PREVIEW_MIN) continue;
       out.push({
         kind: 'element', key: element, element,
         name: `${ELEMENT_NAMES[element]} resonance`, count,
@@ -773,7 +779,7 @@ const RACES = (() => {
     }
     for (const [sectId, count] of Object.entries(sectCounts(defs))) {
       const tiers = SECT_PARTY_BONUSES[sectId] || [];
-      if (tiers.length === 0) continue;
+      if (tiers.length === 0 || count < PREVIEW_MIN) continue;
       // A sect is one element, so the group borrows its colour.
       const member = defs.find((d) => {
         const s = sectOf(d);
@@ -815,6 +821,6 @@ const RACES = (() => {
 
   return { of, NAMES, SECTS, liveSects, sectOf,
     ELEMENT_NAMES, ELEMENT_PARTY_BONUSES, elementCounts, elementTiers,
-    SECT_PARTY_BONUSES, sectCounts, sectTiers,
+    SECT_PARTY_BONUSES, sectCounts, sectTiers, PREVIEW_MIN,
     applyParty, previewParty };
 })();

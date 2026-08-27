@@ -3150,8 +3150,9 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
     f.dodgeChance = () => 0;
   }
 
-  // Center Ring: +20% debuff accuracy from the center hex.
-  assert(Math.abs(slick.debuffAccuracy() - 0.20) < 1e-9,
+  // Center Ring: +20% debuff accuracy from the center hex, on top of the
+  // 15 everybody starts with.
+  assert(Math.abs(slick.debuffAccuracy() - (Unit.BASE_ACCURACY + 0.20)) < 1e-9,
     `center accuracy read ${slick.debuffAccuracy()}`);
 
   const oilOn = (u) => u.statusEffects.find((fx) => fx.stat === 'oilslicked');
@@ -3173,7 +3174,7 @@ test("Slick's kit: splash zones, fresh coats, and the backsplash", () => {
   A.execute(slick.abilities[1].def, slick, slick, battle);
   assert(slick.effectiveStat('speed') === Math.round(spd0 * 1.30),
     `coated speed read ${slick.effectiveStat('speed')} from ${spd0}`);
-  assert(Math.abs(slick.debuffAccuracy() - 0.50) < 1e-9,
+  assert(Math.abs(slick.debuffAccuracy() - (Unit.BASE_ACCURACY + 0.50)) < 1e-9,
     `coated accuracy read ${slick.debuffAccuracy()}`);
 
   // Backsplash: an enemy who strikes the barrel wears the barrel.
@@ -5729,8 +5730,13 @@ test("Valere's kit: he opens the door, then hands them the bill", () => {
     const before = foes.map((f) => f.debuffResistance());
     live(b, () => A.execute(def.abilities[1], va, null, b));
     foes.forEach((f, i) => {
-      assert(Math.abs(f.debuffResistance() - (before[i] - 0.30)) < 1e-9,
-        `${f.def.id} resistance ${before[i]} -> ${f.debuffResistance()}`);
+      // Resistance floors at zero rather than going negative -- a hex
+      // that is already certain cannot become more certain. Against an
+      // ordinary body the 30-point strip therefore eats the 15 they
+      // start with; against a boss holding 65 it takes a real bite.
+      const want = Math.max(0, before[i] - 0.30);
+      assert(Math.abs(f.debuffResistance() - want) < 1e-9,
+        `${f.def.id} resistance ${before[i]} -> ${f.debuffResistance()}, wanted ${want}`);
       const res = f.statusEffects.find((fx) => fx.stat === 'resistance');
       assert(res && res.turns === 2, 'the bouquet did not last 2 turns');
       assert(f.statusEffects.some((fx) => fx.stat === 'def' && fx.mult === 0.80),
@@ -8647,16 +8653,25 @@ test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () =
     return { battle, units };
   };
 
-  // ---- The premise: NOTHING has resistance right now ----
+  // ---- The premise: everyone starts at 15, a boss holds 65 ----
   {
-    const warded = Object.values(HEROES).filter((h) => {
-      const u = new Unit(h, TEAM.ENEMY, { level: 30, stars: h.rarity || 3 });
-      return u.debuffResistance() > 0;
-    });
-    assert(warded.length === 0,
-      `${warded.length} hero(es) now carry base resistance ` +
-      `(${warded.slice(0, 3).map((h) => h.name).join(', ')}) — dark's 2pc and ` +
-      '3pc are no longer inert, and their labels can stop apologising');
+    const bare = new Unit(HEROES[darkIds[0]], TEAM.ENEMY, { level: 30, stars: 3 });
+    assert(Math.abs(bare.debuffAccuracy() - 0.15) < 1e-9,
+      `a bare hero's accuracy is ${bare.debuffAccuracy()}`);
+    assert(Math.abs(bare.debuffResistance() - 0.15) < 1e-9,
+      `a bare hero's resistance is ${bare.debuffResistance()}`);
+    const boss = new Unit(BOSSES.dragon, TEAM.ENEMY, { level: 60, stars: 5 });
+    assert(Math.abs(boss.debuffResistance() - 0.65) < 1e-9,
+      `a boss holds ${boss.debuffResistance()}, wanted 0.65`);
+    // Accuracy tops out above resistance on purpose: a fully-built
+    // attacker can always beat a fully-built defender.
+    const brute = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    brute.gearAccuracy = 99;
+    assert(brute.debuffAccuracy() === 1, `accuracy capped at ${brute.debuffAccuracy()}`);
+    const wall = new Unit(HEROES[darkIds[0]], TEAM.ENEMY, { level: 30, stars: 3 });
+    wall.gearResistance = 99;
+    assert(wall.debuffResistance() === 0.85,
+      `resistance capped at ${wall.debuffResistance()}`);
   }
 
   // ---- 2pc Unerring: the stat moves, even though it buys nothing yet --
@@ -8667,39 +8682,36 @@ test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () =
       `accuracy ${units[0].debuffAccuracy()} vs a base of ${bare.debuffAccuracy()}`);
   }
 
-  // ---- 2pc + 3pc, measured against a target that DOES have a ward ----
+  // ---- 2pc + 3pc, measured against a BOSS ----
   {
     const { battle, units } = party(3);
     const caster = units[0];
-    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    const boss = new Unit(BOSSES.dragon, TEAM.ENEMY, { level: 60, stars: 5 });
+    battle.placeUnit(boss, 0);
     const prev = Battle.active;
     Battle.active = battle;
     const real = Math.random;
     try {
-      // A 60% ward. Unpierced and unopposed that is a 40% landing rate.
-      foe.debuffResistance = () => 0.60;
-      // Accuracy 0.25 and pierce 0.20 => seen = 0.60*0.80 = 0.48,
-      // chance = 1 - (0.48 - 0.25) = 0.77.
-      const lands = (roll) => {
+      // Boss 0.65. A bare caster brings 0.15, so 1 - 0.50 = 0.50.
+      // The party brings 0.15 + 0.25 accuracy and pierces 20% of the
+      // ward: seen 0.52, so 1 - (0.52 - 0.40) = 0.88.
+      const lands = (who, roll) => {
         Math.random = () => roll;
-        return Abilities.takeLands(caster, foe);
+        return Abilities.takeLands(who, boss);
       };
-      assert(lands(0.76), 'a roll under the improved chance was refused');
-      assert(!lands(0.78), 'a roll over the improved chance still landed');
-
-      // A bare hero of the same body faces the full ward: chance 0.40.
       const bare = new Unit(HEROES[darkIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
       battle.placeUnit(bare, 5);
-      const bareLands = (roll) => {
-        Math.random = () => roll;
-        return Abilities.takeLands(bare, foe);
-      };
-      assert(bareLands(0.39), 'the unaided caster was refused under its own chance');
-      assert(!bareLands(0.41), 'the unaided caster landed above its own chance');
+      assert(lands(bare, 0.49) && !lands(bare, 0.51),
+        'an unaided caster does not sit on a coin flip against a boss');
+      assert(lands(caster, 0.87), 'the warded party was refused under its own chance');
+      assert(!lands(caster, 0.89), 'the warded party landed above its own chance');
     } finally { Math.random = real; Battle.active = prev; }
   }
 
-  // ---- and at resistance 0, the two tiers change nothing at all ----
+  // ---- and against a PEER, they still change nothing ----
+  // 15 against 15 is already a certainty, and no amount of accuracy
+  // improves on certain. That is not a bug: it is why the tiers are
+  // priced for the fight they exist for.
   {
     const { battle, units } = party(3);
     const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
@@ -8709,10 +8721,9 @@ test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () =
     Battle.active = battle;
     const real = Math.random;
     try {
-      assert(foe.debuffResistance() === 0, 'the dummy grew a ward');
       Math.random = () => 0.99;
       assert(Abilities.takeLands(units[0], foe) === Abilities.takeLands(bare, foe),
-        'accuracy changed the outcome against an unwarded target');
+        'accuracy changed the outcome against an ordinary body');
     } finally { Math.random = real; Battle.active = prev; }
   }
 
@@ -9554,6 +9565,56 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
       'Flurry no longer owns her own passive name');
     const court2 = RACES.SECT_PARTY_BONUSES.phoenixcourt.find((t) => t.count === 2);
     assert(court2.name === 'Catches Twice', 'the Court lost the name');
+  }
+});
+
+// The team readout lists what a party is EARNING or nearly earning. A
+// group with one hero in it is neither -- the first tier needs two -- so
+// a seven-hero party of seven different elements would otherwise show
+// seven boxes and no live tier in any of them.
+test('the party readout hides a group with fewer than two fielded', () => {
+  const defOf = (id) => HEROES[id];
+  const cryst = RACES.SECTS.cryst.members.map(defOf);
+
+  // One water hero: nothing to show, element or sect.
+  {
+    const groups = RACES.previewParty([cryst[0]]);
+    assert(groups.length === 0,
+      `a lone hero showed ${groups.map((x) => x.name).join(', ')}`);
+  }
+
+  // Two: both the element and the sect appear, and the first tier is
+  // earned rather than merely listed.
+  {
+    const groups = RACES.previewParty([cryst[0], cryst[1]]);
+    const names = groups.map((x) => x.name);
+    assert(groups.some((x) => x.kind === 'element'),
+      `no element group at two: ${names.join(', ')}`);
+    assert(groups.some((x) => x.kind === 'sect'),
+      `no sect group at two: ${names.join(', ')}`);
+    for (const grp of groups) {
+      assert(grp.tiers.some((t) => t.earned),
+        `${grp.name} is shown with nothing earned`);
+    }
+  }
+
+  // A mixed party shows only the groups that reached two. One tagalong
+  // fire hero beside three Cryst must not add a fire box.
+  {
+    const lone = Object.values(HEROES).find((h) => h.element === 'fire');
+    const groups = RACES.previewParty([cryst[0], cryst[1], cryst[2], lone]);
+    assert(!groups.some((x) => x.key === 'fire'),
+      'a single fire hero opened a fire group');
+    assert(groups.some((x) => x.key === 'water') && groups.some((x) => x.key === 'cryst'),
+      'the three-strong groups were dropped');
+  }
+
+  // The threshold is the readout's, not the rules': applyParty still
+  // pays nothing at one, and the first tier still lands at two.
+  {
+    assert(RACES.elementTiers('water', 1).length === 0, 'water paid at one');
+    assert(RACES.elementTiers('water', 2).length > 0, 'water paid nothing at two');
+    assert(RACES.PREVIEW_MIN === 2, `the readout floor is ${RACES.PREVIEW_MIN}`);
   }
 });
 
