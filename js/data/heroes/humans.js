@@ -295,9 +295,14 @@ Object.assign(HEROES, {
       // Measured 14: a closed, formal stance on a paladin who is
       // visually one of the heaviest things on the field.
       shadowScale: 1.3,
-      // Authored facing left (see the facing audit) — flagged, not
-      // mirrored into the files; Sprites.facesLeft() flips it right.
-      faceLeft: true,
+      // Authored facing RIGHT — no faceLeft flag, so she draws as she
+      // was painted. The facing audit originally called her left and it
+      // was wrong: her flail TRAILS to the left through the swing (the
+      // follow-through arc on skill1 frame 12 reads as a leftward strike
+      // at thumbnail size), but her head, her lead knee and the fall of
+      // her death pose all point right in every strip. Flagged left, she
+      // was mirrored on the player side and idled facing away from the
+      // enemy.
       strips: {
         idle:  { src: 'assets/heroes/Catherine/catherineidle.png', frames: 9, fps: 5, loop: true },
         // Timed fidgets while she idles: flail adjust, then a short prayer.

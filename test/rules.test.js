@@ -7795,4 +7795,50 @@ test('looping action animations still fire their completion callback', () => {
   }
 });
 
+// The facing audit, recorded. Twice now a hero has shipped mirrored --
+// Ryn, then Catherine -- and both times for the same reason: the call
+// was made off a frame where the WEAPON leads or trails the body, which
+// at thumbnail size reads as the direction of travel. It is not. The
+// head, the lead knee and the fall of the death pose are.
+//
+// So the flags are pinned here rather than re-eyeballed. Adding art is
+// meant to touch this list; a flag that changes without anyone meaning
+// it shows up as a named failure instead of a character quietly turning
+// their back on the enemy.
+test('the facing audit is what it was last time somebody looked', () => {
+  const LEFT = ['andrew', 'angelica', 'artur', 'cain', 'esmerelda',
+    'franz', 'javarious', 'lin', 'lucian', 'slick'];
+  // One strip authored the other way round from its own sheet: Lin's
+  // skill3 plants the ball to the right while the rest of her faces left.
+  const STRIP = { 'lin:skill3': false };
+
+  const left = [], strips = {};
+  for (const h of Object.values(HEROES)) {
+    const sp = h.sprite || {};
+    if (sp.faceLeft) left.push(h.id);
+    for (const [name, st] of Object.entries(sp.strips || {})) {
+      if (st.faceLeft !== undefined) strips[`${h.id}:${name}`] = !!st.faceLeft;
+    }
+  }
+  const added = left.filter((id) => !LEFT.includes(id)).sort();
+  const gone = LEFT.filter((id) => !left.includes(id)).sort();
+  assert(added.length === 0,
+    `newly flagged as left-facing, and not recorded here: ${added.join(', ')}`);
+  assert(gone.length === 0,
+    `no longer flagged as left-facing: ${gone.join(', ')}`);
+
+  const wantStrips = Object.keys(STRIP).sort().join(',');
+  const gotStrips = Object.keys(strips).sort().join(',');
+  assert(wantStrips === gotStrips,
+    `per-strip facing overrides moved: recorded [${wantStrips}], found [${gotStrips}]`);
+  for (const [key, want] of Object.entries(STRIP)) {
+    assert(strips[key] === want, `${key} is now faceLeft: ${strips[key]}`);
+  }
+
+  // Catherine specifically: her flail TRAILS left through the swing,
+  // which is what the audit misread. Every strip of hers faces right.
+  assert(!HEROES.catherine.sprite.faceLeft,
+    'Catherine is flipped again — her art faces right, the flail just trails');
+});
+
 report();
