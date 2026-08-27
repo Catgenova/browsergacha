@@ -152,6 +152,38 @@ const RACES = (() => {
   // Only wind is written so far. An element with no table simply pays
   // nothing -- the machinery does not assume five entries.
   const ELEMENT_PARTY_BONUSES = {
+    water: [
+      {
+        count: 2, name: 'Cold Iron',
+        mods: { defPct: 0.15 },
+        label: '+15% DEF',
+      },
+      {
+        count: 3, name: 'Riptide',
+        // A CHANCE to bounce the whole blow back, not a share of it:
+        // the attacker eats the hit and the target takes nothing
+        // (Abilities.strike). The old water 7pc read "reflects 15% of
+        // damage taken", which described a mechanic the engine has
+        // never had -- the label says what actually happens.
+        //
+        // 15% is what a full Boar six-piece grants, so this is a whole
+        // gear set's worth of reflect for three of seven party slots.
+        mods: { reflect: 0.15 },
+        label: '15% chance to bounce a hit back at the attacker',
+      },
+      {
+        count: 4, name: 'Ice Shelf',
+        // Paid for standing where the blows land. Read live rather than
+        // stamped at build, so moving a hero forward mid-fight (or a
+        // formation rotate) turns it on and off honestly.
+        hooks: {
+          damageTakenMult(unit) {
+            return unit.slot && unit.slot.position === POSITION.FRONT ? 0.80 : 1;
+          },
+        },
+        label: 'front-hex heroes take 20% less damage',
+      },
+    ],
     wind: [
       {
         count: 2, name: 'Following Wind',
@@ -207,6 +239,7 @@ const RACES = (() => {
     spdPct: (u, v) => { u.speed = Math.round(u.speed * (1 + v)); },
     spdFlat: (u, v) => { u.speed += v; },
     dodge: (u, v) => { u.gearDodge += v; },
+    reflect: (u, v) => { u.gearReflect += v; },
     extraTurn: (u, v) => { u.gearExtraTurn += v; },
     cdr: (u, v) => { u.gearCdr += v; },
     accuracy: (u, v) => { u.gearAccuracy += v; },
