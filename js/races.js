@@ -152,6 +152,41 @@ const RACES = (() => {
   // Only wind is written so far. An element with no table simply pays
   // nothing -- the machinery does not assume five entries.
   const ELEMENT_PARTY_BONUSES = {
+    light: [
+      {
+        count: 2, name: 'Congregation',
+        // maxHp is a plain property, set once at build and never
+        // recomputed (it does not go through effectiveStat the way ATK,
+        // DEF and SPD do). A FLAT lift like this is therefore free; a
+        // conditional one would mean making maxHp a computed stat and
+        // teaching every read, and every current-HP clamp, to follow a
+        // ceiling that moves.
+        mods: { hpPct: 0.15 },
+        label: '+15% max HP',
+      },
+      {
+        count: 3, name: 'The Last Bell',
+        // Read at the moment a blow is being priced, so it applies to
+        // the NEXT hit after a hero is already low -- not to the hit
+        // that put them there. That is the usual reading of a threshold
+        // guard and it is what makes it a stay of execution rather than
+        // a damage cap.
+        hooks: {
+          damageTakenMult(unit) {
+            return unit.maxHp > 0 && unit.hp / unit.maxHp < 0.25 ? 0.70 : 1;
+          },
+        },
+        label: 'a hero below 25% HP takes 30% less damage',
+      },
+      {
+        count: 4, name: 'Matins',
+        // Granted after every mod has finished shaping max HP, so the
+        // ward is 15% of the pool INCLUDING Congregation's lift rather
+        // than of the statline the hero walked in with.
+        mods: { startShield: 0.15 },
+        label: 'the party opens every fight with a ward worth 15% of max HP',
+      },
+    ],
     fire: [
       {
         count: 2, name: 'Stoked',
@@ -269,6 +304,7 @@ const RACES = (() => {
     spdPct: (u, v) => { u.speed = Math.round(u.speed * (1 + v)); },
     spdFlat: (u, v) => { u.speed += v; },
     dodge: (u, v) => { u.gearDodge += v; },
+    startShield: (u, v) => { u.synergyStartShield += v; },
     reflect: (u, v) => { u.gearReflect += v; },
     extraTurn: (u, v) => { u.gearExtraTurn += v; },
     cdr: (u, v) => { u.gearCdr += v; },
@@ -330,6 +366,16 @@ const RACES = (() => {
       // the string carrying a prefix that reads twice in the log.
       active.push({ element, title: `${ELEMENT_NAMES[element]} resonance`,
         count, labels: tiers.map((t) => `${t.name}: ${t.label}`) });
+    }
+    // Opening wards, granted LAST -- after every tier above has finished
+    // shaping max HP, so a ward priced as a share of the pool is a share
+    // of the FINAL pool. The turn count is effectively battle-long: this
+    // is the ward you start the fight behind, not one that ticks away
+    // while nothing is happening.
+    for (const unit of units) {
+      if (unit.synergyStartShield > 0 && unit.addShield) {
+        unit.addShield(Math.round(unit.maxHp * unit.synergyStartShield), 999, unit);
+      }
     }
     return active;
   }

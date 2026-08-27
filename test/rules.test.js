@@ -8457,4 +8457,79 @@ test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () =
   }
 });
 
+// Light's set is built on the health pool: a bigger one, a stay of
+// execution at the bottom of it, and a ward priced off it.
+test('light party bonuses: a bigger pool, a last bell, and an opening ward', () => {
+  const lightIds = Object.values(HEROES).filter((h) => h.element === 'light')
+    .map((h) => h.id);
+  assert(lightIds.length >= 4, 'not enough light heroes to test four');
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[lightIds[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Congregation: +15% max HP, and the hero arrives full ----
+  {
+    const bare = new Unit(HEROES[lightIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2);
+    assert(units[0].maxHp === Math.round(bare.maxHp * 1.15),
+      `max HP ${units[0].maxHp}, wanted ${Math.round(bare.maxHp * 1.15)}`);
+    assert(units[0].hp === units[0].maxHp,
+      'the hero did not arrive at the top of their new pool');
+  }
+
+  // ---- 3pc The Last Bell: below a quarter, read live ----
+  {
+    const { battle, units } = party(3);
+    const u = units[0];
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      u.hp = u.maxHp;
+      assert(Math.abs(u.damageTakenMult(null) - 1) < 1e-9, 'the bell rang at full HP');
+      u.hp = Math.round(u.maxHp * 0.30);
+      assert(Math.abs(u.damageTakenMult(null) - 1) < 1e-9, 'the bell rang at 30% HP');
+      u.hp = Math.round(u.maxHp * 0.20);
+      assert(Math.abs(u.damageTakenMult(null) - 0.70) < 1e-9,
+        `at 20% HP the bell paid ${u.damageTakenMult(null)}`);
+      // Two light heroes do not hold it.
+      const two = party(2);
+      const t = two.units[0];
+      t.hp = Math.round(t.maxHp * 0.10);
+      Battle.active = two.battle;
+      assert(Math.abs(t.damageTakenMult(null) - 1) < 1e-9,
+        'the bell rang at two light heroes');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Matins: an opening ward, priced off the FINAL pool ----
+  {
+    const { units } = party(4);
+    const u = units[0];
+    const ward = u.shieldTotal ? u.shieldTotal() : 0;
+    assert(ward > 0, 'the party opened the fight with no ward');
+    // 15% of the pool AFTER Congregation's lift -- if the ward were
+    // granted before the HP tier, it would be 15% of the smaller pool
+    // and this is the assertion that catches it.
+    assert(Math.abs(ward - Math.round(u.maxHp * 0.15)) <= 1,
+      `ward ${ward}, wanted 15% of the final pool (${Math.round(u.maxHp * 0.15)})`);
+    const bare = new Unit(HEROES[lightIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    assert(ward > Math.round(bare.maxHp * 0.15),
+      'the ward was priced off the pool the hero walked in with');
+
+    // Three light heroes get no ward at all.
+    const three = party(3);
+    assert((three.units[0].shieldTotal ? three.units[0].shieldTotal() : 0) === 0,
+      'three light heroes opened with a ward');
+  }
+});
+
 report();
