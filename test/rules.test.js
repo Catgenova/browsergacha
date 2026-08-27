@@ -7550,4 +7550,166 @@ test('a mitigation ward refreshes itself, and stacks between two casters', () =>
     `the refresh kept the shallower cover (${shallow} over ${kept})`);
 });
 
+test('the Phoenix Court is paid for the fires it lights', () => {
+  const COURT = RACES.SECTS.phoenixcourt.members;
+  assert(COURT.length === 9, `the Court fields ${COURT.length}`);
+  assert(COURT.every((id) => HEROES[id].element === 'fire'),
+    'somebody in the Court is not on fire');
+
+  // A field with `lit` of its enemies already burning.
+  function field(id, foeCount, lit) {
+    const battle = new Battle();
+    const def = HEROES[id];
+    const h = new Unit(def, TEAM.PLAYER, { level: 30, stars: def.rarity });
+    battle.placeUnit(h, battle.playerSlots.findIndex(
+      (sl) => sl.position === (def.positional ? def.positional.position : POSITION.FRONT)));
+    h.abilities.forEach((a, i) => { a.level = Progression.skillCap(a.def, i); });
+    const foes = [];
+    for (let i = 0; i < foeCount; i++) {
+      const f = new Unit(DUMMIES.rat_brawler, TEAM.ENEMY, { level: 30, stars: 4 });
+      battle.placeUnit(f, i);
+      f.hp = f.maxHp = 9e6;
+      if (i < lit) {
+        f.addStatusEffect({ kind: 'dot', amount: 10, turns: 5, flavor: 'burn' });
+      }
+      foes.push(f);
+    }
+    return { battle, h, foes };
+  }
+
+  // perBurn: the blessing is worth more for every fire already lit.
+  // Checked on all four of the Court's buff-carriers, because the whole
+  // sect hangs off this one term.
+  for (const [id, idx, stat] of [['chirp', 0, 'atk'], ['sarena', 0, 'atk'],
+    ['stoddard', 1, 'atk']]) {
+    const read = [0, 1, 3].map((lit) => {
+      const { battle, h } = field(id, 3, lit);
+      const mate = new Unit(HEROES.korvid, TEAM.PLAYER, { level: 30, stars: 5 });
+      battle.placeUnit(mate, battle.playerSlots.findIndex(
+        (sl) => !battle.units.some((u) => u.slot === sl)));
+      Abilities.execute(h.abilities[idx].def, h, mate, battle);
+      const fx = mate.statusEffects.find((x) => x.stat === stat);
+      assert(fx, `${id} landed no ${stat} blessing at all`);
+      return fx.mult;
+    });
+    assert(read[2] > read[1] && read[1] > read[0],
+      `${id}'s blessing did not grow with the fires: ${read.map((r) => r.toFixed(2)).join(' -> ')}`);
+  }
+  // And a Court MEND runs on the same fuel.
+  {
+    const read = [0, 1, 3].map((lit) => {
+      const { battle, h } = field('stella', 3, lit);
+      const mate = new Unit(HEROES.korvid, TEAM.PLAYER, { level: 30, stars: 5 });
+      battle.placeUnit(mate, battle.playerSlots.findIndex(
+        (sl) => !battle.units.some((u) => u.slot === sl)));
+      mate.hp = 1;
+      Abilities.execute(h.abilities[0].def, h, mate, battle);
+      return mate.hp;
+    });
+    assert(read[2] > read[1] && read[1] > read[0],
+      `Stella's mend did not grow with the fires: ${read.join(' -> ')}`);
+  }
+
+  // Flurry: a second burn on something already alight adds turns to the
+  // fire that is there rather than laying another beside it.
+  {
+    const { battle, h, foes } = field('flurry', 1, 0);
+    const real = Math.random;
+    Math.random = () => 0;
+    Abilities.execute(h.abilities[0].def, h, foes[0], battle);
+    const first = foes[0].statusEffects.filter((f) => f.kind === 'dot').length;
+    const wasTurns = foes[0].statusEffects.find((f) => f.kind === 'dot').turns;
+    Abilities.execute(h.abilities[0].def, h, foes[0], battle);
+    Math.random = real;
+    const burns = foes[0].statusEffects.filter((f) => f.kind === 'dot');
+    assert(first === 1 && burns.length === 1,
+      `two casts left ${burns.length} separate fires`);
+    assert(burns[0].turns === wasTurns + 1,
+      `the fire ran ${burns[0].turns} turns against ${wasTurns} before`);
+  }
+
+  // Stoddard is paid for the moment something catches.
+  {
+    const { battle, h, foes } = field('stoddard', 3, 0);
+    h.turnMeter = 0;
+    const real = Math.random;
+    Math.random = () => 0;
+    Abilities.execute(h.abilities[0].def, h, foes[0], battle);
+    Math.random = real;
+    assert(h.turnMeter > 0, 'Stoddard heard nothing catch');
+  }
+
+  // Stella refuses exactly one killing blow, and is not REVIVED by it:
+  // she never goes down, so what she is carrying stays with her.
+  {
+    const { battle, h } = field('stella', 1, 0);
+    h.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 5 });
+    h.takeDamage(9e9);
+    assert(h.alive && h.hp === 1, `Stella went to ${h.hp} and alive=${h.alive}`);
+    assert(h.statusEffects.some((f) => f.stat === 'atk'),
+      'the coal wiped what she was carrying, which is a revive, not a refusal');
+    h.takeDamage(9e9);
+    assert(!h.alive, 'the coal refused a second killing blow');
+  }
+
+  // Orri's blessings cannot be torn off.
+  {
+    const battle = new Battle();
+    const orri = new Unit(HEROES.orri, TEAM.PLAYER, { level: 30, stars: 2 });
+    battle.placeUnit(orri, battle.playerSlots.findIndex(
+      (sl) => sl.position === POSITION.BACK));
+    const mate = new Unit(HEROES.korvid, TEAM.PLAYER, { level: 30, stars: 5 });
+    battle.placeUnit(mate, battle.playerSlots.findIndex(
+      (sl) => sl.position === POSITION.FRONT));
+    Abilities.execute(orri.abilities[0].def, orri, mate, battle);
+    const pinned = mate.statusEffects.filter((f) => f.kind === 'buff').length;
+    assert(pinned > 0, 'Orri handed out no blessing to protect');
+    const thief = new Unit(HEROES.cleo, TEAM.ENEMY, { level: 30, stars: 5 });
+    battle.placeUnit(thief, 0);
+    const strip = Object.values(HEROES).flatMap((x) => x.abilities)
+      .find((a) => (a.effects || []).some((e) => e.type === 'stripBuffs'));
+    const real = Math.random;
+    Math.random = () => 0;
+    Abilities.execute(strip, thief, mate, battle);
+    Math.random = real;
+    assert(mate.statusEffects.filter((f) => f.kind === 'buff').length === pinned,
+      `${strip.name} tore one of Orri's blessings off the record`);
+  }
+
+  // Kavit hits harder into a fire than into a bird that is not lit.
+  {
+    const hit = (lit) => {
+      const { battle, h, foes } = field('kavit', 1, lit);
+      const before = foes[0].hp;
+      const real = Math.random;
+      Math.random = () => 0.99;
+      Abilities.execute(h.abilities[2].def, h, foes[0], battle);
+      Math.random = real;
+      return before - foes[0].hp;
+    };
+    const cold = hit(0);
+    const alight = hit(1);
+    assert(alight > cold * 1.3,
+      `Carrion Call paid ${cold} into a cold bird and ${alight} into a burning one`);
+  }
+
+  // Korvid is softest alone: the opposite of Talon, who sets deeper the
+  // more ENEMIES are pulling. The two tanks want different fights.
+  {
+    const read = [0, 3, 6].map((n) => {
+      const battle = new Battle();
+      const k = new Unit(HEROES.korvid, TEAM.PLAYER, { level: 30, stars: 5 });
+      battle.placeUnit(k, battle.playerSlots.findIndex(
+        (sl) => sl.position === POSITION.FRONT));
+      for (let i = 0; i < n; i++) {
+        battle.placeUnit(new Unit(HEROES.chirp, TEAM.PLAYER, { level: 30, stars: 1 }),
+          battle.playerSlots.findIndex((sl) => !battle.units.some((u) => u.slot === sl)));
+      }
+      return k.damageTakenMult(null);
+    });
+    assert(read[0] > read[1] && read[1] > read[2],
+      `The Court Stands paid ${read.map((r) => r.toFixed(2)).join(' -> ')} as the court filled`);
+  }
+});
+
 report();

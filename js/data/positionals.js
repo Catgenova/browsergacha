@@ -210,6 +210,47 @@ const POSITIONALS = (() => {
     hooks: { buffPowerAdd: 0.10 },
   });
 
+  // ---- Phoenix Court -----------------------------------------------------
+
+  // Korvid's hex: the shield is the Court, and the Court does not move.
+  def('phoenix_shield', {
+    position: POSITION.FRONT,
+    name: 'Phoenix Shield',
+    description: 'Front hex: +25% DEF, and burning enemies deal 20% less damage to him.',
+    hooks: {
+      statMult: (u, stat) => (stat === 'def' ? 1.25 : 1),
+      damageTakenMult: (u, attacker) =>
+        (attacker && attacker.burning && attacker.burning() ? 0.80 : 1),
+    },
+  });
+
+  // Stoddard's hex: the censer swings widest from the middle of the aisle.
+  def('censer_swing', {
+    position: POSITION.CENTER,
+    name: 'Censer Swing',
+    description: 'Center hex: the burns this hero sets tick 25% harder.',
+    hooks: { dotBoostAdd: 0.25 },
+  });
+
+  // Chirp's hex: too small and too fast to be worth a swing.
+  def('hoverpoint', {
+    position: POSITION.BACK,
+    name: 'Hoverpoint',
+    description: 'Back hex: +20% Dodge, and +10% SPD. Nothing that small holds still.',
+    hooks: {
+      dodgeAdd: 0.20,
+      statMult: (u, stat) => (stat === 'speed' ? 1.10 : 1),
+    },
+  });
+
+  // Sarena's hex: the fans read the room from the back of it.
+  def('fanfare', {
+    position: POSITION.BACK,
+    name: 'Fanfare',
+    description: 'Back hex: this hero\'s blessings are worth 5% more for every burning enemy.',
+    hooks: { perBurnAdd: 0.05 },
+  });
+
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',

@@ -249,6 +249,31 @@ const Abilities = (() => {
   // NOW, and is 1 for an ordinary single-target strike.
   let currentTargetCount = 1;
 
+  // A blessing entered into the record cannot be torn out of it: a buff
+  // whose SOURCE carries an `unstrippableBuffs` hook (Orri) survives
+  // both a strip and a steal. Read off the source rather than the
+  // wearer, because it is the archivist's note that protects it and not
+  // the bird carrying it.
+  function pinned(fx) {
+    const from = fx && fx.source;
+    if (!from || !from.hookSources) return false;
+    return from.hookSources().some((p) => p.hooks && p.hooks.unstrippableBuffs);
+  }
+
+  // How many enemies of `caster` are currently burning. The Phoenix
+  // Court prices its blessings off this: their damage dealers light the
+  // fires and their court cashes them, so the two halves of the sect
+  // have to be played together to be worth anything. The mirror of the
+  // Gulldiggers' perTarget -- same shape of idea, a different thing
+  // counted.
+  function firesLit(caster) {
+    const b = currentBattle ||
+      (typeof Battle !== 'undefined' ? Battle.active : null);
+    if (!b || !caster.enemyTeam) return 0;
+    return b.livingUnits(caster.enemyTeam()).filter(
+      (u) => u.burning && u.burning()).length;
+  }
+
   // Freeze: the ice-flavored stun — the frozen unit loses its turns.
   // One door for every source (Polarus's bolt, the Crystalline counter,
   // his passive) so the resist check and the freezer's onFroze hooks
@@ -343,6 +368,7 @@ const Abilities = (() => {
         raw *= bonusWhenMult(effect, caster);
         if (effect.bonusVs && target.statusEffects.some((fx) =>
             (effect.bonusVs.stat && fx.stat === effect.bonusVs.stat) ||
+            (effect.bonusVs.flavor && fx.flavor === effect.bonusVs.flavor) ||
             (effect.bonusVs.kind && fx.kind === effect.bonusVs.kind))) {
           raw *= effect.bonusVs.mult;
         }
@@ -414,7 +440,9 @@ const Abilities = (() => {
         const mouths = Math.max(0, currentTargetCount - 1);
         const pct = (front && effect.frontPct ? effect.frontPct
           : (effect.pct ?? effect.targetPct)) + (healLad.heal || 0) +
-          ((effect.perTarget || 0) + (healLad.perTarget || 0)) * mouths;
+          ((effect.perTarget || 0) + (healLad.perTarget || 0)) * mouths +
+          // A Court mend runs on the same fuel its blessings do.
+          ((effect.perBurn || 0) + (healLad.perBurn || 0)) * firesLit(caster);
         const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
@@ -589,6 +617,22 @@ const Abilities = (() => {
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
+        // Fire spreads rather than stacking, for a caster who carries a
+        // `burnRekindle` hook (Flurry): setting a burn on something
+        // already alight adds turns to the fire that is there instead
+        // of laying a second one beside it.
+        if (effect.flavor) {
+          let rekindle = 0;
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            if (p.hooks && p.hooks.burnRekindle) rekindle += p.hooks.burnRekindle;
+          }
+          const alight = rekindle > 0 && target.statusEffects.find(
+            (fx) => fx.kind === 'dot' && fx.flavor === effect.flavor);
+          if (alight) {
+            alight.turns += rekindle;
+            return { kind: 'dot', target, turns: alight.turns, rekindled: true };
+          }
+        }
         // Severity rungs deepen the tick. A DoT priced off the victim's
         // pool moves in the same small steps every HP-priced number does.
         const amount = effect.targetHpPct
@@ -603,6 +647,17 @@ const Abilities = (() => {
         }
         target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
           flavor: effect.flavor || null, source: caster });
+        // A caster can be paid for the moment something catches
+        // (Stoddard hears the smoke go up). Fired on the LANDING only,
+        // so a resisted or missed application pays nothing.
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.onBurnLit) {
+            caster.turnMeter += CONFIG.TURN_METER_MAX * p.hooks.onBurnLit;
+            if (currentBattle && currentBattle.addFloatingText) {
+              currentBattle.addFloatingText(caster, '\u25b2', '#e8903a');
+            }
+          }
+        }
         return { kind: 'dot', target, amount, turns: dotTurns,
           flavor: effect.flavor || null };
       }
@@ -722,6 +777,15 @@ const Abilities = (() => {
           for (const p of (caster.hookSources ? caster.hookSources() : [])) {
             if (p.hooks && p.hooks.buffPowerAdd) deepen += p.hooks.buffPowerAdd;
           }
+          // perBurn: the Phoenix Court's blessing is worth more for
+          // every fire already lit on the other side.
+          const perBurn = (effect.perBurn || 0) + (ladder.perBurn || 0);
+          if (perBurn) deepen += perBurn * firesLit(caster);
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            if (p.hooks && p.hooks.perBurnAdd) {
+              deepen += p.hooks.perBurnAdd * firesLit(caster);
+            }
+          }
         }
         if (effect.type === 'buff' && deepen) {
           if (typeof mult === 'number') {
@@ -798,7 +862,7 @@ const Abilities = (() => {
         let left = (effect.count || 1) + (stLad.stripCount || 0);
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
-          if (fx.kind !== 'buff' || left <= 0) return true;
+          if (fx.kind !== 'buff' || left <= 0 || pinned(fx)) return true;
           left--; removed++;
           return false;
         });
@@ -952,7 +1016,7 @@ const Abilities = (() => {
         const taken = [];
         let left = (effect.count || 1) + (thLad.stripCount || 0);
         target.statusEffects = target.statusEffects.filter((fx) => {
-          if (fx.kind !== 'buff' || left <= 0) return true;
+          if (fx.kind !== 'buff' || left <= 0 || pinned(fx)) return true;
           left--; taken.push(fx);
           return false;
         });

@@ -1,5 +1,14 @@
 // Avian heroes. Registered into the shared HEROES table declared in
-// js/data/heroes.js.
+// js/data/heroes.js. Two sects live here, and they are built on
+// opposite arithmetic:
+//
+//   Gulldigger    water, pirate seabirds. `perTarget` -- worth more the
+//                 bigger the crowd a cast catches.
+//   Phoenix Court fire, red and gold. `perBurn` -- worth more the more
+//                 fires are already lit. Their damage dealers set the
+//                 burns and their court is paid for them, so the two
+//                 halves have to be fielded together to be worth
+//                 anything at all.
 //
 // The Gulldiggers are the first sect that is not human: pirate seabirds
 // who fight the way weather does — all at once, and to everybody. Where
@@ -844,5 +853,655 @@ Object.assign(HEROES, {
       },
     },
     positional: POSITIONALS.chart_table,
+  },
+});
+
+// ---- The Phoenix Court -----------------------------------------------------
+//
+// Fire and blessings, and one mechanic tying them together: `perBurn`
+// deepens a Court blessing (and a Court mend) for every enemy currently
+// carrying a burn. Flurry, Barrington and Kavit light them; Stoddard,
+// Stella, Sarena, Orri and Chirp spend them; Korvid makes sure there is
+// still a court standing to spend anything.
+
+Object.assign(HEROES, {
+
+  korvid: {
+    id: 'korvid',
+    element: 'fire',
+    name: 'Korvid',
+    title: 'Shield of the Court',
+    rarity: 5,
+    // Named outright. Two of his three skills point at his own side --
+    // a team ward and a raise -- so the classifier reads him as a
+    // support, and his statline (2135 HP behind 214 DEF) says otherwise
+    // in the loudest possible terms. Catherine carries the same
+    // override for the same reason.
+    role: 'tank',
+    stats: { hp: 2500, atk: 95, def: 250, speed: 92 },
+    tint: { body: '#2a2630', helm: '#c8a03a', weapon: '#e8a83a', shield: '#c83a2a' },
+    sprite: {
+      displayH: 104, // wings out, he is the widest bird in the game
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Korvididle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shield_bell', name: 'Shield Bell',
+        icon: 'assets/icons/fc1045.png',
+        description: 'Ring the boss of the shield across the enemy front rank: 65% of ' +
+          "Korvid's DEF, and a 50% chance each to set them burning for 20% ATK a turn " +
+          'over 3 turns.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damageDef', mult: 0.65 },
+          { type: 'dot', pct: 0.20, turns: 3, chance: 0.5, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'close_the_ranks', name: 'Close the Ranks',
+        icon: 'assets/icons/fc1113.png',
+        description: 'Set the shield down where the whole court can get behind it: ALL ' +
+          'allies gain a ward worth 100% of Korvid\'s ATK for 3 turns, and 10% more for ' +
+          'every burning enemy.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', mult: 1.0, turns: 3 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { duration: 1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'from_the_ashes', name: 'From the Ashes',
+        icon: 'assets/icons/fc786.png',
+        description: 'The Court does not end: raise one fallen ally at 40% health, and ' +
+          'give every ally 20% ATK for 3 turns.',
+        cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'revive', pct: 0.40 }],
+        selfEffects: [{ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { buffPower: 0.05 },
+          { heal: 0.05 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Court Stands',
+      icon: 'assets/icons/fc1053.png',
+      description: 'He is only as strong as the court behind him: Korvid takes 5% less ' +
+        'damage for every other ally still standing.',
+      hooks: {
+        // The inverse of a lone wall. Korvid is at his softest in the
+        // fight he has left to hold on his own, which is the opposite
+        // of Talon -- who sets deeper the more ENEMIES are pulling --
+        // and gives the two tanks different fights to want.
+        damageTakenMult(unit) {
+          const b = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!b) return 1;
+          const court = b.livingUnits(unit.team).filter((u) => u !== unit).length;
+          return 1 - 0.05 * Math.min(6, court);
+        },
+      },
+    },
+    positional: POSITIONALS.phoenix_shield,
+  },
+
+  kavit: {
+    id: 'kavit',
+    element: 'fire',
+    name: 'Kavit',
+    title: 'Ash Knives',
+    rarity: 4,
+    stats: { hp: 1050, atk: 255, def: 75, speed: 114 },
+    tint: { body: '#6a4a3a', helm: '#8a3a2a', weapon: '#c8ccd4', shield: '#4a2a20' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Kavitidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'twin_cut', name: 'Twin Cut',
+        icon: 'assets/icons/fc89.png',
+        description: 'Both knives, one after the other: 75% ATK twice to a single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'damage', mult: 0.75 },
+        ],
+        levelUps: [
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+          { mult: 0.05 },
+        ],
+      },
+      {
+        id: 'cinder_in_the_wound', name: 'Cinder in the Wound',
+        icon: 'assets/icons/fc819.png',
+        description: 'Leave something in it: 130% ATK to one enemy, with a 50% chance to ' +
+          'set them burning for 30% ATK a turn over 3 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.3 },
+          { type: 'dot', pct: 0.30, turns: 3, chance: 0.5, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'carrion_call', name: 'Carrion Call',
+        icon: 'assets/icons/fc1050.png',
+        description: 'A vulture knows when to come down: 200% ATK to one enemy, and half ' +
+          'again against anyone already burning.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 2.0, bonusVs: { flavor: 'burn', mult: 1.5 } }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Ash Knives',
+      icon: 'assets/icons/fc1117.png',
+      description: 'Every fire on the field is one more thing to cut: Kavit deals 5% more ' +
+        'damage for each burning enemy.',
+      hooks: {
+        damageDealtMult(unit) {
+          const b = typeof Battle !== 'undefined' ? Battle.active : null;
+          if (!b) return 1;
+          const lit = b.livingUnits(unit.enemyTeam())
+            .filter((u) => u.burning && u.burning()).length;
+          return 1 + 0.05 * Math.min(4, lit);
+        },
+      },
+    },
+    positional: POSITIONALS.overwatch,
+  },
+
+  flurry: {
+    id: 'flurry',
+    element: 'fire',
+    name: 'Flurry',
+    title: 'Firebrand of the Court',
+    rarity: 3,
+    stats: { hp: 1400, atk: 245, def: 115, speed: 110 },
+    tint: { body: '#e8e4e0', helm: '#c83a2a', weapon: '#e8903a', shield: '#c8a03a' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/flurryidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'brandwork', name: 'Brandwork',
+        icon: 'assets/icons/fc1045.png',
+        description: 'A burning blade along the front rank: 75% ATK to the enemy FRONT row, ' +
+          'with a 50% chance each to set them burning for 15% ATK a turn over 2 turns.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.75 },
+          { type: 'dot', pct: 0.15, turns: 2, chance: 0.5, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'running_flame', name: 'Running Flame',
+        icon: 'assets/icons/fc823.png',
+        description: 'Drag the blade and let it catch: 140% ATK to one enemy and everyone ' +
+          'level with them.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.4 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'crest_and_comb', name: 'Crest and Comb',
+        icon: 'assets/icons/fc786.png',
+        description: 'Everything he has, into one bird: 250% ATK to a single enemy.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 2.5 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Catches Twice',
+      icon: 'assets/icons/fc1066.png',
+      description: 'Fire spreads: when Flurry sets a burn on an enemy who is already ' +
+        'burning, that burn gets 1 more turn instead.',
+      hooks: { burnRekindle: 1 },
+    },
+    positional: POSITIONALS.vanguard_press,
+  },
+
+  barrington: {
+    id: 'barrington',
+    element: 'fire',
+    name: 'Barrington',
+    title: 'Duellist of the Court',
+    rarity: 3,
+    stats: { hp: 1100, atk: 250, def: 85, speed: 118 },
+    tint: { body: '#e8e4dc', helm: '#2a3a6a', weapon: '#d8dce4', shield: '#c83a2a' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Barringtonidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'point_work', name: 'Point Work',
+        icon: 'assets/icons/fc89.png',
+        description: 'A rapier does not swing: 145% ATK to a single enemy, slipping past ' +
+          '15% of their DEF.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.45, ignoreDef: 0.15 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'riposte', name: 'Riposte',
+        icon: 'assets/icons/fc819.png',
+        description: 'Answer the opening: 110% ATK to one enemy, and Barrington takes 30% ' +
+          'Crit Chance for 3 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.1 }],
+        selfEffects: [{ type: 'buff', stat: 'critChance', add: 0.30, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { mult: 0.1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'the_whole_line', name: 'The Whole Line',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Down the length of the rank, one thrust each: 105% ATK to the enemy ' +
+          'BACK row, with a 50% chance each to set them burning for 20% ATK a turn over ' +
+          '3 turns.',
+        cooldown: 7, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.05 },
+          { type: 'dot', pct: 0.20, turns: 3, chance: 0.5, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Form',
+      icon: 'assets/icons/fc1041.png',
+      description: 'A duellist finishes what he opens: 10% more damage to any enemy ' +
+        'that is already burning.',
+      hooks: {
+        damageDealtMult: (u, t) => (t && t.burning && t.burning() ? 1.10 : 1),
+      },
+    },
+    positional: POSITIONALS.pyre_sight,
+  },
+
+  stoddard: {
+    id: 'stoddard',
+    element: 'fire',
+    name: 'Stoddard',
+    title: 'Censer of the Court',
+    rarity: 3,
+    stats: { hp: 1750, atk: 175, def: 135, speed: 102 },
+    tint: { body: '#e8e4dc', helm: '#c83a2a', weapon: '#c8a03a', shield: '#8a2a20' },
+    sprite: {
+      displayH: 98,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Stoddardidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'swing_the_censer', name: 'Swing the Censer',
+        icon: 'assets/icons/fc823.png',
+        description: 'Coals on a chain, out across the line: 60% ATK to ALL enemies, with ' +
+          'a 50% chance each to set them burning for 15% ATK a turn over 2 turns.',
+        cooldown: 0, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.6 },
+          { type: 'dot', pct: 0.15, turns: 2, chance: 0.5, flavor: 'burn' },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.05 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'incense_and_oath', name: 'Incense and Oath',
+        icon: 'assets/icons/fc1113.png',
+        description: 'The smoke settles on his own side: ALL allies gain 12% ATK for 3 ' +
+          'turns, and 3% more for every burning enemy.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.12, perBurn: 0.03, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { perBurn: 0.01 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'last_rites', name: 'Last Rites',
+        icon: 'assets/icons/fc1073.png',
+        description: 'Read over the whole court at once: heal ALL allies for 12% of ' +
+          "Stoddard's max HP, and 3% more for every burning enemy.",
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', pct: 0.12, perBurn: 0.03 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { perBurn: 0.01 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Smoke Carries',
+      icon: 'assets/icons/fc866.png',
+      description: 'Gains 5% action bar whenever an enemy catches fire.',
+      hooks: { onBurnLit: 0.05 },
+    },
+    positional: POSITIONALS.censer_swing,
+  },
+
+  stella: {
+    id: 'stella',
+    element: 'fire',
+    name: 'Stella',
+    title: 'Keeper of the Coal',
+    rarity: 2,
+    stats: { hp: 1850, atk: 110, def: 140, speed: 100 },
+    tint: { body: '#d8c8b0', helm: '#c8a03a', weapon: '#e8903a', shield: '#8a5a3a' },
+    sprite: {
+      displayH: 84, // a small round bird holding something enormous
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/stellaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'warm_the_coal', name: 'Warm the Coal',
+        icon: 'assets/icons/fc1041.png',
+        description: "Hold it out to whoever needs it: heal one ally for 18% of Stella's " +
+          'max HP, and 3% more for every burning enemy.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', pct: 0.18, perBurn: 0.03 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { perBurn: 0.01 },
+          { heal: 0.05 },
+        ],
+      },
+      {
+        id: 'bank_the_fire', name: 'Bank the Fire',
+        icon: 'assets/icons/fc1073.png',
+        description: 'Set it down where the whole court can feel it: ALL allies recover ' +
+          "5% of Stella's max HP at the start of each of their turns for 3 turns.",
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'hot', pct: 0.05, turns: 3 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Never Goes Out',
+      icon: 'assets/icons/fc1053.png',
+      description: 'The coal outlasts the bird: the first time Stella would fall each ' +
+        'battle, she survives on 1 health instead.',
+      hooks: { lastEmber: true },
+    },
+    positional: POSITIONALS.slow_simmer,
+  },
+
+  sarena: {
+    id: 'sarena',
+    element: 'fire',
+    name: 'Sarena',
+    title: 'Fanbearer of the Court',
+    rarity: 2,
+    stats: { hp: 1500, atk: 130, def: 120, speed: 112 },
+    tint: { body: '#e8e4dc', helm: '#c83a2a', weapon: '#e8903a', shield: '#c8a03a' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Sarenaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'open_the_fans', name: 'Open the Fans',
+        icon: 'assets/icons/fc1113.png',
+        description: 'One fan turned toward a single bird: that ally gains 15% ATK for 2 ' +
+          'turns, and 3% more for every burning enemy.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.15, perBurn: 0.03, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { perBurn: 0.01 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'both_fans_wide', name: 'Both Fans Wide',
+        icon: 'assets/icons/fc866.png',
+        description: 'Both fans, both wings, the whole court: ALL allies gain 15% action ' +
+          'bar and 10% SPD for 3 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'turnMeter', amount: 0.15 },
+          { type: 'buff', stat: 'speed', mult: 1.10, turns: 3 },
+        ],
+        levelUps: [
+          { meter: 0.03 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { meter: 0.03 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Draught',
+      icon: 'assets/icons/fc1066.png',
+      description: 'Fans feed a fire: burns on enemies tick 15% harder while Sarena stands.',
+      hooks: { dotBoostAdd: 0.15 },
+    },
+    positional: POSITIONALS.fanfare,
+  },
+
+  orri: {
+    id: 'orri',
+    element: 'fire',
+    name: 'Orri',
+    title: 'Archivist of the Court',
+    rarity: 2,
+    stats: { hp: 1600, atk: 120, def: 145, speed: 104 },
+    tint: { body: '#e8e8e4', helm: '#4a3a5a', weapon: '#c8a03a', shield: '#8a2a20' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/Orridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'read_it_back', name: 'Read It Back',
+        icon: 'assets/icons/fc1050.png',
+        description: 'Everything is written down: lift the two oldest hexes from one ally ' +
+          'and give them 20% Resistance for 3 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'cleanse', count: 2 },
+          { type: 'buff', stat: 'resistance', add: 0.20, turns: 3 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { cleanseCount: 1 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'the_standing_order', name: 'The Standing Order',
+        icon: 'assets/icons/fc1117.png',
+        description: 'Enter it into the record: every blessing already on the court gains ' +
+          '2 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'extendBuffs', turns: 2 }],
+        levelUps: [
+          { duration: 1 },
+          { duration: 1 },
+          { duration: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Marginalia',
+      icon: 'assets/icons/fc1041.png',
+      description: 'A note in the margin outlives the page: the blessings Orri hands out ' +
+        'cannot be stripped away.',
+      hooks: { unstrippableBuffs: true },
+    },
+    positional: POSITIONALS.still_air,
+  },
+
+  chirp: {
+    id: 'chirp',
+    element: 'fire',
+    name: 'Chirp',
+    title: 'Taper of the Court',
+    rarity: 1,
+    stats: { hp: 950, atk: 130, def: 95, speed: 122 },
+    tint: { body: '#e88a3a', helm: '#c83a2a', weapon: '#e8c83a', shield: '#3a8a5a' },
+    sprite: {
+      displayH: 66, // the smallest bird on the roster, by a distance
+      strips: {
+        idle: { src: 'assets/heroes/phoenixcourt/chirpidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // ONE skill, cooldown-free: a 1-star is a character, not a kit.
+    abilities: [
+      {
+        id: 'taper', name: 'Taper',
+        icon: 'assets/icons/fc866.png',
+        description: 'Touch the quill to somebody and light them up: one ally gains 12% ' +
+          'ATK for 2 turns, and 5% more for every burning enemy.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.12, perBurn: 0.05, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { perBurn: 0.01 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { perBurn: 0.01 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Never Lands',
+      icon: 'assets/icons/fc1062.png',
+      description: 'Nothing that small holds still: gains 8% action bar whenever an ally ' +
+        'is blessed.',
+      hooks: {
+        onAllyBuffed(unit, { receiver }) {
+          if (!unit.alive || receiver === unit) return null;
+          unit.turnMeter += CONFIG.TURN_METER_MAX * 0.08;
+          return { floats: [{ target: unit, text: '▲', color: '#e8c83a' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.hoverpoint,
   },
 });
