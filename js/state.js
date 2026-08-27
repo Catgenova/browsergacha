@@ -1498,6 +1498,48 @@ const GameState = (() => {
       save();
       return true;
     },
+    // What a star up actually BUYS, for the Improve screen to show
+    // before it eats bodies. A star up is irreversible and costs up to
+    // nine heroes, so "spend 9 to reach 10 stars" is not enough to
+    // decide on -- you want to see the numbers move.
+    //
+    // Computed down the same path the Team screen DISPLAYS (scaled
+    // stats, then gear), so the "after" figure is the figure that will
+    // appear there, not a different arithmetic that happens to agree
+    // most of the time.
+    //
+    // Note what is NOT here: skill caps. Progression.skillCap reads the
+    // ability's slot and its rung count, never the hero's stars, so a
+    // star up does not raise them. Saying otherwise would be the easy
+    // lie for this panel to tell.
+    starUpPreview(uid) {
+      const def = this.defOf(uid);
+      const pr = this.progressOf(uid);
+      if (!def || !pr) return null;
+      if (pr.stars >= Progression.MAX_STARS) return null;
+      const worn = this.equippedPieces(uid);
+      const at = (stars) => Gear.applyToStats(
+        Progression.scaledStats(def, pr.level, stars), worn);
+      const now = at(pr.stars);
+      const next = at(pr.stars + 1);
+      const keys = ['hp', 'atk', 'def'];
+      const stats = {};
+      for (const k of keys) stats[k] = { now: now[k], next: next[k] };
+      return {
+        stars: { now: pr.stars, next: pr.stars + 1 },
+        stats,
+        // Speed is identity through the star curve by design, so it is
+        // reported unchanged rather than omitted -- a player looking for
+        // it should find it and see that it holds.
+        speed: { now: now.speed, next: next.speed },
+        power: { now: Progression.power(now), next: Progression.power(next) },
+        levelCap: {
+          now: Progression.maxLevel(pr.stars),
+          next: Progression.maxLevel(pr.stars + 1),
+        },
+      };
+    },
+
     // Fit the best available pieces to a hero, slot by slot. Only
     // considers gear nobody is wearing (plus what this hero already
     // has), never disturbs another hero's loadout, and leaves locked
