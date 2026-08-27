@@ -313,6 +313,32 @@ function runOne(def, cast, seedValue) {
     bleeding = false;
   };
 
+  // What the hero is holding on the field, sampled once a simulated
+  // second. Damage, healing and mitigation all resolve into HP and can
+  // share one currency; a DEF buff, a cleanse or an accuracy blessing
+  // do not, and converting them into a damage-equivalent would be
+  // inventing an exchange rate. So this counts what is actually true:
+  // how many blessings the hero is sustaining on its own side, and how
+  // many afflictions on the other.
+  //
+  // Buffs only -- wards and heals-over-time are already banked as
+  // mitigation and healing, and counting them here would pay a hero
+  // twice for one effect.
+  let boonSamples = 0;
+  let hexSamples = 0;
+  let samples = 0;
+  const sampleField = () => {
+    samples++;
+    for (const u of battle.livingUnits()) {
+      for (const fx of u.statusEffects) {
+        if (fx.source !== hero) continue;
+        if (fx.kind === 'buff' && u.team === hero.team) boonSamples++;
+        else if ((fx.kind === 'debuff' || fx.kind === 'dot') &&
+                 u.team !== hero.team) hexSamples++;
+      }
+    }
+  };
+
   let winner = null;
   battle.onBattleEnd = (w) => { winner = w; };
   let ticks = 0;
@@ -321,7 +347,10 @@ function runOne(def, cast, seedValue) {
     while (!winner && ticks < MAX_TICKS) {
       battle.update(DT);
       ticks++;
-      if (ATTRITION > 0 && ticks % bleedEvery === 0) bleed();
+      if (ticks % bleedEvery === 0) {
+        sampleField();
+        if (ATTRITION > 0) bleed();
+      }
     }
   } finally {
     unpatch(); // these are global; never leave them installed
@@ -345,13 +374,38 @@ function runOne(def, cast, seedValue) {
     // Share of everything aimed at this hero that never landed — own
     // prevention only, so ehp stays personal survivability.
     mitRatio: selfMit + taken > 0 ? selfMit / (selfMit + taken) : 0,
+    // Average number held up at any moment, not a total: a blessing
+    // that lasts twice as long is worth twice as much, and one that is
+    // re-cast over the top of itself is not worth two.
+    boons: samples ? boonSamples / samples : 0,
+    hexes: samples ? hexSamples / samples : 0,
   };
 }
 
 // The sparring cast: the median-power members of the bucket, so the
 // yardstick is an ordinary member of the archetype rather than its best
 // or its worst. Swapped out when the hero under test IS one of them.
-function castFor(pool) {
+// Which bucket lends a support mirror somebody to actually buff. An
+// attack blessing handed round a room of healers amplifies nothing, so
+// a support bucket used to measure its buffers at almost exactly zero
+// -- not because the bench could not credit a buff, but because there
+// was nothing in the fight for the buff to do. Every support bucket now
+// fields one striker a side, drawn from the DPS bucket that shares its
+// row, so a blessing has a swing to ride on and the assist ledger can
+// see it. The pair is identical for every hero in the bucket, so the
+// comparison stays as fair as it was.
+const PARTNER = {
+  front_support: 'front_dps', center_support: 'center_dps',
+  back_support: 'back_dps',
+};
+
+function medianOf(pool) {
+  const ranked = pool.slice().sort(
+    (a, b) => powerOf(a) - powerOf(b) || a.id.localeCompare(b.id));
+  return ranked[Math.floor(ranked.length / 2)];
+}
+
+function castFor(pool, key) {
   const ranked = pool.slice().sort((a, b) => powerOf(a) - powerOf(b) || a.id.localeCompare(b.id));
   const mid = Math.floor(ranked.length / 2);
   const need = SQUAD - 1 + SQUAD;
@@ -360,7 +414,15 @@ function castFor(pool) {
   // A tiny bucket may not have enough distinct members; repeat rather
   // than fail, and say so in the header.
   while (chosen.length < need) chosen.push(ranked[chosen.length % ranked.length]);
-  return { pool: ranked, allies: chosen.slice(0, SQUAD - 1), foes: chosen.slice(SQUAD - 1) };
+  const allies = chosen.slice(0, SQUAD - 1);
+  const foes = chosen.slice(SQUAD - 1);
+  const lender = PARTNER[key] && buckets[PARTNER[key]];
+  if (lender && lender.length) {
+    const striker = medianOf(lender);
+    if (allies.length) allies[0] = striker;
+    if (foes.length) foes[0] = striker;
+  }
+  return { pool: ranked, allies, foes };
 }
 
 function castWithout(cast, def) {
@@ -423,6 +485,8 @@ function measure(def, cast) {
     // Survival time saturates in a mirror — nobody dies inside the
     // window — so this is what separates one tank from another.
     ehp: maxHp / Math.max(0.05, 1 - mitRatio),
+    boons: avg((r) => r.boons),
+    hexes: avg((r) => r.hexes),
     deaths: runs.filter((r) => r.died).length,
     stalls: runs.filter((r) => r.stalled).length,
     seconds: avg((r) => r.seconds),
@@ -434,6 +498,7 @@ const COLUMNS = [
   ['assist', 'assist', 7, 1],
   ['heal/s', 'heal/s', 9, 1], ['mit/s', 'mit/s', 7, 1],
   ['worth/s', 'worth/s', 8, 1],
+  ['boons', 'boons', 6, 2], ['hexes', 'hexes', 6, 2],
   ['taken/s', 'taken/s', 8, 1], ['mit%', 'mit%', 5, 1], ['ehp', 'ehp', 8, 0],
 ];
 
@@ -463,10 +528,22 @@ function report(key, rows) {
     // have posted a number at all — a cleanse-only support healing zero
     // is a fact about its kit, not a balance problem.
     const can = kitCan(r.def, headline);
+    // Damage, healing and mitigation all resolve into HP, so worth/s
+    // can hold them in one number. A blessing and a hex cannot be
+    // converted into HP without inventing an exchange rate, so they get
+    // their own columns -- and a hero holding a field full of them is
+    // NOT idle, whatever its worth/s says. Polo posts 1.7 worth/s while
+    // sustaining five blessings at a time; calling that "far below"
+    // was the bench failing to look rather than the hero failing to
+    // work. A low reading is only worth flagging when the hero is
+    // quiet on every axis the bench can see.
+    const working = r.boons >= 1 || r.hexes >= 1;
+    const low = ratio <= 0.4 && !working;
     const mark = !can ? `  (no ${headline} in kit)`
       : ratio >= 2 ? ' ←← far above'
-      : ratio <= 0.4 ? ' ←← far below' : '';
-    if (can && (ratio >= 2 || ratio <= 0.4)) {
+      : low ? ' ←← far below'
+      : ratio <= 0.4 ? `  (works in boons/hexes)` : '';
+    if (can && (ratio >= 2 || low)) {
       flagged.push({ key, name: r.name, headline, value: r[headline], ratio });
     }
     console.log('  ' + r.name.padEnd(24) + pad(r.rarity, 3) +
@@ -501,7 +578,7 @@ function bench(only = ONLY) {
   const wanted = ORDER.filter((k) => buckets[k] && (!only || k === only));
   const out = {};
   for (const key of wanted) {
-    const cast = castFor(buckets[key]);
+    const cast = castFor(buckets[key], key);
     out[key] = buckets[key].map((def) => measure(def, cast))
       .map(({ def, ...rest }) => rest); // drop the def; it is not serialisable
   }
@@ -539,7 +616,7 @@ const started = Date.now();
 const all = {};
 for (const key of keys) {
   const pool = buckets[key];
-  const cast = castFor(pool);
+  const cast = castFor(pool, key);
   all[key] = pool.map((def) => measure(def, cast));
 }
 for (const key of keys) report(key, all[key]);

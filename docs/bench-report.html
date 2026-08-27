@@ -103,6 +103,12 @@
   thead th.key { color: var(--sound); }
   .st { color: var(--muted); }
   .sect, .where { color: var(--muted); font-size: 12px; }
+  /* Blessings and hexes are counted, not converted -- a different unit
+     from the HP columns beside them, so they read as a different kind
+     of number. */
+  .ctrl { color: var(--sound); }
+  thead th.ctrl { color: var(--sound); }
+  tbody td.ctrl { font-variant-numeric: tabular-nums; }
   .nm { font-weight: 600; }
   .ti { display: block; font-family: var(--body); font-size: 11.5px;
     color: var(--muted); font-weight: 400; line-height: 1.3; }
@@ -188,9 +194,9 @@
 
   <section>
     <h2>Off the median</h2>
-    <h3 style="margin-bottom:6px">19 of 65 heroes sit past double or under half</h3>
+    <h3 style="margin-bottom:6px">17 of 65 heroes sit past double or under half</h3>
     <p class="sub">Ranked by distance from their own bucket's median. By sect:
-      <b>5 Gulldigger, 4 Nightflower, 4 Phoenix Court, 3 Whisperchime, 1 Cryst, 1 Firetroupe, 1 Reverence</b>.</p>
+      <b>4 Whisperchime, 4 Gulldigger, 3 Nightflower, 3 Reverence, 1 Cryst, 1 Firetroupe, 1 Phoenix Court</b>.</p>
     <div class="scroll" style="margin-top:14px">
       <table>
         <thead><tr>
@@ -203,25 +209,25 @@
     <td class="sect">Whisperchime</td>
     <td class="where">Back row &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">2,378.5</td>
+    <td class="num key">2,324.1</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
-    <td class="num x">7.39&times;</td>
+    <td class="num x">8.11&times;</td>
   </tr><tr class="over">
     <th scope="row">Ilyra</th>
     <td class="sect">Whisperchime</td>
     <td class="where">Back row &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">1,159.7</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:43.4%"></i></span></td>
-    <td class="num x">3.60&times;</td>
+    <td class="num key">2,080.2</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
+    <td class="num x">7.26&times;</td>
   </tr><tr class="over">
-    <th scope="row">Peck</th>
-    <td class="sect">Gulldigger</td>
-    <td class="where">Center &#8212; Support</td>
+    <th scope="row">Cain</th>
+    <td class="sect">Cryst</td>
+    <td class="where">Back row &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">3,235.4</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:37.7%"></i></span></td>
-    <td class="num x">3.26&times;</td>
+    <td class="num key">1,315.7</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
+    <td class="num x">4.59&times;</td>
   </tr><tr class="over">
     <th scope="row">Lysandra</th>
     <td class="sect">Nightflower</td>
@@ -239,6 +245,14 @@
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:32.9%"></i></span></td>
     <td class="num x">2.97&times;</td>
   </tr><tr class="over">
+    <th scope="row">Vivian</th>
+    <td class="sect">Whisperchime</td>
+    <td class="where">Back row &#8212; Support</td>
+    <td class="where">Worth a second</td>
+    <td class="num key">754</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:27.2%"></i></span></td>
+    <td class="num x">2.63&times;</td>
+  </tr><tr class="over">
     <th scope="row">Ike</th>
     <td class="sect">Gulldigger</td>
     <td class="where">Front row &#8212; DPS</td>
@@ -255,13 +269,21 @@
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:23.4%"></i></span></td>
     <td class="num x">2.40&times;</td>
   </tr><tr class="over">
-    <th scope="row">Cain</th>
-    <td class="sect">Cryst</td>
+    <th scope="row">Cleo</th>
+    <td class="sect">Firetroupe</td>
     <td class="where">Back row &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">695</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.3%"></i></span></td>
-    <td class="num x">2.16&times;</td>
+    <td class="num key">676.5</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:22.7%"></i></span></td>
+    <td class="num x">2.36&times;</td>
+  </tr><tr class="over">
+    <th scope="row">Lenore</th>
+    <td class="sect">Nightflower</td>
+    <td class="where">Center &#8212; Support</td>
+    <td class="where">Worth a second</td>
+    <td class="num key">2,208.9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:20.5%"></i></span></td>
+    <td class="num x">2.23&times;</td>
   </tr><tr class="over">
     <th scope="row">Flurry</th>
     <td class="sect">Phoenix Court</td>
@@ -271,61 +293,37 @@
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.2%"></i></span></td>
     <td class="num x">2.15&times;</td>
   </tr><tr class="over">
-    <th scope="row">Lenore</th>
-    <td class="sect">Nightflower</td>
-    <td class="where">Center &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">2,108.9</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:18.8%"></i></span></td>
-    <td class="num x">2.13&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Orri</th>
-    <td class="sect">Phoenix Court</td>
-    <td class="where">Back row &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">0</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:50.0%"></i></span></td>
-    <td class="num x">0.00&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Polo</th>
+    <th scope="row">Peck</th>
     <td class="sect">Gulldigger</td>
-    <td class="where">Back row &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">0.6</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.9%"></i></span></td>
-    <td class="num x">0.00&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Slick</th>
-    <td class="sect">Firetroupe</td>
     <td class="where">Center &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">7.5</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.6%"></i></span></td>
-    <td class="num x">0.01&times;</td>
+    <td class="num key">2,004.4</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:17.0%"></i></span></td>
+    <td class="num x">2.02&times;</td>
   </tr><tr class="under">
-    <th scope="row">Chirp</th>
-    <td class="sect">Phoenix Court</td>
-    <td class="where">Back row &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">3.3</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.5%"></i></span></td>
-    <td class="num x">0.01&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Valere</th>
+    <th scope="row">Evelune</th>
     <td class="sect">Nightflower</td>
-    <td class="where">Back row &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">11.4</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:48.2%"></i></span></td>
-    <td class="num x">0.04&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Stoddard</th>
-    <td class="sect">Phoenix Court</td>
     <td class="where">Center &#8212; Support</td>
     <td class="where">Worth a second</td>
-    <td class="num key">272.7</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:36.3%"></i></span></td>
-    <td class="num x">0.27&times;</td>
+    <td class="num key">129.4</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:43.5%"></i></span></td>
+    <td class="num x">0.13&times;</td>
+  </tr><tr class="under">
+    <th scope="row">Artur</th>
+    <td class="sect">Reverence</td>
+    <td class="where">Back row &#8212; Support</td>
+    <td class="where">Worth a second</td>
+    <td class="num key">61.4</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:39.3%"></i></span></td>
+    <td class="num x">0.21&times;</td>
+  </tr><tr class="under">
+    <th scope="row">Emily</th>
+    <td class="sect">Reverence</td>
+    <td class="where">Center &#8212; Support</td>
+    <td class="where">Worth a second</td>
+    <td class="num key">290.3</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:35.4%"></i></span></td>
+    <td class="num x">0.29&times;</td>
   </tr><tr class="under">
     <th scope="row">Asher</th>
     <td class="sect">Whisperchime</td>
@@ -334,14 +332,6 @@
     <td class="num key">25.2</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.7%"></i></span></td>
     <td class="num x">0.37&times;</td>
-  </tr><tr class="under">
-    <th scope="row">Evelune</th>
-    <td class="sect">Nightflower</td>
-    <td class="where">Center &#8212; Support</td>
-    <td class="where">Worth a second</td>
-    <td class="num key">434.1</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:28.1%"></i></span></td>
-    <td class="num x">0.44&times;</td>
   </tr><tr class="under">
     <th scope="row">Javarious</th>
     <td class="sect">Reverence</td>
@@ -358,6 +348,7 @@
       <span><i class="chip over"></i> at or above 2&times;</span>
       <span><i class="chip under"></i> at or below 0.5&times;</span>
       <span>bar clipped at 4&times;</span>
+      <span>a hero holding boons or hexes is not flagged low</span>
     </div>
   </section>
 
@@ -365,7 +356,10 @@
     <h2>Every hero, by bucket</h2>
     <h3>Six buckets: where the hero's hex wants it, crossed with what the kit is for</h3>
     <p class="sub">Sorted best-first on each bucket's own axis. <b>Mit/s</b> is damage
-    prevented rather than dealt; <b>taken/s</b> is what the hero itself absorbs.</p>
+    prevented rather than dealt; <b>taken/s</b> is what the hero itself absorbs.
+    <b>Boons</b> and <b>hexes</b> are the average number of blessings and afflictions
+    the hero was holding up at any one moment &mdash; counted rather than converted,
+    because a defence blessing and a point of damage are not the same currency.</p>
     <div class="buckets" style="margin-top:26px">
   <section class="bucket" id="front_tank">
     <h3>Front row &#8212; Tank</h3>
@@ -375,7 +369,9 @@
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Effective HP</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -386,6 +382,8 @@
         <td class="num">118.1</td>
         <td class="num">0</td>
         <td class="num">521.4</td>
+        <td class="num ctrl">2.35</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">27.6</td>
         <td class="num key">86,650</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.7%"></i></span></td>
@@ -397,6 +395,8 @@
         <td class="num">98.6</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">61.3</td>
         <td class="num key">77,965</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.8%"></i></span></td>
@@ -408,6 +408,8 @@
         <td class="num">94.3</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">84.3</td>
         <td class="num key">69,891</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.0%"></i></span></td>
@@ -419,6 +421,8 @@
         <td class="num">44.8</td>
         <td class="num">875.3</td>
         <td class="num">7.8</td>
+        <td class="num ctrl">0.51</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">68.4</td>
         <td class="num key">62,881</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.7%"></i></span></td>
@@ -430,6 +434,8 @@
         <td class="num">73.2</td>
         <td class="num">499.2</td>
         <td class="num">633.5</td>
+        <td class="num ctrl">0.20</td>
+        <td class="num ctrl">1.99</td>
         <td class="num">50.5</td>
         <td class="num key">59,943</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.7%"></i></span></td>
@@ -441,6 +447,8 @@
         <td class="num">30.6</td>
         <td class="num">715.9</td>
         <td class="num">484.3</td>
+        <td class="num ctrl">0.27</td>
+        <td class="num ctrl">0.24</td>
         <td class="num">78.6</td>
         <td class="num key">49,140</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.0%"></i></span></td>
@@ -452,6 +460,8 @@
         <td class="num">20.1</td>
         <td class="num">0</td>
         <td class="num">10.2</td>
+        <td class="num ctrl">0.31</td>
+        <td class="num ctrl">1.21</td>
         <td class="num">271.3</td>
         <td class="num key">45,428</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.8%"></i></span></td>
@@ -463,6 +473,8 @@
         <td class="num">508.2</td>
         <td class="num">2,006.6</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">1.35</td>
         <td class="num">63.2</td>
         <td class="num key">41,673</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.6%"></i></span></td>
@@ -474,6 +486,8 @@
         <td class="num">301.7</td>
         <td class="num">217.1</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">151.9</td>
         <td class="num key">39,721</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.6%"></i></span></td>
@@ -485,6 +499,8 @@
         <td class="num">141.5</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.25</td>
         <td class="num">61.1</td>
         <td class="num key">39,584</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.7%"></i></span></td>
@@ -496,6 +512,8 @@
         <td class="num">65.5</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">37.1</td>
         <td class="num key">34,046</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:15.4%"></i></span></td>
@@ -512,7 +530,9 @@
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Damage a second</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -523,6 +543,8 @@
         <td class="num">216.2</td>
         <td class="num">4.7</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.34</td>
         <td class="num">138.3</td>
         <td class="num key">216.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:35.6%"></i></span></td>
@@ -534,6 +556,8 @@
         <td class="num">205</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">99.1</td>
         <td class="num key">205</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:32.9%"></i></span></td>
@@ -545,6 +569,8 @@
         <td class="num">167.5</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">155.8</td>
         <td class="num key">167.5</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:23.8%"></i></span></td>
@@ -556,6 +582,8 @@
         <td class="num">148.2</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.50</td>
         <td class="num">159.9</td>
         <td class="num key">148.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.2%"></i></span></td>
@@ -567,6 +595,8 @@
         <td class="num">89.6</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.94</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">175.6</td>
         <td class="num key">89.6</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.0%"></i></span></td>
@@ -578,6 +608,8 @@
         <td class="num">74.2</td>
         <td class="num">56.3</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.40</td>
         <td class="num">206.1</td>
         <td class="num key">74.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.3%"></i></span></td>
@@ -589,6 +621,8 @@
         <td class="num">73.2</td>
         <td class="num">0</td>
         <td class="num">26.7</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">158.3</td>
         <td class="num key">73.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.0%"></i></span></td>
@@ -600,6 +634,8 @@
         <td class="num">64.7</td>
         <td class="num">53.6</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">146.4</td>
         <td class="num key">64.7</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.1%"></i></span></td>
@@ -611,6 +647,8 @@
         <td class="num">62.3</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">207.3</td>
         <td class="num key">62.3</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.8%"></i></span></td>
@@ -622,6 +660,8 @@
         <td class="num">60.8</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">204.6</td>
         <td class="num key">60.8</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.9%"></i></span></td>
@@ -633,6 +673,8 @@
         <td class="num">41.4</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.50</td>
+        <td class="num ctrl">0.15</td>
         <td class="num">198.7</td>
         <td class="num key">41.4</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:20.0%"></i></span></td>
@@ -644,6 +686,8 @@
         <td class="num">35.2</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.29</td>
         <td class="num">204.6</td>
         <td class="num key">35.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:24.5%"></i></span></td>
@@ -655,6 +699,8 @@
         <td class="num">31.6</td>
         <td class="num">10.3</td>
         <td class="num">18.6</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">237</td>
         <td class="num key">31.6</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:27.1%"></i></span></td>
@@ -666,6 +712,8 @@
         <td class="num">25.2</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.20</td>
         <td class="num">182.5</td>
         <td class="num key">25.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.7%"></i></span></td>
@@ -676,114 +724,134 @@
   </section>
   <section class="bucket" id="center_support">
     <h3>Center &#8212; Support</h3>
-    <p class="meta">9 heroes &middot; judged on <b>worth a second</b> &middot; median <b>992.4</b></p>
+    <p class="meta">9 heroes &middot; judged on <b>worth a second</b> &middot; median <b>991.8</b></p>
     <div class="scroll">
       <table>
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Worth a second</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
         <tbody><tr class="over">
-        <th scope="row"><span class="nm">Peck</span><span class="ti">Ship&#x27;s Cook</span></th>
-        <td class="num st">3</td>
-        <td class="sect">Gulldigger</td>
-        <td class="num">0</td>
-        <td class="num">210.1</td>
-        <td class="num">3,025.3</td>
-        <td class="num">2.8</td>
-        <td class="num key">3,235.4</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:37.7%"></i></span></td>
-        <td class="num x">3.26&times;</td>
-      </tr><tr class="over">
         <th scope="row"><span class="nm">Lenore</span><span class="ti">Passing Bell of the Nightflowers</span></th>
         <td class="num st">3</td>
         <td class="sect">Nightflower</td>
         <td class="num">0</td>
-        <td class="num">1,144.8</td>
-        <td class="num">964.2</td>
-        <td class="num">4.7</td>
-        <td class="num key">2,108.9</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:18.8%"></i></span></td>
-        <td class="num x">2.13&times;</td>
-      </tr><tr class="">
-        <th scope="row"><span class="nm">Tumble</span><span class="ti">Whirling Dervish of the Whisperchime</span></th>
-        <td class="num st">4</td>
-        <td class="sect">Whisperchime</td>
-        <td class="num">168.6</td>
-        <td class="num">1,115.3</td>
+        <td class="num">1,358.2</td>
+        <td class="num">850.8</td>
+        <td class="num ctrl">2.07</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">15.6</td>
+        <td class="num key">2,208.9</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:20.5%"></i></span></td>
+        <td class="num x">2.23&times;</td>
+      </tr><tr class="over">
+        <th scope="row"><span class="nm">Peck</span><span class="ti">Ship&#x27;s Cook</span></th>
+        <td class="num st">3</td>
+        <td class="sect">Gulldigger</td>
         <td class="num">0</td>
-        <td class="num">10.6</td>
-        <td class="num key">1,283.9</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.9%"></i></span></td>
-        <td class="num x">1.29&times;</td>
+        <td class="num">153.5</td>
+        <td class="num">1,850.9</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">15.5</td>
+        <td class="num key">2,004.4</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:17.0%"></i></span></td>
+        <td class="num x">2.02&times;</td>
+      </tr><tr class="">
+        <th scope="row"><span class="nm">Leonardo</span><span class="ti">Herald of Reverence</span></th>
+        <td class="num st">3</td>
+        <td class="sect">Reverence</td>
+        <td class="num">146.4</td>
+        <td class="num">1,120.6</td>
+        <td class="num">0</td>
+        <td class="num ctrl">9.74</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">20</td>
+        <td class="num key">1,267</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.6%"></i></span></td>
+        <td class="num x">1.28&times;</td>
       </tr><tr class="">
         <th scope="row"><span class="nm">Stella</span><span class="ti">Keeper of the Coal</span></th>
         <td class="num st">2</td>
         <td class="sect">Phoenix Court</td>
         <td class="num">0</td>
-        <td class="num">1,219.9</td>
+        <td class="num">1,260</td>
         <td class="num">0</td>
-        <td class="num">6.9</td>
-        <td class="num key">1,219.9</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.8%"></i></span></td>
-        <td class="num x">1.23&times;</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">16.2</td>
+        <td class="num key">1,260</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.5%"></i></span></td>
+        <td class="num x">1.27&times;</td>
       </tr><tr class="">
-        <th scope="row"><span class="nm">Leonardo</span><span class="ti">Herald of Reverence</span></th>
-        <td class="num st">3</td>
-        <td class="sect">Reverence</td>
-        <td class="num">161.4</td>
-        <td class="num">831</td>
+        <th scope="row"><span class="nm">Tumble</span><span class="ti">Whirling Dervish of the Whisperchime</span></th>
+        <td class="num st">4</td>
+        <td class="sect">Whisperchime</td>
+        <td class="num">125</td>
+        <td class="num">866.8</td>
         <td class="num">0</td>
-        <td class="num">3.7</td>
-        <td class="num key">992.4</td>
+        <td class="num ctrl">4.70</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">20.3</td>
+        <td class="num key">991.8</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.0%"></i></span></td>
         <td class="num x">1.00&times;</td>
-      </tr><tr class="">
+      </tr><tr class="under">
         <th scope="row"><span class="nm">Emily</span><span class="ti">Dawn Cleric</span></th>
         <td class="num st">4</td>
         <td class="sect">Reverence</td>
         <td class="num">0</td>
-        <td class="num">683.4</td>
+        <td class="num">290.3</td>
         <td class="num">0</td>
-        <td class="num">8.5</td>
-        <td class="num key">683.4</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:15.6%"></i></span></td>
-        <td class="num x">0.69&times;</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">28.2</td>
+        <td class="num key">290.3</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:35.4%"></i></span></td>
+        <td class="num x">0.29&times;</td>
+      </tr><tr class="">
+        <th scope="row"><span class="nm">Stoddard</span><span class="ti">Censer of the Court</span></th>
+        <td class="num st">3</td>
+        <td class="sect">Phoenix Court</td>
+        <td class="num">84.4</td>
+        <td class="num">74.8</td>
+        <td class="num">0</td>
+        <td class="num ctrl">4.51</td>
+        <td class="num ctrl">2.09</td>
+        <td class="num">8.2</td>
+        <td class="num key">159.2</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:42.0%"></i></span></td>
+        <td class="num x">0.16&times;</td>
       </tr><tr class="under">
         <th scope="row"><span class="nm">Evelune</span><span class="ti">First Chair of the Nightflowers</span></th>
         <td class="num st">4</td>
         <td class="sect">Nightflower</td>
-        <td class="num">25</td>
-        <td class="num">409.1</td>
+        <td class="num">20.1</td>
+        <td class="num">109.3</td>
         <td class="num">0</td>
-        <td class="num">6.4</td>
-        <td class="num key">434.1</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:28.1%"></i></span></td>
-        <td class="num x">0.44&times;</td>
-      </tr><tr class="under">
-        <th scope="row"><span class="nm">Stoddard</span><span class="ti">Censer of the Court</span></th>
-        <td class="num st">3</td>
-        <td class="sect">Phoenix Court</td>
-        <td class="num">232.7</td>
-        <td class="num">40.1</td>
-        <td class="num">0</td>
-        <td class="num">7.7</td>
-        <td class="num key">272.7</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:36.3%"></i></span></td>
-        <td class="num x">0.27&times;</td>
-      </tr><tr class="under">
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">18.7</td>
+        <td class="num key">129.4</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:43.5%"></i></span></td>
+        <td class="num x">0.13&times;</td>
+      </tr><tr class="">
         <th scope="row"><span class="nm">Slick</span><span class="ti">Barrel Man of the Firetroupe</span></th>
         <td class="num st">3</td>
         <td class="sect">Firetroupe</td>
-        <td class="num">0.6</td>
-        <td class="num">6.9</td>
+        <td class="num">2.7</td>
+        <td class="num">9.1</td>
         <td class="num">0</td>
-        <td class="num">6.5</td>
-        <td class="num key">7.5</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.6%"></i></span></td>
+        <td class="num ctrl">0.63</td>
+        <td class="num ctrl">2.79</td>
+        <td class="num">17.4</td>
+        <td class="num key">11.9</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.4%"></i></span></td>
         <td class="num x">0.01&times;</td>
       </tr></tbody>
       </table>
@@ -797,7 +865,9 @@
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Damage a second</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -808,6 +878,8 @@
         <td class="num">302.5</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">79.8</td>
         <td class="num key">302.5</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.1%"></i></span></td>
@@ -819,6 +891,8 @@
         <td class="num">248.4</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.54</td>
         <td class="num">49.1</td>
         <td class="num key">248.4</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.2%"></i></span></td>
@@ -830,6 +904,8 @@
         <td class="num">215.2</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.35</td>
+        <td class="num ctrl">0.09</td>
         <td class="num">71.1</td>
         <td class="num key">215.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.6%"></i></span></td>
@@ -841,6 +917,8 @@
         <td class="num">184.7</td>
         <td class="num">0</td>
         <td class="num">52.2</td>
+        <td class="num ctrl">1.45</td>
+        <td class="num ctrl">0.84</td>
         <td class="num">49.3</td>
         <td class="num key">184.7</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:10.2%"></i></span></td>
@@ -851,13 +929,15 @@
   </section>
   <section class="bucket" id="back_support">
     <h3>Back row &#8212; Support</h3>
-    <p class="meta">15 heroes &middot; judged on <b>worth a second</b> &middot; median <b>321.7</b></p>
+    <p class="meta">15 heroes &middot; judged on <b>worth a second</b> &middot; median <b>286.6</b></p>
     <div class="scroll">
       <table>
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Worth a second</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -866,163 +946,193 @@
         <td class="num st">5</td>
         <td class="sect">Whisperchime</td>
         <td class="num">0</td>
-        <td class="num">1,571.6</td>
-        <td class="num">806.9</td>
-        <td class="num">30.7</td>
-        <td class="num key">2,378.5</td>
+        <td class="num">1,771.2</td>
+        <td class="num">552.9</td>
+        <td class="num ctrl">1.71</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">72.6</td>
+        <td class="num key">2,324.1</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
-        <td class="num x">7.39&times;</td>
+        <td class="num x">8.11&times;</td>
       </tr><tr class="over">
         <th scope="row"><span class="nm">Ilyra</span><span class="ti">Windward of the Whisperchime</span></th>
         <td class="num st">3</td>
         <td class="sect">Whisperchime</td>
         <td class="num">0</td>
-        <td class="num">1,159.7</td>
+        <td class="num">2,080.2</td>
         <td class="num">0</td>
-        <td class="num">29.4</td>
-        <td class="num key">1,159.7</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:43.4%"></i></span></td>
-        <td class="num x">3.60&times;</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">47.4</td>
+        <td class="num key">2,080.2</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
+        <td class="num x">7.26&times;</td>
       </tr><tr class="over">
         <th scope="row"><span class="nm">Cain</span><span class="ti">Chaplain of Cryst</span></th>
         <td class="num st">4</td>
         <td class="sect">Cryst</td>
-        <td class="num">125.8</td>
-        <td class="num">569.2</td>
+        <td class="num">31.2</td>
+        <td class="num">1,284.6</td>
         <td class="num">0</td>
-        <td class="num">9.1</td>
-        <td class="num key">695</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.3%"></i></span></td>
-        <td class="num x">2.16&times;</td>
-      </tr><tr class="">
+        <td class="num ctrl">0.14</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">35.8</td>
+        <td class="num key">1,315.7</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
+        <td class="num x">4.59&times;</td>
+      </tr><tr class="over">
         <th scope="row"><span class="nm">Vivian</span><span class="ti">Hedge Mage</span></th>
         <td class="num st">4</td>
         <td class="sect">Whisperchime</td>
-        <td class="num">9.7</td>
-        <td class="num">593.7</td>
+        <td class="num">10</td>
+        <td class="num">744</td>
         <td class="num">0</td>
-        <td class="num">21.9</td>
-        <td class="num key">603.3</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.6%"></i></span></td>
-        <td class="num x">1.88&times;</td>
-      </tr><tr class="">
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">57.8</td>
+        <td class="num key">754</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:27.2%"></i></span></td>
+        <td class="num x">2.63&times;</td>
+      </tr><tr class="over">
         <th scope="row"><span class="nm">Cleo</span><span class="ti">Fortune Teller of the Firetroupe</span></th>
         <td class="num st">5</td>
         <td class="sect">Firetroupe</td>
-        <td class="num">1.1</td>
-        <td class="num">482.4</td>
+        <td class="num">2.6</td>
+        <td class="num">673.8</td>
         <td class="num">0</td>
-        <td class="num">24.1</td>
-        <td class="num key">483.5</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.4%"></i></span></td>
-        <td class="num x">1.50&times;</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.13</td>
+        <td class="num">51.5</td>
+        <td class="num key">676.5</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:22.7%"></i></span></td>
+        <td class="num x">2.36&times;</td>
       </tr><tr class="">
         <th scope="row"><span class="nm">Koe</span><span class="ti">Mime of the Firetroupe</span></th>
         <td class="num st">4</td>
         <td class="sect">Firetroupe</td>
-        <td class="num">1.9</td>
-        <td class="num">409.2</td>
-        <td class="num">10.9</td>
-        <td class="num">9.7</td>
-        <td class="num key">422.1</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.2%"></i></span></td>
-        <td class="num x">1.31&times;</td>
+        <td class="num">0</td>
+        <td class="num">473.7</td>
+        <td class="num">14.6</td>
+        <td class="num ctrl">0.91</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">30.1</td>
+        <td class="num key">488.3</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.7%"></i></span></td>
+        <td class="num x">1.70&times;</td>
+      </tr><tr class="">
+        <th scope="row"><span class="nm">Noctelle</span><span class="ti">Silent Moth of the Nightflowers</span></th>
+        <td class="num st">3</td>
+        <td class="sect">Nightflower</td>
+        <td class="num">63.6</td>
+        <td class="num">313.6</td>
+        <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.14</td>
+        <td class="num">24.7</td>
+        <td class="num key">377.2</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.3%"></i></span></td>
+        <td class="num x">1.32&times;</td>
       </tr><tr class="">
         <th scope="row"><span class="nm">Sarena</span><span class="ti">Fanbearer of the Court</span></th>
         <td class="num st">4</td>
         <td class="sect">Phoenix Court</td>
-        <td class="num">3.8</td>
-        <td class="num">405.6</td>
+        <td class="num">14.9</td>
+        <td class="num">271.7</td>
         <td class="num">0</td>
-        <td class="num">11.7</td>
-        <td class="num key">409.4</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.5%"></i></span></td>
-        <td class="num x">1.27&times;</td>
-      </tr><tr class="">
-        <th scope="row"><span class="nm">Wanda</span><span class="ti">Bosun</span></th>
-        <td class="num st">2</td>
-        <td class="sect">Gulldigger</td>
-        <td class="num">8.5</td>
-        <td class="num">313.2</td>
-        <td class="num">0</td>
-        <td class="num">6.9</td>
-        <td class="num key">321.7</td>
+        <td class="num ctrl">5.59</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">35.7</td>
+        <td class="num key">286.6</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.0%"></i></span></td>
         <td class="num x">1.00&times;</td>
       </tr><tr class="">
         <th scope="row"><span class="nm">Tanner</span><span class="ti">Prince of Cryst</span></th>
         <td class="num st">4</td>
         <td class="sect">Cryst</td>
-        <td class="num">0.9</td>
-        <td class="num">286</td>
-        <td class="num">7.8</td>
-        <td class="num">19.5</td>
-        <td class="num key">294.7</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.2%"></i></span></td>
-        <td class="num x">0.92&times;</td>
+        <td class="num">2.8</td>
+        <td class="num">266.7</td>
+        <td class="num">15.4</td>
+        <td class="num ctrl">0.37</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">48.6</td>
+        <td class="num key">284.9</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.3%"></i></span></td>
+        <td class="num x">0.99&times;</td>
       </tr><tr class="">
+        <th scope="row"><span class="nm">Wanda</span><span class="ti">Bosun</span></th>
+        <td class="num st">2</td>
+        <td class="sect">Gulldigger</td>
+        <td class="num">27.3</td>
+        <td class="num">43.2</td>
+        <td class="num">0</td>
+        <td class="num ctrl">2.74</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">17.3</td>
+        <td class="num key">70.4</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:37.7%"></i></span></td>
+        <td class="num x">0.25&times;</td>
+      </tr><tr class="under">
         <th scope="row"><span class="nm">Artur</span><span class="ti">Scribe of Reverence</span></th>
         <td class="num st">3</td>
         <td class="sect">Reverence</td>
-        <td class="num">3.8</td>
-        <td class="num">210.6</td>
+        <td class="num">19</td>
+        <td class="num">42.4</td>
         <td class="num">0</td>
-        <td class="num">13.2</td>
-        <td class="num key">214.4</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:16.7%"></i></span></td>
-        <td class="num x">0.67&times;</td>
+        <td class="num ctrl">0.92</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">17.6</td>
+        <td class="num key">61.4</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:39.3%"></i></span></td>
+        <td class="num x">0.21&times;</td>
       </tr><tr class="">
-        <th scope="row"><span class="nm">Noctelle</span><span class="ti">Silent Moth of the Nightflowers</span></th>
-        <td class="num st">3</td>
-        <td class="sect">Nightflower</td>
-        <td class="num">56</td>
-        <td class="num">151.2</td>
-        <td class="num">0</td>
-        <td class="num">20.2</td>
-        <td class="num key">207.3</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:17.8%"></i></span></td>
-        <td class="num x">0.64&times;</td>
-      </tr><tr class="under">
         <th scope="row"><span class="nm">Valere</span><span class="ti">Suitor of the Nightflowers</span></th>
         <td class="num st">4</td>
         <td class="sect">Nightflower</td>
-        <td class="num">11.4</td>
+        <td class="num">14.7</td>
         <td class="num">0</td>
         <td class="num">0</td>
-        <td class="num">13.3</td>
-        <td class="num key">11.4</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:48.2%"></i></span></td>
-        <td class="num x">0.04&times;</td>
-      </tr><tr class="under">
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">2.56</td>
+        <td class="num">47.3</td>
+        <td class="num key">14.7</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:47.4%"></i></span></td>
+        <td class="num x">0.05&times;</td>
+      </tr><tr class="">
         <th scope="row"><span class="nm">Chirp</span><span class="ti">Taper of the Court</span></th>
         <td class="num st">1</td>
         <td class="sect">Phoenix Court</td>
-        <td class="num">0.1</td>
+        <td class="num">2.9</td>
         <td class="num">0</td>
-        <td class="num">3.1</td>
-        <td class="num">5.7</td>
-        <td class="num key">3.3</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.5%"></i></span></td>
-        <td class="num x">0.01&times;</td>
-      </tr><tr class="under">
+        <td class="num">3.5</td>
+        <td class="num ctrl">1.47</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">16.3</td>
+        <td class="num key">6.4</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:48.9%"></i></span></td>
+        <td class="num x">0.02&times;</td>
+      </tr><tr class="">
         <th scope="row"><span class="nm">Polo</span><span class="ti">Cartographer</span></th>
         <td class="num st">4</td>
         <td class="sect">Gulldigger</td>
-        <td class="num">0.6</td>
+        <td class="num">1.8</td>
         <td class="num">0</td>
         <td class="num">0</td>
-        <td class="num">13.4</td>
-        <td class="num key">0.6</td>
-        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.9%"></i></span></td>
-        <td class="num x">0.00&times;</td>
-      </tr><tr class="under">
+        <td class="num ctrl">5.26</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">37.5</td>
+        <td class="num key">1.8</td>
+        <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:49.7%"></i></span></td>
+        <td class="num x">0.01&times;</td>
+      </tr><tr class="">
         <th scope="row"><span class="nm">Orri</span><span class="ti">Archivist of the Court</span></th>
         <td class="num st">2</td>
         <td class="sect">Phoenix Court</td>
         <td class="num">0</td>
         <td class="num">0</td>
         <td class="num">0</td>
-        <td class="num">7.5</td>
+        <td class="num ctrl">1.39</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num">19.6</td>
         <td class="num key">0</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:50.0%"></i></span></td>
         <td class="num x">0.00&times;</td>
@@ -1038,7 +1148,9 @@
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">Damage a second</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -1049,6 +1161,8 @@
         <td class="num">474.2</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">259.4</td>
         <td class="num key">474.2</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:23.4%"></i></span></td>
@@ -1060,6 +1174,8 @@
         <td class="num">292.1</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.48</td>
         <td class="num">237.9</td>
         <td class="num key">292.1</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.0%"></i></span></td>
@@ -1071,6 +1187,8 @@
         <td class="num">231.3</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.26</td>
+        <td class="num ctrl">0.49</td>
         <td class="num">244</td>
         <td class="num key">231.3</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.9%"></i></span></td>
@@ -1082,6 +1200,8 @@
         <td class="num">228.1</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">1.36</td>
         <td class="num">277.3</td>
         <td class="num key">228.1</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.6%"></i></span></td>
@@ -1093,6 +1213,8 @@
         <td class="num">202.1</td>
         <td class="num">0</td>
         <td class="num">19.5</td>
+        <td class="num ctrl">0.24</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">219.6</td>
         <td class="num key">202.1</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.4%"></i></span></td>
@@ -1104,6 +1226,8 @@
         <td class="num">200.4</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.06</td>
         <td class="num">324.5</td>
         <td class="num key">200.4</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.3%"></i></span></td>
@@ -1115,6 +1239,8 @@
         <td class="num">194.4</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">233.1</td>
         <td class="num key">194.4</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.8%"></i></span></td>
@@ -1126,6 +1252,8 @@
         <td class="num">162.8</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.01</td>
         <td class="num">367.8</td>
         <td class="num key">162.8</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.8%"></i></span></td>
@@ -1137,6 +1265,8 @@
         <td class="num">143.6</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">3.73</td>
         <td class="num">286.8</td>
         <td class="num key">143.6</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:13.6%"></i></span></td>
@@ -1148,6 +1278,8 @@
         <td class="num">124.9</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">244.2</td>
         <td class="num key">124.9</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:18.4%"></i></span></td>
@@ -1159,6 +1291,8 @@
         <td class="num">117.7</td>
         <td class="num">0</td>
         <td class="num">18.2</td>
+        <td class="num ctrl">0.54</td>
+        <td class="num ctrl">0.00</td>
         <td class="num">221.6</td>
         <td class="num key">117.7</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:20.2%"></i></span></td>
@@ -1170,6 +1304,8 @@
         <td class="num">115</td>
         <td class="num">0</td>
         <td class="num">0</td>
+        <td class="num ctrl">0.00</td>
+        <td class="num ctrl">0.18</td>
         <td class="num">274.5</td>
         <td class="num key">115</td>
         <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:20.9%"></i></span></td>
