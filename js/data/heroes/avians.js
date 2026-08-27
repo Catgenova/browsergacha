@@ -10,17 +10,10 @@
 //                 halves have to be fielded together to be worth
 //                 anything at all.
 //
-// The Gulldiggers are the first sect that is not human: pirate seabirds
-// who fight the way weather does — all at once, and to everybody. Where
-// a human sect is nine heroes of whatever rarity they happened to be
-// written at, a bird sect is built to a shape: one 1★, two 2★, three
-// 3★, two 4★, and a single 5★ at the top of it.
-//
-// Their shared mechanic is `perTarget` (js/abilities.js): damage priced
-// off the SIZE OF THE CROWD a cast catches. It is the reason the sect
-// exists — every other AoE dealer on the roster is paid the same for a
-// sweep that lands on one bird as for one that lands on seven, and the
-// Gulldiggers are not.
+// Where a human sect is nine heroes of whatever rarity they happened to
+// be written at, a bird sect is built to a shape — one 1★, two 2★,
+// three 3★, two 4★ and a single 5★ — and each sect declares its own in
+// js/races.js rather than inheriting one.
 
 Object.assign(HEROES, {
 
@@ -1344,7 +1337,12 @@ Object.assign(HEROES, {
     element: 'fire',
     name: 'Sarena',
     title: 'Fanbearer of the Court',
-    rarity: 2,
+    rarity: 4,
+    // Promoted from 2-star, which is a change of KIT rather than of
+    // numbers: js/data/balance.js holds every hero to the same power
+    // budget whatever their stars, so what four stars buys her is a
+    // third skill, a higher level ceiling and worse summon odds -- not
+    // a bigger statline.
     stats: { hp: 1500, atk: 130, def: 120, speed: 112 },
     tint: { body: '#e8e4dc', helm: '#c83a2a', weapon: '#e8903a', shield: '#c8a03a' },
     sprite: {
@@ -1384,6 +1382,27 @@ Object.assign(HEROES, {
           { buffPower: 0.05 },
           { duration: 1 },
           { meter: 0.03 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'the_long_figure', name: 'The Long Figure',
+        icon: 'assets/icons/fc1053.png',
+        description: 'The turn the whole court waits for: ALL allies gain 25% Crit Damage ' +
+          'for 3 turns, and 5% more for every burning enemy.',
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // Crit DAMAGE, team-wide, which nothing else on the roster hands
+        // out -- Artur gives it to one ally at a time and Polo gives the
+        // team crit CHANCE. The two stack into the same swing without
+        // either being a copy of the other.
+        effects: [{ type: 'buff', stat: 'critDamage', add: 0.25, perBurn: 0.05, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { perBurn: 0.01 },
+          { buffPower: 0.05 },
+          { duration: 1 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],

@@ -114,11 +114,11 @@ const RACES = (() => {
     // their court is paid for them: every blessing and every mend the
     // Court hands out is deeper for each enemy already burning.
     //
-    // The shape is declared rather than assumed, because this one does
-    // NOT match the Gulldiggers': three 2-stars and a single 4-star
-    // where the pattern wants two and two.
+    // Declared rather than inherited, so a sect that ever wants a
+    // different shape says so out loud instead of failing a test
+    // written around the first one.
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
-                 shape: { 1: 1, 2: 3, 3: 3, 4: 1, 5: 1 },
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
                            'stella', 'sarena', 'orri', 'chirp'] },
   };
