@@ -85,6 +85,9 @@ class Unit {
     // blow, at most once per battle.
     this.resurrectChance = 0;
     this.resurrected = false;
+    // One refused killing blow per fight, for a hero carrying a
+    // `lastEmber` hook.
+    this.emberSpent = false;
     // Reverence sect pack: an opening shield (% of max HP, granted by
     // applyParty) and shields off every blow dealt.
     this.synergyStartShield = 0;
@@ -718,6 +721,21 @@ class Unit {
     amount -= absorbed;
     this.hp = Math.max(0, this.hp - amount);
     this.hitFlash = 0.18;
+    // A `lastEmber` hook (Stella's coal) refuses the first killing blow
+    // of the fight outright. She is not brought BACK -- she never goes
+    // down -- so her wards, her blessings and her cooldowns all survive
+    // with her, which is what separates it from a revive. Checked ahead
+    // of the blessing's resurrect roll, so a Godtouched copy still has
+    // its own return in hand afterwards.
+    if (!this.alive && !this.emberSpent &&
+        this.hookSources().some((p) => p.hooks && p.hooks.lastEmber)) {
+      this.emberSpent = true;
+      this.hp = 1;
+      if (typeof Battle !== 'undefined' && Battle.active) {
+        Battle.active.addFloatingText(this, '\u2726', '#e8a83a');
+        Battle.active.log(`${this.name} will not go out.`, 'log-system');
+      }
+    }
     // Blessed/Godtouched company: the killing blow may not stick. One
     // return per battle, at 30% HP, statuses wiped like any other death.
     if (!this.alive && this.resurrectChance > 0 && !this.resurrected &&

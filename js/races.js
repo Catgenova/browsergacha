@@ -25,6 +25,8 @@ const RACES = (() => {
   // would force every Gulldigger to be the same species.
   const AVIANS = new Set([
     'hallow', 'ike', 'jack', 'phil', 'peck', 'talon', 'bo', 'wanda', 'polo',
+    'korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
+    'stella', 'sarena', 'orri', 'chirp',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -104,7 +106,21 @@ const RACES = (() => {
     // way weather does, all at once and to everybody. Hallow holds the
     // 5★ chair.
     gulldigger: { id: 'gulldigger', name: 'Gulldigger', number: 8,
+                 // 1/2/3/2/1 across the star ranks, the shape a bird
+                 // sect is built to.
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['hallow', 'ike', 'jack', 'phil', 'peck', 'talon', 'bo', 'wanda', 'polo'] },
+    // Fire birds in red and gold. Their damage dealers light fires and
+    // their court is paid for them: every blessing and every mend the
+    // Court hands out is deeper for each enemy already burning.
+    //
+    // The shape is declared rather than assumed, because this one does
+    // NOT match the Gulldiggers': three 2-stars and a single 4-star
+    // where the pattern wants two and two.
+    phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
+                 shape: { 1: 1, 2: 3, 3: 3, 4: 1, 5: 1 },
+                 members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
+                           'stella', 'sarena', 'orri', 'chirp'] },
   };
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;

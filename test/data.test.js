@@ -195,6 +195,9 @@ test('every sect holds one race, once each, with its number', () => {
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
     gulldigger: { number: 8, race: 'avian', members: ['hallow', 'ike', 'jack', 'phil', 'peck', 'talon', 'bo', 'wanda', 'polo'] },
+    phoenixcourt: { number: 9, race: 'avian',
+      members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
+                'stella', 'sarena', 'orri', 'chirp'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -221,18 +224,26 @@ test('every sect holds one race, once each, with its number', () => {
   // 1★ to 5★. Checked as a CEILING while the sect fills, so a bird
   // added at the wrong rarity fails the moment it lands rather than
   // eight heroes later.
-  const SHAPE = { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 };
   for (const [id, want] of Object.entries(expected)) {
     if (!want.race) continue;
+    const sect = RACES.SECTS[id];
+    // The shape is DECLARED on the sect rather than assumed from the
+    // first one written. The Gulldiggers run 1/2/3/2/1; the Phoenix
+    // Court runs three 2-stars and a single 4-star. Whatever a sect
+    // declares, it has to hold to -- and it still has to add to nine.
+    assert(sect.shape, `${id}: no declared star shape`);
     const have = {};
-    for (const m of RACES.SECTS[id].members) {
+    for (const m of sect.members) {
       const r = HEROES[m].rarity;
       have[r] = (have[r] || 0) + 1;
-      assert(have[r] <= SHAPE[r],
-        `${id}: ${have[r]} heroes at ${r}-star, the shape allows ${SHAPE[r]}`);
+      assert(have[r] <= (sect.shape[r] || 0),
+        `${id}: ${have[r]} heroes at ${r}-star, its shape allows ${sect.shape[r] || 0}`);
     }
-    assert(RACES.SECTS[id].members.length <= 9,
-      `${id}: ${RACES.SECTS[id].members.length} members, a sect holds nine`);
+    const declared = Object.values(sect.shape).reduce((a, c) => a + c, 0);
+    assert(declared === 9,
+      `${id}: its shape adds to ${declared}, and a sect holds nine`);
+    assert(sect.members.length <= 9,
+      `${id}: ${sect.members.length} members, a sect holds nine`);
   }
 });
 
@@ -1117,6 +1128,11 @@ test('every swept skill obeys the level-up rules', () => {
       // A perTarget rung steepens a crowd bonus, so there has to be one
       // to steepen -- and a crowd bonus on a skill that can only ever
       // catch one bird is a number that never fires.
+      // A perBurn rung steepens a fire-fed blessing, so there has to
+      // be one to steepen.
+      if (lad.perBurn && !all.some((e) => e.perBurn !== undefined)) {
+        problems.push(`${where}: perBurn rungs but nothing fed by a fire`);
+      }
       if (lad.perTarget && !all.some((e) => e.perTarget !== undefined)) {
         problems.push(`${where}: perTarget rungs but nothing priced per enemy hit`);
       }
