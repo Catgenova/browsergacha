@@ -8171,4 +8171,102 @@ test('a banner features only what its scroll can draw', () => {
     'the Common scroll no longer draws 1-star heroes');
 });
 
+// Element party bonuses, back at 2/3/4 instead of 3/5/7. A party is
+// seven strong, so the old thresholds meant one element or nothing;
+// these let a party carry two or three and be paid for each.
+test('element party bonuses pay the element that earned them, in tiers', () => {
+  const windIds = Object.values(HEROES).filter((h) => h.element === 'wind')
+    .map((h) => h.id);
+  assert(windIds.length >= 4, 'not enough wind heroes to test four of them');
+  const fireId = Object.values(HEROES).find((h) => h.element === 'fire').id;
+
+  const party = (windCount, extra = []) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < windCount; i++) {
+      const u = new Unit(HEROES[windIds[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    for (const id of extra) {
+      const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, units.length);
+      units.push(u);
+    }
+    const summary = RACES.applyParty(units);
+    return { battle, units, summary };
+  };
+
+  // ---- The ladder: nothing at one, then one tier per step ----
+  const counts = [1, 2, 3, 4].map((n) => {
+    const { summary } = party(n);
+    const wind = summary.find((b) => b.element === 'wind');
+    return wind ? wind.labels.length : 0;
+  });
+  assert(counts.join() === '0,1,2,3',
+    `wind tiers at 1/2/3/4 heroes were ${counts.join('/')}`);
+
+  // ---- 2pc Following Wind: +10% SPD, and only to wind ----
+  {
+    const bare = new Unit(HEROES[windIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const bareFire = new Unit(HEROES[fireId], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2, [fireId]);
+    const windUnit = units[0], fireUnit = units[2];
+    assert(windUnit.speed === Math.round(bare.speed * 1.10),
+      `wind SPD ${windUnit.speed}, wanted ${Math.round(bare.speed * 1.10)}`);
+    assert(fireUnit.speed === bareFire.speed,
+      'the fire hero collected the wind element bonus');
+  }
+
+  // ---- 3pc Crosswind: damage scales with speed ABOVE 100 ----
+  {
+    const { units } = party(3);
+    const u = units[0];
+    // The hook rides effectiveStat('speed'), so it must move when speed
+    // does rather than being read once at build.
+    const at = (spd) => { u.speed = spd; return u.damageDealtMult(null, null); };
+    const slow = at(100), mid = at(125), fast = at(175);
+    assert(Math.abs(slow - 1) < 1e-9, `at 100 SPD Crosswind paid ${slow}`);
+    assert(Math.abs(mid - 1.05) < 1e-9, `at 125 SPD Crosswind paid ${mid}`);
+    assert(Math.abs(fast - 1.15) < 1e-9, `at 175 SPD Crosswind paid ${fast}`);
+    // Two heroes short of the tier get nothing from it.
+    const two = party(2).units[0];
+    two.speed = 175;
+    assert(Math.abs(two.damageDealtMult(null, null) - 1) < 1e-9,
+      'Crosswind paid out at two wind heroes');
+  }
+
+  // ---- 4pc Second Gust: an extra-turn chance the engine reads ----
+  {
+    const bare = new Unit(HEROES[windIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(4);
+    assert(Math.abs(units[0].extraTurnChance() - (bare.extraTurnChance() + 0.10)) < 1e-9,
+      `Second Gust gave ${units[0].extraTurnChance()} vs a base of ${bare.extraTurnChance()}`);
+  }
+
+  // ---- The bonus must not be written into the hero DEFINITION ----
+  // hero.js takes `passives` by reference, so a bonus that pushed onto
+  // it would stick to the def and every future copy would carry it.
+  {
+    const before = (HEROES[windIds[0]].passives ||
+      [HEROES[windIds[0]].passive]).length;
+    party(3);
+    party(3);
+    const after = (HEROES[windIds[0]].passives ||
+      [HEROES[windIds[0]].passive]).length;
+    assert(before === after,
+      `the hero definition grew from ${before} to ${after} passives`);
+    const fresh = new Unit(HEROES[windIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    assert(!fresh.passives.some((p) => p.partyBonus),
+      'a freshly built hero arrived carrying a party bonus');
+  }
+
+  // ---- An element with no table pays nothing, and does not throw ----
+  {
+    const { summary } = party(0, [fireId, fireId, fireId, fireId]);
+    assert(!summary.some((b) => b.element === 'fire'),
+      'fire paid out a bonus it has no table for');
+  }
+});
+
 report();
