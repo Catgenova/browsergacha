@@ -83,11 +83,19 @@ const RACES = (() => {
                  members: ['vex', 'coral'] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
-    // Sawyer's old home, emptied when he was recognised as the
-    // Nightflower his whole kit already said he was. The number is kept
-    // so the sect list does not renumber under saves that remember it.
+    // DEFUNCT. Sawyer's old home, emptied when he was recognised as the
+    // Nightflower his whole kit already said he was -- Petalfall Cut,
+    // Night Bloom, Deadheading, Wilting Garden. He was its only member
+    // and he left, so the order is finished.
+    //
+    // It stays in this list rather than being deleted: No. 2 is spent
+    // and must not be handed to a future sect, and a save that
+    // remembers the name should still find it. `defunct` says what an
+    // empty `members` array cannot -- that this is a closed order, not
+    // one waiting to be filled. data.test.js holds the difference: a
+    // live sect must have members, a defunct one must never gain any.
     shadowflower: { id: 'shadowflower', name: 'Shadowflower', number: 2,
-                 members: [] },
+                 defunct: true, members: [] },
     // Lucian's order; Franz the firebreather is its second act.
     firetroupe: { id: 'firetroupe', name: 'Firetroupe', number: 5,
                  members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo'] },
@@ -122,6 +130,14 @@ const RACES = (() => {
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
                            'stella', 'sarena', 'orri', 'chirp'] },
   };
+  // The orders still standing. Anything offering sects as a CHOICE --
+  // a filter, a banner schedule, a roster of who is out there -- wants
+  // this rather than SECTS, or it offers a closed order as somewhere a
+  // hero could come from.
+  function liveSects() {
+    return Object.values(SECTS).filter((s) => !s.defunct);
+  }
+
   function sectOf(defOrId) {
     const id = typeof defOrId === 'string' ? defOrId : defOrId && defOrId.id;
     if (!id) return null;
@@ -136,5 +152,5 @@ const RACES = (() => {
   // heroes now bring exactly what their own kit and gear say, no matter
   // who stands beside them.
 
-  return { of, NAMES, SECTS, sectOf };
+  return { of, NAMES, SECTS, liveSects, sectOf };
 })();

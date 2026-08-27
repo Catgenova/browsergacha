@@ -60,7 +60,15 @@ const Events = (() => {
   // A banner sect has to be summonable from its scroll's pool: the
   // Temporal pool is Dark and Light only, so all-water Cryst, all-fire
   // Firetroupe and all-wind Whisperchime can only ever ride the Rare
-  // scroll.
+  // scroll. The same rule puts the two bird sects there -- Gulldigger
+  // is water, the Phoenix Court fire.
+  //
+  // Both were unbannered until now, which meant eighteen heroes, the
+  // newest on the roster, could never be featured: the only content a
+  // player could not go looking for. Appended rather than interleaved,
+  // so the weeks the first three sects already hold do not move under
+  // anyone mid-rotation -- the wheel simply runs five long instead of
+  // three.
   const BANNER_EPOCH = new Date(2026, 7, 24); // a Monday
   const BANNER_WEEK_MS = 7 * 24 * 3600 * 1000;
   const BANNER_MULT = 2;
@@ -69,6 +77,8 @@ const Events = (() => {
       { id: 'cryst_rateup', name: 'Court of Cryst', sect: 'cryst' },
       { id: 'firetroupe_rateup', name: 'The Firetroupe', sect: 'firetroupe' },
       { id: 'whisperchime_rateup', name: 'The Whisperchime', sect: 'whisperchime' },
+      { id: 'gulldigger_rateup', name: 'The Gulldiggers', sect: 'gulldigger' },
+      { id: 'phoenixcourt_rateup', name: 'The Phoenix Court', sect: 'phoenixcourt' },
     ],
     temporal: [
       { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence' },
@@ -91,6 +101,14 @@ const Events = (() => {
       BANNER_EPOCH.getDate() + n * 7);
   }
 
+  // How a banner names its sect in prose: the article dropped, and
+  // " Sect" added only where it is not already implied. "Cryst Sect
+  // heroes" wants the noun; "Phoenix Court Sect heroes" does not.
+  function bannerNoun(entry) {
+    const bare = entry.name.replace(/^(The|Court of|Heralds of) /, '');
+    return /Court$/.test(bare) ? bare : `${bare} Sect`;
+  }
+
   // The banner holding `scroll` at `date`, dressed with the window it
   // runs in. `run` is the rotation week it belongs to — the same sect
   // coming back around is a NEW run, with a fresh featured pool.
@@ -106,7 +124,7 @@ const Events = (() => {
     const last = new Date(until.getFullYear(), until.getMonth(), until.getDate() - 1);
     return { ...entry, scroll, mult: BANNER_MULT, week, run: `${entry.id}#${week}`,
       from, until,
-      label: `${entry.name.replace(/^(The|Court of|Heralds of) /, '')} Sect heroes ` +
+      label: `${bannerNoun(entry)} heroes ` +
         `at ${BANNER_MULT}× draw weight within their star band — through ` +
         `${MONTHS[last.getMonth()]} ${last.getDate()}.` };
   }

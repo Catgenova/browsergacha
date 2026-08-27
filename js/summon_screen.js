@@ -120,8 +120,11 @@ class SummonScreen {
           `${banner.label} Uses ${scrollName} ${icon} scrolls — the star rates are the scroll's own.`;
         const strip = document.createElement('div');
         strip.className = 'banner-featured';
-        const featured = Object.values(HEROES)
-          .filter((h) => RACES.sectOf(h) && RACES.sectOf(h).id === banner.sect)
+        // Ask the gacha who is featured rather than re-deriving it: it
+        // drops anyone this scroll cannot draw, so the strip advertises
+        // exactly the heroes the pity guarantee can hand over.
+        const featured = Gacha.bannerFeatured(banner)
+          .map((id) => HEROES[id])
           .sort((a, b) => b.rarity - a.rarity);
         for (const def of featured) {
           const card = document.createElement('div');

@@ -185,7 +185,10 @@ test('every sect holds one race, once each, with its number', () => {
     cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
     hedge: { number: 3, members: ['vex', 'coral'] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
-    shadowflower: { number: 2, members: [] },
+    // DEFUNCT: Sawyer was its only member and moved to the Nightflowers.
+    // The entry stays so No. 2 is never reissued; the flag is what says
+    // this is a closed order rather than an unfinished one.
+    shadowflower: { number: 2, defunct: true, members: [] },
     firetroupe: { number: 5, members: ['lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo'] },
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
@@ -218,6 +221,36 @@ test('every sect holds one race, once each, with its number', () => {
   }
   assert(RACES.sectOf(HEROES.florence) === RACES.SECTS.cryst,
     'Tide marches with Cryst now');
+
+  // Live and buried are different states, and the difference is
+  // enforced rather than implied by an empty array. A standing order
+  // has members; a closed one never gains any and never gives its
+  // number away.
+  for (const [id, want] of Object.entries(expected)) {
+    const sect = RACES.SECTS[id];
+    assert(!!sect.defunct === !!want.defunct,
+      `${id}: defunct is ${!!sect.defunct}, expected ${!!want.defunct}`);
+    if (sect.defunct) {
+      assert(sect.members.length === 0,
+        `${id} is a closed order but holds ${sect.members.length} hero(es)`);
+    } else {
+      assert(sect.members.length > 0, `${id} is a standing order with nobody in it`);
+    }
+  }
+  // Numbers are unique across BOTH, so a buried order's designation is
+  // spent and cannot be handed to a new sect.
+  const numbers = Object.values(RACES.SECTS).map((s) => s.number);
+  assert(new Set(numbers).size === numbers.length,
+    `two sects share a number: ${numbers.sort((a, b) => a - b).join(', ')}`);
+
+  // liveSects() is what anything offering sects as a CHOICE should ask
+  // for -- a filter, a banner schedule, a list of where heroes come
+  // from. It must not include a closed order.
+  const live = RACES.liveSects().map((s) => s.id).sort();
+  const wantLive = Object.entries(expected)
+    .filter(([, w]) => !w.defunct).map(([id]) => id).sort();
+  assert(live.join() === wantLive.join(),
+    `liveSects() is ${live.join(', ')}`);
 
   // A non-human sect is built to a fixed shape rather than to whatever
   // rarities its members happened to be written at: 1/2/3/2/1 across

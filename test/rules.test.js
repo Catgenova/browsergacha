@@ -1937,14 +1937,18 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   // again. The Temporal wheel is two long, so it simply alternates.
   const rare = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'rare').id;
   const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
-  const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup'];
+  const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup',
+    'gulldigger_rateup', 'phoenixcourt_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup'];
   assert(rare(2026, 7, 26) === 'cryst_rateup', 'the Rare scroll is not on Cryst today');
   assert(temporal(2026, 7, 26) === 'reverence_rateup', 'the Temporal scroll is not on Reverence today');
-  // Twelve consecutive weeks from the epoch Monday, both scrolls.
-  for (let w = 0; w < 12; w++) {
+  // Two full turns of the longer wheel from the epoch Monday, both
+  // scrolls. Ten covers the Rare rotation exactly twice and the
+  // Temporal one five times, so a wheel that grew and a wheel that did
+  // not are both walked end to end.
+  for (let w = 0; w < RARE_WHEEL.length * 2; w++) {
     const mon = new Date(2026, 7, 24 + w * 7, 12);
-    assert(E.currentBanner(mon, 'rare').id === RARE_WHEEL[w % 3],
+    assert(E.currentBanner(mon, 'rare').id === RARE_WHEEL[w % RARE_WHEEL.length],
       `week ${w} of the Rare wheel is ${E.currentBanner(mon, 'rare').id}`);
     assert(E.currentBanner(mon, 'temporal').id === TEMPORAL_WHEEL[w % 2],
       `week ${w} of the Temporal wheel is ${E.currentBanner(mon, 'temporal').id}`);
@@ -1959,7 +1963,13 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'the Firetroupe did not hold their whole week');
   assert(rare(2026, 8, 7) === 'whisperchime_rateup' && rare(2026, 8, 13) === 'whisperchime_rateup',
     'the Whisperchime did not hold their whole week');
-  assert(rare(2026, 8, 14) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  // The two bird sects were unbannered until they were appended here,
+  // which is why the wheel wraps on week five now and not week three.
+  assert(rare(2026, 8, 14) === 'gulldigger_rateup' && rare(2026, 8, 20) === 'gulldigger_rateup',
+    'the Gulldiggers did not hold their whole week');
+  assert(rare(2026, 8, 21) === 'phoenixcourt_rateup' && rare(2026, 8, 27) === 'phoenixcourt_rateup',
+    'the Phoenix Court did not hold their whole week');
+  assert(rare(2026, 8, 28) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
   assert(temporal(2026, 8, 7) === 'reverence_rateup',
     'the Temporal wheel did not bounce back to Reverence');
 
@@ -1985,9 +1995,26 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
 
   // Elementally-locked sects can only ever ride the scroll that can
   // draw them: the Temporal pool is Dark and Light only.
-  assert(E.SUMMON_BANNERS.every((b) =>
-    !['cryst', 'firetroupe', 'whisperchime'].includes(b.sect) || b.scroll !== 'temporal'),
-    'an elementally-locked sect was scheduled on the Temporal scroll');
+  // A banner features a sect you can still recruit from. Scheduling a
+  // closed order would advertise a rate-up on nobody.
+  for (const b of E.SUMMON_BANNERS) {
+    const sect = RACES.SECTS[b.sect];
+    assert(sect, `${b.id} features an unknown sect '${b.sect}'`);
+    assert(!sect.defunct, `${b.id} features ${sect.name}, a closed order`);
+    assert(sect.members.length > 0, `${b.id} features a sect with no heroes`);
+  }
+
+  // Derived rather than listed: a sect holding no Dark or Light hero
+  // cannot ride the Temporal scroll, whoever they are. Naming the three
+  // that were true when this was written meant a fourth could be
+  // scheduled wrongly and the test would agree.
+  for (const b of E.SUMMON_BANNERS) {
+    if (b.scroll !== 'temporal') continue;
+    const members = Object.values(HEROES).filter((h) =>
+      RACES.sectOf(h) && RACES.sectOf(h).id === b.sect);
+    assert(members.some((h) => g.Elements.TEMPORAL.includes(h.element)),
+      `${b.sect} rides the Temporal scroll with nothing it can draw`);
+  }
   for (const b of E.SUMMON_BANNERS) {
     const pool = b.scroll === 'temporal' ? g.Elements.TEMPORAL : g.Elements.BASIC;
     const members = Object.values(HEROES).filter((h) =>
@@ -8090,6 +8117,58 @@ test('the mobile canvas width is left to the stylesheet', () => {
     'no fluid default width for canvases on mobile');
   assert(/#battle-canvas-crop\s*>\s*#battle-canvas\s*\{[^}]*width:\s*127\.66%/.test(css),
     'the battle crop no longer scales the canvas up to match its pull');
+});
+
+// A banner's featured pool is also its PITY pool: the fifty-pull mark
+// hands over one of them at random. So it can only ever hold heroes the
+// scroll being pulled can actually produce, or the guarantee pays out in
+// a hero that scroll does not sell.
+//
+// This was invisible while every bannered sect was 3-star and up. The
+// bird sects each run a 1-star and two 2-stars, and the Rare scroll
+// draws 3/4/5 only.
+test('a banner features only what its scroll can draw', () => {
+  const E = g.Events;
+  const Gacha = g.Gacha;
+  for (const b of E.SUMMON_BANNERS) {
+    const can = Gacha.scrollRarities(b.scroll);
+    const featured = Gacha.bannerFeatured(b);
+    assert(featured.length > 0, `${b.id} features nobody`);
+
+    for (const id of featured) {
+      const h = HEROES[id];
+      assert(RACES.sectOf(h) && RACES.sectOf(h).id === b.sect,
+        `${b.id} features ${id}, who is not in the sect`);
+      assert(can.has(h.rarity),
+        `${b.id} features ${h.name} at ${h.rarity}-star, which a ` +
+        `${b.scroll} pull cannot roll`);
+    }
+
+    // And nobody drawable is left out -- the filter must trim the pool,
+    // not shrink it to whoever happens to survive.
+    const drawable = Object.values(HEROES).filter((h) =>
+      RACES.sectOf(h) && RACES.sectOf(h).id === b.sect && can.has(h.rarity));
+    assert(featured.length === drawable.length,
+      `${b.id} features ${featured.length} of ${drawable.length} drawable heroes`);
+  }
+
+  // The bird sects are the case that forced this: they must be featured,
+  // and their cheap heroes must not be.
+  const gull = E.SUMMON_BANNERS.find((b) => b.sect === 'gulldigger');
+  assert(gull, 'the Gulldiggers hold no banner');
+  const gullPool = Gacha.bannerFeatured(gull);
+  assert(gullPool.includes('hallow'), 'the Gulldigger banner leaves out its 5-star');
+  assert(!gullPool.includes('jack'), 'a 1-star is in a Rare banner pool');
+  const court = E.SUMMON_BANNERS.find((b) => b.sect === 'phoenixcourt');
+  assert(court, 'the Phoenix Court holds no banner');
+  assert(!Gacha.bannerFeatured(court).includes('chirp'),
+    'a 1-star is in a Rare banner pool');
+
+  // The scroll tables themselves, so the filter is reading something real.
+  assert(!Gacha.scrollRarities('rare').has(1) && !Gacha.scrollRarities('rare').has(2),
+    'the Rare scroll now draws below 3-star, which changes all of the above');
+  assert(Gacha.scrollRarities('common').has(1),
+    'the Common scroll no longer draws 1-star heroes');
 });
 
 report();
