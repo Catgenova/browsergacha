@@ -730,6 +730,33 @@ body {
   color: #ffd76a;
 }
 
+/* Resolved skill numbers: what the skill ACTUALLY does at this level.
+   The prose above carries the base figures; these carry the earned ones,
+   with the base struck through wherever a rung has moved it. */
+.skill-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 6px;
+}
+.skill-facts .sf {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 1px 7px;
+  font-size: 10px;
+  line-height: 1.6;
+  background: #241f3a;
+  border: 1px solid #3a3358;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.skill-facts .sf-k { color: #9a92b8; }
+.skill-facts .sf-was { color: #6b6486; }
+.skill-facts .sf-v { color: #c8c2da; font-weight: 600; }
+/* Gold only where a rung has actually bought something. */
+.skill-facts .sf-v.sf-up { color: #ffd76a; }
+
 /* Skill leveling: per-ability upgrade button (Skill Tomes) */
 .skill-up-btn {
   margin-left: 6px;

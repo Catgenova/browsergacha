@@ -785,7 +785,8 @@ class TeamScreen {
       const powerText = bonusText ? ` · ${bonusText}` : '';
       return `<div class="detail-ability">${icon}<b>${a.name}</b>
         <span class="cd">Lv ${lv}/${cap} · ${cd}${powerText}</span>
-        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
+        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}
+        ${Progression.skillFactsHtml(a, lv)}</div>`;
     }).join('');
 
     // Progression: scaled stats (gear included), level/XP bar, star-up.
@@ -996,7 +997,8 @@ class TeamScreen {
       const powerText = bonusText ? ` · ${bonusText}` : '';
       return `<div class="detail-ability">${icon}<b>${a.name}</b>
         <span class="cd">Lv ${lv}/${cap} · ${cd}${powerText}</span>
-        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}</div>`;
+        ${maxed ? '<span class="skill-max">MAX</span>' : ''}<br>${a.description}
+        ${Progression.skillFactsHtml(a, lv)}</div>`;
     }).join('');
 
     const full = GameState.rosterFull();

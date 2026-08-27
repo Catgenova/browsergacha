@@ -199,6 +199,239 @@ const Progression = (() => {
     return bits.join(' · ');
   }
 
+  // What a skill's numbers ACTUALLY are at `level`, resolved.
+  //
+  // The authored description carries the BASE figures -- "60% ATK to ALL
+  // enemies" -- and the rungs bought since are listed separately as
+  // "+20% power". Reading a skill therefore meant doing arithmetic in
+  // your head, and the arithmetic is not obvious: which rung feeds which
+  // number is a per-effect rule (js/abilities.js), not one rule.
+  //
+  // So this resolves it. Each entry is { label, base, now, kind }, and
+  // the caller renders `base -> now` where they differ. THE RULES BELOW
+  // MIRROR js/abilities.js EXACTLY -- a readout that disagrees with the
+  // fight is worse than no readout, and test/rules.test.js holds the two
+  // together by executing each ability and checking the number that
+  // lands is the number shown.
+  //
+  // `kind` says how to render: 'pct' a percentage, 'signed' a percentage
+  // read as a change from neutral (a 0.80 damage-taken ward is "-20%"),
+  // 'turns' a duration, 'n' a plain count.
+  function skillFacts(abilityDef, level) {
+    if (!abilityDef) return [];
+    const lad = skillLadder(abilityDef, level);
+    const out = [];
+    const add = (label, base, now, kind) => {
+      if (base === undefined || base === null || Number.isNaN(base)) return;
+      out.push({ label, base, now, kind });
+    };
+    // A rung that only exists at higher levels still reads as +0 here,
+    // which is what we want: base and now match and the UI prints one
+    // number.
+    const g = (k) => lad[k] || 0;
+
+    const statName = (e) => {
+      const raw = e.stat || '';
+      const NICE = { atk: 'ATK', def: 'DEF', speed: 'SPD', hp: 'HP',
+        resistance: 'Resistance', accuracy: 'Accuracy', critChance: 'CRIT',
+        critDamage: 'CRIT DMG', damageTaken: 'Damage taken',
+        damageDealt: 'Damage dealt', healing: 'Healing' };
+      return NICE[raw] || (raw ? raw[0].toUpperCase() + raw.slice(1) : 'Effect');
+    };
+
+    for (const e of [...(abilityDef.effects || []), ...(abilityDef.selfEffects || [])]) {
+      switch (e.type) {
+        // ATK/DEF-priced damage takes the `mult` rate; damage priced off
+        // a HEALTH POOL takes the smaller `heal` rate (abilities.js:353).
+        case 'damage': case 'damageDef': case 'damageHp': {
+          const rate = e.type === 'damageHp' ? g('heal') : g('mult');
+          const of = e.type === 'damageDef' ? 'DEF' : (e.type === 'damageHp' ? 'max HP' : 'ATK');
+          add(`Damage (${of})`, e.mult, e.mult + rate, 'pct');
+          break;
+        }
+        case 'damageHpPct':
+          add('Damage (max HP)', e.pct, e.pct + g('heal'), 'pct');
+          break;
+        case 'heal':
+          add('Heal (ATK)', e.mult, e.mult + g('mult'), 'pct');
+          break;
+        case 'healPerDot':
+          add('Heal per fire (ATK)', e.pct, e.pct + g('mult'), 'pct');
+          break;
+        case 'healHpPct': {
+          const base = e.pct === undefined ? e.targetPct : e.pct;
+          const of = e.pct === undefined ? "target's max HP" : 'max HP';
+          add(`Heal (${of})`, base, base + g('heal'), 'pct');
+          break;
+        }
+        case 'hot':
+          add('Regen a turn (max HP)', e.pct, e.pct + g('heal'), 'pct');
+          add('Regen lasts', e.turns, e.turns + g('duration'), 'turns');
+          break;
+        case 'shield': {
+          // HP-priced shields ride `heal`, ATK-priced ones ride `mult`
+          // (abilities.js:521).
+          if (e.pct !== undefined) add('Shield (max HP)', e.pct, e.pct + g('heal'), 'pct');
+          else add('Shield (ATK)', e.mult, e.mult + g('mult'), 'pct');
+          if (e.turns !== undefined) add('Shield lasts', e.turns, e.turns + g('duration'), 'turns');
+          break;
+        }
+        case 'dot': {
+          const label = e.flavor ? e.flavor[0].toUpperCase() + e.flavor.slice(1) : 'Damage over time';
+          if (e.targetHpPct !== undefined) {
+            add(`${label} a turn (target max HP)`, e.targetHpPct,
+              e.targetHpPct + g('debuffPower'), 'pct');
+          } else if (e.pct !== undefined) {
+            add(`${label} a turn (ATK)`, e.pct, e.pct + g('debuffPower'), 'pct');
+          }
+          if (e.turns !== undefined) add(`${label} lasts`, e.turns, e.turns, 'turns');
+          break;
+        }
+        case 'buff': case 'debuff': {
+          const deepen = e.type === 'buff' ? g('buffPower') : g('debuffPower');
+          // Severity moves the value AWAY FROM NEUTRAL, so the rung
+          // reads right on a cut and a lift alike (abilities.js:739/790).
+          if (typeof e.mult === 'number') {
+            const now = deepen
+              ? (e.mult < 1 ? Math.max(0, e.mult - deepen) : e.mult + deepen)
+              : e.mult;
+            add(statName(e), e.mult, now, 'signed');
+          }
+          if (typeof e.add === 'number') {
+            const now = deepen ? (e.add < 0 ? e.add - deepen : e.add + deepen) : e.add;
+            add(statName(e), e.add, now, 'pct');
+          }
+          // Duration rungs lengthen BUFFS only -- a mixed skill must not
+          // silently lengthen its hex too (abilities.js:733).
+          if (e.turns !== undefined) {
+            const t = e.type === 'buff' ? e.turns + g('duration') : e.turns;
+            add('Lasts', e.turns, t, 'turns');
+          }
+          break;
+        }
+        case 'turnMeter': {
+          // A drain is authored negative and a gift positive; both ride
+          // the `meter` rung, away from zero either way.
+          const gift = e.amount > 0;
+          const now = gift ? e.amount + g('meter') : e.amount - g('meter');
+          add(gift ? 'Turn meter given' : 'Turn meter drained',
+            Math.abs(e.amount), Math.abs(now), 'pct');
+          break;
+        }
+        case 'cleanse':
+          if (e.count !== undefined) add('Debuffs lifted', e.count, e.count + g('cleanseCount'), 'n');
+          break;
+        case 'stripBuffs': case 'stealBuffs': case 'transferDebuffs': {
+          const c = e.count === undefined ? 1 : e.count;
+          add(e.type === 'stealBuffs' ? 'Boons stolen' : 'Boons stripped',
+            c, c + g('stripCount'), 'n');
+          break;
+        }
+        case 'revive':
+          add('Revived at (max HP)', e.pct, e.pct + g('heal'), 'pct');
+          break;
+        case 'cooldownReduce': {
+          const t = e.turns === undefined ? 1 : e.turns;
+          add('Cooldowns cut', t, t + g('refund'), 'turns');
+          break;
+        }
+        case 'extendBuffs': {
+          const t = e.turns === undefined ? 1 : e.turns;
+          add('Boons extended', t, t + g('duration'), 'turns');
+          break;
+        }
+        case 'atkPerDebuff':
+          add('ATK per fire lit', e.per, e.per + g('per'), 'n');
+          break;
+        case 'bubble': {
+          const t = e.turns === undefined ? 2 : e.turns;
+          add('Sealed for', t, t + g('duration'), 'turns');
+          break;
+        }
+        // A ricochet hits, then rolls to leap and hit again. The hop
+        // roll takes no rung (abilities.js:696) -- only the swing does.
+        case 'bounce':
+          add('Damage a hop (ATK)', e.mult, e.mult + g('mult'), 'pct');
+          add('Hops again', e.chance === undefined ? 0.75 : e.chance,
+            e.chance === undefined ? 0.75 : e.chance, 'pct');
+          break;
+        default:
+          if (e.turns !== undefined && e.type !== 'taunt') {
+            add('Lasts', e.turns, e.turns, 'turns');
+          }
+          break;
+      }
+      // The landing gate, wherever one is authored. Rolled BEFORE the
+      // accuracy-versus-resistance contest, and capped at certainty.
+      if (e.chance !== undefined && e.type !== 'bounce') {
+        add('Lands', e.chance, Math.min(1, e.chance + g('debuffChance')), 'pct');
+      }
+      // Crowd/condition riders, on whichever effect carries them.
+      if (e.perTarget) add('Per extra target', e.perTarget, e.perTarget + g('perTarget'), 'pct');
+      if (e.perBurn) add('Per fire lit', e.perBurn, e.perBurn + g('perBurn'), 'pct');
+      if (e.perMirror) add('Per mirror', e.perMirror, e.perMirror + g('perMirror'), 'pct');
+      if (e.perDeath) add('Per death', e.perDeath, e.perDeath + g('perDeath'), 'pct');
+    }
+    // An ability-level chain: the skill re-fires on its own roll, and
+    // THAT roll is what the `chain` rung buys (abilities.js:1562). It
+    // hangs off the ability rather than any one effect, so it is read
+    // after the effect loop.
+    if (abilityDef.chain && typeof abilityDef.chain.chance === 'number') {
+      add('Chains again', abilityDef.chain.chance,
+        Math.min(1, abilityDef.chain.chance + g('chain')), 'pct');
+    }
+    if (abilityDef.cooldown > 0) {
+      add('Cooldown', abilityDef.cooldown, skillCooldown(abilityDef, level), 'turns');
+    }
+    return out;
+  }
+
+  // Render one fact as the UI shows it. Kept beside the rule it formats
+  // so a new `kind` cannot be added in one place and missed in the other.
+  function factText(fact) {
+    const pc = (v) => `${Math.round(v * 100)}%`;
+    switch (fact.kind) {
+      case 'pct': return pc(fact.now);
+      // A multiplier read as its distance from neutral: 0.80 is "-20%".
+      case 'signed': {
+        const d = Math.round((fact.now - 1) * 100);
+        return `${d > 0 ? '+' : ''}${d}%`;
+      }
+      case 'turns': return `${fact.now} turn${fact.now === 1 ? '' : 's'}`;
+      default: return `${fact.now}`;
+    }
+  }
+
+  function factWas(fact) {
+    if (fact.base === fact.now) return '';
+    const pc = (v) => `${Math.round(v * 100)}%`;
+    switch (fact.kind) {
+      case 'pct': return pc(fact.base);
+      case 'signed': {
+        const d = Math.round((fact.base - 1) * 100);
+        return `${d > 0 ? '+' : ''}${d}%`;
+      }
+      case 'turns': return `${fact.base}`;
+      default: return `${fact.base}`;
+    }
+  }
+
+  // The readout as the sheets render it: one chip per fact, the earned
+  // value in front and the base struck through behind it where a rung
+  // has moved it. Lives here, beside the rules it formats, so the four
+  // screens that show a skill cannot drift apart.
+  function skillFactsHtml(abilityDef, level) {
+    const facts = skillFacts(abilityDef, level);
+    if (!facts.length) return '';
+    const rows = facts.map((f) => {
+      const was = factWas(f);
+      return `<span class="sf"><span class="sf-k">${f.label}</span>` +
+        (was ? `<s class="sf-was">${was}</s>` : '') +
+        `<b class="sf-v${was ? ' sf-up' : ''}">${factText(f)}</b></span>`;
+    });
+    return `<div class="skill-facts">${rows.join('')}</div>`;
+  }
+
   // Cooldown a skill shows at `level`, after its earned -1 rungs. Mirrors
   // Unit.cooldownFor so the sheet and the fight agree.
   function skillCooldown(abilityDef, level) {
@@ -212,6 +445,6 @@ const Progression = (() => {
     BOSS_MAX_STAGE, bossLevel, bossScaledStats, power,
     MAX_SKILL_LEVEL, skillPower,
     SKILL_RUNGS, skillRungs, maxSkillLevel, skillCap, skillLadder,
-    skillBonusText, skillCooldown,
+    skillBonusText, skillCooldown, skillFacts, factText, factWas, skillFactsHtml,
   };
 })();

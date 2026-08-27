@@ -364,6 +364,7 @@ class CompendiumScreen {
           <span class="comp-tag">Skill ${i + 1}</span></div>
         <div class="comp-ability-meta">${target} · ${cd}${lvText}</div>
         <div class="comp-ability-desc">${a.description}</div>
+        ${Progression.skillFactsHtml(a, lv)}
       </div>`;
     }).join('');
 
@@ -518,6 +519,7 @@ class CompendiumScreen {
           <span class="comp-tag">Skill ${i + 1}</span></div>
         <div class="comp-ability-meta">${target} · ${cd}</div>
         <div class="comp-ability-desc">${a.description}</div>
+        ${Progression.skillFactsHtml(a, 1)}
       </div>`;
     }).join('');
 
