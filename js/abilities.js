@@ -67,7 +67,18 @@ const Abilities = (() => {
     }
     const resistance = target.debuffResistance ? target.debuffResistance() : 0;
     const accuracy = caster.debuffAccuracy ? caster.debuffAccuracy() : 0;
-    const chance = Math.max(0.15, 1 - Math.max(0, resistance - accuracy));
+    // resistPierce: a share of the target's ward the caster reads
+    // straight through, taken off BEFORE the contest. Not the same as
+    // handing the caster more accuracy: accuracy is subtracted from
+    // whatever resistance is left, so a flat +20% and piercing 20% only
+    // agree when resistance happens to be 100%. Capped short of 1 like
+    // the DEF equivalent, so stacking can never delete a ward outright.
+    let pierce = 0;
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.resistPierce) pierce += p.hooks.resistPierce;
+    }
+    const seen = resistance * (1 - Math.min(0.9, pierce));
+    const chance = Math.max(0.15, 1 - Math.max(0, seen - accuracy));
     return Math.random() < chance;
   }
 
