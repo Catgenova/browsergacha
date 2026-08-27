@@ -7841,4 +7841,122 @@ test('the facing audit is what it was last time somebody looked', () => {
     'Catherine is flipped again — her art faces right, the flail just trails');
 });
 
+// The resolved skill readout has to agree with the fight, or it is worse
+// than no readout at all. Every laddered ability is executed twice --
+// once at skill level 1, once at its cap -- and the RATIO of what landed
+// is checked against the ratio the readout claims. Comparing ratios
+// rather than absolutes is what makes this cheap and exact: the DEF
+// curve, elements, crit and every mitigation term are identical between
+// the two runs, so they cancel, and what is left is the multiplier the
+// ladder bought.
+test('the skill readout states the numbers the fight actually uses', () => {
+  const P = Progression;
+  const wrong = [];
+
+  const arena = (def, idx, skillLevel) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    const u = place(battle, def, TEAM.PLAYER, 1);
+    u.abilities[idx].level = skillLevel;
+    u.critChance = () => 0;               // no dice in the reading
+    const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 200);
+    foe.dodgeChance = () => 0;
+    foe.reflectChance = () => 0;
+    return { battle, u, foe, done: () => { Battle.active = prev; } };
+  };
+
+  for (const def of Object.values(HEROES)) {
+    def.abilities.forEach((a, idx) => {
+      if (!a.levelUps) return;
+      const cap = P.skillCap(a, idx);
+      if (cap <= 1) return;
+      const lo = P.skillFacts(a, 1);
+      const hi = P.skillFacts(a, cap);
+      const where = `${def.id} s${idx + 1}`;
+
+      // The two readings must describe the same skill, entry for entry.
+      if (lo.length !== hi.length ||
+          lo.some((f, i) => f.label !== hi[i].label)) {
+        wrong.push(`${where}: the readout changes shape between levels`);
+        return;
+      }
+
+      // ---- damage, measured ----
+      // Only where the swing is PURELY its multiplier. A kit carrying a
+      // rider -- per mirror, per corpse, per body caught, or a flat
+      // share of the target's health -- adds a term the ratio cannot
+      // see: Aniani's six mirrors and Ari's max-HP rider are most of
+      // their damage, so the measured ratio is diluted by design and
+      // says nothing about whether the readout is right. Those riders
+      // are reported as their own lines and checked by shape above.
+      const rider = (a.effects || []).some((e) => e.perMirror || e.perDeath ||
+        e.perTarget || e.perBurn || e.targetHpPct || e.bonusVs ||
+        e.bonusPosition || e.bonusWhen);
+      const dIdx = rider ? -1 : hi.findIndex((f) => /^Damage \(/.test(f.label));
+      // Measured unconditionally, NOT only where the readout claims a
+      // gain. Gating on the claim let a readout that wrongly says
+      // "nothing changed" skip its own check -- which is precisely the
+      // bug worth catching, since a rung feeding the wrong key reads as
+      // no gain at all.
+      if (dIdx >= 0) {
+        const hit = (lvl) => {
+          const A2 = arena(def, idx, lvl);
+          const before = A2.foe.hp;
+          const real = Math.random;
+          Math.random = () => 0.99;       // no gate ever fails us out
+          try { Abilities.execute(a, A2.u, A2.foe, A2.battle); }
+          finally { Math.random = real; A2.done(); }
+          return before - A2.foe.hp;
+        };
+        const one = hit(1), full = hit(cap);
+        if (one > 0) {
+          const measured = full / one;
+          const claimed = hi[dIdx].now / lo[dIdx].base;
+          // A point of rounding on each of two strikes.
+          if (Math.abs(measured - claimed) > 0.02) {
+            wrong.push(`${where}: ${a.name} hit ${measured.toFixed(3)}x harder at cap, ` +
+              `readout claims ${claimed.toFixed(3)}x`);
+          }
+        }
+      }
+
+      // ---- cooldown, read off the unit that will pay it ----
+      const cd = hi.find((f) => f.label === 'Cooldown');
+      if (cd) {
+        const A2 = arena(def, idx, cap);
+        const live = A2.u.cooldownFor(a);
+        A2.done();
+        if (live !== cd.now) {
+          wrong.push(`${where}: readout says cooldown ${cd.now}, the unit pays ${live}`);
+        }
+      }
+
+      // ---- buff severity and duration, read off the applied status ----
+      const buff = (a.effects || []).find((e) => e.type === 'buff' &&
+        typeof e.mult === 'number');
+      if (buff) {
+        const fact = hi.find((f) => f.kind === 'signed');
+        if (fact) {
+          const A2 = arena(def, idx, cap);
+          const real = Math.random;
+          Math.random = () => 0.99;
+          try { Abilities.execute(a, A2.u, A2.foe, A2.battle); }
+          finally { Math.random = real; }
+          const live = [A2.u, ...A2.battle.livingUnits(TEAM.PLAYER)]
+            .flatMap((x) => x.statusEffects)
+            .find((fx) => fx.kind === 'buff' && fx.stat === buff.stat);
+          A2.done();
+          if (live && Math.abs(live.mult - fact.now) > 1e-6) {
+            wrong.push(`${where}: readout says ${buff.stat} ${fact.now}, ` +
+              `the buff landed at ${live.mult}`);
+          }
+        }
+      }
+    });
+  }
+  assert(wrong.length === 0, wrong.slice(0, 6).join(' | ') +
+    (wrong.length > 6 ? ` (+${wrong.length - 6} more)` : ''));
+});
+
 report();
