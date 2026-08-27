@@ -334,6 +334,53 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    whisperchime: [
+      {
+        count: 2, name: 'Chime Tax',
+        // Tumble's passive, and the tax is collected by the WHOLE ring.
+        // The hook fires on the stripper (both call sites in
+        // Abilities hand it the caster), so the party is reached from
+        // there. Steals count as well as strips -- a boon taken is a
+        // boon torn off.
+        hooks: {
+          onStripBuff(unit, { count } = {}) {
+            if (!count || count <= 0) return null;
+            const b = typeof Battle !== 'undefined' ? Battle.active : null;
+            const ring = b ? b.livingUnits(unit.team) : [unit];
+            for (const ally of ring) {
+              ally.turnMeter += CONFIG.TURN_METER_MAX * 0.10 * count;
+            }
+            return null; // the strip line already says what happened
+          },
+        },
+        label: 'tearing a boon away pays the whole party 10 turn meter',
+      },
+      {
+        count: 3, name: 'Bare Branches',
+        // Galen's reckoning exactly: ANY buff on them and the wind finds
+        // nothing to break. He keeps the deeper rate.
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.statusEffects) return 1;
+            return target.statusEffects.some((fx) => fx.kind === 'buff') ? 1 : 1.20;
+          },
+        },
+        label: '+20% damage to an enemy carrying no buffs',
+      },
+      {
+        count: 4, name: 'Out Of Place',
+        // Wren's, at a shallower rate. Only a fighter who HAS a favoured
+        // hex can be standing outside it -- a boss with no positional is
+        // never out of place, and must not be hit as though it were.
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.positional) return 1;
+            return target.positionalActive && target.positionalActive() ? 1 : 1.25;
+          },
+        },
+        label: '+25% damage to enemies standing outside their positional hex',
+      },
+    ],
     nightflower: [
       {
         count: 2, name: 'Wilting Garden',
