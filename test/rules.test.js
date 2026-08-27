@@ -78,6 +78,23 @@ function place(battle, def, team, slotIdx) {
   return u;
 }
 
+// Heroes of `element` whose SECT has no pack of its own.
+//
+// Sect packs use the same 2/3/4 thresholds as the element sets, stack
+// with them, and pay the WHOLE party -- so a test that grabs "the first
+// four water heroes" gets four Cryst and silently measures Cryst's pack
+// as well as water's. Each element test asks for members no sect pack
+// can reach, so it measures one thing.
+function elementOnly(element, world = g) {
+  return Object.values(world.HEROES)
+    .filter((h) => h.element === element)
+    .filter((h) => {
+      const sect = world.RACES.sectOf(h);
+      return !sect || !(world.RACES.SECT_PARTY_BONUSES[sect.id] || []).length;
+    })
+    .map((h) => h.id);
+}
+
 // A body big enough to MEASURE against. Damage is clamped to the health
 // actually left, so a test that reads "how hard did that land" off a
 // dummy small enough to be killed by it reads the dummy's pool back
@@ -8175,8 +8192,7 @@ test('a banner features only what its scroll can draw', () => {
 // seven strong, so the old thresholds meant one element or nothing;
 // these let a party carry two or three and be paid for each.
 test('element party bonuses pay the element that earned them, in tiers', () => {
-  const windIds = Object.values(HEROES).filter((h) => h.element === 'wind')
-    .map((h) => h.id);
+  const windIds = elementOnly('wind');
   assert(windIds.length >= 4, 'not enough wind heroes to test four of them');
   const fireId = Object.values(HEROES).find((h) => h.element === 'fire').id;
 
@@ -8282,8 +8298,7 @@ test('element party bonuses pay the element that earned them, in tiers', () => {
 // CONDITIONAL on where a hero stands -- so it has to be read live, not
 // stamped onto the unit at build.
 test('water party bonuses: armour, a bounce, and a front line that holds', () => {
-  const waterIds = Object.values(HEROES).filter((h) => h.element === 'water')
-    .map((h) => h.id);
+  const waterIds = elementOnly('water');
   assert(waterIds.length >= 4, 'not enough water heroes to test four');
 
   // Seat deliberately: slot order on the player side is
@@ -8361,8 +8376,7 @@ test('water party bonuses: armour, a bounce, and a front line that holds', () =>
 // the part worth testing hard: a re-entrant damage path that rolls a
 // chance is exactly where an infinite loop lives.
 test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () => {
-  const fireIds = Object.values(HEROES).filter((h) => h.element === 'fire')
-    .map((h) => h.id);
+  const fireIds = elementOnly('fire');
   assert(fireIds.length >= 4, 'not enough fire heroes to test four');
 
   const party = (n) => {
@@ -8460,8 +8474,7 @@ test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () =
 // Light's set is built on the health pool: a bigger one, a stay of
 // execution at the bottom of it, and a ward priced off it.
 test('light party bonuses: a bigger pool, a last bell, and an opening ward', () => {
-  const lightIds = Object.values(HEROES).filter((h) => h.element === 'light')
-    .map((h) => h.id);
+  const lightIds = elementOnly('light');
   assert(lightIds.length >= 4, 'not enough light heroes to test four');
 
   const party = (n) => {
@@ -8542,8 +8555,7 @@ test('light party bonuses: a bigger pool, a last bell, and an opening ward', () 
 // is ever given to bosses or elites, the first assertion is the one that
 // will fail, which is exactly the reminder wanted at that moment.
 test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () => {
-  const darkIds = Object.values(HEROES).filter((h) => h.element === 'dark')
-    .map((h) => h.id);
+  const darkIds = elementOnly('dark');
   assert(darkIds.length >= 4, 'not enough dark heroes to test four');
 
   const party = (n) => {
@@ -8636,6 +8648,120 @@ test('dark party bonuses: accuracy, ward-piercing, and a hex that lingers', () =
       `Lingering set the channel to ${units[0].synergyDebuffExtraChance}`);
     assert(party(3).units[0].synergyDebuffExtraChance === 0,
       'Lingering paid out at three dark heroes');
+  }
+});
+
+// The first SECT pack. Sects use the same 2/3/4 thresholds as the
+// elements and stack with them, but pay the WHOLE PARTY rather than only
+// their own -- that difference is the point of having both, and it is
+// the first thing asserted here.
+test('Cryst sect pack: paid to everyone, and the ice is what pays', () => {
+  const cryst = RACES.SECTS.cryst.members;
+
+  const party = (n, tagalong = null) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[cryst[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    if (tagalong) {
+      const u = new Unit(HEROES[tagalong], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, units.length);
+      units.push(u);
+    }
+    const summary = RACES.applyParty(units);
+    return { battle, units, summary };
+  };
+
+  // ---- 2pc Cold Iron Court: +10% DEF, TO EVERYONE ----
+  {
+    // A fire hero standing with two Cryst: not water, not Cryst, and
+    // still paid. That is the rule that separates a sect from an element.
+    const outsider = Object.values(HEROES).find((h) => h.element === 'fire').id;
+    const bare = new Unit(HEROES[outsider], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2, outsider);
+    const guest = units[units.length - 1];
+    assert(guest.def.id === outsider, 'the fixture lost its guest');
+    assert(guest.baseDef === Math.round(bare.baseDef * 1.10),
+      `the guest's DEF is ${guest.baseDef}, wanted ${Math.round(bare.baseDef * 1.10)}`);
+    // And the Cryst themselves hold BOTH sets: water's 15% and the
+    // sect's 10%, applied in turn rather than summed.
+    const bareCryst = new Unit(HEROES[cryst[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    assert(units[0].baseDef === Math.round(Math.round(bareCryst.baseDef * 1.15) * 1.10),
+      `a Cryst hero's DEF is ${units[0].baseDef}, wanted both sets`);
+  }
+
+  // ---- 3pc Crystquiver: armour-blindness that reads the target ----
+  {
+    const { battle, units } = party(3);
+    const caster = units[0];
+    const warm = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 200);
+    const cold = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 2), 200);
+    warm.dodgeChance = () => 0; cold.dodgeChance = () => 0;
+    warm.reflectChance = () => 0; cold.reflectChance = () => 0;
+    cold.addStatusEffect({ kind: 'debuff', stat: 'freeze', turns: 3, source: caster });
+    assert(cold.frozen() && !warm.frozen(), 'the fixture did not freeze one of them');
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const hitWarm = Abilities.strike(caster, warm, 2000, {});
+      const hitCold = Abilities.strike(caster, cold, 2000, {});
+      assert(hitCold.amount > hitWarm.amount,
+        `the frozen target took ${hitCold.amount} and the warm one ${hitWarm.amount}`);
+    } finally { Battle.active = prev; }
+
+    // Two Cryst do not carry the quiver.
+    const two = party(2);
+    const foe = roomy(place(two.battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 200);
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.addStatusEffect({ kind: 'debuff', stat: 'freeze', turns: 3, source: two.units[0] });
+    Battle.active = two.battle;
+    try {
+      const a = Abilities.strike(two.units[0], foe, 2000, {});
+      const b = Abilities.strike(two.units[0], foe, 2000, {});
+      assert(Math.abs(a.amount - b.amount) <= 1, 'the fixture is not deterministic');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Frostbite: counts the FIELD, not the target ----
+  {
+    const { battle, units } = party(4);
+    const caster = units[0];
+    const foes = [1, 2, 4].map((i) =>
+      roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, i), 200));
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      assert(Math.abs(caster.damageDealtMult(foes[0], null) - 1) < 1e-9,
+        'Frostbite paid with nothing frozen');
+      // Freeze a DIFFERENT enemy than the one being hit: the field being
+      // cold is the condition, so the swing at the warm one gets it too.
+      foes[1].addStatusEffect({ kind: 'debuff', stat: 'freeze', turns: 3, source: caster });
+      assert(Math.abs(caster.damageDealtMult(foes[0], null) - 1.05) < 1e-9,
+        `one frozen elsewhere paid ${caster.damageDealtMult(foes[0], null)}`);
+      foes[2].addStatusEffect({ kind: 'debuff', stat: 'freeze', turns: 3, source: caster });
+      assert(Math.abs(caster.damageDealtMult(foes[0], null) - 1.10) < 1e-9,
+        `two frozen paid ${caster.damageDealtMult(foes[0], null)}`);
+    } finally { Battle.active = prev; }
+
+    // Three Cryst do not hold it.
+    const three = party(3);
+    const foe = place(three.battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    foe.addStatusEffect({ kind: 'debuff', stat: 'freeze', turns: 3, source: three.units[0] });
+    Battle.active = three.battle;
+    try {
+      assert(Math.abs(three.units[0].damageDealtMult(foe, null) - 1) < 1e-9,
+        'Frostbite paid out at three Cryst');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- the summary names the sect, separately from the element ----
+  {
+    const { summary } = party(4);
+    assert(summary.some((b) => b.sect === 'cryst'), 'no Cryst pack in the summary');
+    assert(summary.some((b) => b.element === 'water'), 'no water resonance in the summary');
   }
 });
 
