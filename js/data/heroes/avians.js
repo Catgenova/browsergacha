@@ -232,18 +232,21 @@ Object.assign(HEROES, {
       {
         id: 'shivwork', name: 'Shivwork',
         icon: 'assets/icons/fc819.png',
-        description: 'In under the guard and out again: 40% ATK to the enemy FRONT row, ' +
-          'and 3% more to each of them for every enemy beyond the first he gets among.',
-        // A 1-star was benching above the 3-star shelf. A cooldown-free
-        // row sweep with a crowd bonus is a lot of skill for the bottom
-        // of the roster, so every term comes down: base 60% -> 40%,
-        // crowd 5% -> 3%, and the ladder buys 20% instead of 30%. The
-        // rung count is untouched -- one skill is his whole ladder.
+        description: 'In under the guard and out again: 60% ATK to the enemy FRONT row, ' +
+          'and 5% more to each of them for every enemy beyond the first he gets among.',
+        // These numbers were cut once and put straight back. The cut was
+        // made when Jack benched above the whole 3-star shelf -- but that
+        // was the STAR MULTIPLIER talking, not the skill: it compounded
+        // per star gained above base rarity, so at the shared ceiling the
+        // cheapest hero on the roster had climbed the furthest and
+        // finished 2.44x ahead of a 5-star. Rarity is priced in the base
+        // budget now (js/data/balance.js) and the ceiling is level, so
+        // the cut was double-counting a bug that no longer exists.
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 0.4, perTarget: 0.03 }],
+        effects: [{ type: 'damage', mult: 0.6, perTarget: 0.05 }],
         levelUps: [
           { mult: 0.1 },
-          { perTarget: 0.02 },
+          { mult: 0.1 },
           { mult: 0.1 },
           { perTarget: 0.02 },
           { perTarget: 0.02 },

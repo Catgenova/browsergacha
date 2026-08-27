@@ -177,16 +177,15 @@ for star in (5, 4, 3, 2, 1):
     <td class="num">{pw:,.0f}</td>
   </tr>''')
 
-# Base-stat budgets are equalised (js/data/balance.js), so any spread in
-# benched power at the SAME stars and level comes from the star multiplier
-# in js/progression.js, which compounds 1.25x per star gained ABOVE a hero's
-# base rarity -- so the cheaper the hero, the more steps they climb.
+# Benched power at the SAME stars and level should climb with rarity, and
+# for a long time it fell: see the prose this feeds. The ratio below is the
+# dearest shelf over the cheapest -- above 1 is right way up.
 pw_by_star = {int(r['rarity']): [] for r in rows}
 for r in rows:
     pw_by_star[int(r['rarity'])].append(float(r['power']))
-_hi = statistics.median(pw_by_star[min(pw_by_star)])
-_lo = statistics.median(pw_by_star[max(pw_by_star)])
-power_spread = f'{_hi / _lo:.2f}'
+_cheapest = statistics.median(pw_by_star[min(pw_by_star)])
+_dearest = statistics.median(pw_by_star[max(pw_by_star)])
+power_spread = f'{_dearest / _cheapest:.2f}'
 
 TEMPLATE = Path('tools/bench_report.template.html').read_text()
 page = (TEMPLATE

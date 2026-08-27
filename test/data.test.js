@@ -292,14 +292,56 @@ test('every hero shares one base power budget, with nobody exempt', () => {
   // named heroes onto their authored statlines, which made rarity mean
   // two different things depending on when a hero was written — an
   // exempt 3-star out-hit a balanced 5-star at their respective caps.
-  // Rarity now lives entirely in the star ceiling.
+  //
+  // One budget per SHELF now (js/data/balance.js): everybody is cut to
+  // the same cloth and then scaled by what their rarity is worth. So the
+  // invariant is no longer one number for the whole roster -- it is that
+  // a shelf is uniform and that the shelves are ordered. Asserted that
+  // way rather than against a magic figure per shelf, so re-pricing a
+  // shelf does not mean re-typing this test.
+  const byShelf = new Map();
   for (const h of heroes) {
-    const p = Progression.power(h.stats);
-    assert(Math.abs(p - 520) <= 15,
-      `${h.id}: base power ${p}, expected ~520`);
+    if (!byShelf.has(h.rarity)) byShelf.set(h.rarity, []);
+    byShelf.get(h.rarity).push(h);
   }
-  // Rarity still separates them, just further up: a 5-star climbs to a
-  // level cap a 3-star never reaches, off the same starting numbers.
+  const middle = (a) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
+  const shelfPower = new Map();
+  for (const [rarity, shelf] of byShelf) {
+    const powers = shelf.map((h) => Progression.power(h.stats));
+    const mid = middle(powers);
+    shelfPower.set(rarity, mid);
+    shelf.forEach((h, i) => {
+      assert(Math.abs(powers[i] - mid) <= 20,
+        `${h.id}: base power ${powers[i]}, off a ${rarity}-star shelf sitting at ${mid}`);
+    });
+  }
+  const shelves = [...shelfPower.keys()].sort((a, b) => a - b);
+  for (let i = 1; i < shelves.length; i++) {
+    assert(shelfPower.get(shelves[i]) > shelfPower.get(shelves[i - 1]),
+      `the ${shelves[i]}-star shelf (${shelfPower.get(shelves[i])}) does not sit above ` +
+      `the ${shelves[i - 1]}-star one (${shelfPower.get(shelves[i - 1])})`);
+  }
+
+  // THE ENDGAME IS NOT INVERTED. This is the regression: the star
+  // multiplier used to count only stars gained ABOVE base rarity, so at
+  // the shared ceiling a 1-star had compounded nine times and a 5-star
+  // five, and the cheap hero finished 2.44x ahead off an identical base.
+  // Median power at 10 stars / level 100 ran 75,184 for a 1-star against
+  // 20,906 for a 5-star. It has to climb with rarity, not fall.
+  const powerAtTen = (h) => {
+    const u = new g.Unit(h, g.TEAM.PLAYER, { level: 100, stars: 10 });
+    return Progression.power({ hp: u.maxHp, atk: u.effectiveStat('atk'),
+      def: u.effectiveStat('def'), speed: u.effectiveStat('speed') });
+  };
+  const ceiling = shelves.map((r) => middle(byShelf.get(r).map(powerAtTen)));
+  for (let i = 1; i < ceiling.length; i++) {
+    assert(ceiling[i] > ceiling[i - 1],
+      `at 10 stars the ${shelves[i]}-star shelf reaches ${ceiling[i]}, ` +
+      `at or under the ${shelves[i - 1]}-star shelf's ${ceiling[i - 1]}`);
+  }
+
+  // Rarity still separates them further up too: a 5-star climbs to a
+  // level cap a 3-star never reaches.
   //
   // Measured as POWER, not as any single stat -- a glass-cannon 3-star
   // out-hits a wall 5-star on raw ATK by design, and always should.

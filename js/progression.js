@@ -27,15 +27,32 @@ const Progression = (() => {
     return 60 + 20 * (level - 1);
   }
 
-  // Stat multiplier: +5% of base per level, +25% compounding per star
-  // gained above the hero's base rarity. Speed and crit stay flat so
-  // turn-order balance holds at every level.
-  function statMult(level, stars, baseRarity) {
-    return (1 + 0.05 * (level - 1)) * Math.pow(1.25, stars - (baseRarity ?? stars));
+  // Stat multiplier: +5% of base per level, +25% compounding per star.
+  // Speed and crit stay flat so turn-order balance holds at every level.
+  //
+  // This used to read `stars - baseRarity` -- the multiplier counted only
+  // the stars a hero had been GAINED above the shelf they were summoned
+  // on. Since every hero starts from the same base budget, that made the
+  // roster upside down at the shared endgame: a 1-star climbing to 10
+  // takes nine compounding steps and a 5-star takes five, so the cheap
+  // hero finished 1.25^4 = 2.44x ahead, for 45 duplicates against 35. The
+  // bench measured exactly that -- median power at 10 stars / level 100
+  // ran 75,184 for a 1-star against 20,906 for a 5-star.
+  //
+  // Keyed off `stars` alone, a 10-star is a 10-star whatever shelf it
+  // came from, and rarity is expressed once, in the base budget
+  // (js/data/balance.js). The curve is ANCHORED AT THREE STARS -- the
+  // shelf that is meant to sit on the median -- so a 3-star hero's
+  // numbers are unchanged at every star and every level, and the
+  // campaign stays tuned against the same yardstick it was built on.
+  // 1- and 2-stars come down from there, 4- and 5-stars go up.
+  const ANCHOR = 3;
+  function statMult(level, stars) {
+    return (1 + 0.05 * (level - 1)) * Math.pow(1.25, stars - ANCHOR);
   }
 
   function scaledStats(def, level, stars) {
-    const m = statMult(level, stars, def.rarity);
+    const m = statMult(level, stars);
     return {
       hp: Math.round(def.stats.hp * m),
       atk: Math.round(def.stats.atk * m),

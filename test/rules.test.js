@@ -78,6 +78,20 @@ function place(battle, def, team, slotIdx) {
   return u;
 }
 
+// A body big enough to MEASURE against. Damage is clamped to the health
+// actually left, so a test that reads "how hard did that land" off a
+// dummy small enough to be killed by it reads the dummy's pool back
+// instead of the hit -- and two different hits both come back as the
+// same number, which reads as "the bonus did nothing". Widening the pool
+// costs the test nothing: nothing here is measuring how long a rat
+// lives. (Heroes got heavier when rarity moved into the base budget, and
+// that is exactly when several of these fixtures started clamping.)
+function roomy(unit, times = 20) {
+  unit.maxHp *= times;
+  unit.hp = unit.maxHp;
+  return unit;
+}
+
 test('every hero ability resolves against a live target', () => {
   const battle = makeBattle();
   const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
@@ -740,6 +754,10 @@ test('retaliation cannot recurse when both sides answer blows', () => {
     const ring = Math.round(
       Abilities.damageFormula(raw, theirs.effectiveStat('def')) *
       theirs.damageTakenMult());
+    // Start him off the cap: his ward mends more than the 50-point poke
+    // below, so a full-health Toll would heal straight back to maxHp and
+    // the net would read 0 whether one bell rang or four.
+    mine.hp = Math.round(mine.maxHp * 0.5);
     const mineBefore = mine.hp;
     const theirsBefore = theirs.hp;
 
@@ -1485,8 +1503,8 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
 test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center hex', () => {
   const battle = makeBattle();
   const sawyer = place(battle, HEROES.sawyer, TEAM.PLAYER, 1);
-  const centerFoe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
-  const frontFoe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+  const centerFoe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0));
+  const frontFoe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1));
   for (const f of [centerFoe, frontFoe]) f.dodgeChance = () => 0;
   sawyer.baseCritChance = 0;  // the numbers must be readable, not lucky
   sawyer.gearAccuracy = 10;   // and the hexes must land to be counted
@@ -1540,8 +1558,8 @@ test('sawyer: petalfall scatters distinct hexes, deadheading punishes the center
 test('polarus: freeze locks, the crystal counters, shatterfall pays and thaws', () => {
   const battle = makeBattle();
   const pol = place(battle, HEROES.polarus, TEAM.PLAYER, 0); // center hex
-  const foeA = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
-  const foeB = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2);
+  const foeA = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1));
+  const foeB = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2));
   pol.baseCritChance = 0;
   pol.gearAccuracy = 10; // the freezes must land to be readable
   for (const f of [foeA, foeB]) f.dodgeChance = () => 0;
@@ -1715,10 +1733,10 @@ test('ari: the lance slips DEF, the volley taxes max HP, the quarry eats a free 
 test('cain: mercy in shares of himself, and the overflow lashes the healthiest', () => {
   const battle = makeBattle();
   const cain = place(battle, HEROES.cain, TEAM.PLAYER, 4); // back hex — Spillway live
-  const mateA = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
-  const mateB = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 2);
-  const foeHigh = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
-  const foeLow = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2);
+  const mateA = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1));
+  const mateB = roomy(place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 2));
+  const foeHigh = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1));
+  const foeLow = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 2));
   for (const f of [foeHigh, foeLow]) f.dodgeChance = () => 0;
   foeLow.hp = Math.round(foeLow.maxHp * 0.4); // the HEALTHY one must be lashed
 
@@ -1764,9 +1782,9 @@ test('cain: mercy in shares of himself, and the overflow lashes the healthiest',
 test('bit: the wall is the weapon — DEF-scaled sweeps, case-hardening, bedrock', () => {
   const battle = makeBattle();
   const bit = place(battle, HEROES.bit, TEAM.PLAYER, 1); // front hex — Bedrock live
-  const foeFront = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
-  const foeCenter = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
-  const foeBack = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 4);
+  const foeFront = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1));
+  const foeCenter = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0));
+  const foeBack = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 4));
   bit.baseCritChance = 0;
   bit.gearAccuracy = 10; // the DEF strip must land to be readable
   for (const f of [foeFront, foeCenter, foeBack]) f.dodgeChance = () => 0;
@@ -3246,7 +3264,7 @@ test("Koe's kit: the remedy, the rope, the wall, and the silent alarm", () => {
   M.resetBattle();
   const battle = new B();
   const koe = new U(H.koe, T.PLAYER, { level: 30, stars: 4 });
-  const mate = new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 });
+  const mate = roomy(new U(DUMMIES.rat_knight, T.PLAYER, { level: 30, stars: 3 }));
   const backMate = new U(DUMMIES.rat_archer, T.PLAYER, { level: 30, stars: 3 });
   const foe = new U(DUMMIES.rat_brawler, T.ENEMY, { level: 30, stars: 3 });
   battle.placeUnit(koe, battle.playerSlots.findIndex((s) => s.position === P.BACK));
@@ -5374,9 +5392,12 @@ test("Lysandra's kit: one thread, and their own line kills their carry", () => {
       const loose = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
       A.execute(def.abilities[2], ly, foes[0], b);
       const tied = { atk: ly.effectiveStat('atk'), def: ly.effectiveStat('def') };
-      assert(tied.atk === Math.round(loose.atk * 1.15),
+      // Within a point: `loose` is already rounded, so re-rounding it
+      // against a stat the engine rounds once, at the end, can disagree
+      // by one on either side of a .5 boundary.
+      assert(Math.abs(tied.atk - loose.atk * 1.15) <= 1,
         `ATK ${loose.atk} -> ${tied.atk}, wanted x1.15`);
-      assert(tied.def === Math.round(loose.def * 1.15),
+      assert(Math.abs(tied.def - loose.def * 1.15) <= 1,
         `DEF ${loose.def} -> ${tied.def}, wanted x1.15`);
       // Other stats are untouched.
       const spd = ly.effectiveStat('speed');
@@ -7071,7 +7092,10 @@ test('Peck feeds a full table better than a thin one, and wastes no overheal', (
     }
     const mates = [p];
     for (let i = 0; i < n - 1; i++) {
-      const m = new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 });
+      // Roomy: the helping is a share of PECK's pool, and a 1-star's is
+      // smaller than one serving -- without room the last birds read
+      // back their own capacity instead of what they were handed.
+      const m = roomy(new Unit(HEROES.jack, TEAM.PLAYER, { level: 30, stars: 1 }));
       m.slot = battle.playerSlots.filter(
         (sl) => !battle.units.some((u) => u.slot === sl))[0];
       battle.units.push(m);
