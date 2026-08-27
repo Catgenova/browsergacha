@@ -1132,7 +1132,7 @@ Object.assign(HEROES, {
       name: 'Catches Twice',
       icon: 'assets/icons/fc1066.png',
       description: 'Fire spreads: when Flurry sets a burn on an enemy who is already ' +
-        'burning, that burn gets 1 more turn instead.',
+        'burning, she lights a second fire instead of one.',
       hooks: { burnRekindle: 1 },
     },
     positional: POSITIONALS.vanguard_press,

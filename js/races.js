@@ -341,16 +341,16 @@ const RACES = (() => {
       {
         count: 2, name: 'Catches Twice',
         // Flurry's passive and Flurry's name. A burn laid on something
-        // already alight adds a turn to the fire that is there instead
-        // of laying a second one beside it -- so the Court's fires get
-        // LONGER rather than more numerous, which is what the two tiers
-        // above are built to cash.
+        // already alight lights a SECOND fire rather than one, so the
+        // Court's fires get more numerous -- and the two tiers above
+        // are priced per fire, so every extra plate is worth a full
+        // Draught and a full Long Burn of its own.
         //
-        // The hook is a turn count, so Flurry holding both rekindles for
-        // two. The sect's own firebird is better at the sect's trick,
+        // The hook counts fires, so Flurry holding both lights three at
+        // once. The sect's own firebird is better at the sect's trick,
         // as Tumble, Lenore and Hallow are at theirs.
         hooks: { burnRekindle: 1 },
-        label: 'a burn laid on a burning enemy extends it instead of stacking',
+        label: 'a burn laid on a burning enemy lights a second fire',
       },
       {
         count: 3, name: 'Draught',

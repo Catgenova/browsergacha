@@ -2708,6 +2708,84 @@ test('blessed and godtouched: the summon lottery, stat lifts and resurrection', 
   assert(!u.alive, 'a second resurrection went through');
 });
 
+// Damage-over-time STACKS. Every application lays its own plate, keeps
+// its own tick and counts down its own fuse -- a second poison is a
+// second poison, not a longer first one. The nameplate collapses
+// identical plates into one icon with a count on it, so a stack of
+// three still reads at a glance; the numbers underneath stay separate
+// so that a deep burn is never overwritten by a shallow one and a
+// caster is never quietly denied the damage they paid a turn for.
+test('damage-over-time stacks: every application is its own plate', () => {
+  const battle = new Battle();
+  const burnerA = new Unit(HEROES.esmerelda, TEAM.PLAYER, { level: 30, stars: 3 });
+  const burnerB = new Unit(HEROES.lucian, TEAM.PLAYER, { level: 30, stars: 3 });
+  battle.placeUnit(burnerA, 0);
+  battle.placeUnit(burnerB, 1);
+  const foe = roomy(place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 800);
+  foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const fires = () => foe.statusEffects.filter((fx) => fx.kind === 'dot');
+    // Priced off the victim's pool, so the tick is a predictable
+    // fraction rather than a number that moves with the caster's gear.
+    const lay = (caster, flavor, pct, turns) => Abilities.applyEffect(
+      { type: 'dot', targetHpPct: pct, turns, flavor }, caster, foe, 1);
+
+    // The same caster, the same flavour, twice: TWO plates.
+    lay(burnerA, 'burn', 0.04, 3);
+    lay(burnerA, 'burn', 0.04, 3);
+    assert(fires().length === 2,
+      `one caster's two burns left ${fires().length} plates, wanted 2`);
+
+    // A shallower, shorter third does not overwrite either of them, and
+    // does not get swallowed by them: it is its own fire.
+    lay(burnerA, 'burn', 0.01, 1);
+    const three = fires();
+    assert(three.length === 3, `a third burn left ${three.length} plates`);
+    const deep = three[0].amount;
+    assert(three.filter((fx) => fx.amount === deep).length === 2 &&
+      three.filter((fx) => fx.amount < deep).length === 1,
+      `the ticks read ${three.map((fx) => fx.amount).join('/')} — a plate was merged`);
+    const shortest = Math.min(...three.map((fx) => fx.turns));
+    assert(three.filter((fx) => fx.turns === shortest).length === 1 &&
+      shortest < Math.max(...three.map((fx) => fx.turns)),
+      `the fuses read ${three.map((fx) => fx.turns).join('/')} — the short one was stretched`);
+
+    // A DIFFERENT caster stacks too, and keeps its own credit.
+    lay(burnerB, 'burn', 0.04, 3);
+    assert(fires().length === 4, `a second caster left ${fires().length} plates`);
+    assert(fires().some((fx) => fx.source === burnerB),
+      'the second caster lost the credit for their own fire');
+
+    // A different FLAVOUR is a separate thing on top of all of it.
+    lay(burnerA, 'poison', 0.04, 3);
+    assert(fires().filter((fx) => fx.flavor === 'poison').length === 1 &&
+      fires().filter((fx) => fx.flavor === 'burn').length === 4,
+      `the flavours read ${fires().map((fx) => fx.flavor).join('/')}`);
+
+    // And the stack TICKS as a stack: four fires at 400 hurt roughly
+    // four times what one at 400 does. Measured as a ratio, because the
+    // DEF curve answers each tick separately and absolute numbers here
+    // would be pinning the curve rather than the stacking.
+    const bite = (n) => {
+      const mark = roomy(place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 3), 800);
+      mark.dodgeChance = () => 0; mark.reflectChance = () => 0;
+      for (let i = 0; i < n; i++) {
+        mark.addStatusEffect({ kind: 'dot', amount: 20000, turns: 3,
+          flavor: 'burn', source: burnerA });
+      }
+      const before = mark.hp;
+      mark.startTurn(battle);
+      battle.units = battle.units.filter((u) => u !== mark);
+      return before - mark.hp;
+    };
+    const one = bite(1), four = bite(4);
+    assert(one > 0 && four > one * 3.5,
+      `one fire ticked ${one} and four ticked ${four} — the stack is not stacking`);
+  } finally { Battle.active = prev; }
+});
+
 test('the Oilslick mark: burns tick double, direct hits gain nothing', () => {
   // The oil-on-hit engine channel: a landed hit slicks the victim for
   // 2 turns. (Set directly — nothing grants it party-wide any more.)
@@ -7749,8 +7827,11 @@ test('the Phoenix Court is paid for the fires it lights', () => {
       `Stella's mend did not grow with the fires: ${read.join(' -> ')}`);
   }
 
-  // Flurry: a second burn on something already alight adds turns to the
-  // fire that is there rather than laying another beside it.
+  // Flurry: a burn set on something already alight SPREADS -- that cast
+  // lays two fires instead of one, so two casts leave three plates
+  // rather than two. Extra fires, not extra turns: the durations of
+  // every plate must match, or the hook has quietly gone back to
+  // stretching one fire instead of lighting another.
   {
     const { battle, h, foes } = field('flurry', 1, 0);
     const real = Math.random;
@@ -7761,10 +7842,11 @@ test('the Phoenix Court is paid for the fires it lights', () => {
     Abilities.execute(h.abilities[0].def, h, foes[0], battle);
     Math.random = real;
     const burns = foes[0].statusEffects.filter((f) => f.kind === 'dot');
-    assert(first === 1 && burns.length === 1,
-      `two casts left ${burns.length} separate fires`);
-    assert(burns[0].turns === wasTurns + 1,
-      `the fire ran ${burns[0].turns} turns against ${wasTurns} before`);
+    assert(first === 1 && burns.length === 3,
+      `two casts left ${burns.length} separate fires, wanted 3`);
+    assert(burns.every((f) => f.turns === wasTurns),
+      `the spread stretched a fire to ${burns.map((f) => f.turns).join('/')} ` +
+      `against ${wasTurns} — it should light another, not lengthen one`);
   }
 
   // Stoddard is paid for the moment something catches.
@@ -9476,7 +9558,7 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
     Abilities.applyEffect({ type: 'dot', amount: 500, turns, flavor: 'burn' },
       caster, target, 1);
 
-  // ---- 2pc Catches Twice: extends rather than stacks ----
+  // ---- 2pc Catches Twice: SPREADS rather than lengthens ----
   {
     const { battle, units } = party(2);
     // Flurry owns the original hook; measure on a bird who does not.
@@ -9494,13 +9576,17 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
       burn(caster, foe);
       const fires = foe.statusEffects.filter(
         (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
-      assert(fires.length === 1,
-        `a second burn laid a SECOND fire (${fires.length}) instead of feeding the first`);
-      assert(fires[0].turns === turnsAfterOne + 1,
-        `the fire went ${turnsAfterOne} -> ${fires[0].turns}, wanted one more turn`);
+      assert(fires.length === 3,
+        `a burn set on a burning enemy left ${fires.length} fires, wanted 3 ` +
+        '— the cast should light two, not one');
+      // Every plate runs its own full duration. If the tier ever goes
+      // back to stretching one fire, these stop matching.
+      assert(fires.every((fx) => fx.turns === turnsAfterOne),
+        `the fires run ${fires.map((fx) => fx.turns).join('/')}, wanted ` +
+        `${turnsAfterOne} apiece`);
     } finally { Battle.active = prev; }
 
-    // One Court bird does not rekindle -- unless it is Flurry, who
+    // One Court bird does not spread -- unless it is Flurry, who
     // carries the passive herself.
     const one = party(1);
     const foe1 = roomy(place(one.battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
@@ -9510,7 +9596,7 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
       burn(one.units[0], foe1);
       const n = foe1.statusEffects.filter(
         (fx) => fx.kind === 'dot' && fx.flavor === 'burn').length;
-      const want = one.units[0].def.id === 'flurry' ? 1 : 2;
+      const want = one.units[0].def.id === 'flurry' ? 3 : 2;
       assert(n === want, `one Court bird left ${n} fires, wanted ${want}`);
     } finally { Battle.active = prev; }
   }
@@ -9537,11 +9623,16 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
       const fire = foe.statusEffects.find(
         (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
       assert(fire.turns === 4, `a 3-turn burn landed at ${fire.turns}, wanted 4`);
-      // Rekindled on top: the extension is added to the already-longer
-      // fire, so one cast and one rekindle is worth two of neither.
+      // The tiers COMPOUND: the second cast spreads to two fires under
+      // 2pc, and 4pc stretches each of them, so the Court ends up with
+      // three four-turn fires where a bare caster would have two threes.
       burn(caster, foe, 3);
-      assert(fire.turns === 5,
-        `the rekindled fire sits at ${fire.turns}, wanted 5`);
+      const spread = foe.statusEffects.filter(
+        (fx) => fx.kind === 'dot' && fx.flavor === 'burn');
+      assert(spread.length === 3,
+        `the spread left ${spread.length} fires, wanted 3`);
+      assert(spread.every((fx) => fx.turns === 4),
+        `the fires run ${spread.map((fx) => fx.turns).join('/')}, wanted 4 apiece`);
     } finally { Battle.active = prev; }
 
     // Three do not carry it.
