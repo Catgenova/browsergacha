@@ -680,12 +680,22 @@ class Battle {
         this.addFloatingText(res.target, '✶ STUNNED', '#8ee8ff', true);
         this.log(`${res.target.name} is stunned for ${res.turns} turn${res.turns > 1 ? 's' : ''}!`, cls);
       } else if (res.kind === 'dot') {
+        // A spreading fire lands as several plates at once, so the line
+        // has to say how many — otherwise the nameplate jumps from one
+        // flame to three with nothing in the log to explain it.
+        const many = res.fires > 1 ? ` ×${res.fires}` : '';
         if (res.flavor === 'burn') {
-          this.addFloatingText(res.target, '♨ BURNING', '#ff9a5a');
-          this.log(`${res.target.name} catches fire — burns for ${res.amount} per turn (${res.turns} turns).`, cls);
+          this.addFloatingText(res.target, `♨ BURNING${many}`, '#ff9a5a');
+          this.log(res.fires > 1
+            ? `${res.target.name} catches fire in ${res.fires} places — each burns ` +
+              `for ${res.amount} per turn (${res.turns} turns).`
+            : `${res.target.name} catches fire — burns for ${res.amount} per turn ` +
+              `(${res.turns} turns).`, cls);
         } else {
-          this.addFloatingText(res.target, 'POISON ▲', '#a8e85a');
-          this.log(`${res.target.name} is poisoned for ${res.amount} per turn (${res.turns} turns).`, cls);
+          this.addFloatingText(res.target, `POISON ▲${many}`, '#a8e85a');
+          this.log(`${res.target.name} is poisoned${res.fires > 1
+            ? ` ${res.fires} times over` : ''} for ${res.amount} per turn ` +
+            `(${res.turns} turns).`, cls);
         }
       } else if (res.kind === 'forge') {
         // Lucian's forge heat: permanent flat ATK off the burning field.

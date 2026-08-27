@@ -667,20 +667,19 @@ const Abilities = (() => {
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'dot', resisted: true };
         }
-        // Fire spreads rather than stacking, for a caster who carries a
-        // `burnRekindle` hook (Flurry): setting a burn on something
-        // already alight adds turns to the fire that is there instead
-        // of laying a second one beside it.
-        if (effect.flavor) {
-          let rekindle = 0;
+        // Fire SPREADS, for a caster who carries a `burnRekindle` hook
+        // (Flurry): setting a burn on something already alight lays
+        // that many EXTRA fires beside it rather than one. Extra
+        // plates, not extra turns -- a stack of three flames on the
+        // nameplate says at a glance that this thing is cooking, where
+        // a single flame with a longer invisible fuse says nothing.
+        // Every copy ticks in its own right, so the payoff is immediate
+        // instead of deferred to the end of a duration.
+        let spread = 0;
+        if (effect.flavor && target.statusEffects.some(
+          (fx) => fx.kind === 'dot' && fx.flavor === effect.flavor)) {
           for (const p of (caster.hookSources ? caster.hookSources() : [])) {
-            if (p.hooks && p.hooks.burnRekindle) rekindle += p.hooks.burnRekindle;
-          }
-          const alight = rekindle > 0 && target.statusEffects.find(
-            (fx) => fx.kind === 'dot' && fx.flavor === effect.flavor);
-          if (alight) {
-            alight.turns += rekindle;
-            return { kind: 'dot', target, turns: alight.turns, rekindled: true };
+            if (p.hooks && p.hooks.burnRekindle) spread += p.hooks.burnRekindle;
           }
         }
         // Severity rungs deepen the tick. A DoT priced off the victim's
@@ -695,8 +694,10 @@ const Abilities = (() => {
         for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
         }
-        target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
-          flavor: effect.flavor || null, source: caster });
+        for (let i = 0; i <= spread; i++) {
+          target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
+            flavor: effect.flavor || null, source: caster });
+        }
         // A caster can be paid for the moment something catches
         // (Stoddard hears the smoke go up). Fired on the LANDING only,
         // so a resisted or missed application pays nothing.
@@ -709,7 +710,7 @@ const Abilities = (() => {
           }
         }
         return { kind: 'dot', target, amount, turns: dotTurns,
-          flavor: effect.flavor || null };
+          flavor: effect.flavor || null, fires: 1 + spread };
       }
       case 'atkPerDebuff': {
         // Forge heat (Lucian): permanent flat ATK for each enemy
