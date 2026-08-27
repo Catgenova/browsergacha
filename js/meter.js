@@ -1,9 +1,23 @@
 // Damage meter: who actually did the work.
 //
-// Tracks three contributions per hero — damage dealt, healing done, and
+// Tracks four contributions per hero — damage dealt, healing done,
 // damage mitigated (hits dodged, reflected, or blunted by defensive
-// effects) — at two scopes: the current battle, and everything since
-// the page was opened.
+// effects), and damage facilitated — at two scopes: the current battle,
+// and everything since the page was opened.
+//
+// Damage and healing are GROSS: a hero is credited the whole of every
+// hit they land and every point they mend, which is the number the
+// battle log prints. Facilitated is the separate ledger for setup —
+// the slice of somebody ELSE's swing that an ATK buff, a crit buff, an
+// armour break, a damage amplifier or a shove up the action bar bought.
+//
+// The two ledgers deliberately DOUBLE-COUNT the same damage: it appears
+// in full under the hero who swung and again, in part, under each hero
+// who made the swing bigger. That is the honest answer to two different
+// questions — "who hit it" and "who set it up" — and it is why they are
+// separate columns rather than one number split between them. Adding
+// Damage and Facilitated together is meaningless; neither column alone
+// is misleading.
 //
 // Recording is centralized here so every path that deals damage or
 // heals (abilities, passives, poisons, gear regen) lands in the same
@@ -16,8 +30,8 @@
 // no source belongs to whoever received it (self-mending, gear regen).
 
 const Meter = (() => {
-  const KINDS = ['damage', 'healing', 'mitigated'];
-  const blank = () => ({ damage: {}, healing: {}, mitigated: {} });
+  const KINDS = ['damage', 'healing', 'mitigated', 'facilitated'];
+  const blank = () => ({ damage: {}, healing: {}, mitigated: {}, facilitated: {} });
   let battle = blank();
   let session = blank();
 
@@ -37,6 +51,8 @@ const Meter = (() => {
     damage: (unit, amount) => add('damage', unit, Math.round(amount)),
     healing: (unit, amount) => add('healing', unit, Math.round(amount)),
     mitigated: (unit, amount) => add('mitigated', unit, Math.round(amount)),
+    // Somebody else's hit or mend, in the part this hero bought.
+    facilitated: (unit, amount) => add('facilitated', unit, Math.round(amount)),
 
     // A fresh battle clears the battle scope; the session keeps running.
     resetBattle() { battle = blank(); },

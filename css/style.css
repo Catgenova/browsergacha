@@ -1737,6 +1737,12 @@ body {
 .meter-row.k-damage .meter-fill { background: linear-gradient(90deg, #a8443c, #5e2f3c); }
 .meter-row.k-healing .meter-fill { background: linear-gradient(90deg, #3f8a4a, #2c5340); }
 .meter-row.k-mitigated .meter-fill { background: linear-gradient(90deg, #3a6a9a, #2b3f60); }
+/* Setup, not a swing of its own: violet, so it never reads as damage. */
+.meter-row.k-facilitated .meter-fill { background: linear-gradient(90deg, #7a54a8, #3d2b5e); }
+.meter-note {
+  margin-top: 4px; font-size: 9px; line-height: 1.4;
+  color: #9a90b8; font-weight: normal;
+}
 .meter-line {
   position: relative;
   display: flex;

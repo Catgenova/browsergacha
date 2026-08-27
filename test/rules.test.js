@@ -380,7 +380,13 @@ test('the damage meter credits the right side and separates its scopes', () => {
   assert(Meter.rows('damage', 'session').total === sessionTotal, 'session scope was cleared');
 });
 
-test('an attack buff credits the buffer with the damage it bought', () => {
+// The two ledgers. Damage is what a hero HIT for -- the whole of it,
+// the number the battle log prints. Facilitated is the slice of that
+// same hit somebody else's buff or break bought, booked on top rather
+// than subtracted out. They double-count on purpose: the damage column
+// used to disagree with the log by exactly the assists' share, which
+// read as a bug every time a support stood behind a carry.
+test('a hit credits its dealer in full and its enabler separately', () => {
   const battle = makeBattle();
   const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
   const buffer = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
@@ -390,44 +396,63 @@ test('an attack buff credits the buffer with the damage it bought', () => {
   const hit = () => {
     Meter.resetSession();
     foe.hp = foe.maxHp;
+    const before = foe.hp;
     Abilities.strike(hero, foe, 1000, { dodge: false, reflect: false });
-    const rows = Meter.rows('damage', 'battle');
-    const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
-    return { total: rows.total, hero: by(hero), buffer: by(buffer) };
+    const landed = before - foe.hp;
+    const dmg = Meter.rows('damage', 'battle');
+    const fac = Meter.rows('facilitated', 'battle');
+    const by = (rows, u) =>
+      (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+    return { landed, total: dmg.total, hero: by(dmg, hero),
+      heroFac: by(fac, hero), buffer: by(dmg, buffer), bufferFac: by(fac, buffer) };
   };
 
   const plain = hit();
-  assert(plain.buffer === 0, 'an unbuffed swing credited someone who did nothing');
+  assert(plain.buffer === 0 && plain.bufferFac === 0,
+    'an unbuffed swing credited someone who did nothing');
+  assert(Math.abs(plain.hero - plain.landed) <= 1,
+    `an unassisted hit of ${plain.landed} metered as ${plain.hero}`);
 
   hero.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: buffer });
   const buffed = hit();
-  assert(buffed.buffer > 0, 'the buffer got no credit for a +50% ATK buff');
-  // The split comes OUT of the attacker's share, so the ledger still adds
-  // up to the damage that actually landed.
-  assert(Math.abs(buffed.hero + buffed.buffer - buffed.total) <= 1,
-    `split does not reconstruct the hit: ${JSON.stringify(buffed)}`);
+  assert(buffed.bufferFac > 0, 'the buffer got no credit for a +50% ATK buff');
+  // The buffer's slice is FACILITATION, not damage: they swung at
+  // nothing, so their damage column stays empty.
+  assert(buffed.buffer === 0,
+    `the buffer was booked ${buffed.buffer} damage without throwing a punch`);
+  // And the attacker keeps the WHOLE hit. This is the assertion the
+  // screenshot was about: the log said 27,083 and the column said
+  // 21,169, because the assists had been taken out of it.
+  assert(Math.abs(buffed.hero - buffed.landed) <= 1,
+    `the log would say ${buffed.landed}, the damage column says ${buffed.hero}`);
   // A x1.5 buff bought a third of the hit (1 - 1/1.5).
-  const share = buffed.buffer / buffed.total;
+  const share = buffed.bufferFac / buffed.landed;
   assert(Math.abs(share - 1 / 3) < 0.02,
     `expected a third of the hit, got ${share.toFixed(3)}`);
 
-  // Self-buffs are the hero's own business.
+  // Self-buffs are the hero's own business -- and they do not make a
+  // hero facilitate their own swing either.
   hero.statusEffects = [];
   hero.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: hero });
-  assert(hit().buffer === 0, 'a self-buff was credited to somebody else');
+  const solo = hit();
+  assert(solo.buffer === 0 && solo.bufferFac === 0,
+    'a self-buff was credited to somebody else');
+  assert(solo.heroFac === 0, 'a hero facilitated their own hit');
 
   // An armour break on the target is the same kind of assist.
   hero.statusEffects = [];
   foe.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.5, turns: 5, source: buffer });
   const broken = hit();
-  assert(broken.buffer > 0, 'the armour break earned its caster nothing');
-  assert(Math.abs(broken.hero + broken.buffer - broken.total) <= 1,
-    'armour-break split does not reconstruct the hit');
+  assert(broken.bufferFac > 0, 'the armour break earned its caster nothing');
+  assert(Math.abs(broken.hero - broken.landed) <= 1,
+    'the armour break was taken out of the attacker\'s column');
 
   // ...but never across the line: an enemy's debuff is not our assist.
   foe.statusEffects = [];
   foe.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.5, turns: 5, source: foe });
-  assert(hit().buffer === 0, 'credit leaked to a unit on the other team');
+  const leak = hit();
+  assert(leak.buffer === 0 && leak.bufferFac === 0,
+    'credit leaked to a unit on the other team');
 });
 
 test("Leonardo's rite lifts two debuffs and his rebuke stalls the readiest foe", () => {
@@ -515,14 +540,20 @@ test('def walls and damage marks credit their caster', () => {
   Meter.resetSession();
   foe.addStatusEffect({ kind: 'debuff', stat: 'damageTaken', mult: 1.35, turns: 2, source: buffer });
   Abilities.strike(mate, foe, 1000, { dodge: false, reflect: false });
-  const rows = Meter.rows('damage', 'battle');
-  const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
-  assert(by(buffer) > 0, 'an amplify mark earned its caster nothing');
-  assert(Math.abs(by(buffer) + by(mate) - rows.total) <= 1,
-    'amplify split does not reconstruct the hit');
+  const dmg = Meter.rows('damage', 'battle');
+  const fac = Meter.rows('facilitated', 'battle');
+  const by = (rows, u) =>
+    (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+  assert(by(fac, buffer) > 0, 'an amplify mark earned its caster nothing');
+  // Facilitation, not damage: the brander never swung.
+  assert(by(dmg, buffer) === 0,
+    `the mark's caster was booked ${by(dmg, buffer)} damage of their own`);
+  // The hero who threw the punch keeps the whole of it.
+  assert(Math.abs(by(dmg, mate) - dmg.total) <= 1,
+    'the mark was taken out of the attacker\'s column');
   // A x1.35 mark owns 1 - 1/1.35 of the hit.
-  assert(Math.abs(by(buffer) / rows.total - (1 - 1 / 1.35)) < 0.02,
-    `mark share off: ${(by(buffer) / rows.total).toFixed(3)}`);
+  assert(Math.abs(by(fac, buffer) / dmg.total - (1 - 1 / 1.35)) < 0.02,
+    `mark share off: ${(by(fac, buffer) / dmg.total).toFixed(3)}`);
 });
 
 test('a buffed or bought mend credits its enabler', () => {
@@ -542,31 +573,43 @@ test('a buffed or bought mend credits its enabler', () => {
   const mend = () => {
     Meter.resetSession();
     mate.hp = 1; // room for the whole heal, so shares are exact
+    const before = mate.hp;
     Abilities.execute(healAb.def, healer, mate, battle);
-    const rows = Meter.rows('healing', 'battle');
-    const by = (u) => (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
-    return { total: rows.total, healer: by(healer), buffer: by(buffer) };
+    const restored = mate.hp - before;
+    const heal = Meter.rows('healing', 'battle');
+    const fac = Meter.rows('facilitated', 'battle');
+    const by = (rows, u) =>
+      (rows.list.find((r) => r.id === u.def.id) || { value: 0 }).value;
+    return { restored, total: heal.total, healer: by(heal, healer),
+      buffer: by(heal, buffer), bufferFac: by(fac, buffer) };
   };
 
-  assert(mend().buffer === 0, 'an unbuffed mend credited someone who did nothing');
+  const bare = mend();
+  assert(bare.buffer === 0 && bare.bufferFac === 0,
+    'an unbuffed mend credited someone who did nothing');
+  assert(Math.abs(bare.healer - bare.restored) <= 1,
+    `a mend of ${bare.restored} metered as ${bare.healer}`);
 
   // An ATK buff multiplies an ATK-scaled heal, so its granter owns the
-  // slice it added — a third, at x1.5 — and the ledger still adds up.
+  // slice it added — a third, at x1.5 — booked as facilitation on top
+  // of the healer's full number rather than carved out of it.
   healer.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5, source: buffer });
   const buffed = mend();
-  assert(buffed.buffer > 0, 'the buffer got no credit for a buffed heal');
-  assert(Math.abs(buffed.healer + buffed.buffer - buffed.total) <= 1,
-    `split does not reconstruct the heal: ${JSON.stringify(buffed)}`);
-  assert(Math.abs(buffed.buffer / buffed.total - 1 / 3) < 0.02,
-    `expected a third of the heal, got ${(buffed.buffer / buffed.total).toFixed(3)}`);
+  assert(buffed.bufferFac > 0, 'the buffer got no credit for a buffed heal');
+  assert(buffed.buffer === 0,
+    `the buffer was booked ${buffed.buffer} healing without mending anyone`);
+  assert(Math.abs(buffed.healer - buffed.restored) <= 1,
+    `the log would say ${buffed.restored} restored, the column says ${buffed.healer}`);
+  assert(Math.abs(buffed.bufferFac / buffed.restored - 1 / 3) < 0.02,
+    `expected a third of the heal, got ${(buffed.bufferFac / buffed.restored).toFixed(3)}`);
 
   // A turn bought with meter pushes pays its patron the same way:
   // half the meter given means half the turn's mend (capped at 60%).
   healer.statusEffects = [];
   healer.turnGifts = [{ source: buffer, amount: CONFIG.TURN_METER_MAX / 2 }];
   const bought = mend();
-  assert(Math.abs(bought.buffer / bought.total - 0.5) < 0.02,
-    `a half-bought turn should split the mend evenly, got ${(bought.buffer / bought.total).toFixed(3)}`);
+  assert(Math.abs(bought.bufferFac / bought.restored - 0.5) < 0.02,
+    `a half-bought turn should pay half the mend, got ${(bought.bufferFac / bought.restored).toFixed(3)}`);
   healer.turnGifts = [];
 });
 

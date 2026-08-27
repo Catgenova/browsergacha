@@ -246,7 +246,7 @@ const Abilities = (() => {
         Unit.retaliating = false;
       }
     }
-    // Catches Twice (fire 4pc): a CRIT can land a second time, for half
+    // Encore (fire 4pc): a CRIT can land a second time, for half
     // the swing. A real second blow -- it re-enters strike, so the DEF
     // curve, dodge, reflect, wards and a planted blocker all answer it
     // exactly as they answered the first.
