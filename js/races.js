@@ -73,14 +73,36 @@ const RACES = (() => {
   // 'florence' is Tide (the Crystal Blade wears Cryst blue).
   //
   // Sects were a human institution until the Gulldiggers, who are birds
-  // and keep one anyway. A non-human sect is nine strong by a different
-  // arithmetic than the human nine: one 1★, two 2★, three 3★, two 4★
-  // and a single 5★ at the top of it.
+  // and keep one anyway. A non-human sect is nine strong to a DECLARED
+  // shape -- one 1★, two 2★, three 3★, two 4★ and a single 5★ -- and
+  // that shape is enforced as a ceiling while the sect fills.
+  //
+  // The human orders are looser. Nine is the usual size and none was
+  // written above it, but Cryst and the Nightflowers each run ten now:
+  // they took in the two heroes the Hedge left behind when it closed,
+  // and taking somebody in is a better answer than turning them away to
+  // keep a round number. Nothing in the engine counts on nine — sect
+  // packs pay at two, three and four fielded — so the size is pinned by
+  // the roster listed in data.test.js rather than by a rule here.
   const SECTS = {
+    // Coral came over from the Hedge when it closed. She was already
+    // wearing the colour -- a water Tide Caller among eight other water
+    // heroes -- so the move only wrote down where she had been standing.
     cryst:     { id: 'cryst',     name: 'Cryst',     number: 1,
-                 members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
+                 members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
+                           'coral'] },
+    // DEFUNCT. The Hedge never grew past two, and two is not an order.
+    // Vex went to the Nightflowers and Coral to Cryst -- each to the
+    // sect their element and their kit already answered to -- and with
+    // both gone there was nobody left to keep the door open.
+    //
+    // Kept in the list on the Shadowflower precedent: No. 3 is spent
+    // and must never be reissued, a save that remembers the name should
+    // still find it, and `defunct` says what an empty `members` array
+    // cannot -- that this is a closed order rather than one waiting to
+    // be filled.
     hedge:     { id: 'hedge',     name: 'Hedge',     number: 3,
-                 members: ['vex', 'coral'] },
+                 defunct: true, members: [] },
     reverence: { id: 'reverence', name: 'Reverence', number: 4,
                  members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
     // DEFUNCT. Sawyer's old home, emptied when he was recognised as the
@@ -103,9 +125,12 @@ const RACES = (() => {
     // was written as one long before the sect existed — Petalfall Cut,
     // Night Bloom, Deadheading, Wilting Garden — so he moved here and
     // his title moved with him.
+    // Vex came over from the Hedge when it closed. The Doll Witch keeps
+    // her hexes on longer than anyone, and the Nightflowers are paid by
+    // the debuff -- she was writing their 2pc before she joined them.
     nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
                  members: ['sawyer', 'noctelle', 'sable', 'evelune', 'lysandra',
-                           'morrow', 'valere', 'lenore', 'dorian'] },
+                           'morrow', 'valere', 'lenore', 'dorian', 'vex'] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',

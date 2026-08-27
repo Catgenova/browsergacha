@@ -182,8 +182,12 @@ test('every sect holds one race, once each, with its number', () => {
   // no longer "a sect is human" but "a sect is ONE race" -- the race is
   // declared per sect and every member has to answer to it.
   const expected = {
-    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner'] },
-    hedge: { number: 3, members: ['vex', 'coral'] },
+    cryst: { number: 1, members: ['polarus', 'echo', 'florence', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
+      'coral'] },
+    // DEFUNCT: the Hedge never grew past two. Vex went to the
+    // Nightflowers and Coral to Cryst, each to the sect their element
+    // already answered to. The entry stays so No. 3 is never reissued.
+    hedge: { number: 3, defunct: true, members: [] },
     reverence: { number: 4, members: ['catherine', 'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'emily', 'artur'] },
     // DEFUNCT: Sawyer was its only member and moved to the Nightflowers.
     // The entry stays so No. 2 is never reissued; the flag is what says
@@ -193,7 +197,7 @@ test('every sect holds one race, once each, with its number', () => {
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: ['sawyer', 'noctelle', 'sable', 'evelune',
-      'lysandra', 'morrow', 'valere', 'lenore', 'dorian'] },
+      'lysandra', 'morrow', 'valere', 'lenore', 'dorian', 'vex'] },
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
@@ -300,8 +304,12 @@ test('every hero resolves a full tag line', () => {
   assert(/Front Line DPS/.test(text('javarious')) && /Shielder/.test(text('javarious')),
     `Javarious should read front-line DPS shielder: ${text('javarious')}`);
   assert(/Reverence Sect/.test(text('toll')), `Toll should carry his sect: ${text('toll')}`);
-  assert(/Debuffer/.test(text('vex')) && /Hedge Sect/.test(text('vex')),
-    `Vex should read debuffer of the Hedge: ${text('vex')}`);
+  assert(/Debuffer/.test(text('vex')) && /Nightflower Sect/.test(text('vex')),
+    `Vex should read debuffer of the Nightflowers: ${text('vex')}`);
+  // Coral moved with her. Both tags follow membership, so a hero whose
+  // sect closes must never be left reading the closed one.
+  assert(/Cryst Sect/.test(text('coral')),
+    `Coral should read Cryst: ${text('coral')}`);
 });
 
 test('the lifetime book pays about thirty thousand Diamonds, in tens', () => {
