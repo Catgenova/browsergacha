@@ -7827,26 +7827,52 @@ test('the Phoenix Court is paid for the fires it lights', () => {
       `Stella's mend did not grow with the fires: ${read.join(' -> ')}`);
   }
 
-  // Flurry: a burn set on something already alight SPREADS -- that cast
-  // lays two fires instead of one, so two casts leave three plates
-  // rather than two. Extra fires, not extra turns: the durations of
-  // every plate must match, or the hook has quietly gone back to
-  // stretching one fire instead of lighting another.
+  // Flurry no longer SPREADS -- the sect's 2pc owns that outright, and
+  // her carrying it too meant a Flurry standing with her own Court lit
+  // three plates on a single re-burn while the tiers above priced all
+  // three. Alone she stacks like anyone else: one plate per cast.
   {
     const { battle, h, foes } = field('flurry', 1, 0);
     const real = Math.random;
     Math.random = () => 0;
     Abilities.execute(h.abilities[0].def, h, foes[0], battle);
     const first = foes[0].statusEffects.filter((f) => f.kind === 'dot').length;
-    const wasTurns = foes[0].statusEffects.find((f) => f.kind === 'dot').turns;
     Abilities.execute(h.abilities[0].def, h, foes[0], battle);
     Math.random = real;
     const burns = foes[0].statusEffects.filter((f) => f.kind === 'dot');
-    assert(first === 1 && burns.length === 3,
-      `two casts left ${burns.length} separate fires, wanted 3`);
-    assert(burns.every((f) => f.turns === wasTurns),
-      `the spread stretched a fire to ${burns.map((f) => f.turns).join('/')} ` +
-      `against ${wasTurns} — it should light another, not lengthen one`);
+    assert(first === 1 && burns.length === 2,
+      `two casts left ${burns.length} separate fires, wanted 2`);
+    assert(!(HEROES.flurry.passive.hooks || {}).burnRekindle,
+      'Flurry picked the spread back up and compounds with her own sect again');
+  }
+
+  // What she carries instead: her fires TAKE AT ONCE. The burn pays its
+  // first tick in the instant it lands, so the same cast costs a fresh
+  // target strictly more from her than from a Court bird without the
+  // passive -- measured against Barrington, who shares her element, her
+  // sect and nothing else that would explain the gap.
+  {
+    const bite = (id) => {
+      const { battle, h, foes } = field(id, 1, 0);
+      const real = Math.random;
+      Math.random = () => 0;
+      // Same burn from either bird, so the comparison is the passive
+      // and not the kit: applied by hand, at a fixed tick.
+      const before = foes[0].hp;
+      Abilities.applyEffect({ type: 'dot', targetHpPct: 0.01, turns: 3, flavor: 'burn' },
+        h, foes[0], 1);
+      Math.random = real;
+      return { spent: before - foes[0].hp, plates: foes[0].statusEffects.filter(
+        (f) => f.kind === 'dot').length };
+    };
+    const hers = bite('flurry'), theirs = bite('barrington');
+    assert(theirs.spent === 0,
+      `a bird without the passive took ${theirs.spent} off on application`);
+    assert(hers.spent > 0,
+      'Flurry\'s fire waited a turn to bite — the passive did nothing');
+    // And it is a BITE, not an extra plate: the fire still reads as one.
+    assert(hers.plates === 1 && theirs.plates === 1,
+      `the bite left ${hers.plates} plates against ${theirs.plates}`);
   }
 
   // Stoddard is paid for the moment something catches.
@@ -8050,6 +8076,14 @@ test('the skill readout states the numbers the fight actually uses', () => {
     const u = place(battle, def, TEAM.PLAYER, 1);
     u.abilities[idx].level = skillLevel;
     u.critChance = () => 0;               // no dice in the reading
+    // A passive that makes DoTs bite the instant they land (Flurry)
+    // puts burn damage into the same moment as the strike, so the HP
+    // that leaves is the damage line PLUS a tick whose own ladder the
+    // damage line never claimed. Suppressed rather than skipped, so
+    // the damage line is still measured for her -- assigned, not
+    // spliced, because `passives` comes off the def by reference.
+    u.passives = (u.passives || []).filter(
+      (pv) => !(pv.hooks && pv.hooks.dotBitesOnApply));
     const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 200);
     foe.dodgeChance = () => 0;
     foe.reflectChance = () => 0;
@@ -9586,8 +9620,8 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
         `${turnsAfterOne} apiece`);
     } finally { Battle.active = prev; }
 
-    // One Court bird does not spread -- unless it is Flurry, who
-    // carries the passive herself.
+    // One Court bird does not spread, Flurry included: the tier owns
+    // the hook outright now, so no bird carries it into a party of one.
     const one = party(1);
     const foe1 = roomy(place(one.battle, DUMMIES.rat_archer, TEAM.ENEMY, 4), 400);
     Battle.active = one.battle;
@@ -9596,8 +9630,7 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
       burn(one.units[0], foe1);
       const n = foe1.statusEffects.filter(
         (fx) => fx.kind === 'dot' && fx.flavor === 'burn').length;
-      const want = one.units[0].def.id === 'flurry' ? 3 : 2;
-      assert(n === want, `one Court bird left ${n} fires, wanted ${want}`);
+      assert(n === 2, `one Court bird left ${n} fires, wanted 2`);
     } finally { Battle.active = prev; }
   }
 
@@ -9651,11 +9684,17 @@ test('Phoenix Court sect pack: fires that catch twice, burn hotter, last longer'
   {
     const fire4 = RACES.ELEMENT_PARTY_BONUSES.fire.find((t) => t.count === 4);
     assert(fire4.name !== 'Catches Twice',
-      'the fire element tier is using Flurry\'s name again');
-    assert(HEROES.flurry.passive.name === 'Catches Twice',
-      'Flurry no longer owns her own passive name');
+      'the fire element tier is using the Court\'s name');
     const court2 = RACES.SECT_PARTY_BONUSES.phoenixcourt.find((t) => t.count === 2);
     assert(court2.name === 'Catches Twice', 'the Court lost the name');
+    // The tier owns the spread AND the name. Flurry keeps a name of her
+    // own beside it, so a player reading her card and the pack readout
+    // together sees two things rather than one printed twice.
+    assert(HEROES.flurry.passive.name !== 'Catches Twice',
+      'Flurry and the tier are both called Catches Twice again');
+    assert(RACES.SECT_PARTY_BONUSES.phoenixcourt.every(
+      (t) => t.name !== HEROES.flurry.passive.name),
+      `the Court has a tier named ${HEROES.flurry.passive.name} too`);
   }
 });
 
