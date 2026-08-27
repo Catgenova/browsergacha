@@ -269,8 +269,23 @@ class Unit {
 
   // Debuff accuracy (attacker) vs resistance (defender): a debuff lands
   // with chance 1 - max(0, resistance - accuracy), floored at 15%.
+  //
+  // BOTH START AT 15. They used to start at zero, which meant nothing on
+  // the field had any resistance at all and the contest was a formality
+  // -- every hex landed, and accuracy was a stat that could not do
+  // anything. Equal floors keep that default (15 against 15 is still a
+  // certainty) while giving both sides a real number to move.
+  //
+  // Accuracy tops out at 100 and resistance at 85, deliberately unequal:
+  // a fully-built attacker can always beat a fully-built defender, so no
+  // amount of stacking makes anything immune. The 15% floor in
+  // Abilities.debuffLands is the other end of the same promise.
+  static get BASE_ACCURACY() { return 0.15; }
+
+  static get BASE_RESISTANCE() { return 0.15; }
+
   debuffAccuracy() {
-    let a = this.gearAccuracy;
+    let a = Unit.BASE_ACCURACY + this.gearAccuracy;
     for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.accuracyAdd) a += p.hooks.accuracyAdd;
     }
@@ -278,11 +293,14 @@ class Unit {
     for (const fx of this.statusEffects) {
       if (fx.stat === 'accuracy' && fx.add) a += fx.add;
     }
-    return a;
+    return Math.min(1, Math.max(0, a));
   }
 
   debuffResistance() {
-    let r = this.gearResistance;
+    // Bosses hold half again on top of the floor: they are the fight
+    // accuracy exists FOR, and the one place a debuff kit should have to
+    // build for its hexes to stick.
+    let r = Unit.BASE_RESISTANCE + (this.isBoss ? 0.50 : 0) + this.gearResistance;
     for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.resistanceAdd) r += p.hooks.resistanceAdd;
     }
@@ -291,7 +309,7 @@ class Unit {
     for (const fx of this.statusEffects) {
       if (fx.stat === 'resistance' && fx.add) r += fx.add;
     }
-    return r;
+    return Math.min(0.85, Math.max(0, r));
   }
 
   // A target under a heal-lock cannot be mended by anything that routes
