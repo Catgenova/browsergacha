@@ -334,6 +334,43 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    firetroupe: [
+      {
+        count: 2, name: 'Slick Hands',
+        // The channel survived the old removal intact and is still read
+        // (hero.js, on every landed blow). Oil is not a recoloured hex:
+        // a burn ticks for DOUBLE on an oiled target, so the Firetroupe
+        // is handing the Phoenix Court a loaded gun.
+        mods: { oilOnHit: 0.10 },
+        label: 'landed hits have a 10% chance to Oilslick the victim',
+      },
+      {
+        count: 3, name: 'The Crowd Loves It',
+        // Counts the PARTY, not the enemy: the troupe plays better to a
+        // house that is suffering. Peaks exactly when a fight is going
+        // badly, which is the opposite of every other damage tier and
+        // very much the sect.
+        hooks: {
+          damageDealtMult(unit) {
+            const b = typeof Battle !== 'undefined' ? Battle.active : null;
+            if (!b) return 1;
+            const hurt = b.livingUnits(unit.team)
+              .filter((u) => u.maxHp > 0 && u.hp / u.maxHp < 0.5).length;
+            return 1 + 0.05 * hurt;
+          },
+        },
+        label: '+5% damage for each hero in the party below half HP',
+      },
+      {
+        count: 4, name: 'Grease Fire',
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.oiled && target.oiled() ? 1.20 : 1;
+          },
+        },
+        label: '+20% damage to an Oilslicked enemy',
+      },
+    ],
     reverence: [
       {
         count: 2, name: 'Chapter House',
@@ -448,6 +485,7 @@ const RACES = (() => {
     dodge: (u, v) => { u.gearDodge += v; },
     startShield: (u, v) => { u.synergyStartShield += v; },
     debuffExtraChance: (u, v) => { u.synergyDebuffExtraChance += v; },
+    oilOnHit: (u, v) => { u.synergyOilOnHit += v; },
     reflect: (u, v) => { u.gearReflect += v; },
     extraTurn: (u, v) => { u.gearExtraTurn += v; },
     cdr: (u, v) => { u.gearCdr += v; },
