@@ -8262,10 +8262,19 @@ test('element party bonuses pay the element that earned them, in tiers', () => {
   }
 
   // ---- An element with no table pays nothing, and does not throw ----
+  // Whichever elements are still unwritten -- fire and water were the
+  // examples here until they were filled in, so it asks rather than
+  // names one.
   {
-    const { summary } = party(0, [fireId, fireId, fireId, fireId]);
-    assert(!summary.some((b) => b.element === 'fire'),
-      'fire paid out a bonus it has no table for');
+    const unwritten = ['fire', 'water', 'wind', 'light', 'dark']
+      .find((el) => !(RACES.ELEMENT_PARTY_BONUSES[el] || []).length &&
+        Object.values(HEROES).some((h) => h.element === el));
+    if (unwritten) {
+      const id = Object.values(HEROES).find((h) => h.element === unwritten).id;
+      const { summary } = party(0, [id, id, id, id]);
+      assert(!summary.some((b) => b.element === unwritten),
+        `${unwritten} paid out a bonus it has no table for`);
+    }
   }
 });
 
@@ -8344,6 +8353,107 @@ test('water party bonuses: armour, a bounce, and a front line that holds', () =>
       assert(Math.abs(units[0].damageTakenMult(null) - 1) < 1e-9,
         'Ice Shelf paid out at three water heroes');
     } finally { Battle.active = prev; }
+  }
+});
+
+// Fire's set is offensive, and its 4pc is the first party bonus that
+// needed new engine code -- a crit can land a second time. That echo is
+// the part worth testing hard: a re-entrant damage path that rolls a
+// chance is exactly where an infinite loop lives.
+test('fire party bonuses: ATK, a burn payoff, and a crit that lands twice', () => {
+  const fireIds = Object.values(HEROES).filter((h) => h.element === 'fire')
+    .map((h) => h.id);
+  assert(fireIds.length >= 4, 'not enough fire heroes to test four');
+
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[fireIds[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Stoked: the ATK STAT, so ATK-priced mends rise with it ----
+  {
+    const bare = new Unit(HEROES[fireIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2);
+    assert(units[0].baseAtk === Math.round(bare.baseAtk * 1.15),
+      `ATK ${units[0].baseAtk}, wanted ${Math.round(bare.baseAtk * 1.15)}`);
+  }
+
+  // ---- 3pc Moth to Flame: reads the TARGET's state, live ----
+  {
+    const { battle, units } = party(3);
+    const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 50);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const cold = units[0].damageDealtMult(foe, null);
+      foe.addStatusEffect({ kind: 'dot', amount: 10, turns: 3,
+        flavor: 'burn', source: units[0] });
+      const alight = units[0].damageDealtMult(foe, null);
+      assert(Math.abs(cold - 1) < 1e-9, `a cold target paid ${cold}`);
+      assert(Math.abs(alight - 1.25) < 1e-9, `a burning target paid ${alight}`);
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- 4pc Catches Twice ----
+  {
+    const { battle, units } = party(4);
+    const caster = units[0];
+    const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 500);
+    foe.dodgeChance = () => 0;
+    foe.reflectChance = () => 0;
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      // Forced crit, forced echo: the second blow must land and be
+      // reported, and it must be half the swing.
+      caster.effectiveStat = ((base) => function (stat) {
+        if (stat === 'critChance') return 1;
+        if (stat === 'critDamage') return 1;   // keep the arithmetic plain
+        return base.call(this, stat);
+      })(Unit.prototype.effectiveStat);
+      Math.random = () => 0;                    // every roll succeeds
+      const hit = Abilities.strike(caster, foe, 1000, { crit: true });
+      assert(hit.crit, 'the forced crit did not crit');
+      assert(hit.echo > 0, 'the echo did not land');
+      // Half the RAW, so the DEF curve answers it in its own right --
+      // the echo is a blow, not a copy of the first number.
+      const solo = Abilities.strike(caster, foe, 500, { crit: false });
+      assert(Math.abs(hit.echo - solo.amount) <= 1,
+        `the echo dealt ${hit.echo}, a half-swing deals ${solo.amount}`);
+
+      // It must NOT echo itself. With every roll succeeding, a
+      // self-echoing implementation recurses until the stack dies, so
+      // reaching this line at all is most of the assertion.
+      assert(Unit.echoing !== true, 'the echo guard was left set');
+
+      // A crit with the tier NOT held echoes nothing.
+      const three = party(3);
+      const lone = three.units[0];
+      lone.effectiveStat = caster.effectiveStat;
+      const foe3 = roomy(place(three.battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 500);
+      foe3.dodgeChance = () => 0;
+      foe3.reflectChance = () => 0;
+      Battle.active = three.battle;
+      const noEcho = Abilities.strike(lone, foe3, 1000, { crit: true });
+      assert(!noEcho.echo, `three fire heroes echoed for ${noEcho.echo}`);
+
+      // And a NON-crit never echoes, however the dice fall.
+      Battle.active = battle;
+      const plain = Abilities.strike(caster, foe, 1000, { crit: false });
+      assert(!plain.echo, 'a non-crit echoed');
+    } finally {
+      Math.random = real;
+      delete caster.effectiveStat;
+      Battle.active = prev;
+    }
   }
 });
 

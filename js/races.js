@@ -152,6 +152,36 @@ const RACES = (() => {
   // Only wind is written so far. An element with no table simply pays
   // nothing -- the machinery does not assume five entries.
   const ELEMENT_PARTY_BONUSES = {
+    fire: [
+      {
+        count: 2, name: 'Stoked',
+        // The ATK STAT, not a damage multiplier: it lifts every
+        // ATK-priced thing the party does, mends and wards included.
+        mods: { atkPct: 0.15 },
+        label: '+15% ATK',
+      },
+      {
+        count: 3, name: 'Moth to Flame',
+        // The perk that makes the two fire sects want each other: the
+        // Phoenix Court lights the fires, the Firetroupe collects on
+        // them. Reads the TARGET, which damageDealtMult is handed.
+        hooks: {
+          damageDealtMult(unit, target) {
+            return target && target.burning && target.burning() ? 1.25 : 1;
+          },
+        },
+        label: '+25% damage to an enemy already burning',
+      },
+      {
+        count: 4, name: 'Catches Twice',
+        // Read in Abilities.strike, where the crit is settled. The
+        // follow-up is a real blow at half the swing -- dodge, wards and
+        // the DEF curve all answer it -- but it never crits and never
+        // echoes itself.
+        hooks: { critEcho: 0.25 },
+        label: 'a crit has a 25% chance to strike again for half',
+      },
+    ],
     water: [
       {
         count: 2, name: 'Cold Iron',
