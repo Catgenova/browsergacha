@@ -124,11 +124,25 @@ const Gacha = (() => {
 
   // A banner's featured pool: every member of its sect, the heroes on
   // its display strip.
+  // Which rarities a scroll can actually produce. Read off the rate
+  // table rather than written down twice.
+  function scrollRarities(kind) {
+    return new Set((RATES[kind] || RATES.rare).map((r) => r.rarity));
+  }
+
+  // The heroes a banner features: its sect, MINUS anyone the scroll
+  // cannot draw. Every bannered sect used to be 3-star and up, so the
+  // rarity filter was invisible -- until the bird sects arrived, which
+  // run a 1-star and two 2-stars each. Without it the Rare banner would
+  // advertise heroes a Rare pull can never roll, and worse, hand one of
+  // them over as the fifty-pull GUARANTEE: a promise paid in a hero the
+  // scroll does not sell.
   function bannerFeatured(b) {
+    const can = scrollRarities(b.scroll || 'rare');
     return Object.values(HEROES)
       .filter((h) => {
         const s = typeof RACES !== 'undefined' ? RACES.sectOf(h) : null;
-        return s && s.id === b.sect;
+        return s && s.id === b.sect && can.has(h.rarity);
       })
       .map((h) => h.id);
   }
@@ -209,5 +223,6 @@ const Gacha = (() => {
   }
 
   return { pull, pickHero, PITY_LIMIT, RATES,
-    BANNER_PITY_EVERY, bannerPityInfo, WISHLIST_MULT };
+    BANNER_PITY_EVERY, bannerPityInfo, bannerFeatured, scrollRarities,
+    WISHLIST_MULT };
 })();
