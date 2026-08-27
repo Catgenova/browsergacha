@@ -98,6 +98,16 @@ class AnimationPlayer {
       if (onComplete) this.fallbackTimer = { wait: 0.35, onComplete };
       name = 'idle';
       onComplete = null;
+    } else if (onComplete && this.sheet.animations[name].loop) {
+      // A LOOPING animation never reaches a final frame, so it can never
+      // fire a completion callback. Heroes whose action strips have not
+      // been delivered yet point their abilities straight at 'idle' on
+      // purpose -- that name resolves, so the missing-animation branch
+      // above does not catch it, and without this the turn hangs until
+      // the battle's stall watchdog trips ten seconds later. Resolve it
+      // on the same timer a missing animation uses.
+      this.fallbackTimer = { wait: 0.35, onComplete };
+      onComplete = null;
     }
     this.current = name;
     this.frame = 0;

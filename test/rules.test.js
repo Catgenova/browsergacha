@@ -7712,4 +7712,56 @@ test('the Phoenix Court is paid for the fires it lights', () => {
   }
 });
 
+// A hero whose action strips have not been delivered yet points its
+// abilities straight at 'idle' -- a LOOPING animation. A loop never
+// reaches a final frame, so it can never fire the completion callback
+// that advances the turn, and the whole side stalls until the battle's
+// ten-second watchdog force-finishes each action ("X's action never
+// resolved"). The animator has to resolve those on a timer instead.
+// sprites.js is not in the harness (it needs Image/canvas at draw
+// time), so it is evaluated here on its own -- the playback classes at
+// the top of the file are pure.
+test('looping action animations still fire their completion callback', () => {
+  const vm = require('vm');
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'js/sprites.js'), 'utf8');
+  const box = vm.createContext({ Image: function () {}, document: undefined,
+    console, Math });
+  vm.runInContext(src + '\nthis.AnimationPlayer = AnimationPlayer;' +
+    '\nthis.SpriteSheet = SpriteSheet;', box);
+
+  const sheet = new box.SpriteSheet({
+    idle: { frames: 9, fps: 5, loop: true, frameW: 64, frameH: 64, row: 0 },
+    attack: { frames: 6, fps: 12, loop: false, frameW: 64, frameH: 64, row: 1 },
+  }, 92);
+
+  // The avian case: the ability names 'idle' on purpose.
+  {
+    const p = new box.AnimationPlayer(sheet);
+    let done = 0;
+    p.play('idle', () => { done++; });
+    for (let i = 0; i < 60 && done === 0; i++) p.update(1 / 60);
+    assert(done === 1, `a looping action animation resolved ${done} times`);
+  }
+
+  // A one-shot still resolves the ordinary way, at its final frame.
+  {
+    const p = new box.AnimationPlayer(sheet);
+    let done = 0;
+    p.play('attack', () => { done++; });
+    for (let i = 0; i < 120 && done === 0; i++) p.update(1 / 60);
+    assert(done === 1, `a one-shot action animation resolved ${done} times`);
+  }
+
+  // An animation the sheet does not carry at all keeps its old fallback.
+  {
+    const p = new box.AnimationPlayer(sheet);
+    let done = 0;
+    p.play('skill3', () => { done++; });
+    assert(p.current === 'idle', `a missing animation played '${p.current}'`);
+    for (let i = 0; i < 60 && done === 0; i++) p.update(1 / 60);
+    assert(done === 1, `a missing action animation resolved ${done} times`);
+  }
+});
+
 report();
