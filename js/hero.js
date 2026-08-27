@@ -653,27 +653,33 @@ class Unit {
     }
   }
 
-  // Book a landed hit, splitting off the share owed to whoever set it up.
+  // Book a landed hit. The attacker is credited the WHOLE of it -- that
+  // is the number the battle log prints, and a damage column that
+  // disagreed with the log was the thing players noticed first. The
+  // share owed to whoever set the hit up is booked separately, under
+  // `facilitated`, so a buffer's contribution is visible without being
+  // quietly subtracted from the hero who swung. The two ledgers
+  // double-count the same damage on purpose; see js/meter.js.
   bookDamage(target, dealt, crit) {
     if (typeof Meter === 'undefined' || dealt <= 0) return;
+    Meter.damage(this, dealt);
     const assists = this.outgoingAssists(crit)
       .concat(target.defBreakAssists ? target.defBreakAssists() : [])
       .concat(target.amplifyAssists ? target.amplifyAssists() : [])
       // Never hand credit across the line: an enemy's own debuff on an
       // enemy is not an assist to this attack.
       .filter((a) => a.mult > 1 && a.source.team === this.team);
-    if (!assists.length) { Meter.damage(this, dealt); return; }
-    const { assisted, shares } = Unit.assistShares(dealt, assists);
+    if (!assists.length) return;
+    const { shares } = Unit.assistShares(dealt, assists);
     // Flagged while the assist share is booked, so tooling can tell a
     // setup hero's share of somebody else's swing from damage they dealt
     // themselves (test/archetypes.js reads this).
     Unit.assisting = true;
     try {
-      for (const s of shares) Meter.damage(s.source, s.amount);
+      for (const s of shares) Meter.facilitated(s.source, s.amount);
     } finally {
       Unit.assisting = false;
     }
-    Meter.damage(this, dealt - assisted);
   }
 
   // Split a booked total between its owner and the assists that
@@ -1042,9 +1048,17 @@ class Unit {
       if (!assists.length) {
         Meter.healing(by, healed);
       } else {
-        const { assisted, shares } = Unit.assistShares(healed, assists);
-        for (const s of shares) Meter.healing(s.source, s.amount);
-        Meter.healing(by, healed - assisted);
+        // Same rule as a hit: the healer is credited the whole mend and
+        // the buffs that multiplied it are booked as facilitation, so
+        // the healing column matches what the log said was restored.
+        const { shares } = Unit.assistShares(healed, assists);
+        Meter.healing(by, healed);
+        Unit.assisting = true;
+        try {
+          for (const s of shares) Meter.facilitated(s.source, s.amount);
+        } finally {
+          Unit.assisting = false;
+        }
       }
     }
     // Heal event bus: lets passives react to any ally being healed.

@@ -293,7 +293,6 @@ function runOne(def, cast, seedValue, boss = false) {
   // some OTHER unit is taking its turn is exactly a tick of the hero's
   // own poison — nothing else can produce it.
   let dotDealt = 0;
-  let assistDealt = 0;
   let acting = null;
   const realStartTurn = Unit.prototype.startTurn;
   const realMeterDamage = Meter.damage;
@@ -302,12 +301,12 @@ function runOne(def, cast, seedValue, boss = false) {
     try { return realStartTurn.apply(this, rest); } finally { acting = null; }
   };
   Meter.damage = (unit, amount) => {
-    // Damage bought rather than swung for: the hero's share of an ally's
-    // hit, earned by an attack buff, a crit buff, an action-bar push or an
-    // armour break. Unit.assisting is set only while that share is booked.
-    if (unit === hero && Unit.assisting) {
-      assistDealt += Math.round(amount);
-    } else if (acting && acting !== hero && unit === hero && !Unit.retaliating) {
+    // Damage bought rather than swung for used to arrive here too, told
+    // apart by Unit.assisting. It has its own ledger now -- Meter.damage
+    // carries only what a hero swung for -- so the assist figure is read
+    // straight off `facilitated` below and this patch is left with the
+    // one job of spotting a tick.
+    if (acting && acting !== hero && unit === hero && !Unit.retaliating) {
       // ...unless it is a retaliation. An onStruck hook can fire while
       // another unit is acting (it hit us on its turn), which looks exactly
       // like a poison tick from out here. Unit.retaliating tells them apart.
@@ -390,7 +389,9 @@ function runOne(def, cast, seedValue, boss = false) {
     died: !hero.alive,
     damage: mine('damage'),
     poison: dotDealt,
-    assist: assistDealt,
+    // Own swings and bought swings are separate ledgers now, so this is
+    // a read rather than a tally kept during the run.
+    assist: mine('facilitated'),
     healing: mine('healing'),
     mitigated: mine('mitigated'), // team-wide: wards, walls, own guards
     taken,

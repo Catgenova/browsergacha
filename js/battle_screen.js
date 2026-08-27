@@ -286,7 +286,16 @@ class BattleScreen {
   drawMeter() {
     if (!this.meterRowsEl) return;
     const { list, total } = Meter.rows(this.meterKind, this.meterScope);
-    const LABEL = { damage: 'damage dealt', healing: 'healing done', mitigated: 'damage mitigated' };
+    const LABEL = { damage: 'damage dealt', healing: 'healing done',
+      mitigated: 'damage mitigated', facilitated: 'damage facilitated' };
+    // Facilitated is the one column that is not a share of its own
+    // total in the way the others are -- it is a slice of somebody
+    // else's swing -- so it says what it means rather than leaving the
+    // player to work out why the numbers do not add up to the fight.
+    const NOTE = { facilitated:
+      'The part of an ally\'s hit or mend that this hero\'s buffs, ' +
+      'breaks and meter pushes bought. Counted again here on top of ' +
+      'the full amount in Damage and Healing, not taken out of it.' };
     if (list.length === 0) {
       this.meterRowsEl.innerHTML =
         `<div class="meter-empty">No ${LABEL[this.meterKind]} yet.</div>`;
@@ -304,7 +313,8 @@ class BattleScreen {
     this.meterTotalEl.textContent = '';
     const scope = this.meterScope === 'session' ? 'Session' : 'Battle';
     this.meterTotalEl.innerHTML =
-      `${scope} ${LABEL[this.meterKind]}: <b>${total.toLocaleString()}</b>`;
+      `${scope} ${LABEL[this.meterKind]}: <b>${total.toLocaleString()}</b>` +
+      (NOTE[this.meterKind] ? `<div class="meter-note">${NOTE[this.meterKind]}</div>` : '');
   }
 
   setSpeed(mult) {
