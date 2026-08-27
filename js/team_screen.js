@@ -208,7 +208,40 @@ class TeamScreen {
     const power = GameState.teamPower();
     this.teamCountEl.textContent = `${size}/7 heroes placed` +
       (size ? ` · ${power.toLocaleString()} power` : '');
+    this.renderPartyBonuses();
+  }
 
+  // What the party as placed is earning, and what the next hero of an
+  // element would add. Shown here rather than on a hero card because it
+  // is a fact about the FORMATION -- and because the whole point of the
+  // 2/3/4 thresholds is that you can see a second element come within
+  // reach while you are still arranging the first.
+  renderPartyBonuses() {
+    const el = document.getElementById('party-bonuses');
+    if (!el) return;
+    const defs = Object.values(GameState.getTeam())
+      .map((uid) => GameState.defOf(uid)).filter(Boolean);
+    const groups = RACES.previewParty(defs);
+    if (groups.length === 0) {
+      el.innerHTML = '';
+      el.classList.add('hidden');
+      return;
+    }
+    el.classList.remove('hidden');
+    const info = typeof Elements !== 'undefined' ? Elements.info : null;
+    el.innerHTML = groups.map((grp) => {
+      const colour = info && info(grp.element) ? info(grp.element).color : '';
+      const rows = grp.tiers.map((t) =>
+        `<div class="pb-tier${t.earned ? ' pb-live' : ''}">` +
+        `<span class="pb-need">${t.count}</span>` +
+        `<span class="pb-name">${t.name}</span>` +
+        `<span class="pb-what">${t.label}</span></div>`).join('');
+      const earned = grp.tiers.filter((t) => t.earned).length;
+      return `<div class="pb-group${earned ? ' pb-group-live' : ''}">
+        <div class="pb-head"${colour ? ` style="color:${colour}"` : ''}>
+          ${grp.name} resonance <span class="pb-count">${grp.count} fielded</span></div>
+        ${rows}</div>`;
+    }).join('');
   }
 
   // ---- Roster panel ------------------------------------------------------

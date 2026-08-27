@@ -601,6 +601,13 @@ class BattleScreen {
       if (progress) progress.gear = GameState.equippedPieces(heroId);
       battle.placeUnit(new Unit(def, TEAM.PLAYER, progress), Number(slot));
     }
+    // Element party bonuses: 2/3/4 heroes of one element pay that
+    // element's set to its own. Applied once, here, while the party is
+    // built and before the enemy side exists -- the mods write onto base
+    // stats, so anything reading them afterwards sees the fought values.
+    this.partyBonuses = RACES.applyParty(
+      battle.units.filter((u) => u.team === TEAM.PLAYER));
+
     // A campaign node whose id no longer resolves (chapter data moved
     // under an old save) falls back to a hunt rather than fielding an
     // empty enemy side.
@@ -1081,6 +1088,9 @@ class BattleScreen {
     };
 
     if (this.introLog) battle.log(this.introLog, 'log-system');
+    for (const b of this.partyBonuses || []) {
+      battle.log(`${b.title} ×${b.count} — ${b.labels.join(' · ')}`, 'log-system');
+    }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
   }
 

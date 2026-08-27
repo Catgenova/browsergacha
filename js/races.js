@@ -130,6 +130,162 @@ const RACES = (() => {
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
                            'stella', 'sarena', 'orri', 'chirp'] },
   };
+  const ELEMENT_NAMES = {
+    water: 'Water', fire: 'Fire', wind: 'Wind', dark: 'Dark', light: 'Light',
+  };
+
+  // ---- Element party bonuses -------------------------------------------
+  //
+  // Field N heroes of one element and every hero OF THAT ELEMENT in the
+  // party gets the tier. Tiers STACK: four wind heroes hold all three.
+  //
+  // The thresholds are 2/3/4, not the 3/5/7 the old packs used. That is
+  // the whole point of bringing them back: a party is seven strong, so
+  // 3/5/7 meant one element or nothing, while 2/3/4 lets a party carry
+  // two or three elements and be paid for each. Mixing is the strategy
+  // rather than the penalty.
+  //
+  // A tier carries `mods` (flat changes, applied at battle build) or
+  // `hooks` (a passive-shaped object handed to the unit, giving a bonus
+  // the whole engine hook surface), or both.
+  //
+  // Only wind is written so far. An element with no table simply pays
+  // nothing -- the machinery does not assume five entries.
+  const ELEMENT_PARTY_BONUSES = {
+    wind: [
+      {
+        count: 2, name: 'Following Wind',
+        mods: { spdPct: 0.10 },
+        label: '+10% SPD',
+      },
+      {
+        count: 3, name: 'Crosswind',
+        // Ryn's Terminal Velocity, opened out to the party -- speed is
+        // the element's damage stat. Hers counts from zero in steps of
+        // 50; this counts only what is ABOVE 100, so it pays the party
+        // for building speed rather than for being wind.
+        //
+        // The step is 25, not the 50 the sketch used. Speed does not
+        // scale with level or stars (Progression.scaledStats keeps it
+        // identity), so the whole roster lives between 84 and 128 before
+        // gear: at a 50 step an ungeared or lightly geared wind party
+        // reads +0% and the tier is dead until a full Avian six-piece
+        // turns up. At 25 it pays +5% by 125 and climbs from there.
+        hooks: {
+          damageDealtMult(unit) {
+            const spd = unit.effectiveStat ? unit.effectiveStat('speed') : 0;
+            return 1 + 0.05 * Math.floor(Math.max(0, spd - 100) / 25);
+          },
+        },
+        label: '+5% damage per full 25 SPD above 100',
+      },
+      {
+        count: 4, name: 'Second Gust',
+        mods: { extraTurn: 0.10 },
+        label: '10% chance to act again after acting',
+      },
+    ],
+  };
+
+  function elementCounts(units) {
+    const out = {};
+    for (const u of units) {
+      const el = (u.def || u).element;
+      if (el) out[el] = (out[el] || 0) + 1;
+    }
+    return out;
+  }
+
+  // Flat changes, written onto the unit at battle build. Only the
+  // channels the current tables use -- the old table wrote thirty of
+  // them, most for packs that no longer exist, and a mod key with
+  // nowhere to land should fail loudly rather than be silently dropped.
+  const MOD_CHANNELS = {
+    hpPct: (u, v) => { u.maxHp = Math.round(u.maxHp * (1 + v)); u.hp = u.maxHp; },
+    atkPct: (u, v) => { u.baseAtk = Math.round(u.baseAtk * (1 + v)); },
+    defPct: (u, v) => { u.baseDef = Math.round(u.baseDef * (1 + v)); },
+    spdPct: (u, v) => { u.speed = Math.round(u.speed * (1 + v)); },
+    spdFlat: (u, v) => { u.speed += v; },
+    dodge: (u, v) => { u.gearDodge += v; },
+    extraTurn: (u, v) => { u.gearExtraTurn += v; },
+    cdr: (u, v) => { u.gearCdr += v; },
+    accuracy: (u, v) => { u.gearAccuracy += v; },
+    resistance: (u, v) => { u.gearResistance += v; },
+    healBoost: (u, v) => { u.gearHealBoost += v; },
+    critChance: (u, v) => { u.baseCritChance += v; },
+    critDamage: (u, v) => { u.baseCritDamage += v; },
+    takenMult: (u, v) => { u.synergyTakenMult *= v; },
+    apOnEnemyTurn: (u, v) => { u.synergyApOnEnemyTurn += v; },
+  };
+
+  function applyModsToUnit(unit, mods) {
+    for (const [key, value] of Object.entries(mods || {})) {
+      const write = MOD_CHANNELS[key];
+      if (!write) throw new Error(`party bonus mod '${key}' has no channel`);
+      write(unit, value);
+    }
+  }
+
+  // Hand a unit a bonus's hooks as an extra passive. `unit.passives` may
+  // BE the hero definition's own array (hero.js takes it by reference),
+  // so this concats onto a fresh one -- pushing would write the bonus
+  // into the def and every future copy of that hero would carry it.
+  function applyHooksToUnit(unit, tier) {
+    unit.passives = (unit.passives || []).concat({
+      name: tier.name,
+      description: tier.label,
+      partyBonus: true,
+      hooks: tier.hooks,
+    });
+  }
+
+  // Which tiers an element has earned at `count` heroes fielded.
+  function elementTiers(element, count) {
+    return (ELEMENT_PARTY_BONUSES[element] || []).filter((t) => count >= t.count);
+  }
+
+  // Apply element party bonuses to a built player team, and report what
+  // landed: [{ element, title, count, labels }]. Called once at battle
+  // build, before the enemy side exists.
+  function applyParty(units) {
+    const active = [];
+    for (const [element, count] of Object.entries(elementCounts(units))) {
+      const tiers = elementTiers(element, count);
+      if (tiers.length === 0) continue;
+      for (const unit of units) {
+        // The element pays its OWN. A wind hero standing with three
+        // others gets the wind set; the fire hero beside them does not,
+        // and collects their own element's instead.
+        if ((unit.def || unit).element !== element) continue;
+        for (const tier of tiers) {
+          if (tier.mods) applyModsToUnit(unit, tier.mods);
+          if (tier.hooks) applyHooksToUnit(unit, tier);
+        }
+      }
+      // `label` is the effect alone -- the tier's threshold lives in
+      // `count`, so each surface renders it in its own shape instead of
+      // the string carrying a prefix that reads twice in the log.
+      active.push({ element, title: `${ELEMENT_NAMES[element]} resonance`,
+        count, labels: tiers.map((t) => `${t.name}: ${t.label}`) });
+    }
+    return active;
+  }
+
+  // What a prospective party WOULD earn, without building a battle --
+  // the team screen's readout. Takes hero defs rather than units.
+  function previewParty(defs) {
+    const out = [];
+    for (const [element, count] of Object.entries(elementCounts(defs))) {
+      const tiers = ELEMENT_PARTY_BONUSES[element] || [];
+      if (tiers.length === 0) continue;
+      out.push({
+        element, name: ELEMENT_NAMES[element], count,
+        tiers: tiers.map((t) => ({ ...t, earned: count >= t.count })),
+      });
+    }
+    return out.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+
   // The orders still standing. Anything offering sects as a CHOICE --
   // a filter, a banner schedule, a roster of who is out there -- wants
   // this rather than SECTS, or it offers a closed order as somewhere a
@@ -152,5 +308,7 @@ const RACES = (() => {
   // heroes now bring exactly what their own kit and gear say, no matter
   // who stands beside them.
 
-  return { of, NAMES, SECTS, liveSects, sectOf };
+  return { of, NAMES, SECTS, liveSects, sectOf,
+    ELEMENT_NAMES, ELEMENT_PARTY_BONUSES, elementCounts, elementTiers,
+    applyParty, previewParty };
 })();

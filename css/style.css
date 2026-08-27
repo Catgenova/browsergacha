@@ -730,6 +730,49 @@ body {
   color: #ffd76a;
 }
 
+/* Party bonuses: what the formation is earning, beside the formation.
+   Unearned tiers stay visible and dim -- seeing that one more wind hero
+   buys Second Gust is the reason the thresholds came down to 2/3/4. */
+#party-bonuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+#party-bonuses.hidden { display: none; }
+.pb-group {
+  flex: 1 1 210px;
+  min-width: 200px;
+  padding: 7px 9px;
+  background: #211b38;
+  border: 1px solid #3a3358;
+  border-left: 3px solid #3a3358;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.pb-group-live { border-left-color: #ffd76a; background: #262046; }
+.pb-head {
+  font-weight: 600;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+  color: #c8c2da;
+}
+.pb-count { color: #9a92b8; font-weight: 400; }
+.pb-tier {
+  display: grid;
+  grid-template-columns: 16px auto 1fr;
+  gap: 0 6px;
+  align-items: baseline;
+  line-height: 1.75;
+  color: #6b6486;
+}
+.pb-tier.pb-live { color: #c8c2da; }
+.pb-need { color: #9a92b8; }
+.pb-tier.pb-live .pb-need { color: #ffd76a; }
+.pb-name { font-weight: 600; }
+.pb-what { color: #6b6486; }
+.pb-tier.pb-live .pb-what { color: #9a92b8; }
+
 /* Star-up forecast: what the bodies actually buy, before they are spent. */
 .imp-preview {
   margin: 6px 0 4px;
