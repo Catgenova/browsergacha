@@ -8015,4 +8015,81 @@ test('the star-up forecast matches what the hero actually becomes', () => {
     'a 10-star was offered a star up');
 });
 
+// Tapping a hero has to select THAT hero. Formation hexes sit close
+// together and sprites are taller than the tiles they stand on, so the
+// hit boxes overlap almost everywhere on the player's side; picking the
+// first match in roster order meant a point squarely on one hero could
+// return the one behind them. On a phone the whole board is a few
+// hundred pixels wide and there is no aiming your way out of it.
+test('a point on a hero selects that hero, not whoever overlaps them', () => {
+  // A real Battle: makeBattle() is a lightweight stub with no hit test.
+  const battle = new Battle();
+  const seated = [];
+  for (let i = 0; i < 5; i++) {
+    const u = new Unit(HEROES.talon, TEAM.PLAYER, { level: 30, stars: 4 });
+    battle.placeUnit(u, i);
+    seated.push(u);
+  }
+
+  // The overlap has to be built here. Nothing loads images in this
+  // harness, so every unit falls back to a 48x48 box and no two of them
+  // touch -- which is exactly the geometry the bug does NOT appear in.
+  // In the browser the sprites are 74-125px tall on hexes ~40px apart
+  // and the boxes overlap almost everywhere, so the sizes are stubbed to
+  // that shape and the rule is tested against it.
+  for (const u of seated) {
+    u.animator = { sheet: { size: () => ({ w: 96, h: 110 }) } };
+  }
+  const overlapping = seated.some((a) => seated.some((b) =>
+    b !== a && Math.abs(a.slot.x - b.slot.x) <= 96));
+  assert(overlapping, 'the fixture does not actually overlap, so it proves nothing');
+
+  const misses = [];
+  for (const u of seated) {
+    // Dead centre of the sprite box, which is anchored feet-on-tile.
+    const size = u.animator.sheet.size();
+    const cy = u.slot.y - size.h / 2 + 5;
+    const hit = battle.unitAt(u.slot.x, cy);
+    if (hit !== u) {
+      misses.push(`a tap on the hero at x${Math.round(u.slot.x)} selected ` +
+        `${hit ? `the one at x${Math.round(hit.slot.x)}` : 'nobody'}`);
+    }
+  }
+  assert(misses.length === 0, misses.join('; '));
+
+  // And a point on nobody still selects nobody.
+  assert(battle.unitAt(-500, -500) === null, 'empty space selected a unit');
+});
+
+// The phone board is cropped to the action band by a CSS rule that pulls
+// the canvas left and scales it up to compensate (width 127.66%,
+// margin-left -13.83% -- see the mobile block in css/style.css).
+// sizeCanvases() used to write `width: 100%` INLINE, which outranks that
+// rule: the canvas kept the pull and lost the zoom, so it sat 51px off
+// the left of its own crop. The player's front rank was clipped away, a
+// dead strip showed on the right, and because canvasPoint() divides by
+// the canvas's measured width, every tap mapped ~28% off target.
+//
+// Asserted against the source: the layout itself needs a browser, but
+// "does this file write an inline canvas width on the mobile path" does
+// not, and that is the thing that broke.
+test('the mobile canvas width is left to the stylesheet', () => {
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'js/main.js'), 'utf8');
+  const fn = src.slice(src.indexOf('sizeCanvases('));
+  const mobileArm = fn.slice(fn.indexOf('if (mobile) {'), fn.indexOf('} else {'));
+  assert(!/style\.width\s*=\s*['"`](?!\s*['"`])/.test(mobileArm),
+    'sizeCanvases sets a non-empty inline width on the mobile path, ' +
+    'which overrides the crop rule in css/style.css');
+
+  // And the stylesheet has to actually carry both halves, or clearing
+  // the inline width just leaves the canvas at its intrinsic size.
+  const css = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'css/style.css'), 'utf8');
+  assert(/html\.is-mobile canvas\s*\{[^}]*width:\s*100%/.test(css),
+    'no fluid default width for canvases on mobile');
+  assert(/#battle-canvas-crop\s*>\s*#battle-canvas\s*\{[^}]*width:\s*127\.66%/.test(css),
+    'the battle crop no longer scales the canvas up to match its pull');
+});
+
 report();
