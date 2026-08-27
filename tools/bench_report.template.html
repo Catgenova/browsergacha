@@ -103,6 +103,12 @@
   thead th.key { color: var(--sound); }
   .st { color: var(--muted); }
   .sect, .where { color: var(--muted); font-size: 12px; }
+  /* Blessings and hexes are counted, not converted -- a different unit
+     from the HP columns beside them, so they read as a different kind
+     of number. */
+  .ctrl { color: var(--sound); }
+  thead th.ctrl { color: var(--sound); }
+  tbody td.ctrl { font-variant-numeric: tabular-nums; }
   .nm { font-weight: 600; }
   .ti { display: block; font-family: var(--body); font-size: 11.5px;
     color: var(--muted); font-weight: 400; line-height: 1.3; }
@@ -206,6 +212,7 @@
       <span><i class="chip over"></i> at or above 2&times;</span>
       <span><i class="chip under"></i> at or below 0.5&times;</span>
       <span>bar clipped at 4&times;</span>
+      <span>a hero holding boons or hexes is not flagged low</span>
     </div>
   </section>
 
@@ -213,7 +220,10 @@
     <h2>Every hero, by bucket</h2>
     <h3>Six buckets: where the hero's hex wants it, crossed with what the kit is for</h3>
     <p class="sub">Sorted best-first on each bucket's own axis. <b>Mit/s</b> is damage
-    prevented rather than dealt; <b>taken/s</b> is what the hero itself absorbs.</p>
+    prevented rather than dealt; <b>taken/s</b> is what the hero itself absorbs.
+    <b>Boons</b> and <b>hexes</b> are the average number of blessings and afflictions
+    the hero was holding up at any one moment &mdash; counted rather than converted,
+    because a defence blessing and a point of damage are not the same currency.</p>
     <div class="buckets" style="margin-top:26px">%%BUCKETS%%</div>
   </section>
 

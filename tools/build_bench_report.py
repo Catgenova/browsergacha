@@ -61,7 +61,12 @@ for key, label, axis, axis_label in BUCKETS:
         r['_x'] = f(r[axis]) / med if med else 0
     members.sort(key=lambda r: -r['_x'])
     for r in members:
-        if r['_x'] >= HIGH or r['_x'] <= LOW:
+        # Damage, healing and mitigation share one currency; a blessing
+        # and a hex do not. A hero holding a field full of them is not
+        # idle, so a low headline is only called out when the hero is
+        # quiet on every axis the bench can see.
+        r['_works'] = f(r.get('boons')) >= 1 or f(r.get('hexes')) >= 1
+        if r['_x'] >= HIGH or (r['_x'] <= LOW and not r['_works']):
             flagged.append((label, axis_label, r))
     buckets.append((key, label, axis, axis_label, med, members))
 
@@ -83,15 +88,17 @@ def bar(x):
     return (f'<span class="bar"><i class="mid"></i>'
             f'<i class="fill under" style="right:50%;width:{w:.1f}%"></i></span>')
 
-def cls(x):
-    return 'over' if x >= HIGH else 'under' if x <= LOW else ''
+def cls(x, works=False):
+    if x >= HIGH:
+        return 'over'
+    return 'under' if x <= LOW and not works else ''
 
 table_rows = []
 for key, label, axis, axis_label, med, members in buckets:
     body = []
     for r in members:
         m = META.get(r['hero']) or {}
-        tag = cls(r['_x'])
+        tag = cls(r['_x'], r.get('_works'))
         body.append(f'''<tr class="{tag}">
         <th scope="row"><span class="nm">{html.escape(r['hero'])}</span><span class="ti">{html.escape(m.get('title') or '')}</span></th>
         <td class="num st">{r['rarity']}</td>
@@ -99,6 +106,8 @@ for key, label, axis, axis_label, med, members in buckets:
         <td class="num">{num(r['dps'])}</td>
         <td class="num">{num(r['heal/s'])}</td>
         <td class="num">{num(r['mit/s'])}</td>
+        <td class="num ctrl">{f(r.get('boons')):.2f}</td>
+        <td class="num ctrl">{f(r.get('hexes')):.2f}</td>
         <td class="num">{num(r['taken/s'])}</td>
         <td class="num key">{num(r[axis])}</td>
         <td class="dev">{bar(r['_x'])}</td>
@@ -113,7 +122,9 @@ for key, label, axis, axis_label, med, members in buckets:
         <thead><tr>
           <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th><th scope="col">Sect</th>
           <th scope="col" class="num">Dmg/s</th><th scope="col" class="num">Heal/s</th>
-          <th scope="col" class="num">Mit/s</th><th scope="col" class="num">Taken/s</th>
+          <th scope="col" class="num">Mit/s</th>
+          <th scope="col" class="num ctrl">Boons</th><th scope="col" class="num ctrl">Hexes</th>
+          <th scope="col" class="num">Taken/s</th>
           <th scope="col" class="num key">{html.escape(axis_label)}</th>
           <th scope="col" class="dev">vs median</th><th scope="col" class="num x"></th>
         </tr></thead>
@@ -125,7 +136,7 @@ for key, label, axis, axis_label, med, members in buckets:
 flag_rows = []
 for label, axis_label, r in flagged:
     m = META.get(r['hero']) or {}
-    tag = cls(r['_x'])
+    tag = cls(r['_x'], r.get('_works'))
     flag_rows.append(f'''<tr class="{tag}">
     <th scope="row">{html.escape(r['hero'])}</th>
     <td class="sect">{html.escape(m.get('sect') or '—')}</td>
