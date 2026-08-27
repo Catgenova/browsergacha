@@ -8269,4 +8269,82 @@ test('element party bonuses pay the element that earned them, in tiers', () => {
   }
 });
 
+// Water's set is defensive, and its 4pc is the first tier that is
+// CONDITIONAL on where a hero stands -- so it has to be read live, not
+// stamped onto the unit at build.
+test('water party bonuses: armour, a bounce, and a front line that holds', () => {
+  const waterIds = Object.values(HEROES).filter((h) => h.element === 'water')
+    .map((h) => h.id);
+  assert(waterIds.length >= 4, 'not enough water heroes to test four');
+
+  // Seat deliberately: slot order on the player side is
+  // center, front, front, back, back, back, front.
+  const party = (n) => {
+    const battle = new Battle();
+    const units = [];
+    for (let i = 0; i < n; i++) {
+      const u = new Unit(HEROES[waterIds[i]], TEAM.PLAYER, { level: 30, stars: 3 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    }
+    RACES.applyParty(units);
+    return { battle, units };
+  };
+
+  // ---- 2pc Cold Iron: +15% DEF ----
+  {
+    const bare = new Unit(HEROES[waterIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(2);
+    assert(units[0].baseDef === Math.round(bare.baseDef * 1.15),
+      `DEF ${units[0].baseDef}, wanted ${Math.round(bare.baseDef * 1.15)}`);
+  }
+
+  // ---- 3pc Riptide: a CHANCE to bounce, capped with everything else ----
+  {
+    const bare = new Unit(HEROES[waterIds[0]], TEAM.PLAYER, { level: 30, stars: 3 });
+    const { units } = party(3);
+    assert(Math.abs(units[0].reflectChance() - (bare.reflectChance() + 0.15)) < 1e-9,
+      `reflect ${units[0].reflectChance()} vs a base of ${bare.reflectChance()}`);
+    assert(party(2).units[0].reflectChance() === bare.reflectChance(),
+      'Riptide paid out at two water heroes');
+  }
+
+  // ---- 4pc Ice Shelf: front hexes only, and read LIVE ----
+  {
+    const { battle, units } = party(4);
+    const byPosition = {};
+    for (const sl of battle.playerSlots) {
+      if (!byPosition[sl.position]) byPosition[sl.position] = sl;
+    }
+    const u = units[0];
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      u.slot = byPosition[POSITION.FRONT];
+      const front = u.damageTakenMult(null);
+      u.slot = byPosition[POSITION.BACK];
+      const back = u.damageTakenMult(null);
+      assert(Math.abs(front / back - 0.80) < 1e-9,
+        `front took ${front} and back took ${back}, wanted a 0.80 ratio`);
+      // Moved forward mid-fight, the shelf has to pick it up.
+      u.slot = byPosition[POSITION.FRONT];
+      assert(Math.abs(u.damageTakenMult(null) - front) < 1e-9,
+        'Ice Shelf did not follow a hero who moved back to the front');
+    } finally { Battle.active = prev; }
+  }
+
+  // ---- Three water heroes do not hold the shelf ----
+  {
+    const { battle, units } = party(3);
+    const front = battle.playerSlots.find((s) => s.position === POSITION.FRONT);
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      units[0].slot = front;
+      assert(Math.abs(units[0].damageTakenMult(null) - 1) < 1e-9,
+        'Ice Shelf paid out at three water heroes');
+    } finally { Battle.active = prev; }
+  }
+});
+
 report();
