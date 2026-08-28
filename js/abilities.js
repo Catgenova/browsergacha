@@ -756,6 +756,22 @@ const Abilities = (() => {
         return { kind: 'forge', target: caster, amount: gain, count,
           banked: caster.forgeBanked || 0, cap: effect.cap };
       }
+      case 'spendPouch': {
+        // Everything Balmor has been given, given back. A per-battle
+        // bank on the unit, filled by his own passive off blows he
+        // takes and emptied here -- the same shape as Lucian's forge
+        // heat, which also lives on the caster and also only means
+        // anything alongside the kit that fills it.
+        //
+        // Thrown as an ordinary blow: it can be dodged, it can be
+        // reflected, and the DEF curve answers it. A stored hit is
+        // still a hit, unlike a poison already inside somebody.
+        const held = Math.round(caster.pouch || 0);
+        if (held <= 0) return { kind: 'pouch', target, amount: 0, spent: 0 };
+        caster.pouch = 0;
+        const hit = strike(caster, target, held, {});
+        return { kind: 'pouch', target, amount: hit.amount, spent: held };
+      }
       case 'bounce': {
         // A ricochet (Lucian): hit, then `chance` to leap to another
         // enemy and hit again, indefinitely. With one enemy standing it

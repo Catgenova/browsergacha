@@ -9632,6 +9632,125 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The sect's other wall, and deliberately the opposite of the first.
+// Strix prevents damage; Balmor prevents nothing and KEEPS it, then
+// hands it back at somebody else's expense.
+test("Balmor's bill: everything he was given, given back", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    // Only a little roomy. The cap is a fraction of his POOL, so
+    // inflating the pool inflates the cap out of reach of any beating
+    // the test can hand out -- at 200x he would need thousands of
+    // blows to fill a bill nobody could ever fill in a fight either.
+    const balmor = roomy(place(battle, HEROES.balmor, TEAM.PLAYER, 1), 3);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 4000);
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.hookSources = () => [];
+    balmor.dodgeChance = () => 0; balmor.reflectChance = () => 0;
+
+    // An empty bill is empty: nothing banked before anything lands.
+    assert(!(balmor.pouch > 0), `the bill started holding ${balmor.pouch}`);
+
+    // He keeps 30% of what he is given, not of what was thrown -- the
+    // hook reads what actually landed, after his own armour.
+    const real = Math.random;
+    Math.random = () => 0.99;
+    let landed = 0;
+    try {
+      const before = balmor.hp;
+      Abilities.strike(foe, balmor, 6000, { dodge: false, reflect: false });
+      landed = before - balmor.hp;
+    } finally { Math.random = real; }
+    assert(landed > 0, 'the blow did not land at all');
+    assert(Math.abs(balmor.pouch - landed * 0.50) < 1e-6,
+      `the bill holds ${balmor.pouch} off a ${landed} blow, wanted half`);
+
+    // Capped against his POOL, not his ATK -- and the cap has to be
+    // bigger than a single blow, or "keeps a share of every blow" is a
+    // sentence about nothing. The first draft of this hero failed
+    // exactly there: 250% of a tank's ATK was a fifth of one hit.
+    const cap = balmor.maxHp * 0.25;
+    assert(cap > landed,
+      `the cap (${cap}) is smaller than one blow (${landed}) -- the bill fills instantly`);
+    Math.random = () => 0.99;
+    try {
+      for (let i = 0; i < 40; i++) {
+        balmor.hp = balmor.maxHp;
+        Abilities.strike(foe, balmor, 6000, { dodge: false, reflect: false });
+      }
+    } finally { Math.random = real; }
+    assert(Math.abs(balmor.pouch - cap) < 1e-6,
+      `a long beating filled the bill to ${balmor.pouch}, wanted the ${cap} cap`);
+
+    // Tipping it spends the WHOLE bill and empties it.
+    const held = balmor.pouch;
+    const foeBefore = foe.hp;
+    Math.random = () => 0.99;
+    try { Abilities.execute(balmor.abilities[2].def, balmor, foe, battle); }
+    finally { Math.random = real; }
+    assert(balmor.pouch === 0, `the bill still holds ${balmor.pouch} after tipping`);
+    const dealt = foeBefore - foe.hp;
+    assert(dealt > 0, 'a full bill dealt nothing');
+    // Thrown as an ordinary blow, so the DEF curve answers it: what
+    // lands is what the formula makes of what was held.
+    const want = Abilities.damageFormula(held * balmor.damageDealtMult(foe, null),
+      foe.effectiveStat('def'));
+    assert(Math.abs(dealt - want) <= 2,
+      `the bill landed ${dealt}, wanted ~${want} through the curve`);
+
+    // And tipping an EMPTY bill is a no-op rather than a free hit.
+    const emptyBefore = foe.hp;
+    Math.random = () => 0.99;
+    try { Abilities.execute(balmor.abilities[2].def, balmor, foe, battle); }
+    finally { Math.random = real; }
+    assert(foe.hp === emptyBefore,
+      `an empty bill still dealt ${emptyBefore - foe.hp} damage`);
+
+    // The bill fills from blows he TAKES, not from blows he throws.
+    balmor.pouch = 0;
+    Math.random = () => 0.99;
+    try { Abilities.execute(balmor.abilities[0].def, balmor, foe, battle); }
+    finally { Math.random = real; }
+    assert(!(balmor.pouch > 0),
+      `hitting somebody put ${balmor.pouch} in the bill -- it fills from what he is given`);
+  } finally { Battle.active = prev; }
+
+  // The tension the kit is built on: Broad Shadow keeps him alive and
+  // starves the bill, because damage he does not take is damage he does
+  // not get to keep. Worth pinning -- if the two ever stopped pulling
+  // against each other the hero would be strictly better, not
+  // interesting.
+  {
+    const b2 = makeBattle();
+    const prev2 = Battle.active;
+    Battle.active = b2;
+    try {
+      const bank = (warded) => {
+        const bal = roomy(place(b2, HEROES.balmor, TEAM.PLAYER, 1), 3);
+        bal.dodgeChance = () => 0; bal.reflectChance = () => 0;
+        const foe = roomy(place(b2, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+        foe.hookSources = () => [];
+        if (warded) {
+          bal.addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.85,
+            turns: 2, source: bal });
+        }
+        const real = Math.random;
+        Math.random = () => 0.99;
+        try { Abilities.strike(foe, bal, 6000, { dodge: false, reflect: false }); }
+        finally { Math.random = real; }
+        b2.units = b2.units.filter((u) => u !== bal && u !== foe);
+        return bal.pouch;
+      };
+      const open = bank(false), covered = bank(true);
+      assert(covered < open,
+        `warded he banked ${covered} against ${open} bare -- the shadow is meant to ` +
+        'cost him the bill');
+    } finally { Battle.active = prev2; }
+  }
+});
+
 // The flight's apothecary, and the answer to a problem the Razorwings
 // make for themselves: a sect built to take more turns than anybody
 // else runs into its own COOLDOWNS more often than anybody else.
