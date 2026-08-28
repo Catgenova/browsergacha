@@ -9,6 +9,16 @@
 //                 burns and their court is paid for them, so the two
 //                 halves have to be fielded together to be worth
 //                 anything at all.
+//   Razorwings    wind, green and white. SPEED, spent as damage rather
+//                 than banked as more turns. That distinction is the
+//                 whole sect: the wind ELEMENT pack already sells speed
+//                 as extra turns (Following Wind, Crosswind, Second
+//                 Gust), and a sect tier always lands on top of an
+//                 element tier, so a Razorwing selling raw speed again
+//                 would only compound what the party already holds.
+//                 They convert it instead -- being faster than the
+//                 thing in front of you is worth something on the swing
+//                 itself.
 //
 // Where a human sect is nine heroes of whatever rarity they happened to
 // be written at, a bird sect is built to a shape — one 1★, two 2★,
@@ -1549,5 +1559,69 @@ Object.assign(HEROES, {
       },
     },
     positional: POSITIONALS.hoverpoint,
+  },
+
+  // ---- Razorwings ---------------------------------------------------------
+
+  // The bottom of the sect and the first bird into it. A stooping
+  // falcon: fastest thing on the field, and made of very little.
+  tervan: {
+    id: 'tervan',
+    element: 'wind',
+    name: 'Tervan',
+    title: 'Stoop of the Razorwings',
+    rarity: 1,
+    // Ratios only; js/data/balance.js scales the three combat stats to
+    // the shared budget for the shelf and leaves speed alone. Speed is
+    // therefore the one number here that is really a design choice, and
+    // his is the highest on the roster: the sect's whole thesis is that
+    // being first is worth something, and he is the cheapest way to buy
+    // it.
+    stats: { hp: 860, atk: 215, def: 80, speed: 136 },
+    tint: { body: '#8a6a4a', helm: '#2f6f4a', weapon: '#c8ccd4', shield: '#e8d8a8' },
+    sprite: {
+      displayH: 72, // small, and most of what you see is wingspan
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/tervanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // ONE skill, and it has to be cooldown-free: a 1-star with a
+    // cooldown would spend whole turns with nothing to press. The
+    // contract test in data.test.js holds both halves of that.
+    abilities: [
+      {
+        id: 'stoop', name: 'Stoop',
+        icon: 'assets/icons/fc819.png',
+        description: 'Fold the wings and fall: 105% ATK to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.05 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Windshear',
+      icon: 'assets/icons/fc1062.png',
+      // Speed spent as damage, and deliberately NOT through
+      // damageDealtMult: that is the channel Crosswind (wind's own 3pc)
+      // already pays into off the same stat, and a second helping there
+      // would just be the party bonus twice. Armour blindness is its
+      // own channel, so this reads as a different thing on the sheet as
+      // well as in the maths.
+      description: 'Nothing slow gets its guard up in time: Tervan ignores 15% of the DEF ' +
+        'of any enemy slower than he is.',
+      hooks: {
+        defIgnoreAdd(unit, target) {
+          if (!unit || !target) return 0;
+          return unit.effectiveStat('speed') > target.effectiveStat('speed') ? 0.15 : 0;
+        },
+      },
+    },
+    positional: POSITIONALS.reckless_charge,
   },
 });
