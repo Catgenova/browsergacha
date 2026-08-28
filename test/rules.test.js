@@ -11541,4 +11541,104 @@ test('Nemeris: Up With the Sun buys the brood a Wingbeat rung', () => {
   } finally { Battle.active = prev; }
 });
 
+// The brood's artillery. His ramp is charged by TURNS, which is the
+// only thing in his kit that touches the sect's first pillar -- Quick
+// Feathers buys him turns and every turn is a step -- and it is paid
+// for by having to be left alone to play.
+test('Aster: the Long Note climbs on turns and sheds on blows', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const aster = roomy(place(battle, HEROES.aster, TEAM.PLAYER, 4), 40);
+    aster.dodgeChance = () => 0; aster.reflectChance = () => 0;
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    // Off his hex, so the ceiling under test is the passive's own 5.
+    aster.slot = battle.playerSlots[1];
+
+    const mult = () => aster.damageDealtMult(foe);
+    assert(Math.abs(mult() - 1) < 1e-9, `opened at ${mult()}, not silent`);
+
+    aster.startTurn(battle);
+    assert(Math.abs(mult() - 1.10) < 1e-9, `one turn in he is at ${mult()}, wanted 1.10`);
+
+    // Climbs, and stops climbing.
+    for (let i = 0; i < 10; i++) aster.startTurn(battle);
+    assert(aster.longNote === 5, `the note reached ${aster.longNote}, wanted a cap of 5`);
+    assert(Math.abs(mult() - 1.50) < 1e-9, `capped at ${mult()}, wanted 1.50`);
+
+    // And sheds one step per blow, not all of them.
+    const real = Math.random;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, aster, 200, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(aster.alive, 'the fixture killed him');
+    assert(aster.longNote === 4,
+      `a single blow took him to ${aster.longNote}, wanted one step off`);
+  } finally { Battle.active = prev; }
+});
+
+// His hex raises the CEILING rather than the rate: the back row is
+// where an artillery piece is left alone long enough to reach the top
+// of a ramp, so the hex pays exactly the hero who can stand still.
+test('Aster: Carrying Distance lifts the ceiling to +70%', () => {
+  const battle = makeBattle();
+  const hex = POSITIONALS.carrying_distance;
+  assert(HEROES.aster.positional === hex, 'Aster is not on his own hex');
+  assert(hex.position === POSITION.BACK, 'the horn belongs at the back');
+  const aster = place(battle, HEROES.aster, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+  assert(aster.positionalActive(), 'slot 4 is not a back hex');
+  for (let i = 0; i < 12; i++) aster.startTurn(battle);
+  assert(aster.longNote === 7, `the note reached ${aster.longNote} on the hex, wanted 7`);
+  assert(Math.abs(aster.damageDealtMult(foe) - 1.70) < 1e-9,
+    `capped at ${aster.damageDealtMult(foe)} on the hex, wanted 1.70`);
+});
+
+// The sect's actual damage answer, and it is paid to everybody but him.
+// The mark is the roster's EXISTING vulnerability channel -- Doom Mark's
+// -- taken wide and shallow, because a debuff a player cannot read at a
+// glance may as well not be on the field.
+test("Aster: Reveille marks the line with the roster's own mark", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const aster = maxSkill(place(battle, HEROES.aster, TEAM.PLAYER, 4), 2);
+    const foes = [0, 1, 2].map((i) => {
+      const u = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 40);
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      return u;
+    });
+    const reveille = aster.abilities.find((a) => a.def.id === 'aster_reveille');
+    assert(reveille, 'Reveille is missing');
+    assert(reveille.def.targeting === 'all-enemies', 'the note did not carry to the line');
+
+    Math.random = () => 0.01; // the gate opens
+    Abilities.execute(reveille.def, aster, foes[0], battle);
+
+    for (const f of foes) {
+      const mark = f.statusEffects.find(
+        (fx) => fx.kind === 'debuff' && fx.stat === 'damageTaken' && fx.mult > 1);
+      assert(mark, `${f.name} was not marked`);
+      assert(Math.abs(mark.mult - 1.20) < 1e-9, `marked for ${mark.mult}, wanted 1.20`);
+      assert(f.hp < f.maxHp, `${f.name} took no damage from the blast`);
+    }
+    // The mark is worth 20% to EVERYONE, not only to him -- that is the
+    // whole reason a healing sect fields him.
+    const ally = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    ally.hookSources = () => [];
+    assert(Math.abs(foes[0].damageTakenMult(ally) - 1.20) < 1e-9,
+      `a teammate reads the mark as ${foes[0].damageTakenMult(ally)}, wanted 1.20`);
+
+    // And it is gated, at the 50% the card advertises.
+    const gate = reveille.def.effects.find((e) => e.chance !== undefined);
+    assert(gate && Math.abs(gate.chance - 0.5) < 1e-9,
+      'the mark is not on the roster-standard 50% gate');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
 report();
