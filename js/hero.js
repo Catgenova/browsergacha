@@ -1114,6 +1114,14 @@ class Unit {
   // brought them back, credited with the restored HP on the meter.
   revive(pct, source = null) {
     if (this.alive) return;
+    // Impaled (Shrike's thornbush): a bird he put down stays down.
+    // Checked here rather than in each of the four things that raise
+    // the dead -- Emily, Korvid, Malachar, and whatever comes next --
+    // because a rule enforced in one place cannot be forgotten in the
+    // fifth. Necros is deliberately unaffected: he does not RAISE a
+    // corpse, he takes it apart for something else, and taking a body
+    // off the board is not the same as putting it back on its feet.
+    if (this.unraisable) return;
     this.hp = Math.max(1, Math.round(this.maxHp * pct));
     if (typeof Meter !== 'undefined') Meter.healing(source || this, this.hp);
     this.statusEffects = [];

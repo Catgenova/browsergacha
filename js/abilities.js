@@ -731,6 +731,15 @@ const Abilities = (() => {
         const hit = { ...strike(caster, target, raw,
           { crit: true, critAdd: effect.critAdd, ignoreDef: effect.ignoreDef }),
           elem: elemMult };
+        // `resetOnKill`: a blow that finishes something hands its own
+        // cooldown straight back (Shrike's larder). The assassin's chain
+        // -- and gated by needing an actual kill at a seven's
+        // multiplier, which is a far harder condition than it reads.
+        if (effect.resetOnKill && !target.alive && hit.amount > 0) {
+          const mine = (caster.abilities || []).find((a) => a.def === currentAbility);
+          if (mine) mine.cooldownRemaining = 0;
+          hit.reset = true;
+        }
         // `healDealt` turns the wound into a mend: a share of the damage
         // ACTUALLY dealt (post-mitigation, post-dodge) is handed to
         // someone on the caster's side. `to` picks who — 'lowest-ally'
