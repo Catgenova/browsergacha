@@ -9632,6 +9632,112 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The third answer to the same job. Strix prevents, Balmor absorbs,
+// Brannoc punishes -- and he is the only one of the three worth
+// anything while the enemy is IGNORING him, which is the tank's real
+// problem rather than the one tanks are usually built for.
+test("Brannoc answers for what goes through him", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const bran = place(battle, HEROES.brannoc, TEAM.PLAYER, 1);
+    const mate = roomy(place(battle, HEROES.kiri, TEAM.PLAYER, 4), 200);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    mate.dodgeChance = () => 0; mate.reflectChance = () => 0;
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+
+    // An ally taking a blow is answered.
+    const real = Math.random;
+    const before = foe.hp;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, mate, 500, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    const answered = before - foe.hp;
+    assert(answered > 0, 'an ally was struck and Brannoc did nothing');
+    // At the printed size. NO elemental multiplier: Elements.mult is
+    // applied inside applyEffect's damage case, not inside strike(), so
+    // a counter thrown straight from a passive never gets element
+    // advantage. That is true of every retaliation on the roster --
+    // Carl's, Slick's, Toll's and Oak's all call strike() the same way
+    // -- so it is the engine's existing rule rather than something this
+    // bird does differently, and the expectation follows the rule.
+    const want = Abilities.damageFormula(
+      bran.effectiveStat('atk') * 0.40 * bran.damageDealtMult(foe, null),
+      foe.effectiveStat('def'));
+    assert(Math.abs(answered - want) <= 2,
+      `the answer landed ${answered}, wanted ~${want}`);
+
+    // His OWN hide is not the trigger -- that is Carl's and Oak's
+    // mechanic, and the whole point of this one is that it pays while
+    // the other side is going around him.
+    const solo = foe.hp;
+    bran.hp = bran.maxHp = 9e6;
+    bran.dodgeChance = () => 0; bran.reflectChance = () => 0;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, bran, 500, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(foe.hp === solo,
+      `being hit himself cost the attacker ${solo - foe.hp} -- this answers for ALLIES`);
+
+    // Never for a blow his own side landed. Watch BRANNOC rather than
+    // the enemy here: with the attacker-is-an-enemy guard gone the
+    // answer aims at whoever swung, which for friendly fire is a
+    // teammate -- and when he is the one who swung, himself. Checking
+    // the foe's health cannot see any of that, which is how the first
+    // draft of this assertion proved nothing.
+    const friendly = foe.hp;
+    const hisOwn = bran.hp;
+    Math.random = () => 0.99;
+    try { Abilities.strike(bran, mate, 500, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(foe.hp === friendly, 'an ally hitting an ally set the answer off');
+    assert(bran.hp === hisOwn,
+      `Brannoc answered his own blow and took ${hisOwn - bran.hp} for it`);
+
+    // And an answer cannot set off another answer: two Brannocs on one
+    // field must not bounce blows off each other until the stack gives
+    // out. Fired inside the engine's retaliation guard, so a second
+    // one standing beside him changes nothing about the first.
+    const twin = place(battle, HEROES.brannoc, TEAM.PLAYER, 2);
+    const paired = foe.hp;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, mate, 500, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    const two = paired - foe.hp;
+    assert(two > 0 && two < answered * 3,
+      `two Brannocs answered for ${two} against one's ${answered} -- the guard is not holding`);
+    battle.units = battle.units.filter((u) => u !== twin);
+  } finally { Battle.active = prev; }
+
+  // Nine birds. The sect is finished, and this is the shape it was
+  // being filled to from the first commit: one 1-star, two 2-stars,
+  // three 3-stars, two 4-stars, one 5-star, every one of them wind.
+  {
+    const sect = RACES.SECTS.razorwings;
+    assert(sect.members.length === 9,
+      `the Razorwings hold ${sect.members.length}`);
+    const have = {};
+    for (const id of sect.members) {
+      const h = HEROES[id];
+      assert(h.element === 'wind', `${id} is ${h.element}, not wind`);
+      have[h.rarity] = (have[h.rarity] || 0) + 1;
+    }
+    for (const [star, want] of Object.entries(sect.shape)) {
+      assert((have[star] || 0) === want,
+        `${have[star] || 0} at ${star}-star, the shape wants ${want}`);
+    }
+    // Every bird carries art of its own rather than a placeholder --
+    // the whole sect was uploaded at once and every def has to point at
+    // its own strip.
+    const srcs = sect.members.map((id) => HEROES[id].sprite.strips.idle.src);
+    assert(new Set(srcs).size === 9, 'two Razorwings share a sprite strip');
+    assert(srcs.every((s) => s.includes('/razorwings/')),
+      'a Razorwing is wearing somebody else\'s feathers');
+  }
+});
+
 // The sect's other wall, and deliberately the opposite of the first.
 // Strix prevents damage; Balmor prevents nothing and KEEPS it, then
 // hands it back at somebody else's expense.
