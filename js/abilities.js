@@ -280,6 +280,54 @@ const Abilities = (() => {
           echo: again ? again.amount : 0 };
       }
     }
+    // Split shaft (Rizzo): a CRIT carries on past the bird it hit and
+    // finds the weakest thing still standing. Sibling to the encore
+    // above and deliberately the other shape -- the encore hits the SAME
+    // target a second time, this one hits a DIFFERENT one, so a kit
+    // carrying both is widening rather than doubling.
+    //
+    // Guarded by the same `Unit.echoing` latch, and thrown with
+    // `crit: false`, so a split can never split again.
+    if (crit && dealt > 0 && !Unit.echoing && caster.alive &&
+        caster.team !== target.team) {
+      let share = 0;
+      for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+        const c = p.hooks && p.hooks.critCarry;
+        if (c) share = Math.max(share, typeof c === 'function' ? (c(caster) || 0) : c);
+      }
+      // The FIELD is Battle.active -- "one battle at a time", per the
+      // Battle constructor. `currentBattle` is only this call's
+      // convenience and is sticky (it is assigned, never cleared), so it
+      // can still be pointing at a fight that finished. That does not
+      // matter to the encore above, which uses it for logging alone, but
+      // it matters entirely here, where the battle decides WHO gets shot.
+      // A rules test caught the split landing on an enemy from a
+      // different battle; the containment check below is the guard.
+      const battle = (typeof Battle !== 'undefined' && Battle.active) || currentBattle;
+      const here = battle && Array.isArray(battle.units) &&
+        battle.units.includes(target);
+      if (share > 0 && here) {
+        const onward = battle.livingUnits(target.team)
+          .filter((u) => u !== target)
+          .sort((a, b) => a.hp - b.hp)[0];
+        if (onward) {
+          Unit.echoing = true;
+          let split = null;
+          try {
+            split = strike(caster, onward, raw * share, { ...opts, crit: false });
+          } finally {
+            Unit.echoing = false;
+          }
+          if (split && split.amount > 0) {
+            battle.addFloatingText(onward, `\u27a4 ${split.amount}`, '#ffd76a');
+            battle.log(`The shaft splits — ${onward.name} takes ${split.amount}.`,
+              'log-system');
+          }
+          return { kind: 'damage', target, amount: dealt, crit,
+            split: split ? split.amount : 0 };
+        }
+      }
+    }
     return { kind: 'damage', target, amount: dealt, crit };
   }
 

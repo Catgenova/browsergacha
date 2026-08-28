@@ -3004,4 +3004,101 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.carrying_distance,
   },
+
+  // The other half of Aster, and written as his negative. Aster is a
+  // horn: wide, loud, best at the opening, and worth most for what he
+  // leaves on the enemy line. Rizzo is a bow: one bird at a time, worth
+  // most at the end, and worth it to nobody but himself.
+  //
+  // He runs on CRIT, which is the one axis neither of his packs touches
+  // -- light sells max HP twice and a stay of execution, the brood sells
+  // speed and healing done -- so a crit build on him is a build the sect
+  // has not already paid for. That is the whole reason a healing order
+  // can afford a hero whose damage is a lottery: nothing else in it is.
+  //
+  // Darker than the rest of the brood on the strip, too, and that is
+  // about right. He is the one who finishes things.
+  rizzo: {
+    id: 'rizzo',
+    element: 'light',
+    name: 'Rizzo',
+    title: 'Bowbearer of the Sunbrood',
+    rarity: 3,
+    stats: { hp: 1220, atk: 212, def: 86, speed: 108 },
+    tint: { body: '#3a5a6a', helm: '#e8c84a', weapon: '#c8a83a', shield: '#2a3a5a' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/rizzoidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rizzo_loose', name: 'Loose',
+        icon: 'assets/icons/fc823.png',
+        description: 'One arrow, one bird: 95% ATK to a single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.95 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'rizzo_bodkin', name: 'Bodkin',
+        icon: 'assets/icons/fc1141.png',
+        // A narrow head made for armour, and the reason he is the answer
+        // to the wall Aster's blast bounces off.
+        description: 'The narrow head, for armour: 155% ATK to one enemy, slipping past ' +
+          '30% of their DEF.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.55, ignoreDef: 0.30 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'rizzo_the_long_shot', name: 'The Long Shot',
+        icon: 'assets/icons/fc1272.png',
+        // `critAdd: 1` takes the roll to a certainty (the chance is
+        // capped at 1 in strike), which makes his seven the one shot
+        // that is GUARANTEED to split. The kit interlocks: the passive
+        // needs a crit and this one buys it outright.
+        description: 'He has been holding this one since the light came up: 240% ATK to a ' +
+          'single enemy, and it always crits.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 2.40, critAdd: 1 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Split the Shaft',
+      icon: 'assets/icons/fc1066.png',
+      // Sibling to the fire pack's Encore and deliberately the other
+      // shape: the encore hits the SAME bird twice, this one goes on to
+      // a DIFFERENT one, so a kit carrying both widens instead of
+      // doubling. It picks the weakest thing still standing, which is
+      // what makes him a finisher and Aster an opener.
+      description: "When Rizzo crits, the shaft splits: the enemy with the least health " +
+        'left takes half the shot as well.',
+      hooks: { critCarry: 0.5 },
+    },
+    positional: POSITIONALS.called_shot,
+  },
 });

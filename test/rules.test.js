@@ -11652,4 +11652,148 @@ test("Aster: Reveille marks the line with the roster's own mark", () => {
   } finally { Math.random = real; Battle.active = prev; }
 });
 
+// Aster's negative. He runs on CRIT, the one axis neither of his packs
+// touches, and his crits do not hit harder -- they hit WIDER, onto the
+// weakest thing still standing. Sibling to the fire pack's Encore and
+// deliberately the other shape, so a kit carrying both widens instead
+// of doubling.
+test('Rizzo: a crit splits onto the weakest enemy left', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const rizzo = place(battle, HEROES.rizzo, TEAM.PLAYER, 4);
+    rizzo.slot = battle.playerSlots[1];          // off his hex: half strength
+    const foes = [0, 1, 2].map((i) => {
+      const u = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 60);
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      return u;
+    });
+    const [hit, middling, weakest] = foes;
+    middling.hp = Math.round(middling.maxHp * 0.60);
+    weakest.hp = Math.round(weakest.maxHp * 0.20);
+    const before = foes.map((f) => f.hp);
+
+    // A crit that lands: crit rolls under effectiveStat('critChance'),
+    // and every other roll in strike wants a HIGH number to miss.
+    let critPin = 1;
+    rizzo.effectiveStat = ((base) => function (stat) {
+      return stat === 'critChance' ? critPin : base.call(this, stat);
+    })(rizzo.effectiveStat);
+    Math.random = () => 0;
+    const res = Abilities.strike(rizzo, hit, 4000, { crit: true, dodge: false, reflect: false });
+    Math.random = real;
+
+    assert(res.crit, 'the fixture did not produce a crit');
+    assert(res.split > 0, 'the shaft did not split');
+    assert(weakest.hp < before[2], 'the split missed the weakest enemy');
+    assert(middling.hp === before[1],
+      'the split landed on the middling enemy, not the weakest');
+    // Half the shot, off his hex.
+    const carried = before[2] - weakest.hp;
+    const landed = before[0] - hit.hp;
+    assert(carried > 0 && carried < landed,
+      `the split carried ${carried} against a ${landed} hit -- wanted a fraction`);
+
+    // And it cannot split again: one arrow, two birds, never three.
+    // (The `Unit.echoing` latch is what stops it, and it is genuinely
+    // unobservable from outside -- flipping the recursive call back to
+    // `crit: true` changes nothing, because the latch refuses the
+    // re-entry before the crit is ever rolled.)
+    assert(foes.filter((f, i) => f.hp < before[i]).length === 2,
+      'the split carried on past its second bird');
+
+    // A plain hit does not split. The lottery IS the mechanic, so a
+    // version that carried on every blow would be a different hero.
+    const plainBefore = weakest.hp;
+    critPin = 0;
+    Math.random = () => 0.999;
+    const plain = Abilities.strike(rizzo, hit, 4000,
+      { crit: true, dodge: false, reflect: false });
+    Math.random = real;
+    assert(!plain.crit, 'the fixture crit when it was meant to miss the roll');
+    assert(weakest.hp === plainBefore, 'a shot that did not crit still split');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex raises what the second arrow is WORTH, not how often it
+// flies: the frequency is his crit chance, which is gear, and a hex
+// stacked on gear would pay twice for the same thing.
+test('Rizzo: Called Shot carries the split at full strength', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const hex = POSITIONALS.called_shot;
+    assert(HEROES.rizzo.positional === hex, 'Rizzo is not on his own hex');
+    assert(hex.position === POSITION.BACK, 'a bowbearer belongs at the back');
+
+    const shoot = (onHex) => {
+      const b = makeBattle();
+      Battle.active = b;
+      const r = place(b, HEROES.rizzo, TEAM.PLAYER, 4);
+      if (!onHex) r.slot = b.playerSlots[1];
+      assert(r.positionalActive() === onHex, 'the fixture put him on the wrong hex');
+      r.effectiveStat = ((base) => function (stat) {
+        return stat === 'critChance' ? 1 : base.call(this, stat);
+      })(r.effectiveStat);
+      const aim = roomy(place(b, DUMMIES.rat_knight, TEAM.ENEMY, 0), 60);
+      const weak = roomy(place(b, DUMMIES.rat_knight, TEAM.ENEMY, 1), 60);
+      [aim, weak].forEach((u) => {
+        u.hookSources = () => [];
+        u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      });
+      weak.hp = Math.round(weak.maxHp * 0.20);
+      const was = weak.hp;
+      Math.random = () => 0;
+      Abilities.strike(r, aim, 4000, { crit: true, dodge: false, reflect: false });
+      Math.random = real;
+      return was - weak.hp;
+    };
+
+    const off = shoot(false);
+    const on = shoot(true);
+    assert(off > 0 && on > 0, 'one of the shots never split');
+    assert(on > off * 1.5,
+      `the hex carried ${on} against ${off} off it -- wanted roughly double`);
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The kit interlocks: the passive needs a crit, and his seven buys one
+// outright. It is the only shot he has that is GUARANTEED to split.
+test('Rizzo: The Long Shot always crits', () => {
+  const shot = HEROES.rizzo.abilities.find((a) => a.id === 'rizzo_the_long_shot');
+  assert(shot, 'The Long Shot is missing');
+  const dmg = shot.effects.find((e) => e.type === 'damage');
+  assert(dmg.critAdd >= 1, `critAdd is ${dmg.critAdd}, wanted a certainty`);
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const rizzo = place(battle, HEROES.rizzo, TEAM.PLAYER, 4);
+    // No crit chance of his own, and every roll in strike maxed out.
+    rizzo.effectiveStat = ((base) => function (stat) {
+      return stat === 'critChance' ? 0 : base.call(this, stat);
+    })(rizzo.effectiveStat);
+    const aim = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0), 60);
+    const weak = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 60);
+    [aim, weak].forEach((u) => {
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+    });
+    weak.hp = Math.round(weak.maxHp * 0.20);
+    const was = weak.hp;
+    Math.random = () => 0.999;   // every gate refuses
+    Abilities.execute(shot, rizzo, aim, battle);
+    Math.random = real;
+    assert(weak.hp < was,
+      'the seven did not crit, so it did not split, on a hero with no crit chance');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
 report();

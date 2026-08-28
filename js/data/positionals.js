@@ -425,6 +425,17 @@ const POSITIONALS = (() => {
     hooks: { longNoteCap: 7 },
   });
 
+  // Rizzo's hex: the range at which a split shaft still has the legs to
+  // matter. Raises what the second arrow is WORTH rather than how often
+  // it flies -- the frequency is his crit chance, which is gear, and a
+  // hex that stacked on top of gear would pay twice for the same thing.
+  def('called_shot', {
+    position: POSITION.BACK,
+    name: 'Called Shot',
+    description: 'Back hex: the split shaft carries at full strength instead of half.',
+    hooks: { critCarry: 1 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
