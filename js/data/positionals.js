@@ -482,6 +482,18 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Nestora's hex: the nest goes at the back, where it is not knocked
+  // over. Raises the CEILING on what a bird can be raised to rather
+  // than the rate -- the rate is her turn coming round, which the sect
+  // already buys with speed, and paying for that twice is the trap this
+  // whole roster is written to avoid.
+  def('the_high_nest', {
+    position: POSITION.BACK,
+    name: 'The High Nest',
+    description: 'Back hex: the brood can be raised to +50% ATK instead of +30%.',
+    hooks: { raiseCap: 0.50 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

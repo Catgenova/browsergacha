@@ -454,6 +454,33 @@ const Abilities = (() => {
     }
   }
 
+  // Permanent growth (Nestora's nest). Written onto BASE attack rather
+  // than handed out as a blessing, and that is the whole mechanic:
+  //
+  //   * nothing can strip, steal or dispel it -- Asher, Cleo, Solari and
+  //     every enemy strip on the roster read `statusEffects`, and this
+  //     is not in there;
+  //   * death does not take it -- Unit.revive wipes statusEffects, so a
+  //     bird raised by an ordinary buffer comes back with nothing, and
+  //     one Nestora raised comes back as itself;
+  //   * and it does not expire, which is why it is capped instead.
+  //
+  // The original base is remembered on first use so the growth compounds
+  // against the statline the hero walked in with rather than against
+  // itself. Party mods (RACES.applyParty) write base stats the same way
+  // and run before any of this, so what is remembered already includes
+  // them.
+  function raiseAtk(unit, pct, cap) {
+    if (!unit || !unit.alive || !(pct > 0)) return 0;
+    const held = unit.raisedAtk || 0;
+    const add = Math.min(pct, Math.max(0, cap - held));
+    if (add <= 0) return 0;
+    if (unit.raisedAtkBase === undefined) unit.raisedAtkBase = unit.baseAtk;
+    unit.raisedAtk = held + add;
+    unit.baseAtk = Math.round(unit.raisedAtkBase * (1 + unit.raisedAtk));
+    return add;
+  }
+
   // `power` is the caster's skill-level multiplier for the ability this
   // effect belongs to; it scales damage/heal/poison numbers only.
   function applyEffect(effect, caster, target, power = 1) {
@@ -677,6 +704,14 @@ const Abilities = (() => {
         // Replenish crystal mirrors (clamped to the unit's own maximum).
         const gained = target.addMirrors ? target.addMirrors(effect.count) : 0;
         return { kind: 'mirrors', target, amount: gained };
+      }
+      case 'raise': {
+        // Hand-aimed growth, on the same budget the passive spends from:
+        // one cap per bird, however the points get there.
+        const rLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        const gained = raiseAtk(target, effect.pct + (rLad.buffPower || 0), effect.cap);
+        if (gained <= 0) return { kind: 'raise', target, amount: 0, full: true };
+        return { kind: 'raise', target, amount: gained };
       }
       case 'cleanse': {
         // Strip debuffs (poisons included) from the target — all of
@@ -1794,5 +1829,6 @@ const Abilities = (() => {
   // which used to skip the DEF curve, dodge, guards, reflect AND the
   // damage meter all at once.
   return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
-    sideOf, needsTarget, takeLands, drainMeter, rowFallback, GROUP_TARGETINGS };
+    sideOf, needsTarget, takeLands, drainMeter, rowFallback, raiseAtk,
+    GROUP_TARGETINGS };
 })();

@@ -1,0 +1,109 @@
+// The asymmetric bench: what a MIRROR cannot see.
+//
+// test/archetypes.js fields seven against a copy of themselves, which is
+// the right shape for measuring a hero's own output and the wrong shape
+// for measuring a party BUFF: both sides get it, so it cancels, and the
+// lift column reads zero. Every pure buffer on the roster comes out at
+// or below nothing there -- Wanda 44.8, Artur -55.7, Polo -156.6, and
+// then Orien at -5.6 and Nestora at -29 when they were written.
+//
+// So: the same party twice against a FIXED enemy wave, once with the
+// hero and once without, paired on the seed. What survives is the
+// difference the hero actually makes to the team's damage.
+//
+//   node test/lift.js <heroId> [sims] [ticks]
+//
+// `ticks` is the length of the fight, and it is a real dial rather than
+// a detail: a hero whose value accumulates reads differently at 200 and
+// at 1200, and being able to SEE that curve is most of why this exists.
+//
+//   node test/lift.js nestora 25 200    ->  -11 +/- 31   (-0.3%)
+//   node test/lift.js nestora 25 400    ->  286 +/- 73    (6.0%)
+//   node test/lift.js nestora 25 1200   -> 1742 +/- 162  (12.9%)
+
+const { loadGame } = require('./harness');
+const g = loadGame();
+const { HEROES, ENEMIES, Unit, Battle, Meter, TEAM, RACES } = g;
+
+const HERO = process.argv[2];
+const SIMS = Number(process.argv[3] || 25);
+const CAP = Number(process.argv[4] || 400);
+
+if (!HERO || !HEROES[HERO]) {
+  console.error('usage: node test/lift.js <heroId> [sims] [ticks]');
+  process.exit(1);
+}
+
+// The party the hero under test joins. Whoever is being measured is
+// pulled OUT of the base six and seated in the spare hex, so the two
+// runs field the same bodies bar one. The first pass left the hero in
+// the base map as well and both sides came out identical -- 0 +/- 0,
+// which is exactly what a probe measuring nothing looks like, and is
+// worth remembering as the failure mode of a paired design.
+const BASE = { aurek: 1, durn: 2, mavros: 6, solari: 0, aster: 3, rizzo: 4 };
+const SEAT = { ...BASE };
+delete SEAT[HERO];
+SEAT[HERO] = 5;
+const FOE = Object.keys(ENEMIES)[0];
+
+function run(seed, withHero) {
+  g.seed(seed);
+  Meter.resetBattle();
+  const battle = new Battle();
+  battle.autoMode = true;
+  const units = [];
+  for (const [id, slot] of Object.entries(SEAT)) {
+    if (id === HERO && !withHero) continue;
+    const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 40, stars: 5 });
+    battle.placeUnit(u, slot);
+    units.push(u);
+  }
+  // Party bonuses are applied to whoever is actually fielded, so
+  // dropping the hero drops a sect head-count with them -- which is
+  // honest: that IS part of what fielding them is worth.
+  RACES.applyParty(units);
+  // Deep enough that the wave survives the clock: the measure is damage
+  // dealt over a fixed span, not a race to a kill, so a wave that dies
+  // early would truncate the very tail the long-fight heroes live in.
+  for (let i = 0; i < 6; i++) {
+    const f = new Unit(ENEMIES[FOE], TEAM.ENEMY, { level: 40, stars: 5 });
+    f.maxHp *= 6;
+    f.hp = f.maxHp;
+    battle.placeUnit(f, i);
+  }
+  let turns = 0;
+  while (turns < CAP && battle.livingUnits(TEAM.PLAYER).length &&
+         battle.livingUnits(TEAM.ENEMY).length) {
+    battle.update(0.05);
+    turns++;
+  }
+  const foes = battle.units.filter((u) => u.team === TEAM.ENEMY);
+  return {
+    dealt: foes.reduce((n, u) => n + (u.maxHp - Math.max(0, u.hp)), 0),
+    standing: battle.livingUnits(TEAM.PLAYER).length,
+  };
+}
+
+const withs = [];
+const withouts = [];
+for (let i = 0; i < SIMS; i++) {
+  withs.push(run(1000 + i, true));
+  withouts.push(run(1000 + i, false));
+}
+const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+// Paired standard error: the seed is shared, so the DIFFERENCE is the
+// sample and its spread is what says whether the figure means anything.
+const se = (xs) => {
+  const m = mean(xs);
+  return Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (xs.length - 1) / xs.length);
+};
+const diffs = withs.map((w, i) => w.dealt - withouts[i].dealt);
+const base = mean(withouts.map((r) => r.dealt));
+
+console.log(`${HERO}: ${SIMS} paired fights, ${CAP} ticks, vs a fixed wave`);
+console.log(`  team damage with     ${Math.round(mean(withs.map((r) => r.dealt)))}`);
+console.log(`  team damage without  ${Math.round(base)}`);
+console.log(`  lift ${Math.round(mean(diffs))} +/- ${Math.round(se(diffs))}` +
+  `  (${(mean(diffs) / base * 100).toFixed(1)}%)`);
+console.log(`  party standing  with ${mean(withs.map((r) => r.standing)).toFixed(2)}` +
+  `  without ${mean(withouts.map((r) => r.standing)).toFixed(2)}`);

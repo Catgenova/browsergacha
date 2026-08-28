@@ -3518,4 +3518,136 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.heliograph,
   },
+
+  // The ninth bird, the second 5-star, and the sect's thesis written as
+  // one hero: the Sunbrood does not win the first exchange, it wins the
+  // eighth. Everything she does is worth nothing on turn one and more
+  // every turn after, which is the only support on the roster that is
+  // deliberately WEAK at the opening.
+  //
+  // Her growth is written onto BASE attack rather than handed out as a
+  // blessing, and that is the whole mechanic rather than a shortcut:
+  // no strip on the roster can touch it (they all read statusEffects,
+  // and this is not in there), and death does not take it -- Unit.revive
+  // wipes statuses, so a bird raised by an ordinary buffer comes back
+  // with nothing and one Nestora raised comes back as itself. Which is
+  // exactly what her seven is for.
+  //
+  // She is also the only bird here who does not overlap Nemeris. He
+  // mends, cleanses and hurries; Orien buys attack by the turn and
+  // spends the party's waste; she buys attack FOREVER and answers the
+  // one thing neither of them can, which is a bird already on the
+  // ground.
+  nestora: {
+    id: 'nestora',
+    element: 'light',
+    name: 'Nestora',
+    title: 'Nestbearer of the Sunbrood',
+    rarity: 5,
+    // Promoted from 3-star, which is a change of KIT rather than of
+    // numbers -- js/data/balance.js holds every hero to one budget --
+    // and the shelf is right for her: a hero whose value is cumulative
+    // wants the level ceiling and the third skill that five stars buy.
+    stats: { hp: 1620, atk: 104, def: 118, speed: 120 },
+    tint: { body: '#f4f0e8', helm: '#2f6f6a', weapon: '#c8a83a', shield: '#e8c84a' },
+    sprite: {
+      displayH: 100,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/nestoraidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'nestora_feed_the_nest', name: 'Feed the Nest',
+        icon: 'assets/icons/fc866.png',
+        // The passive spreads growth thin across the whole brood every
+        // turn; this concentrates it on one bird. Same verb, opposite
+        // distribution, one shared ceiling -- so the player is choosing
+        // WHO the party's carry is going to be rather than whether to
+        // grow at all.
+        description: 'A beakful for the one that is loudest: an ally permanently gains ' +
+          '+10% ATK for the rest of the battle. Nothing can strip it, and dying does ' +
+          'not lose it.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'raise', pct: 0.10, cap: 0.30 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'nestora_the_whole_nest', name: 'The Whole Nest',
+        icon: 'assets/icons/fc1073.png',
+        // The sect's only PREVENTIVE answer to being hexed. Nemeris
+        // cleans up afterwards on a seven; this stops it landing, which
+        // matters far more to a party whose losing condition is a heal
+        // block arriving before its healer moves.
+        description: 'She settles the whole brood down: ALL allies gain +25% Resistance ' +
+          'for 3 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'resistance', add: 0.25, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'nestora_back_to_the_nest', name: 'Back to the Nest',
+        icon: 'assets/icons/fc1272.png',
+        // The sect's only revive, and the clause that makes it hers
+        // costs no code at all: a revive wipes statusEffects, and what
+        // she raised is not in there. A bird she has been feeding all
+        // fight gets up still fed. That is the reward for a support who
+        // spent eight turns being worth less than everybody else.
+        description: 'Nothing that was raised here is lost: a fallen ally is back on their ' +
+          'feet at 50% health, and everything Nestora grew in them is still theirs.',
+        cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'revive', pct: 0.50 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Everything I Raised',
+      icon: 'assets/icons/fc1066.png',
+      // +5% a turn to +30% is six of her turns to fill a bird, and at
+      // 120 base speed -- 132 under the brood's own 2pc -- that is most
+      // of a real fight. She is meant to be the reason a Sunbrood party
+      // wants the fight to go long, not a hero who front-loads a party
+      // buff and then stands there.
+      description: 'A nest is a slow business: at the start of each of her turns every ' +
+        'ally permanently gains +5% ATK, up to +30%. Nothing can strip what she ' +
+        'raises, and dying does not lose it.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const cap = Math.max(0.30, ...unit.hookSources().map(
+            (p) => (p.hooks && p.hooks.raiseCap) || 0));
+          const fed = [];
+          for (const ally of battle.livingUnits(unit.team)) {
+            if (Abilities.raiseAtk(ally, 0.05, cap) > 0) fed.push(ally);
+          }
+          if (!fed.length) return null;
+          return {
+            label: 'Everything I Raised',
+            message: `${unit.name} feeds the nest — the brood comes up stronger.`,
+            floats: fed.map((a) => ({ target: a, text: 'ATK ▲', color: '#ffd76a' })),
+          };
+        },
+      },
+    },
+    positional: POSITIONALS.the_high_nest,
+  },
 });
