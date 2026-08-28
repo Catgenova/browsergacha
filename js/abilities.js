@@ -789,7 +789,14 @@ const Abilities = (() => {
         const base = effect.pct !== undefined
           ? caster.maxHp * (effect.pct + (shLad.heal || 0) + shared)
           : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0) + shared);
-        const amount = Math.round(base * power * boost);
+        // A `shieldPowerAdd` hook widens the pot itself (Click's Long
+        // Peal), the sibling of shieldExtraTurns below: one hook for how
+        // big a ward is, one for how long it lasts.
+        let shPower = 1;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.shieldPowerAdd) shPower += p.hooks.shieldPowerAdd;
+        }
+        const amount = Math.round(base * power * boost * shPower);
         // A `shieldExtraTurns` hook (Peck's centre hex) keeps the pot
         // warm a turn longer than the recipe says.
         let shExtra = 0;

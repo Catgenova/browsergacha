@@ -12755,4 +12755,123 @@ test('Necros: Gravecircle and the strings', () => {
   } finally { Battle.active = prev; }
 });
 
+// The sect's only sustain, and she does it without a heal in her kit: a
+// ward is health that never left. Her passive is a ward with a
+// CONDITIONAL duration, which nothing else on the roster has -- every
+// other shield on the board counts down whatever is happening to the
+// bird wearing it.
+test('Click: the bell does not stop for the dying', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const click = seatOn(battle, HEROES.click, TEAM.PLAYER, 0);
+    click.slot = battle.playerSlots[3];         // off her hex: the bare ward
+    const ally = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    ally.hookSources = () => [];
+    const bell = click.abilities.find((a) => a.def.id === 'click_first_bell');
+    assert(bell, 'First Bell is missing');
+
+    // Priced off HER pool, not her attack.
+    Abilities.execute(bell.def, click, ally, battle);
+    const ward = ally.statusEffects.find((fx) => fx.kind === 'shield');
+    assert(ward, 'no ward went up');
+    assert(ward.amount === Math.round(click.maxHp * 0.12),
+      `the ward is ${ward.amount}, wanted 12% of ${click.maxHp}`);
+    assert(ward.turns === 2, `the ward runs ${ward.turns} turns`);
+
+    // Healthy: it counts down like anybody else's.
+    ally.hp = ally.maxHp;
+    ally.tickStatusEffects();
+    assert(ward.turns === 1, `a healthy bird's ward went to ${ward.turns}`);
+
+    // Under half: it stops counting, however many turns go by.
+    ally.hp = Math.round(ally.maxHp * 0.40);
+    for (let i = 0; i < 10; i++) ally.tickStatusEffects();
+    assert(ally.statusEffects.includes(ward), 'the ward ran out on a dying bird');
+    assert(ward.turns === 1, `the held ward drifted to ${ward.turns}`);
+
+    // Back over half and the clock restarts.
+    ally.hp = ally.maxHp;
+    ally.tickStatusEffects();
+    assert(!ally.statusEffects.includes(ward), 'the ward never expired again');
+
+    // Only hers. A ward from anybody else counts down as normal.
+    const other = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    other.hookSources = () => [];
+    ally.hp = Math.round(ally.maxHp * 0.10);
+    ally.addShield(500, 2, other);
+    for (let i = 0; i < 5; i++) ally.tickStatusEffects();
+    assert(!ally.statusEffects.some((fx) => fx.kind === 'shield'),
+      'somebody else’s ward was held open by Click’s passive');
+  } finally { Battle.active = prev; }
+});
+
+// Her hex widens the ward rather than lengthening it: the LENGTH is
+// already the passive's job, and a hex paying the same axis twice is
+// the compounding trap on a single hero.
+test('Click: Long Peal widens the ward, it does not hold it', () => {
+  const hex = POSITIONALS.long_peal;
+  assert(HEROES.click.positional === hex, 'Click is not on her own hex');
+  assert(hex.position === POSITION.CENTER, 'a bell is rung from the middle of the room');
+
+  const ring = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const click = seatOn(battle, HEROES.click, TEAM.PLAYER, 0);
+      if (!onHex) click.slot = battle.playerSlots[3];
+      assert(click.positionalActive() === onHex, 'the fixture seated her wrong');
+      const ally = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+      ally.hookSources = () => [];
+      const bell = click.abilities.find((a) => a.def.id === 'click_first_bell');
+      Abilities.execute(bell.def, click, ally, battle);
+      return ally.statusEffects.find((fx) => fx.kind === 'shield');
+    } finally { Battle.active = prev; }
+  };
+  const off = ring(false);
+  const on = ring(true);
+  assert(off && on, 'one of the wards never went up');
+  // Within a point: the hex multiplies the ward at full precision and
+  // rounds once, so it is not round(round(base) * 1.3).
+  assert(Math.abs(on.amount - off.amount * 1.30) <= 1,
+    `the peal put up ${on.amount} against ${off.amount} off the hex`);
+  assert(on.turns === off.turns, 'the hex lengthened the ward as well as widening it');
+});
+
+// The apprentice. She raises the same body Necros does off a longer
+// cooldown and a smaller bird -- one mechanic, two heroes, and the
+// difference is entirely in the share.
+test('Click: Last Bell raises the same body off a smaller bird', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const click = seatOn(battle, HEROES.click, TEAM.PLAYER, 0);
+    seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    const bell = click.abilities.find((a) => a.def.id === 'click_last_bell');
+    assert(bell, 'Last Bell is missing');
+    const summon = bell.def.effects.find((e) => e.type === 'summon');
+    assert(summon.id === 'crossowary_undead', `she raises ${summon.id}`);
+    assert(summon.fallback, 'her bell has no branch for a full board');
+
+    Abilities.execute(bell.def, click, click, battle);
+    const body = battle.units.find((u) => u.def.id === 'crossowary_undead');
+    assert(body, 'nothing got up');
+    assert(body.raisedBy === click, 'the body does not answer to her');
+    assert(body.baseAtk === Math.round(click.effectiveStat('atk') * 0.85),
+      `the body swings ${body.baseAtk} off her ${click.effectiveStat('atk')}`);
+
+    // Necros raises a bigger one, which is what separates the master
+    // from the apprentice -- same body, different bird behind it.
+    const necrosCall = HEROES.necros.abilities
+      .find((a) => a.id === 'necros_carrion_call').effects
+      .find((e) => e.type === 'summon');
+    assert(necrosCall.share.hp > summon.share.hp,
+      'the apprentice raises as sturdy a body as the master does');
+    assert(bell.def.cooldown > 4, 'her bell is no slower than his call');
+  } finally { Battle.active = prev; }
+});
+
 report();
