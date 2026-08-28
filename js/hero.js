@@ -88,6 +88,9 @@ class Unit {
     // One refused killing blow per fight, for a hero carrying a
     // `lastEmber` hook.
     this.emberSpent = false;
+    // The Sunbrood's egg (Nemeris): one refused killing blow per fight,
+    // spent from the BEARER rather than from whoever it saves.
+    this.eggSpent = false;
     // Reverence sect pack: an opening shield (% of max HP, granted by
     // applyParty) and shields off every blow dealt.
     this.synergyStartShield = 0;
@@ -792,6 +795,42 @@ class Unit {
       if (typeof Battle !== 'undefined' && Battle.active) {
         Battle.active.addFloatingText(this, '\u2726', '#e8a83a');
         Battle.active.log(`${this.name} will not go out.`, 'log-system');
+      }
+    }
+    // The Sunbrood's egg. Where `lastEmber` is a hook a hero carries for
+    // THEMSELVES, this one is carried by somebody else on the field: the
+    // first ally to fall while the eggbearer still stands is caught
+    // instead, once per battle, and the charge is spent off the BEARER
+    // so a whole brood of them is still one save.
+    //
+    // Never the bearer himself, and not because a guard says so: the
+    // search runs over livingUnits, and a bird who has just hit zero is
+    // not among them. The egg is not for him because at the instant it
+    // would fire he is already off the field. That is what keeps an
+    // automatic team-wide save honest -- killing Nemeris first is still
+    // the answer, and the egg goes with him.
+    //
+    // The health it leaves is set rather than healed, on purpose. Every
+    // multiplier the Sunbrood stacks reads through Unit.heal, and a save
+    // that scaled with +60% healing done would be the pack cashing out
+    // twice on the same tier. This one is worth exactly what it says.
+    if (!this.alive && typeof Battle !== 'undefined' && Battle.active) {
+      let pct = 0;
+      const bearer = Battle.active.livingUnits(this.team).find((u) => {
+        if (u.eggSpent) return false;
+        const p = (u.hookSources ? u.hookSources() : []).reduce(
+          (n, src) => Math.max(n, (src.hooks && src.hooks.eggBearer) || 0), 0);
+        if (p <= 0) return false;
+        pct = p;
+        return true;
+      });
+      if (bearer) {
+        bearer.eggSpent = true;
+        this.hp = Math.max(1, Math.round(bearer.maxHp * pct));
+        Battle.active.addFloatingText(this, '\u25c9', '#ffd76a');
+        Battle.active.log(
+          `${bearer.name}'s egg breaks — ${this.name} is caught before the fall.`,
+          'log-system');
       }
     }
     // Blessed/Godtouched company: the killing blow may not stick. One

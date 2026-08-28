@@ -383,6 +383,36 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Nemeris's hex: from the middle of the nest he can see which of them
+  // is closest to going, and the egg's shadow falls over that one.
+  //
+  // Deliberately NOT a mend and NOT a tempo push. The Sunbrood pack
+  // already sells healing done at 2pc, 3pc and 4pc, and speed at 2pc;
+  // light sells max HP at 2pc and 4pc. Damage TAKEN is the one axis
+  // nothing above him touches, so the hex makes the wounded bird harder
+  // to kill while the pack makes it easier to mend -- two verbs on the
+  // same target rather than the same verb twice.
+  def('under_the_egg', {
+    position: POSITION.CENTER,
+    name: 'Under the Egg',
+    description: 'Center hex: at the start of each turn, the ally lowest on health gains +30% DEF for 1 turn.',
+    hooks: {
+      onTurnStart(unit, battle) {
+        if (!battle) return null;
+        const hurt = battle.livingUnits(unit.team)
+          .filter((u) => u.maxHp > 0)
+          .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+        if (!hurt) return null;
+        hurt.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.30, turns: 1 });
+        return {
+          label: 'Under the Egg',
+          message: `${unit.name} tucks ${hurt.name} into the egg's shadow.`,
+          floats: [{ target: hurt, text: 'DEF \u25b2', color: '#ffe8a8' }],
+        };
+      },
+    },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
