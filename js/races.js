@@ -29,6 +29,8 @@ const RACES = (() => {
     'stella', 'sarena', 'orri', 'chirp',
     // Razorwings, filling one bird at a time.
     'tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc',
+    // Sunbrood, likewise.
+    'aurek',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -158,6 +160,15 @@ const RACES = (() => {
     razorwings: { id: 'razorwings', name: 'Razorwings', number: 10,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc'] },
+    // The light brood, and the first sect built to a DIFFERENT shape:
+    // the light and dark orders have no 1-star and no 2-star at all, so
+    // this one runs four 3-stars, three 4-stars and two 5-stars. It
+    // still comes to nine, and the shape is still declared on the sect
+    // rather than assumed from whoever was written first, which is why
+    // it costs nothing to hold a second one.
+    sunbrood: { id: 'sunbrood', name: 'Sunbrood', number: 11,
+                 shape: { 3: 4, 4: 3, 5: 2 },
+                 members: ['aurek'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',

@@ -10505,6 +10505,93 @@ test("Nehru's kit: the gate, the reeling, and the far side of the field", () => 
   }
 });
 
+// The first Sunbrood, and the only fighter in the game who pays HEALTH
+// for damage. Light's own pack sells max HP twice over, so a brood that
+// sold a bigger pool would hand the party its own element bonus back;
+// Aurek spends the pool instead, and the sect's healers are what make
+// the spending survivable.
+test("Aurek burns the wick: health spent, per body, never fatally", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const aurek = place(battle, HEROES.aurek, TEAM.PLAYER, 1);
+    const foes = [1, 2, 4].map((i) => {
+      const f = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 4000);
+      f.dodgeChance = () => 0; f.reflectChance = () => 0;
+      f.hookSources = () => [];
+      return f;
+    });
+    const cost = Math.round(aurek.maxHp * 0.03);
+    const cast = (idx, target) => {
+      const before = aurek.hp;
+      const real = Math.random;
+      Math.random = () => 0.99;
+      try { Abilities.execute(aurek.abilities[idx].def, aurek, target, battle); }
+      finally { Math.random = real; }
+      return before - aurek.hp;
+    };
+
+    // One enemy, one slice.
+    aurek.hp = aurek.maxHp;
+    assert(cast(0, foes[0]) === cost,
+      `a single-target swing cost ${cast(0, foes[0])}, wanted ${cost}`);
+
+    // PER BODY, not per cast. The wide swing is the expensive one, which
+    // is the whole reason the choice between his skills is a choice.
+    // Counted off the hexes rather than off the dummy list: First Light
+    // catches the enemy FRONT row, and three dummies dropped into three
+    // slot indices are not three front-row birds.
+    const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
+    assert(front.length >= 2, `only ${front.length} dummies landed on front hexes`);
+    aurek.hp = aurek.maxHp;
+    const wide = cast(1, foes[0]);
+    assert(wide === cost * front.length,
+      `a swing across ${front.length} front-row bodies cost ${wide}, ` +
+      `wanted ${cost * front.length}`);
+    assert(wide > cost,
+      'the wide swing cost the same as the single-target one -- the bill is per cast');
+
+    // The +25% is real and applies to everything he throws. His hex is
+    // Strongman, which buys max HP and nothing outgoing, so the whole
+    // multiplier is the wick.
+    assert(Math.abs(aurek.damageDealtMult(foes[0], null) - 1.25) < 1e-9,
+      `his outgoing multiplier reads ${aurek.damageDealtMult(foes[0], null)}, wanted 1.25`);
+
+    // NEVER fatal. A hero who can lose a fight to his own basic is not
+    // paying a cost, he is a trap -- so the wick floors at one point of
+    // health however low he already is.
+    aurek.hp = 1;
+    const atOne = cast(0, foes[0]);
+    assert(aurek.alive && aurek.hp === 1,
+      `at 1 HP his own swing left him at ${aurek.hp}, alive=${aurek.alive}`);
+    assert(atOne === 0, `he still paid ${atOne} with nothing left to pay it with`);
+    aurek.hp = Math.round(cost / 2);
+    cast(0, foes[0]);
+    assert(aurek.alive && aurek.hp === 1,
+      'a swing he could not afford killed him instead of flooring');
+
+    // He does not pay for hitting his own side, and cannot be made to.
+    aurek.hp = aurek.maxHp;
+    const mate = roomy(place(battle, HEROES.tervan, TEAM.PLAYER, 4), 200);
+    const before = aurek.hp;
+    aurek.dealt(500, mate);
+    assert(aurek.hp === before,
+      `hitting an ally cost him ${before - aurek.hp}`);
+  } finally { Battle.active = prev; }
+
+  // The design constraint that put him on this axis. Light sells max HP
+  // at 2pc and again at 4pc, so a Sunbrood selling a bigger pool would
+  // be the party's own element bonus twice -- and this is the third
+  // sect where that trap has had to be designed around.
+  const lightMods = RACES.ELEMENT_PARTY_BONUSES.light
+    .flatMap((t) => Object.keys(t.mods || {}));
+  assert(lightMods.includes('hpPct'),
+    'light no longer sells max HP -- recheck why Aurek spends it rather than selling it');
+  assert(!(HEROES.aurek.passive.hooks || {}).statMult,
+    'Aurek is selling a stat his own element pack already sells');
+});
+
 // The Razorwings' pack. The sect is one bird deep, so the tiers cannot
 // be FIELDED yet -- 2/3/4 members is the threshold and there is one.
 // What can be tested is the part that breaks: the hook logic itself and

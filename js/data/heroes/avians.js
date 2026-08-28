@@ -9,6 +9,18 @@
 //                 burns and their court is paid for them, so the two
 //                 halves have to be fielded together to be worth
 //                 anything at all.
+//   Sunbrood      light, gold and white. Speed first, then max HP,
+//                 then healing -- and the ORDER matters, because light
+//                 already sells max HP at 2pc and 4pc, so the brood has
+//                 to SPEND a pool rather than sell a bigger one. Aurek
+//                 pays HP for damage; nothing else in the game does,
+//                 and only a sect with two healers and a health
+//                 obsession could afford to.
+//
+//                 They are also the first sect on a different shape:
+//                 the light and dark orders have no 1-star and no
+//                 2-star, so this one is four 3-stars, three 4-stars
+//                 and two 5-stars.
 //   Razorwings    wind, green and white. SPEED, spent as damage rather
 //                 than banked as more turns. That distinction is the
 //                 whole sect: the wind ELEMENT pack already sells speed
@@ -2486,5 +2498,112 @@ Object.assign(HEROES, {
     // Florence's hex, and it reads as well on him: the more of him they
     // take, the harder every answer lands.
     positional: POSITIONALS.last_stand,
+  },
+
+  // ---- Sunbrood -----------------------------------------------------------
+
+  // The brood's front line, and the only fighter in the game who pays
+  // HEALTH for damage. Every swing costs him a slice of his own pool
+  // and lands a quarter harder for it, per enemy caught -- so a wide
+  // swing is a bigger bill, and a long fight is a bill he cannot settle
+  // alone.
+  //
+  // That is the point of him. Light's own pack sells max HP twice over
+  // (Congregation at 2pc, Matins at 4pc), so a Sunbrood who sold a
+  // bigger pool would only be handing the party its own element bonus
+  // back -- the Flurry problem, which this roster has now met three
+  // times. Aurek SPENDS the pool instead, and the two healers the brood
+  // is built around are what make the spending survivable. He is the
+  // one hero here whose kit does not work without the sect.
+  aurek: {
+    id: 'aurek',
+    element: 'light',
+    name: 'Aurek',
+    title: 'Reveille of the Sunbrood',
+    rarity: 3,
+    // A bruiser's split rather than a glass cannon's: the mechanic
+    // needs a pool to spend, so the budget goes into health that a
+    // pure DPS would have taken as attack.
+    stats: { hp: 1520, atk: 178, def: 96, speed: 116 },
+    tint: { body: '#e8e0c8', helm: '#e8c84a', weapon: '#f0d878', shield: '#c8a83a' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/aurekidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'aurek_sunder', name: 'Sunder',
+        icon: 'assets/icons/fc819.png',
+        description: 'The mace comes down once, hard: 120% ATK to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.20 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'aurek_first_light', name: 'First Light',
+        icon: 'assets/icons/fc1062.png',
+        description: 'A swing wide enough to catch the whole rank: 85% ATK to the enemy ' +
+          'FRONT row. Every one of them is another slice off his own bill.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 0.85 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'aurek_break_of_day', name: 'Break of Day',
+        icon: 'assets/icons/fc1272.png',
+        description: 'Everything at once, on one of them: 240% ATK to a single enemy.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 2.40 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Burn the Wick',
+      icon: 'assets/icons/fc1066.png',
+      // Nothing else in the game pays health for power. The cost is
+      // charged PER ENEMY HIT rather than per cast, so the wide swing
+      // is the expensive one and the choice between his skills is a
+      // real one; and it can never kill him, because a hero who can
+      // lose a fight to his own basic is not a cost, he is a trap.
+      description: 'He burns himself to burn brighter: every enemy Aurek hits costs him ' +
+        '3% of his max HP, and everything he throws lands 25% harder.',
+      hooks: {
+        damageDealtMult: () => 1.25,
+        onDealtDamage(unit, { target, battle } = {}) {
+          if (!unit.alive || !target || target.team === unit.team) return null;
+          const cost = Math.round(unit.maxHp * 0.03);
+          // Never fatal: floored at a single point of health.
+          unit.hp = Math.max(1, unit.hp - cost);
+          if (battle && battle.addFloatingText) {
+            battle.addFloatingText(unit, `-${cost}`, '#e8c84a');
+          }
+          return null;
+        },
+      },
+    },
+    positional: POSITIONALS.strongman,
   },
 });
