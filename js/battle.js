@@ -724,6 +724,15 @@ class Battle {
         this.log(`No room to raise anything — ${caster.name} puts it into ` +
           `${res.target.name} instead: their guard opens and ${res.cut} health ` +
           `goes with it.`, cls);
+      } else if (res.kind === 'drawDebuffs') {
+        if (res.count > 0) {
+          this.addFloatingText(res.target, `\u2620 ${res.count}`, '#b07ae8');
+          this.log(`${caster.name} takes ${res.count} affliction` +
+            `${res.count > 1 ? 's' : ''} off the party and wears ` +
+            `${res.count > 1 ? 'them' : 'it'}.`, cls);
+        } else {
+          this.log(`${caster.name} opens up and there is nothing to take.`, cls);
+        }
       } else if (res.kind === 'raise') {
         // Permanent growth. Said out loud, because it leaves no status
         // icon behind -- it is written onto the bird's base attack, so

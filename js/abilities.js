@@ -464,6 +464,21 @@ const Abilities = (() => {
   //
   // It also lays no second icon, which is the standing rule for this
   // roster -- the drag rides on the curse that is already showing.
+  // A hex holder who drinks (Rend's Open Mouth): an affliction landing
+  // anywhere on his side is COPIED onto him as well. The original stays
+  // where it fell -- this is not a rescue, it is a hero being paid for
+  // other people's bad luck -- and it feeds the passive without a cast.
+  function sinkAffliction(victim, fx) {
+    const b = fieldFor(victim);
+    if (!b || typeof b.livingUnits !== 'function') return;
+    for (const ally of b.livingUnits(victim.team)) {
+      if (ally === victim) continue;
+      const drinks = (ally.hookSources ? ally.hookSources() : [])
+        .some((p) => p.hooks && p.hooks.afflictionSink);
+      if (drinks) ally.addStatusEffect({ ...fx });
+    }
+  }
+
   function deadweight(caster, fx) {
     let bite = 0;
     for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
@@ -473,13 +488,29 @@ const Abilities = (() => {
     return fx;
   }
 
+  // The battle a given unit is actually standing in.
+  //
+  // `currentBattle` is this call's convenience and it is STICKY -- it is
+  // assigned and never cleared -- so it can be pointing at a fight that
+  // finished. That does not matter to a log line, and it matters
+  // entirely to anything that uses the battle to decide who gets hit,
+  // who gets shot or who drinks a curse. Battle.active is the field
+  // ("one battle at a time", per the Battle constructor); the
+  // containment check is what catches both of them being wrong.
+  function fieldFor(unit) {
+    const live = (typeof Battle !== 'undefined' && Battle.active) || null;
+    if (live && Array.isArray(live.units) && live.units.includes(unit)) return live;
+    if (currentBattle && Array.isArray(currentBattle.units) &&
+        currentBattle.units.includes(unit)) return currentBattle;
+    return live || currentBattle || null;
+  }
+
   // How much of the caster's own side is still on its feet, the caster
   // included. Counts BODIES rather than heroes, so a raised summon is
   // one of them -- which is the whole interlock on Necros: the thing he
   // digs up makes the swing he was already making land harder.
   function livingAllies(caster) {
-    const b = currentBattle ||
-      (typeof Battle !== 'undefined' ? Battle.active : null);
+    const b = fieldFor(caster);
     if (!b || typeof b.livingUnits !== 'function') return 1;
     return b.livingUnits(caster.team).length;
   }
@@ -627,7 +658,15 @@ const Abilities = (() => {
           // counts the enemy; this one counts the people behind you, and
           // it shrinks as they fall -- which is what makes a summoner's
           // basic attack care whether he has raised anything.
-          ((effect.perAlly || 0) + (lad.perAlly || 0)) * livingAllies(caster);
+          ((effect.perAlly || 0) + (lad.perAlly || 0)) * livingAllies(caster) +
+          // perDebuff: priced off what the CASTER is carrying, not the
+          // target. Every other conditional on this line asks what is
+          // wrong with the enemy; this one asks what is wrong with you
+          // (Rend, whose armour is other people's curses and whose big
+          // swing is that armour thrown).
+          ((effect.perDebuff || 0) + (lad.perDebuff || 0)) *
+            caster.statusEffects.filter(
+              (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -832,8 +871,7 @@ const Abilities = (() => {
         // goes into a living bird instead: a hard attack buff, its guard
         // opened, and 30% of the health it is standing on taken as the
         // price. The magic gets out either way -- that is the hero.
-        const b = currentBattle ||
-          (typeof Battle !== 'undefined' ? Battle.active : null);
+        const b = fieldFor(caster);
         const def = typeof SUMMONS !== 'undefined' ? SUMMONS[effect.id] : null;
         if (!b || !def) return null;
         const raised = raiseBody(caster, def, effect.share || {}, b);
@@ -978,6 +1016,13 @@ const Abilities = (() => {
           // half would read as a bug to anybody playing a poison kit.
           target.addStatusEffect(deadweight(caster, { kind: 'dot', amount,
             turns: dotTurns, flavor: effect.flavor || null, source: caster }));
+          // Poisons are drunk too. The first pass sank stat cuts and not
+          // these, which left Rend's mouth inconsistent with his own
+          // passive and his own cooldown -- both of which count a
+          // poison as a curse -- and in a dark meta that is most of what
+          // is being thrown.
+          sinkAffliction(target, { kind: 'dot', amount, turns: dotTurns,
+            flavor: effect.flavor || null, source: caster });
         }
         // A caster with `dotBitesOnApply` (Flurry) lights fires that
         // take AT ONCE: every fresh plate pays one tick the moment it
@@ -1202,6 +1247,10 @@ const Abilities = (() => {
           add: addAmt,
           turns,
         }));
+        if (effect.type === 'debuff') {
+          sinkAffliction(target, { kind: 'debuff', stat: effect.stat, mult, turns,
+            source: caster });
+        }
         return { kind: effect.type, target, stat: effect.stat, turns };
       }
       case 'freeze': {
@@ -1312,6 +1361,33 @@ const Abilities = (() => {
         }
         return { kind: 'transferDebuffs', target, count: moving.length,
           stats: moving.map((fx) => fx.stat || fx.kind) };
+      }
+      case 'drawDebuffs': {
+        // The other direction. Valere's transferDebuffs takes the
+        // party's afflictions and puts them on an ENEMY, which removes
+        // them from the fight; this takes them onto the CASTER, which
+        // does not. It is a worse trade for anyone but Rend, and that is
+        // the point -- on him a curse is armour, so the only hero who
+        // wants this is the one who is paid for holding it.
+        //
+        // No contest roll: nothing is being done TO anybody. He is
+        // taking his own side's afflictions off his own side, and a bird
+        // volunteering to be poisoned does not get to resist itself.
+        const b = fieldFor(caster);
+        if (!b) return null;
+        const hostile = (fx) => fx.kind === 'debuff' || fx.kind === 'dot';
+        const mine = b.livingUnits(caster.team).filter((u) => u !== caster);
+        const moving = mine.flatMap((ally) => ally.statusEffects.filter(hostile));
+        if (!moving.length) return { kind: 'drawDebuffs', target: caster, count: 0 };
+        for (const ally of mine) {
+          ally.statusEffects = ally.statusEffects.filter((fx) => !hostile(fx));
+        }
+        // Carried over WITH whatever they were worth and whatever turns
+        // they had left -- including the Deadweight stamped on them by
+        // whoever cast them, which is why a Hollowbone mirror is a
+        // genuinely strange fight.
+        for (const fx of moving) caster.addStatusEffect({ ...fx });
+        return { kind: 'drawDebuffs', target: caster, count: moving.length };
       }
       case 'soulBond': {
         // Tie the thread. An ordinary debuff so it cleanses, resists
