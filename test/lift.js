@@ -43,10 +43,15 @@ const { HEROES, ENEMIES, Unit, Battle, Meter, TEAM, RACES } = g;
 
 const HERO = process.argv[2];
 const SIMS = Number(process.argv[3] || 25);
-const CAP = Number(process.argv[4] || 400);
+// 1600, not 400: with the wave named rather than accidental, a run
+// takes ~900 ticks to clear, and a cap under that censors every one of
+// them back into the damage-in-window figure this bench exists to
+// avoid quoting.
+const CAP = Number(process.argv[4] || 1600);
 
-if (!HERO || !HEROES[HERO]) {
-  console.error('usage: node test/lift.js <heroId> [sims] [ticks]');
+const SWEEP = HERO === '--csv' || HERO === '--all';
+if (!SWEEP && (!HERO || !HEROES[HERO])) {
+  console.error('usage: node test/lift.js <heroId|--csv|--all> [sims] [ticks] [foeId]');
   process.exit(1);
 }
 
@@ -57,21 +62,35 @@ if (!HERO || !HEROES[HERO]) {
 // which is exactly what a probe measuring nothing looks like, and is
 // worth remembering as the failure mode of a paired design.
 const BASE = { aurek: 1, durn: 2, mavros: 6, solari: 0, aster: 3, rizzo: 4 };
-const SEAT = { ...BASE };
-delete SEAT[HERO];
-// The first hex nobody in the base party is on. Hardcoding one worked
-// until a fixture put a base hero there and the run died on "slot
-// occupied" -- the seat has to be found, not assumed, because the base
-// party is meant to be edited.
-const taken = new Set(Object.values(SEAT));
-SEAT[HERO] = [0, 1, 2, 3, 4, 5, 6].find((i) => !taken.has(i));
-if (SEAT[HERO] === undefined) {
-  console.error('no free hex for the hero under test — trim the base party');
+// The seating is per-hero, so a sweep can measure the whole roster in
+// one process instead of paying the game load 92 times over.
+function seatFor(hero) {
+  const seat = { ...BASE };
+  delete seat[hero];
+  // The first hex nobody in the base party is on. Hardcoding one worked
+  // until a fixture put a base hero there and the run died on "slot
+  // occupied" -- the seat has to be found, not assumed, because the base
+  // party is meant to be edited.
+  const taken = new Set(Object.values(seat));
+  seat[hero] = [0, 1, 2, 3, 4, 5, 6].find((i) => !taken.has(i));
+  return seat[hero] === undefined ? null : seat;
+}
+// The wave. This was `Object.keys(ENEMIES)[0]` -- whatever the table
+// happened to list first -- which is not a fixture, it is an accident,
+// and the accident went bad: the first key is `echo`, the game's
+// tankiest 5-star mirror bulwark. Six of those at level 40 is 82k of
+// health behind 1500 DEF, so nothing cleared at ANY cap, every run was
+// censored, and the only number left was damage-in-window -- exactly
+// the biased figure the header above warns about. A named, ordinary
+// 3-star opponent instead, so the wave actually falls and time-to-clear
+// is a real number again.
+const FOE = process.argv[5] || 'barrington';
+if (!ENEMIES[FOE]) {
+  console.error(`no such enemy: ${FOE}`);
   process.exit(1);
 }
-const FOE = Object.keys(ENEMIES)[0];
 
-function run(seed, withHero) {
+function run(seed, withHero, HERO, SEAT) {
   g.seed(seed);
   Meter.resetBattle();
   const battle = new Battle();
@@ -114,12 +133,6 @@ function run(seed, withHero) {
   };
 }
 
-const withs = [];
-const withouts = [];
-for (let i = 0; i < SIMS; i++) {
-  withs.push(run(1000 + i, true));
-  withouts.push(run(1000 + i, false));
-}
 const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
 // Paired standard error: the seed is shared, so the DIFFERENCE is the
 // sample and its spread is what says whether the figure means anything.
@@ -127,35 +140,97 @@ const se = (xs) => {
   const m = mean(xs);
   return Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (xs.length - 1) / xs.length);
 };
-const diffs = withs.map((w, i) => w.dealt - withouts[i].dealt);
-const base = mean(withouts.map((r) => r.dealt));
-// Negative is FASTER, so the sign is flipped on the way out: a hero who
-// clears the wave sooner should read as a positive number like every
-// other lift in this project.
-const tickDiffs = withs.map((w, i) => withouts[i].ticks - w.ticks);
-const clearRate = (rs) => `${Math.round(mean(rs.map((r) => (r.cleared ? 1 : 0))) * 100)}%`;
+const rate = (rs, k) => mean(rs.map((r) => (r[k] ? 1 : 0)));
 
+function measure(hero) {
+  const seat = seatFor(hero);
+  if (!seat) return null;
+  const withs = [];
+  const withouts = [];
+  for (let i = 0; i < SIMS; i++) {
+    withs.push(run(1000 + i, true, hero, seat));
+    withouts.push(run(1000 + i, false, hero, seat));
+  }
+  // Negative is FASTER, so the sign is flipped on the way out: a hero
+  // who clears the wave sooner should read as a positive number like
+  // every other lift in this project.
+  const tickDiffs = withs.map((w, i) => withouts[i].ticks - w.ticks);
+  const diffs = withs.map((w, i) => w.dealt - withouts[i].dealt);
+  const withoutTicks = mean(withouts.map((r) => r.ticks));
+  return {
+    hero,
+    withTicks: mean(withs.map((r) => r.ticks)),
+    withoutTicks,
+    faster: mean(tickDiffs),
+    fasterErr: se(tickDiffs),
+    fasterPct: (mean(tickDiffs) / withoutTicks) * 100,
+    dealt: mean(withs.map((r) => r.dealt)),
+    dealtBase: mean(withouts.map((r) => r.dealt)),
+    dealtDiff: mean(diffs),
+    dealtErr: se(diffs),
+    standing: mean(withs.map((r) => r.standing)),
+    standingBase: mean(withouts.map((r) => r.standing)),
+    clearedWith: rate(withs, 'cleared'),
+    clearedWithout: rate(withouts, 'cleared'),
+    wipedWith: rate(withs, 'wiped'),
+    // Only meaningful when fights are actually ENDING in a clear. A run
+    // that stops early because the party died is not a fast one, and a
+    // "faster by -566 ticks" printed under an 80% wipe rate reads as the
+    // exact opposite of what happened.
+    anyCleared: withs.concat(withouts).some((r) => r.cleared),
+  };
+}
+
+// A whole-roster sweep, so the figure the mirror bench cannot see gets
+// measured for everyone rather than for whoever was suspected.
+if (HERO === '--csv' || HERO === '--all') {
+  const rows = [];
+  for (const id of Object.keys(HEROES)) {
+    const m = measure(id);
+    if (m) rows.push(m);
+  }
+  const p1 = (x) => x.toFixed(1);
+  if (HERO === '--csv') {
+    console.log(`Lift bench \u2014 ${rows.length} heroes, ${SIMS} paired fights each, ` +
+      `cap ${CAP} ticks, vs six ${ENEMIES[FOE].name} at Lv 40 5\u2605`);
+    console.log('hero,name,rarity,withTicks,withoutTicks,faster,fasterErr,fasterPct,' +
+      'clearedWith,clearedWithout,standing,standingBase');
+    for (const m of rows.sort((a, b) => b.faster - a.faster)) {
+      const d = HEROES[m.hero];
+      console.log([m.hero, d.name, d.rarity, Math.round(m.withTicks),
+        Math.round(m.withoutTicks), Math.round(m.faster), Math.round(m.fasterErr),
+        p1(m.fasterPct), Math.round(m.clearedWith * 100), Math.round(m.clearedWithout * 100),
+        m.standing.toFixed(2), m.standingBase.toFixed(2)].join(','));
+    }
+  } else {
+    for (const m of rows.sort((a, b) => b.faster - a.faster)) {
+      console.log(`${HEROES[m.hero].name.padEnd(12)} ${String(Math.round(m.faster)).padStart(5)}` +
+        ` +/- ${String(Math.round(m.fasterErr)).padStart(3)}  (${p1(m.fasterPct)}%)`);
+    }
+  }
+  process.exit(0);
+}
+
+const m = measure(HERO);
+if (!m) {
+  console.error('no free hex for the hero under test \u2014 trim the base party');
+  process.exit(1);
+}
 console.log(`${HERO}: ${SIMS} paired fights, cap ${CAP} ticks, vs a fixed wave`);
-const outcome = (rs) => `cleared ${clearRate(rs)}, wiped ` +
-  `${Math.round(mean(rs.map((r) => (r.wiped ? 1 : 0))) * 100)}%`;
-console.log(`  ticks to finish  with ${Math.round(mean(withs.map((r) => r.ticks)))}` +
-  ` (${outcome(withs)})`);
-console.log(`                without ${Math.round(mean(withouts.map((r) => r.ticks)))}` +
-  ` (${outcome(withouts)})`);
-// Only meaningful when fights are actually ENDING in a clear. A run
-// that stops early because the party died is not a fast one, and a
-// "faster by -566 ticks" printed under an 80% wipe rate reads as the
-// exact opposite of what happened.
-const anyCleared = withs.concat(withouts).some((r) => r.cleared);
-if (anyCleared) {
-  console.log(`  faster by ${Math.round(mean(tickDiffs))} +/- ${Math.round(se(tickDiffs))}` +
-    ` ticks  (${(mean(tickDiffs) / mean(withouts.map((r) => r.ticks)) * 100).toFixed(1)}%)`);
+const pc = (x) => `${Math.round(x * 100)}%`;
+console.log(`  ticks to finish  with ${Math.round(m.withTicks)}` +
+  ` (cleared ${pc(m.clearedWith)}, wiped ${pc(m.wipedWith)})`);
+console.log(`                without ${Math.round(m.withoutTicks)}` +
+  ` (cleared ${pc(m.clearedWithout)})`);
+if (m.anyCleared) {
+  console.log(`  faster by ${Math.round(m.faster)} +/- ${Math.round(m.fasterErr)}` +
+    ` ticks  (${m.fasterPct.toFixed(1)}%)`);
 } else {
-  console.log('  (no run cleared the wave — read the outcome line above, ' +
+  console.log('  (no run cleared the wave \u2014 read the outcome line above, ' +
     'not the tick counts)');
 }
-console.log(`  damage in window ${Math.round(mean(withs.map((r) => r.dealt)))}` +
-  ` vs ${Math.round(base)}  ->  ${Math.round(mean(diffs))} +/- ${Math.round(se(diffs))}` +
-  `  (${(mean(diffs) / base * 100).toFixed(1)}%)`);
-console.log(`  party standing  with ${mean(withs.map((r) => r.standing)).toFixed(2)}` +
-  `  without ${mean(withouts.map((r) => r.standing)).toFixed(2)}`);
+console.log(`  damage in window ${Math.round(m.dealt)} vs ${Math.round(m.dealtBase)}` +
+  `  ->  ${Math.round(m.dealtDiff)} +/- ${Math.round(m.dealtErr)}` +
+  `  (${(m.dealtDiff / m.dealtBase * 100).toFixed(1)}%)`);
+console.log(`  party standing  with ${m.standing.toFixed(2)}` +
+  `  without ${m.standingBase.toFixed(2)}`);

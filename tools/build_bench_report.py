@@ -18,6 +18,10 @@ from pathlib import Path
 SRC = Path(sys.argv[1] if len(sys.argv) > 1 else 'bench.csv')
 OUT = Path(sys.argv[2] if len(sys.argv) > 2 else 'docs/bench-report.html')
 META = json.loads(Path(sys.argv[3] if len(sys.argv) > 3 else 'heroes.json').read_text())
+# The lift bench (test/lift.js --csv). Optional: the page renders without
+# it, because the two benches are run separately and one should not be
+# able to block the other.
+LIFT = Path(sys.argv[4]) if len(sys.argv) > 4 else None
 
 raw = SRC.read_text().splitlines()
 head = next(l for l in raw if l.startswith('Archetype bench'))
@@ -187,6 +191,83 @@ _cheapest = statistics.median(pw_by_star[min(pw_by_star)])
 _dearest = statistics.median(pw_by_star[max(pw_by_star)])
 power_spread = f'{_dearest / _cheapest:.2f}'
 
+# ---------------------------------------------------------------------------
+# The lift bench. The mirror above is structurally blind to a party buff --
+# both sides get it, so it cancels -- and blind to a summoner, whose output
+# is credited to the body it stood up. This measures the other thing: the
+# same party twice against a fixed wave, once with the hero and once
+# without, paired on the seed, reported as time-to-clear.
+# ---------------------------------------------------------------------------
+lift_rows, lift_head, lift_note = [], '', ''
+if LIFT and LIFT.exists():
+    lraw = LIFT.read_text().splitlines()
+    lift_head = next((l for l in lraw if l.startswith('Lift bench')), '')
+    lstart = next((i for i, l in enumerate(lraw) if l.startswith('hero,')), None)
+    if lstart is not None:
+        lift_data = list(csv.DictReader(lraw[lstart:]))
+        # A hero is only comparable if the wave actually fell on both
+        # sides. A censored run is dropped rather than quietly averaged in.
+        clean = [r for r in lift_data
+                 if int(r['clearedWith']) == 100 and int(r['clearedWithout']) == 100]
+        lift_note = ('Every hero cleared the wave in all 25 paired runs, so no reading '
+                     'here is censored.' if len(clean) == len(lift_data) else
+                     f'{len(clean)} of {len(lift_data)} heroes cleared the wave in every '
+                     'paired run; the rest are omitted rather than averaged from a '
+                     'censored fight.')
+        widest = max((abs(f(r['faster'])) for r in clean), default=1) or 1
+        for r in clean:
+            m = META.get(r['name']) or {}
+            v = f(r['faster'])
+            err = f(r['fasterErr'])
+            # Inside one standard error of nothing is not a reading.
+            flat = abs(v) <= err
+            tag = 'flat' if flat else ('over' if v > 0 else 'under')
+            w = min(50.0, abs(v) / widest * 50)
+            side = (f'<i class="fill over" style="left:50%;width:{w:.1f}%"></i>' if v > 0
+                    else f'<i class="fill under" style="right:50%;width:{w:.1f}%"></i>')
+            lift_rows.append(f'''<tr class="{tag}">
+    <th scope="row">{html.escape(r['name'])}</th>
+    <td class="num st">{r['rarity']}</td>
+    <td class="sect">{html.escape(m.get('sect') or '&mdash;')}</td>
+    <td class="num">{num(r['withoutTicks'])}</td>
+    <td class="num">{num(r['withTicks'])}</td>
+    <td class="num key">{'+' if v > 0 else ''}{v:,.0f}</td>
+    <td class="num">&plusmn;{err:,.0f}</td>
+    <td class="dev"><span class="bar"><i class="mid"></i>{side}</span></td>
+    <td class="num x">{f(r['fasterPct']):+.1f}%</td>
+  </tr>''')
+
+lift_section = ''
+if lift_rows:
+    lift_section = f'''
+  <section>
+    <h2>Lift &mdash; what the mirror cannot see</h2>
+    <h3>The same party twice against a fixed wave, once with the hero and once without</h3>
+    <p class="run">{html.escape(lift_head)}</p>
+    <p class="sub">A mirror gives both sides the same party buff, so it cancels and every
+    pure buffer reads at or below nothing above. This bench is asymmetric instead: paired
+    on the seed, the only difference is whether the hero is on the board, and the reading
+    is <b>ticks saved on the clear</b>. Positive is faster.
+    A row within one standard error of zero is drawn flat, because that is not a reading.
+    {html.escape(lift_note)}</p>
+    <p class="sub"><b>Read this as clear speed, not worth.</b> The party wins this wave
+    comfortably and nobody dies in it, so healing and mitigation buy almost nothing here
+    and a hero whose value is survival will read low by construction. It is the companion
+    to the mirror, not its verdict.</p>
+    <div class="scroll" style="margin-top:20px">
+      <table>
+        <thead><tr>
+          <th scope="col">Hero</th><th scope="col" class="num">&#9733;</th>
+          <th scope="col">Sect</th>
+          <th scope="col" class="num">Ticks without</th><th scope="col" class="num">Ticks with</th>
+          <th scope="col" class="num key">Ticks saved</th><th scope="col" class="num">&plusmn;</th>
+          <th scope="col" class="dev">vs nothing</th><th scope="col" class="num x"></th>
+        </tr></thead>
+        <tbody>{''.join(lift_rows)}</tbody>
+      </table>
+    </div>
+  </section>'''
+
 TEMPLATE = Path('tools/bench_report.template.html').read_text()
 page = (TEMPLATE
         .replace('%%HEADER%%', html.escape(head))
@@ -196,6 +277,7 @@ page = (TEMPLATE
         .replace('%%FLAGROWS%%', ''.join(flag_rows))
         .replace('%%CURVEROWS%%', ''.join(curve_rows))
         .replace('%%PWSPREAD%%', power_spread)
+        .replace('%%LIFT%%', lift_section)
         .replace('%%BUCKETS%%', ''.join(table_rows)))
 
 # The published page is wrapped in a skeleton we do not control, so
