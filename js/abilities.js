@@ -435,6 +435,23 @@ const Abilities = (() => {
         p.hooks.onOverheal(caster, { overflow, target, battle: b });
       }
     }
+    // And the same waste, reported to the whole side. `onOverheal` is
+    // the HEALER's -- Peck catches what his own pot spills -- and a
+    // hero who catches what OTHER people spill needs a different hook
+    // rather than a widened one, or Peck would quietly start warding off
+    // every mend in the party.
+    const field = (typeof Battle !== 'undefined' && Battle.active) || b;
+    if (!field || typeof field.livingUnits !== 'function') return;
+    for (const ally of field.livingUnits(caster.team)) {
+      for (const p of (ally.hookSources ? ally.hookSources() : [])) {
+        if (p.hooks && p.hooks.onAllyOverheal) {
+          const r = p.hooks.onAllyOverheal(ally, { overflow, target, healer: caster });
+          if (r && r.floats && field.addFloatingText) {
+            r.floats.forEach((f) => field.addFloatingText(f.target, f.text, f.color));
+          }
+        }
+      }
+    }
   }
 
   // `power` is the caster's skill-level multiplier for the ability this
@@ -836,9 +853,13 @@ const Abilities = (() => {
         // Thrown as an ordinary blow: it can be dodged, it can be
         // reflected, and the DEF curve answers it. A stored hit is
         // still a hit, unlike a poison already inside somebody.
-        const held = Math.round(caster.pouch || 0);
+        // `store` names the property the bank lives on, so a second
+        // hero banking a second thing does not need a second case.
+        // Defaults to Balmor's bill.
+        const store = effect.store || 'pouch';
+        const held = Math.round(caster[store] || 0);
         if (held <= 0) return { kind: 'pouch', target, amount: 0, spent: 0 };
-        caster.pouch = 0;
+        caster[store] = 0;
         const hit = strike(caster, target, held, {});
         return { kind: 'pouch', target, amount: hit.amount, spent: held };
       }

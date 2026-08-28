@@ -11890,4 +11890,123 @@ test('Mavros: Hold the Gate draws the field and braces for it', () => {
   } finally { Battle.active = prev; }
 });
 
+// The sect's first offensive support, and the hero who reads its books
+// rather than adding to them. Two healers and a +60% ceiling on mends
+// means the Sunbrood's real surplus is WASTE, and until Orien nothing
+// anywhere in either pack pointed at the enemy.
+//
+// He does not heal, on purpose: the orb is filled by other people's
+// spillage, so he is worth exactly as much as the healers beside him
+// and nothing at all on his own.
+test("Orien: the orb fills on what the brood wastes, not on what he does", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const orien = place(battle, HEROES.orien, TEAM.PLAYER, 4);
+    const healer = place(battle, HEROES.nemeris, TEAM.PLAYER, 0);
+    const full = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    full.hookSources = () => [];
+    assert(!orien.orb, 'the orb did not open empty');
+
+    // A mend on somebody already full is pure waste, and all of it lands
+    // in the orb -- fired off ANOTHER bird's cast, which is the rule.
+    const sunwarm = healer.abilities.find((a) => a.def.id === 'nemeris_sunwarm');
+    assert(sunwarm, 'the fixture lost its healer');
+    Abilities.execute(sunwarm.def, healer, full, battle);
+    const wasted = Math.round(full.maxHp * 0.16 * (1 + healer.healingBoost(full)));
+    assert(orien.orb > 0, 'the orb caught nothing off a teammate’s overheal');
+    assert(Math.abs(orien.orb - wasted) <= 2,
+      `the orb caught ${Math.round(orien.orb)} of a ${wasted} spill`);
+
+    // A mend that was NEEDED is not waste and fills nothing.
+    const held = orien.orb;
+    full.hp = Math.round(full.maxHp * 0.10);
+    Abilities.execute(sunwarm.def, healer, full, battle);
+    assert(orien.orb === held, 'the orb filled off a mend that actually landed');
+
+    // Capped against his own pool, not his attack stat.
+    orien.orb = 0;
+    for (let i = 0; i < 40; i++) {
+      full.hp = full.maxHp;
+      Abilities.execute(sunwarm.def, healer, full, battle);
+    }
+    assert(Math.abs(orien.orb - orien.maxHp * 0.15) < 1,
+      `the orb held ${Math.round(orien.orb)}, wanted 15% of ${orien.maxHp}`);
+  } finally { Battle.active = prev; }
+});
+
+// The payout: an ordinary blow, thrown once, and the orb is empty
+// afterwards. Sibling to Balmor's bill and sharing its engine case --
+// `store` names which bank a hero is emptying.
+test('Orien: Let the Light Out spends the orb and leaves it empty', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const orien = place(battle, HEROES.orien, TEAM.PLAYER, 4);
+    orien.slot = battle.playerSlots[1];          // off his hex
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    const out = orien.abilities.find((a) => a.def.id === 'orien_let_the_light_out');
+    assert(out, 'Let the Light Out is missing');
+
+    // Empty orb, empty shot -- he is nothing without the healers.
+    Math.random = () => 0.99;
+    const dry = foe.hp;
+    Abilities.execute(out.def, orien, foe, battle);
+    assert(foe.hp === dry, 'an empty orb still hit for something');
+
+    orien.orb = orien.maxHp * 0.15;
+    const before = foe.hp;
+    Abilities.execute(out.def, orien, foe, battle);
+    Math.random = real;
+    assert(foe.hp < before, 'a full orb hit for nothing');
+    assert(!orien.orb, 'the orb was not emptied by spending it');
+
+    // And Balmor's bill is untouched by sharing the case.
+    const bill = HEROES.balmor.abilities.find((a) =>
+      (a.effects || []).some((e) => e.type === 'spendPouch'));
+    assert(bill, 'Balmor lost his bill');
+    assert(!bill.effects.find((e) => e.type === 'spendPouch').store,
+      'the bill was given a store name; it is meant to default to the pouch');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex, and the only lever that matters to a hero whose payout is
+// one big stored blow: the thing standing between the orb and the enemy
+// is armour.
+test('Orien: Noon Angle finds the gap', () => {
+  const hex = POSITIONALS.noon_angle;
+  assert(HEROES.orien.positional === hex, 'Orien is not on his own hex');
+  assert(hex.position === POSITION.BACK, 'the angle wants height');
+
+  const shoot = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      const orien = place(battle, HEROES.orien, TEAM.PLAYER, 4);
+      if (!onHex) orien.slot = battle.playerSlots[1];
+      assert(orien.positionalActive() === onHex, 'the fixture seated him wrong');
+      const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+      foe.hookSources = () => [];
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      orien.orb = orien.maxHp * 0.15;
+      const out = orien.abilities.find((a) => a.def.id === 'orien_let_the_light_out');
+      const before = foe.hp;
+      Math.random = () => 0.99;
+      Abilities.execute(out.def, orien, foe, battle);
+      return before - foe.hp;
+    } finally { Math.random = real; Battle.active = prev; }
+  };
+
+  const off = shoot(false), on = shoot(true);
+  assert(off > 0 && on > 0, 'one of the shots landed nothing');
+  assert(on > off, `the angle carried ${on} against ${off} off it`);
+});
+
 report();

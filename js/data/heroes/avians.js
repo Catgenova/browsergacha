@@ -3247,4 +3247,134 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.gatepost,
   },
+
+  // The sect's first and only offensive support, and the hero who reads
+  // its books rather than adding to them.
+  //
+  // Six birds in, the Sunbrood's problem is stated plainly in its own
+  // arithmetic: light sells max HP twice and a stay of execution, the
+  // brood sells speed and healing done, and NOTHING anywhere in either
+  // pack points at the enemy. Two healers, a tank whose output is
+  // healing and a +60% ceiling on mends means the party's real surplus
+  // is waste -- every point of a team heal that lands on a bird already
+  // full is simply gone. Orien is the one who catches it.
+  //
+  // He does not heal. That is deliberate and it is what keeps him off
+  // Nemeris's ground: his orb is filled by OTHER people's spillage, so
+  // he is worth exactly as much as the healers standing beside him and
+  // nothing at all on his own. The conversion is the sect's stated
+  // thesis pointed at the other side of the field for the first time.
+  //
+  // Sibling to Balmor's bill and deliberately the other source. Balmor
+  // banks what is done TO him; Orien banks what is wasted on his
+  // friends. Same shape of payout, opposite half of the fight.
+  orien: {
+    id: 'orien',
+    element: 'light',
+    name: 'Orien',
+    title: 'Orbbearer of the Sunbrood',
+    rarity: 4,
+    // Health is the stat that matters to him and ATK is the one that
+    // does not: the orb is capped against his own pool and not one
+    // point of what he does is priced off attack.
+    stats: { hp: 1700, atk: 96, def: 104, speed: 118 },
+    tint: { body: '#2a4a8a', helm: '#e8c84a', weapon: '#f0d878', shield: '#c8a83a' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/orienidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'orien_kindle', name: 'Kindle',
+        icon: 'assets/icons/fc1053.png',
+        // Crit damage, not attack. A cd0 single-ally ATK blessing is
+        // Kiri's Pinwheel exactly -- the roster's "no two abilities are
+        // mechanically identical" rule named it the moment it was
+        // written -- and the crit axis is better for him anyway: neither
+        // of his packs touches it, and the bird it lands on hardest is
+        // Rizzo, whose whole kit is a lottery ticket.
+        description: 'A handful off the orb, given to one of them: an ally gains +25% Crit ' +
+          'Damage for 2 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'critDamage', add: 0.25, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'orien_handfuls_of_sun', name: 'Handfuls of Sun',
+        icon: 'assets/icons/fc1073.png',
+        // The only offensive party buff either of his packs will ever
+        // see, which is most of the reason he exists.
+        description: 'He opens the wings and the whole brood catches it: ALL allies gain ' +
+          '+20% ATK for 3 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'orien_let_the_light_out', name: 'Let the Light Out',
+        icon: 'assets/icons/fc1272.png',
+        // Thrown as an ordinary blow, exactly like Balmor's bill: it can
+        // be dodged, it can be reflected, and the DEF curve answers it.
+        // Stored light is still a hit.
+        description: 'Everything the brood wasted, spent at once: the whole orb into a ' +
+          'single enemy.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'spendPouch', store: 'orb' }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Orb Fills',
+      icon: 'assets/icons/fc1066.png',
+      // Capped against his POOL rather than his ATK, and for the reason
+      // Balmor's bill was rewritten: a support's attack stat is small
+      // precisely because he is a support, so a cap measured in ATK is a
+      // cap that means nothing at level 30 and less at 100. Health moves
+      // with gear and stars the way the numbers it is competing against
+      // do.
+      //
+      // 15%, and the bench is why. A quarter of his pool paid 885 at
+      // level 30 and 1299 at 100 against Aurek's 240%-ATK seven at 690
+      // and 940 -- the biggest single blow in the sect, on a 4-star
+      // support, on top of a party-wide attack buff. 15% lands it at
+      // roughly Rizzo's seven, which is where a bonus belongs.
+      //
+      // A party running two healers fills it in one cast. A party
+      // running none never fills it at all, which is the point.
+      description: 'Nothing the brood spills is wasted on Orien: every point of healing ' +
+        'that lands on an ally already full is caught in the orb, up to 15% ' +
+        'of his max HP.',
+      hooks: {
+        onAllyOverheal(unit, { overflow } = {}) {
+          if (!unit.alive || !(overflow > 0)) return null;
+          const cap = unit.maxHp * 0.15;
+          const before = unit.orb || 0;
+          if (before >= cap) return null;
+          unit.orb = Math.min(cap, before + overflow);
+          const gained = Math.round(unit.orb - before);
+          if (gained <= 0) return null;
+          return { floats: [{ target: unit, text: `◉ ${gained}`, color: '#ffd76a' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.noon_angle,
+  },
 });
