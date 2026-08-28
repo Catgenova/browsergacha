@@ -479,14 +479,19 @@ function measure(def, cast) {
   }
   const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
   const avgSolo = (pick) => solos.reduce((s, r) => s + pick(r), 0) / solos.length;
-  // direct + poison + assist must reconstruct dps. If they do not, one of
-  // the three is being attributed to the wrong hero and every split on the
-  // page is fiction.
+  // Direct and poison must reconstruct the hero's own damage. Assist is
+  // NOT part of that sum any more and must not be checked against it:
+  // damage and facilitation are two ledgers now (see js/meter.js), the
+  // first holding the whole of what a hero swung for and the second the
+  // slice of somebody ELSE's swing their buffs and breaks bought. A
+  // support who dealt nothing all fight and enabled forty thousand is
+  // the ordinary case, not a broken split -- this check used to read
+  // that as attribution being broken because assists were carved out of
+  // the attacker's own column back when the two shared a ledger.
   for (const r of runs) {
-    if (r.poison + r.assist > r.damage + 1) {
-      throw new Error(`${def.id}: poison ${Math.round(r.poison)} + assist ` +
-        `${Math.round(r.assist)} exceeds total damage ${Math.round(r.damage)} ` +
-        '— damage attribution is broken');
+    if (r.poison > r.damage + 1) {
+      throw new Error(`${def.id}: poison ${Math.round(r.poison)} exceeds ` +
+        `total damage ${Math.round(r.damage)} — damage attribution is broken`);
     }
   }
   const mitRatio = avg((r) => r.mitRatio);
@@ -498,7 +503,9 @@ function measure(def, cast) {
     rarity: def.rarity,
     power: powerOf(def),
     dps: avg((r) => r.damage / r.seconds),
-    direct: avg((r) => (r.damage - r.poison - r.assist) / r.seconds),
+    // Own swings, less the ticks. Assist is not subtracted: it was
+    // never added, because it lives in its own ledger.
+    direct: avg((r) => (r.damage - r.poison) / r.seconds),
     poison: avg((r) => r.poison / r.seconds),
     assist: avg((r) => r.assist / r.seconds),
     'heal/s': avg((r) => r.healing / r.seconds),

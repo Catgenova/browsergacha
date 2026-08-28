@@ -1592,9 +1592,15 @@ Object.assign(HEROES, {
       {
         id: 'stoop', name: 'Stoop',
         icon: 'assets/icons/fc819.png',
-        description: 'Fold the wings and fall: 105% ATK to one enemy.',
+        // 155%, not the 105% he shipped with. The bench put him at 0.24x
+        // his archetype's median -- a quarter of the next worst front
+        // DPS -- because a single-target basic at 7v7 does a third of
+        // the work a row sweep does, and Jack, the other 1-star in the
+        // bucket, sweeps. Focus fire has to be paid for in size or it
+        // is simply less damage.
+        description: 'Fold the wings and fall: 155% ATK to one enemy.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [{ type: 'damage', mult: 1.55 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
@@ -1622,7 +1628,13 @@ Object.assign(HEROES, {
         },
       },
     },
-    positional: POSITIONALS.reckless_charge,
+    // Ryn's hex, and it was Reckless Charge until the bench: +20%
+    // dealt for +10% taken is a bad trade for the frailest body in the
+    // game, and he was taking more damage per second than anything
+    // else in his bucket while holding the lowest effective HP in it.
+    // Speed costs him nothing, feeds his own armour blindness, and
+    // feeds both of the sect's damage tiers.
+    positional: POSITIONALS.headwind,
   },
 
   // The top of the sect: a gatekeeper who does not chase anything down.
@@ -2334,18 +2346,25 @@ Object.assign(HEROES, {
       // and "keeps a share of every blow" meant nothing.
       //
       // Health is the scale he actually absorbs on, and it moves with
-      // his gear and his stars the way the incoming damage does. A
-      // quarter of his pool takes about fourteen blows to fill at half
-      // rate -- most of a real fight, for one cast.
-      description: 'Nothing is wasted on a pelican: Balmor keeps half of every blow he ' +
-        'takes in his bill, up to a quarter of his max HP.',
+      // his gear and his stars the way incoming damage does.
+      //
+      // The RATE is what the bench corrected. Half of every blow into a
+      // quarter of his pool took thirteen hits to fill at level 30 and
+      // ONE HUNDRED AND SIXTEEN at level 100 -- because his DEF grows
+      // with his pool, so each blow is a smaller share of it the
+      // further he is invested, and the bill quietly died at endgame
+      // while reading fine everywhere I had tested it. The whole blow
+      // into an eighth of the pool fills in about a fight at both ends
+      // of the curve.
+      description: 'Nothing is wasted on a pelican: Balmor keeps every blow he takes in ' +
+        'his bill, up to an eighth of his max HP.',
       hooks: {
         onStruck(unit, { amount } = {}) {
           if (!unit.alive || !(amount > 0)) return null;
-          const cap = unit.maxHp * 0.25;
+          const cap = unit.maxHp * 0.125;
           const before = unit.pouch || 0;
           if (before >= cap) return null;
-          unit.pouch = Math.min(cap, before + amount * 0.50);
+          unit.pouch = Math.min(cap, before + amount);
           return null;
         },
       },

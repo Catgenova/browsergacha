@@ -9759,32 +9759,37 @@ test("Balmor's bill: everything he was given, given back", () => {
     // An empty bill is empty: nothing banked before anything lands.
     assert(!(balmor.pouch > 0), `the bill started holding ${balmor.pouch}`);
 
-    // He keeps 30% of what he is given, not of what was thrown -- the
-    // hook reads what actually landed, after his own armour.
+    // He keeps the whole of what he is given, not of what was thrown --
+    // the hook reads what actually landed, after his own armour. The
+    // blow is a real peer's swing rather than an invented number: a
+    // 6000-raw hit takes a fifth of his pool at once, which no fight
+    // does and which made the cap look like it bound on the first hit.
+    const swing = new Unit(HEROES.tervan, TEAM.PLAYER, { level: 30, stars: 3 })
+      .effectiveStat('atk') * 1.55;
     const real = Math.random;
     Math.random = () => 0.99;
     let landed = 0;
     try {
       const before = balmor.hp;
-      Abilities.strike(foe, balmor, 6000, { dodge: false, reflect: false });
+      Abilities.strike(foe, balmor, swing, { dodge: false, reflect: false });
       landed = before - balmor.hp;
     } finally { Math.random = real; }
     assert(landed > 0, 'the blow did not land at all');
-    assert(Math.abs(balmor.pouch - landed * 0.50) < 1e-6,
-      `the bill holds ${balmor.pouch} off a ${landed} blow, wanted half`);
+    assert(Math.abs(balmor.pouch - landed) < 1e-6,
+      `the bill holds ${balmor.pouch} off a ${landed} blow, wanted the whole of it`);
 
     // Capped against his POOL, not his ATK -- and the cap has to be
     // bigger than a single blow, or "keeps a share of every blow" is a
     // sentence about nothing. The first draft of this hero failed
     // exactly there: 250% of a tank's ATK was a fifth of one hit.
-    const cap = balmor.maxHp * 0.25;
+    const cap = balmor.maxHp * 0.125;
     assert(cap > landed,
       `the cap (${cap}) is smaller than one blow (${landed}) -- the bill fills instantly`);
     Math.random = () => 0.99;
     try {
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 200; i++) {
         balmor.hp = balmor.maxHp;
-        Abilities.strike(foe, balmor, 6000, { dodge: false, reflect: false });
+        Abilities.strike(foe, balmor, swing, { dodge: false, reflect: false });
       }
     } finally { Math.random = real; }
     assert(Math.abs(balmor.pouch - cap) < 1e-6,
@@ -9823,6 +9828,45 @@ test("Balmor's bill: everything he was given, given back", () => {
       `hitting somebody put ${balmor.pouch} in the bill -- it fills from what he is given`);
   } finally { Battle.active = prev; }
 
+  // The defect the archetype bench found, pinned so it cannot come back.
+  // The bill has to fill in about a fight AT EVERY LEVEL. It did not:
+  // half a blow into a quarter of his pool wanted 13 hits at level 30
+  // and 116 at level 100, because his DEF grows with his pool and each
+  // blow is a smaller share of it the further he is invested. It read
+  // fine at the level everything else was tested at and was dead at the
+  // level the game is actually played at.
+  for (const level of [30, 100]) {
+    const b3 = makeBattle();
+    const prev3 = Battle.active;
+    Battle.active = b3;
+    try {
+      const bal = new Unit(HEROES.balmor, TEAM.PLAYER, { level, stars: 3 });
+      bal.slot = b3.playerSlots[1];
+      bal.dodgeChance = () => 0; bal.reflectChance = () => 0;
+      b3.units.push(bal);
+      const hitter = new Unit(HEROES.tervan, TEAM.PLAYER, { level, stars: 3 });
+      const foe2 = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level, stars: 3 });
+      foe2.slot = b3.enemySlots[0];
+      foe2.hookSources = () => [];
+      b3.units.push(foe2);
+      const raw = hitter.effectiveStat('atk') * 1.55;
+      const cap2 = bal.maxHp * 0.125;
+      const real2 = Math.random;
+      let blows = 0;
+      Math.random = () => 0.99;
+      try {
+        while ((bal.pouch || 0) < cap2 && blows < 500) {
+          bal.hp = bal.maxHp;
+          Abilities.strike(foe2, bal, raw, { dodge: false, reflect: false });
+          blows++;
+        }
+      } finally { Math.random = real2; }
+      assert(blows <= 40,
+        `at level ${level} the bill wants ${blows} blows to fill -- no fight is that ` +
+        'long, so the mechanic is dead there');
+    } finally { Battle.active = prev3; }
+  }
+
   // The tension the kit is built on: Broad Shadow keeps him alive and
   // starves the bill, because damage he does not take is damage he does
   // not get to keep. Worth pinning -- if the two ever stopped pulling
@@ -9842,9 +9886,14 @@ test("Balmor's bill: everything he was given, given back", () => {
           bal.addStatusEffect({ kind: 'buff', stat: 'damageTaken', mult: 0.85,
             turns: 2, source: bal });
         }
+        // A real peer's swing, not an invented figure: a blow big enough
+        // to cap the bill on its own reads the same warded or bare and
+        // the comparison says nothing.
+        const swing = new Unit(HEROES.tervan, TEAM.PLAYER, { level: 30, stars: 3 })
+          .effectiveStat('atk') * 1.55;
         const real = Math.random;
         Math.random = () => 0.99;
-        try { Abilities.strike(foe, bal, 6000, { dodge: false, reflect: false }); }
+        try { Abilities.strike(foe, bal, swing, { dodge: false, reflect: false }); }
         finally { Math.random = real; }
         b2.units = b2.units.filter((u) => u !== bal && u !== foe);
         return bal.pouch;
@@ -10650,7 +10699,7 @@ test("Tervan's Windshear: armour blindness, but only against the slower", () => 
     // where Reckless Charge is worth another 20%, and hard-coding the
     // swing would be pinning his positional here by accident.
     const probe = mark(mine - 20);
-    const raw = t.effectiveStat('atk') * 1.05 *
+    const raw = t.effectiveStat('atk') * 1.55 *
       g.Elements.mult('wind', DUMMIES.rat_knight.element) *
       t.damageDealtMult(probe, null);
     battle.units = battle.units.filter((u) => u !== probe);
