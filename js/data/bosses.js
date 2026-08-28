@@ -30,15 +30,14 @@ const BOSSES = {
       {
         id: 'cleave_sweep', name: 'Cleave Sweep',
         icon: 'assets/icons/fc730.png',
-        description: 'Rake the entire front line for 150% ATK.',
+        description: 'Enemy front row: 150% ATK damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.5 }],
       },
       {
         id: 'fire_breath', name: 'Fire Breath',
         icon: 'assets/icons/fc998.png',
-        description: 'Engulf ALL heroes for 90% ATK — heroes shrouded in ' +
-          'methane fog are IGNITED for double damage.',
+        description: 'All enemies: 90% ATK damage (180% vs a fogged target).',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.9, bonusVs: { stat: 'methane', mult: 2 } },
@@ -47,8 +46,7 @@ const BOSSES = {
       {
         id: 'methane_fog', name: 'Methane Fog',
         icon: 'assets/icons/fc675.png',
-        description: 'Blanket the party in flammable fog for 3 turns ' +
-          '(resistible). Fire Breath detonates it.',
+        description: 'All enemies: Methane Fog: takes double damage from Fire Breath for 3 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [{ type: 'debuff', stat: 'methane', mult: 1, turns: 3 }],
       },
@@ -117,7 +115,7 @@ const BOSSES = {
       {
         id: 'scepter_smash', name: 'Scepter Smash',
         icon: 'assets/icons/fc1477.png',
-        description: 'Crush a hero for 125% ATK and slow them: -10% SPD for 1 turn.',
+        description: 'One enemy: 125% ATK damage; -10% SPD for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -127,7 +125,7 @@ const BOSSES = {
       {
         id: 'gnawing_horde', name: 'Gnawing Horde',
         icon: 'assets/icons/fc1066.png',
-        description: 'The horde swarms ALL heroes: 80% ATK and -15% ATK for 2 turns.',
+        description: 'All enemies: 80% ATK damage; -15% ATK for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
@@ -137,7 +135,7 @@ const BOSSES = {
       {
         id: 'rat_flood', name: 'Rat Flood',
         icon: 'assets/icons/fc1067.png',
-        description: 'Drown a hero row in vermin: 140% ATK and their action bars are cut by 30%.',
+        description: 'One enemy and their row: 140% ATK damage; -30% turn meter.',
         cooldown: 7, targeting: 'enemy-row', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.4 },
@@ -195,7 +193,7 @@ const BOSSES = {
       {
         id: 'rending_beak', name: 'Rending Beak',
         icon: 'assets/icons/fc746.png',
-        description: 'Tear at a hero for 120% ATK and rend armor: -15% DEF for 2 turns.',
+        description: 'One enemy: 120% ATK damage; -15% DEF for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.2 },
@@ -205,7 +203,7 @@ const BOSSES = {
       {
         id: 'wing_buffet', name: 'Wing Buffet',
         icon: 'assets/icons/fc785.png',
-        description: 'Batter ALL heroes for 75% ATK and knock their action bars back 15%.',
+        description: 'All enemies: 75% ATK damage; -15% turn meter.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.75 },
@@ -215,7 +213,7 @@ const BOSSES = {
       {
         id: 'death_from_above', name: 'Death From Above',
         icon: 'assets/icons/fc763.png',
-        description: 'A murderous dive on one hero: 250% ATK.',
+        description: 'One enemy: 250% ATK damage.',
         cooldown: 6, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 2.5 }],
       },
@@ -279,21 +277,21 @@ const BOSSES = {
       {
         id: 'axe_of_the_maze', name: 'Axe of the Maze',
         icon: 'assets/icons/fc1467.png',
-        description: 'A monstrous axe sweep across the front line for 140% ATK.',
+        description: 'Enemy front row: 140% ATK damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.4 }],
       },
       {
         id: 'labyrinthine_charge', name: 'Labyrinthine Charge',
         icon: 'assets/icons/fc767.png',
-        description: 'Charge through a hero row for 130% ATK.',
+        description: 'One enemy and their row: 130% ATK damage.',
         cooldown: 4, targeting: 'enemy-row', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.3 }],
       },
       {
         id: 'wrath_of_the_maze', name: 'Wrath of the Maze',
         icon: 'assets/icons/fc999.png',
-        description: 'The maze quakes: 100% ATK to ALL heroes and shatters armor, -20% DEF for 2 turns.',
+        description: 'All enemies: 100% ATK damage; -20% DEF for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
@@ -359,7 +357,7 @@ const BOSSES = {
       {
         id: 'empress_fang', name: 'Empress Fang',
         icon: 'assets/icons/fc746.png',
-        description: 'A royal strike for 120% ATK that poisons for 60% ATK per turn (2 turns).',
+        description: 'One enemy: 120% ATK damage; 60% ATK per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.2 },
@@ -369,7 +367,7 @@ const BOSSES = {
       {
         id: 'venomous_deluge', name: 'Venomous Deluge',
         icon: 'assets/icons/fc1067.png',
-        description: 'Drench ALL heroes: 70% ATK plus poison for 70% ATK per turn (2 turns).',
+        description: 'All enemies: 70% ATK damage; 70% ATK per turn for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.7 },
@@ -379,7 +377,7 @@ const BOSSES = {
       {
         id: 'constrict_and_devour', name: 'Constrict & Devour',
         icon: 'assets/icons/fc748.png',
-        description: 'Crush ALL heroes for 90% ATK — poisoned heroes take double damage.',
+        description: 'All enemies: 90% ATK damage (180% vs a target with a DoT).',
         cooldown: 7, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.9, bonusVs: { kind: 'dot', mult: 2 } },
@@ -441,8 +439,7 @@ const BOSSES = {
       {
         id: 'winterfang', name: 'Winterfang',
         icon: 'assets/icons/fc734.png',
-        description: 'Single out a hero: 140% ATK with a 30% chance to ' +
-          'STUN for 1 turn (resistible).',
+        description: 'One enemy: 140% ATK damage; 30% chance: stunned for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.4 },
@@ -452,8 +449,7 @@ const BOSSES = {
       {
         id: 'blizzard_howl', name: 'Blizzard Howl',
         icon: 'assets/icons/fc1084.png',
-        description: 'A killing wind: 85% ATK to ALL heroes and a deep ' +
-          'chill: -20% SPD for 2 turns (resistible).',
+        description: 'All enemies: 85% ATK damage; -20% SPD for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.85 },
@@ -463,8 +459,7 @@ const BOSSES = {
       {
         id: 'avalanche_pounce', name: 'Avalanche Pounce',
         icon: 'assets/icons/fc767.png',
-        description: 'Crash down on the front line for 150% ATK — heroes ' +
-          'frozen stiff (stunned) are crushed for DOUBLE damage.',
+        description: 'Enemy front row: 150% ATK damage (300% vs a stunned target).',
         cooldown: 6, targeting: 'front-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.5, bonusVs: { stat: 'stun', mult: 2 } },
@@ -527,8 +522,7 @@ const BOSSES = {
       {
         id: 'tusk_gore', name: 'Tusk Gore',
         icon: 'assets/icons/fc746.png',
-        description: 'Gore a hero for 145% ATK and split their armor: ' +
-          '-15% DEF for 2 turns (resistible).',
+        description: 'One enemy: 145% ATK damage; -15% DEF for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.45 },
@@ -538,8 +532,7 @@ const BOSSES = {
       {
         id: 'earthshaker_charge', name: 'Earthshaker Charge',
         icon: 'assets/icons/fc767.png',
-        description: 'Shake the whole savanna: 80% ATK to ALL heroes and ' +
-          '-10% turn meter.',
+        description: 'All enemies: 80% ATK damage; -10% turn meter.',
         cooldown: 5, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
@@ -549,8 +542,7 @@ const BOSSES = {
       {
         id: 'shieldbreaker_stampede', name: 'Shieldbreaker Stampede',
         icon: 'assets/icons/fc730.png',
-        description: 'Trample the front line for 160% ATK — heroes whose ' +
-          'DEF is altered (buffed or broken) are crushed for 75% more.',
+        description: 'Enemy front row: 160% ATK damage (280% vs a target whose DEF has been changed).',
         cooldown: 6, targeting: 'front-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.6, bonusVs: { stat: 'def', mult: 1.75 } },
@@ -605,8 +597,7 @@ const BOSSES = {
       {
         id: 'ancient_maul', name: 'Ancient Maul',
         icon: 'assets/icons/fc767.png',
-        description: 'Maul a hero for 150% ATK, feeding on the blow: ' +
-          'heals himself for 50% of his ATK.',
+        description: 'One enemy: 150% ATK damage; self: heals 50% ATK.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.5 }],
         selfEffects: [{ type: 'heal', mult: 0.5 }],
@@ -614,8 +605,7 @@ const BOSSES = {
       {
         id: 'ursine_roar', name: 'Ursine Roar',
         icon: 'assets/icons/fc1084.png',
-        description: 'A roar older than the valley: 80% ATK to ALL heroes ' +
-          'and -15% ATK for 2 turns (resistible).',
+        description: 'All enemies: 80% ATK damage; -15% ATK for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.8 },
@@ -625,9 +615,7 @@ const BOSSES = {
       {
         id: 'hibernate', name: 'Hibernate',
         icon: 'assets/icons/fc1112.png',
-        description: 'Curl into the long sleep: heals 20% of his max HP ' +
-          'and takes 25% less damage for 2 turns. Wounds that fester ' +
-          '(DoTs) still burn through it.',
+        description: 'Self: heals 20% of caster max HP; -25% damage taken for 2 turns.',
         cooldown: 7, targeting: 'self', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -695,8 +683,7 @@ const BOSSES = {
       {
         id: 'regal_pounce', name: 'Regal Pounce',
         icon: 'assets/icons/fc763.png',
-        description: 'Single out a hero: 140% ATK that steals 15% of ' +
-          'their turn meter.',
+        description: 'One enemy: 140% ATK damage; -15% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.4 },
@@ -706,8 +693,7 @@ const BOSSES = {
       {
         id: 'commanding_roar', name: 'Commanding Roar',
         icon: 'assets/icons/fc1084.png',
-        description: 'The meadow obeys: 75% ATK to ALL heroes and -12% ' +
-          'turn meter, while the Regent surges 15% up his own.',
+        description: 'All enemies: 75% ATK damage; -12% turn meter; self: +15% turn meter.',
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.75 },
@@ -718,8 +704,7 @@ const BOSSES = {
       {
         id: 'nine_lives_flurry', name: 'Nine Lives Flurry',
         icon: 'assets/icons/fc744.png',
-        description: 'A blur of claws across the front line: three ' +
-          'swipes of 65% ATK each.',
+        description: 'Enemy front row: 3 hits of 65% ATK damage.',
         cooldown: 6, targeting: 'front-enemies', animation: 'attack',
         effects: [
           { type: 'damage', mult: 0.65 },
