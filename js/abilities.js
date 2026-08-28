@@ -459,7 +459,7 @@ const Abilities = (() => {
         return hit;
       }
       case 'heal': {
-        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost(target) : 0);
         // ATK-priced, so it takes the ATK/DEF rate: `mult` points, not
         // the smaller `heal` steps an HP-priced mend uses.
         const hLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
@@ -493,7 +493,7 @@ const Abilities = (() => {
           ((effect.perTarget || 0) + (healLad.perTarget || 0)) * mouths +
           // A Court mend runs on the same fuel its blessings do.
           ((effect.perBurn || 0) + (healLad.perBurn || 0)) * firesLit(caster);
-        const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const hpBoost = 1 + (caster.healingBoost ? caster.healingBoost(target) : 0);
         const pool = effect.targetPct && !effect.pct ? target.maxHp : caster.maxHp;
         const amount = Math.round(pool * pct * power * hpBoost);
         if (target.healBlocked()) return { kind: 'heal', target, amount: 0, blocked: true };
@@ -513,7 +513,7 @@ const Abilities = (() => {
         const count = foes.reduce((n, u) =>
           n + u.statusEffects.filter((fx) => fx.kind === 'dot').length, 0);
         if (count === 0) return { kind: 'heal', target, amount: 0 };
-        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost(target) : 0);
         // ATK-priced per fire, so it takes the ATK rate.
         const pdLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
         const amount = Math.round(caster.effectiveStat('atk') *
@@ -530,7 +530,7 @@ const Abilities = (() => {
         target.addStatusEffect({
           kind: 'hot',
           amount: Math.round(caster.maxHp * (effect.pct + (hotLad.heal || 0)) * power *
-            (1 + (caster.healingBoost ? caster.healingBoost() : 0))),
+            (1 + (caster.healingBoost ? caster.healingBoost(target) : 0))),
           // A heal-over-time is a friendly effect, so a duration rung
           // lengthens it exactly as it lengthens a buff.
           turns: effect.turns + (hotLad.duration || 0),
@@ -558,7 +558,7 @@ const Abilities = (() => {
         // `pct` scales off the caster's own MAX HP instead, the way
         // healHpPct and hot already do, for a caster whose whole kit is
         // priced off her pool rather than her attack (Lenore).
-        const boost = 1 + (caster.healingBoost ? caster.healingBoost() : 0);
+        const boost = 1 + (caster.healingBoost ? caster.healingBoost(target) : 0);
         // A shield is HP the target does not lose, so it takes the rate
         // its own pricing implies: `heal` points on an HP-priced ward,
         // `mult` points on an ATK-priced one. Duration lengthens it.

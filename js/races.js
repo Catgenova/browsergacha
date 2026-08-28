@@ -395,6 +395,57 @@ const RACES = (() => {
     // 1.25 x 1.30 before Crosswind, and that is the deliberate shape of
     // the sect rather than an accident -- it is also worth exactly
     // nothing against anything faster, which is the price.
+    // The brood turns TEMPO into SUSTAIN, which is the Razorwings'
+    // conversion pointed the other way: they spend speed as damage,
+    // these spend it as healing. Different element, so the two never
+    // stack, and neither one is selling what its own element already
+    // sells -- light's pack is max HP twice over (Congregation at 2pc,
+    // Matins at 4pc), so not one of these three touches hpPct.
+    //
+    // The three feed each other on purpose. Quick Feathers buys speed,
+    // Wingbeat Mend prices healing off speed, and Everything Given
+    // widens the whole thing exactly when it matters. They ADD rather
+    // than multiply -- healingBoost sums its hooks -- so a full brood
+    // mending a badly hurt bird is about +55%, not a product that runs
+    // away.
+    sunbrood: [
+      {
+        count: 2, name: 'Quick Feathers',
+        // Speed is the one thing light does not already sell, so the
+        // brood is free to buy it outright -- and buying it here is
+        // what makes the tier above worth anything.
+        mods: { spdPct: 0.10, healBoost: 0.10 },
+        label: '+10% SPD and +10% healing done',
+      },
+      {
+        count: 3, name: 'Wingbeat Mend',
+        // The conversion itself, and the sect's whole thesis in one
+        // line: the faster the brood flies, the more it mends. Stepped
+        // per 25 like Crosswind, and uncapped like Crosswind too -- a
+        // party that has invested that heavily in speed has paid for it
+        // somewhere else.
+        hooks: {
+          healBoostAdd(unit) {
+            const over = unit.effectiveStat('speed') - 100;
+            return over <= 0 ? 0 : Math.floor(over / 25) * 0.05;
+          },
+        },
+        label: '+5% healing done for every full 25 SPD above 100',
+      },
+      {
+        count: 4, name: 'Everything Given',
+        // Reads the PATIENT, not the healer. A mend is worth most to
+        // whoever is closest to going down, and this is the only tier
+        // in the game that prices it that way.
+        hooks: {
+          healBoostAdd(unit, patient) {
+            if (!patient || !(patient.maxHp > 0)) return 0;
+            return patient.hp / patient.maxHp < 0.5 ? 0.40 : 0;
+          },
+        },
+        label: '+40% healing to an ally below half HP',
+      },
+    ],
     razorwings: [
       {
         count: 2, name: 'Overtake',
