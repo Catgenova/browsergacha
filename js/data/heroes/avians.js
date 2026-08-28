@@ -2729,4 +2729,125 @@ Object.assign(HEROES, {
     // which is the same bird his passive is already looking at.
     positional: POSITIONALS.rallying_banner,
   },
+
+  // The brood's egg, and the bird the whole pack was written to pay.
+  // Everything above him multiplies healing -- 10% at 2pc, a rung per
+  // 20 SPD at 3pc, 40% more on anyone under half at 4pc -- and a
+  // multiplier is worth whatever it is handed, so the sect's 5-star is
+  // the one whose job is to be the biggest number to multiply.
+  //
+  // His mends are priced off the PATIENT's pool, which is the third
+  // distinct pricing in a three-bird sect and the only one that reads
+  // the light element rather than repeating it. Light hands the whole
+  // party a bigger pool at 2pc and again at 4pc; Nemeris is the only
+  // hero on the roster who turns a bigger pool into a bigger mend. It
+  // does not compound -- a percentage of a pool restores the same
+  // FRACTION however deep the pool gets -- it just means nothing the
+  // element gives is wasted on him.
+  //
+  // 128 speed is not decoration. Under the brood's own 2pc it becomes
+  // 140.8, which is exactly the second rung of Wingbeat Mend: the sect
+  // proving its own thesis on the hero it was built around. +10% (2pc)
+  // and +10% (two rungs) is +20% before a target is even wounded, and
+  // +60% on one who is.
+  nemeris: {
+    id: 'nemeris',
+    element: 'light',
+    name: 'Nemeris',
+    title: 'Eggbearer of the Sunbrood',
+    rarity: 5,
+    // A support statline with the speed spent where the sect spends it.
+    // No ATK worth speaking of: not one point of what he does is priced
+    // off it.
+    stats: { hp: 1750, atk: 96, def: 132, speed: 128 },
+    tint: { body: '#f4f0e4', helm: '#e8c84a', weapon: '#c8a83a', shield: '#f8e08a' },
+    sprite: {
+      displayH: 98,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/nemerisidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'nemeris_sunwarm', name: 'Sunwarm',
+        icon: 'assets/icons/fc866.png',
+        // 16% where Mendral's cd0 spoonfeed is 14%, which is the whole
+        // gap two shelves buys on a slot-one mend.
+        description: 'The first warmth of the morning, given to whoever needs it: one ally ' +
+          'recovers 16% of their OWN max HP.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', targetPct: 0.16 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+        ],
+      },
+      {
+        id: 'nemeris_the_whole_brood', name: 'The Whole Brood',
+        icon: 'assets/icons/fc1073.png',
+        // Deliberately NOT Durn's Reflect the Sun with a bigger number.
+        // His is a flat figure off one pool, so it is worth most to the
+        // smallest bird on the field; this one is proportional, so the
+        // tank gets a tank's share. Fielded together they cover opposite
+        // ends of the same team.
+        description: 'He tends every one of them at once: ALL allies recover 12% of ' +
+          'their OWN max HP.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', targetPct: 0.12 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'nemeris_the_long_morning', name: 'The Long Morning',
+        icon: 'assets/icons/fc1272.png',
+        // The panic button, and the only cleanse in the sect. A healing
+        // party's real loss condition is not damage, it is a heal block
+        // or a stack of poisons outrunning the mends -- so the 5-star's
+        // seven answers the thing his own pillar cannot.
+        description: 'Night burns off the nest: every ally sheds 2 debuffs and recovers ' +
+          '20% of their OWN max HP.',
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'cleanse', count: 2 },
+          { type: 'healHpPct', targetPct: 0.20 },
+        ],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cleanseCount: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: "The Brood's Egg",
+      icon: 'assets/icons/fc1053.png',
+      // The one thing no amount of healing covers: a bird deleted
+      // between his turns. Everything the Sunbrood does answers
+      // attrition, and this answers the hole attrition leaves.
+      //
+      // Distinct from Stella's coal on both counts that matter. Hers is
+      // hers alone and leaves her on a single point of health -- a stay
+      // of execution. His is spent on somebody else, once, and leaves
+      // them standing on something real. See Unit.takeDamage for the
+      // charge, and for why it is never spent on Nemeris himself.
+      description: "The egg is the brood's, not his: while Nemeris stands, the first ally " +
+        'who would fall is caught instead, holding on with health equal to 35% of ' +
+        'his max HP. Once per battle, and never for Nemeris.',
+      hooks: { eggBearer: 0.35 },
+    },
+    positional: POSITIONALS.under_the_egg,
+  },
 });

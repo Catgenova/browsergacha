@@ -6,7 +6,7 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState, RACES, DUMMIES, Progression } = g;
+  Battle, GameState, RACES, DUMMIES, Progression, POSITIONALS } = g;
 
 // The bottom of the roster. It used to be 1-star -- the generated
 // cohorts filled that shelf -- and is 3-star now that only authored
@@ -11329,6 +11329,164 @@ test('the party readout hides a group with fewer than two fielded', () => {
     assert(RACES.elementTiers('water', 2).length > 0, 'water paid nothing at two');
     assert(RACES.PREVIEW_MIN === 2, `the readout floor is ${RACES.PREVIEW_MIN}`);
   }
+});
+
+// The Sunbrood's 5-star, and the bird the whole pack was written to pay.
+// Three things have to hold: the egg catches somebody ELSE exactly once,
+// it is worth a share of NEMERIS's pool rather than the victim's, and it
+// is deaf to the healing multipliers his own sect stacks -- otherwise
+// the pack cashes out twice on the same tier.
+test("Nemeris: the egg is the brood's, not his", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nem = place(battle, HEROES.nemeris, TEAM.PLAYER, 3);
+    const mate = (slot) => {
+      const u = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, slot);
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      return u;
+    };
+    const kill = (u) => {
+      const real = Math.random;
+      Math.random = () => 0.99;
+      try { Abilities.strike(foe, u, u.maxHp * 50, { dodge: false, reflect: false }); }
+      finally { Math.random = real; }
+    };
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+
+    // One catch, priced off Nemeris.
+    const a = mate(1);
+    kill(a);
+    assert(a.alive, 'the egg did not catch the first ally to fall');
+    const want = Math.round(nem.maxHp * 0.35);
+    assert(a.hp === want,
+      `caught on ${a.hp} health, not the ${want} the egg is worth`);
+    // And priced off HIS pool, not the victim's: the dummy's pool is a
+    // different number, so an implementation that read the wrong one
+    // would land somewhere else entirely.
+    assert(Math.round(a.maxHp * 0.35) !== want,
+      'the fixture cannot tell the two pools apart');
+
+    // Once. The second bird to fall stays down.
+    const b = mate(2);
+    kill(b);
+    assert(!b.alive, 'the egg caught a second ally in one battle');
+
+  } finally { Battle.active = prev; }
+});
+
+// Never the bearer -- and this needs its own battle to mean anything.
+// Asserted at the end of the fixture above it proved nothing, because
+// the egg was already spent on somebody else by then and a self-catch
+// could not have fired whatever the guard said. Here the egg is whole
+// and Nemeris is the first to fall.
+test('Nemeris: the egg is not for him', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nem = place(battle, HEROES.nemeris, TEAM.PLAYER, 3);
+    nem.dodgeChance = () => 0; nem.reflectChance = () => 0;
+    // A second bearer would be a different rule (the charge is spent off
+    // whoever owns it), so he stands alone but for a plain teammate.
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    mate.hookSources = () => [];
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    const real = Math.random;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, nem, nem.maxHp * 50, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(!nem.alive, 'Nemeris caught himself with his own egg');
+    assert(!nem.eggSpent, 'the charge was spent on the catch that never happened');
+  } finally { Battle.active = prev; }
+});
+
+// The catch sets health rather than mending it, on purpose: every
+// multiplier the Sunbrood stacks reads through Unit.heal, and a save
+// that grew with +60% healing done would be the pack paid twice.
+test('Nemeris: the egg is deaf to healing multipliers', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nem = place(battle, HEROES.nemeris, TEAM.PLAYER, 3);
+    // A pack that pays healing done as hard as the brood's ever could.
+    nem.passives.push({ hooks: { healBoostAdd: 5 } });
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    mate.hookSources = () => [];
+    mate.dodgeChance = () => 0; mate.reflectChance = () => 0;
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    const real = Math.random;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, mate, mate.maxHp * 50, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(mate.alive, 'the egg did not catch');
+    assert(mate.hp === Math.round(nem.maxHp * 0.35),
+      `a 600% healing boost moved the catch to ${mate.hp}`);
+  } finally { Battle.active = prev; }
+});
+
+// His hex, and the axis it deliberately does NOT use. The pack sells
+// healing done at three tiers and speed at one; damage taken is the one
+// thing nothing above him touches, so the hex hands the wounded bird
+// armour rather than another mend or another push up the order.
+test('Nemeris: Under the Egg arms the ally lowest on health', () => {
+  const battle = makeBattle();
+  const nem = place(battle, HEROES.nemeris, TEAM.PLAYER, 3);
+  const mate = (frac, slot) => {
+    const u = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, slot);
+    u.hookSources = () => [];
+    u.hp = Math.round(u.maxHp * frac);
+    return u;
+  };
+  const healthy = mate(0.95, 1);
+  const hurt = mate(0.20, 2);
+  const hex = POSITIONALS.under_the_egg;
+  assert(HEROES.nemeris.positional === hex, 'Nemeris is not standing on his own hex');
+  assert(hex.position === POSITION.CENTER, 'the eggbearer belongs in the middle');
+  hex.hooks.onTurnStart(nem, battle);
+  const armed = (u) => u.statusEffects.filter(
+    (fx) => fx.kind === 'buff' && fx.stat === 'def' && fx.mult > 1).length;
+  assert(armed(hurt) === 1, `the wounded bird got ${armed(hurt)} wards`);
+  assert(armed(healthy) === 0, 'the healthy bird was tucked in instead');
+  // Armour, not a mend and not tempo -- the two axes his pack already owns.
+  assert(hurt.hp === Math.round(hurt.maxHp * 0.20), 'the hex healed rather than armed');
+  assert(!hurt.turnMeter, 'the hex pushed the action bar');
+});
+
+// The only cleanse in the sect, and both halves of it have to land: a
+// healing party's real loss condition is a heal block or a stack of
+// poisons outrunning the mends, not raw damage.
+test('Nemeris: The Long Morning strips and mends in one cast', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nem = place(battle, HEROES.nemeris, TEAM.PLAYER, 3);
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    mate.hookSources = () => [];
+    mate.hp = Math.round(mate.maxHp * 0.30);
+    for (let i = 0; i < 4; i++) {
+      mate.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.9, turns: 5 });
+    }
+    const before = mate.hp;
+    const morning = nem.abilities.find(
+      (a) => a.def.id === 'nemeris_the_long_morning');
+    assert(morning, 'The Long Morning is missing');
+    Abilities.execute(morning.def, nem, mate, battle);
+    const left = mate.statusEffects.filter((fx) => fx.kind === 'debuff').length;
+    assert(left === 2, `${left} debuffs left standing, expected 2 of 4 lifted`);
+    // Priced off the PATIENT's pool, which is what separates every mend
+    // he casts from Durn's -- Durn's is a flat figure off his own.
+    const want = Math.round(mate.maxHp * 0.20 * (1 + nem.healingBoost(mate)));
+    assert(Math.abs((mate.hp - before) - want) <= 2,
+      `mended ${mate.hp - before}, expected about ${want} off the patient's pool`);
+  } finally { Battle.active = prev; }
 });
 
 report();

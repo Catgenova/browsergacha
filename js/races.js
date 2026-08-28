@@ -30,7 +30,7 @@ const RACES = (() => {
     // Razorwings, filling one bird at a time.
     'tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc',
     // Sunbrood, likewise.
-    'aurek', 'durn',
+    'aurek', 'durn', 'nemeris',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -168,7 +168,7 @@ const RACES = (() => {
     // it costs nothing to hold a second one.
     sunbrood: { id: 'sunbrood', name: 'Sunbrood', number: 11,
                  shape: { 3: 4, 4: 3, 5: 2 },
-                 members: ['aurek', 'durn'] },
+                 members: ['aurek', 'durn', 'nemeris'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
