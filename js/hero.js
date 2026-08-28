@@ -433,7 +433,13 @@ class Unit {
         for (const p of (ally.hookSources ? ally.hookSources() : [])) {
           const hook = p.hooks && p.hooks.coverMult;
           if (!hook) continue;
-          const m = hook(ally, this) || 1;
+          // Who is SWINGING, as a third argument. damageTakenMult hooks
+          // have always been handed the attacker and cover has not,
+          // though it sits in the same function with the same value in
+          // scope -- so a shelter that depends on the attacker (Strix
+          // stops what he can outrun) had no way to ask. Existing cover
+          // ignores the extra argument and reads exactly as before.
+          const m = hook(ally, this, attacker) || 1;
           if (m === 1) continue;
           total *= m;
           contributors.push({ source: ally, mult: m });
