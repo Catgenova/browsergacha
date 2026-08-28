@@ -8078,7 +8078,7 @@ test('looping action animations still fire their completion callback', () => {
 // their back on the enemy.
 test('the facing audit is what it was last time somebody looked', () => {
   const LEFT = ['andrew', 'angelica', 'artur', 'cain', 'esmerelda',
-    'franz', 'javarious', 'lin', 'lucian', 'mavros', 'slick'];
+    'franz', 'javarious', 'lin', 'lucian', 'malachar', 'mavros', 'slick'];
   // One strip authored the other way round from its own sheet: Lin's
   // skill3 plants the ball to the right while the rest of her faces left.
   const STRIP = { 'lin:skill3': false };
@@ -13392,6 +13392,127 @@ test('Pox: Upwind is a rate, not a ceiling', () => {
   };
   assert(!jumps(false), 'a 0.38 roll jumped off the hex, where the rate is 0.30');
   assert(jumps(true), 'a 0.38 roll refused on the hex, where the rate is 0.45');
+});
+
+// The lantern. What is in the glass is whatever the fight has cost so
+// far -- both sides, no favourites -- and everything he hands out is
+// worth more for it.
+test('Malachar: the glass keeps what the fight takes', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    battle.deaths = 0;
+    const mal = seatOn(battle, HEROES.malachar, TEAM.PLAYER, 4);
+    mal.slot = battle.playerSlots[0];           // off his hex: an empty lantern
+    const ally = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    ally.hookSources = () => [];
+
+    const bless = () => {
+      ally.statusEffects = [];
+      Abilities.applyEffect({ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }, mal, ally);
+      return ally.statusEffects.find((fx) => fx.stat === 'atk').mult;
+    };
+
+    assert(Math.abs(bless() - 1.20) < 1e-9, `an empty lantern gave ${bless()}`);
+    battle.deaths = 1;
+    assert(Math.abs(bless() - 1.25) < 1e-9, `one body gave ${bless()}`);
+    battle.deaths = 5;
+    assert(Math.abs(bless() - 1.45) < 1e-9, `five gave ${bless()}`);
+    // Capped at eight, which on a 7v7 board is most of one side gone.
+    battle.deaths = 8;
+    assert(Math.abs(bless() - 1.60) < 1e-9, `eight gave ${bless()}`);
+    battle.deaths = 30;
+    assert(Math.abs(bless() - 1.60) < 1e-9, `thirty gave ${bless()}, wanted the cap`);
+
+    // It moves blessings AWAY from neutral, so it deepens a gift rather
+    // than flipping one -- the same rule the ladder rung follows.
+    battle.deaths = 4;
+    ally.statusEffects = [];
+    Abilities.applyEffect({ type: 'buff', stat: 'def', mult: 1.10, turns: 3 }, mal, ally);
+    const def = ally.statusEffects.find((fx) => fx.stat === 'def');
+    assert(Math.abs(def.mult - 1.30) < 1e-9, `a +10% ward became ${def.mult}`);
+
+    // The cards say what they give. Without this the stat on his filler
+    // was unpinned -- swapping Wickwork's speed for attack broke
+    // nothing, and speed is a deliberate choice twice over: a cd0
+    // single-ally ATK blessing is Kiri's Pinwheel exactly, and the
+    // sect's own Rigor turns a hurried wing into deeper hexes.
+    const wick = mal.abilities.find((a) => a.def.id === 'malachar_wickwork');
+    const gift = wick.def.effects.find((e) => e.type === 'buff');
+    assert(gift.stat === 'speed', `Wickwork gives ${gift.stat}, wanted speed`);
+    const glass = mal.abilities.find((a) => a.def.id === 'malachar_hold_it_up');
+    assert(glass.def.effects.filter((e) => e.type === 'buff').length === 2,
+      'Hold It Up hands out one stat — it is meant to be two, and not Orien’s');
+
+    // And only his. A blessing from anybody else is worth what it says.
+    const other = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    other.hookSources = () => [];
+    ally.statusEffects = [];
+    Abilities.applyEffect({ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }, other, ally);
+    assert(Math.abs(ally.statusEffects.find((fx) => fx.stat === 'atk').mult - 1.20) < 1e-9,
+      "somebody else's blessing was deepened by his lantern");
+  } finally { Battle.active = prev; }
+});
+
+// His hex answers the one real problem with a hero whose value is a
+// running total: on turn one the total is zero.
+test('Malachar: Struck Early opens the lantern holding three', () => {
+  const hex = POSITIONALS.struck_early;
+  assert(HEROES.malachar.positional === hex, 'Malachar is not on his own hex');
+  assert(hex.position === POSITION.BACK, 'the lantern is carried at the back');
+
+  const openWith = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      battle.deaths = 0;
+      const mal = seatOn(battle, HEROES.malachar, TEAM.PLAYER, 4);
+      if (!onHex) mal.slot = battle.playerSlots[0];
+      assert(mal.positionalActive() === onHex, 'the fixture seated him wrong');
+      const ally = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+      ally.hookSources = () => [];
+      Abilities.applyEffect({ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }, mal, ally);
+      return ally.statusEffects.find((fx) => fx.stat === 'atk').mult;
+    } finally { Battle.active = prev; }
+  };
+  assert(Math.abs(openWith(false) - 1.20) < 1e-9, 'an off-hex lantern started full');
+  assert(Math.abs(openWith(true) - 1.35) < 1e-9,
+    `on the hex it opened at ${openWith(true)}, wanted three bodies' worth`);
+});
+
+// The sect's only revive, and the one skill of his the passive does NOT
+// touch -- a revive is not a blessing, so it carries its own scaling
+// off the same count.
+test('Malachar: What It Kept gives back what the lantern took in', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const mal = seatOn(battle, HEROES.malachar, TEAM.PLAYER, 4);
+    const kept = mal.abilities.find((a) => a.def.id === 'malachar_what_it_kept');
+    assert(kept, 'What It Kept is missing');
+    const rev = kept.def.effects.find((e) => e.type === 'revive');
+    assert(rev.perDeath > 0, 'the lantern gives back a flat figure');
+
+    const raise = (bodies) => {
+      battle.deaths = bodies;
+      const fallen = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+      fallen.hookSources = () => [];
+      fallen.hp = 0;
+      Abilities.execute(kept.def, mal, fallen, battle);
+      const frac = fallen.hp / fallen.maxHp;
+      battle.units = battle.units.filter((u) => u !== fallen);
+      battle.playerSlots[1].unit = null;
+      return frac;
+    };
+    assert(Math.abs(raise(0) - 0.30) < 0.01, `an empty lantern raised at ${raise(0)}`);
+    assert(Math.abs(raise(4) - 0.50) < 0.01, `four bodies raised at ${raise(4)}`);
+    // Written on the effect without engine support this was a silent
+    // no-op: the card said a number nothing ever read.
+    assert(raise(8) > raise(0), 'the count changes nothing — perDeath is not wired');
+  } finally { Battle.active = prev; }
 });
 
 report();
