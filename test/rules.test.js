@@ -9613,6 +9613,153 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The Razorwings' 5-star. His job is not to move people -- Wren and
+// Tumble already do that, and both are Whisperchime -- it is to make
+// what he moves SLOW, which is the one thing the sect's own tiers are
+// paid to stand in front of.
+test("Nehru's kit: the gate, the reeling, and the far side of the field", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const front = battle.enemySlots.filter((sl) => sl.position === POSITION.FRONT);
+    const back = battle.enemySlots.filter((sl) => sl.position === POSITION.BACK);
+    const at = (slot, def = DUMMIES.rat_knight) => {
+      const u = new Unit(def, TEAM.ENEMY, { level: 30, stars: 3 });
+      u.slot = slot;
+      u.hp = u.maxHp = 9e6;
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      u.hookSources = () => [];
+      battle.units.push(u);
+      return u;
+    };
+    const nehru = place(battle, HEROES.nehru, TEAM.PLAYER, 0);
+    // His own back hex, so Far Gate is live and can be accounted for.
+    nehru.slot = battle.playerSlots.find((sl) => sl.position === POSITION.BACK);
+    maxSkill(nehru, 1);
+
+    // ---- Waygate: through the hole, and out of it dizzy ----
+    {
+      // A front-rank fighter and the one standing level behind them.
+      const mark = at(front[0]);
+      const partner = at(back.sort((a, b) =>
+        Math.abs(a.y - front[0].y) - Math.abs(b.y - front[0].y))[0]);
+      const wasSpeed = mark.effectiveStat('speed');
+      const real = Math.random;
+      Math.random = () => 0;               // every gate rolls open
+      try { Abilities.execute(nehru.abilities[1].def, nehru, mark, battle); }
+      finally { Math.random = real; }
+
+      assert(mark.slot.position === POSITION.BACK,
+        `the gate left the mark on a ${mark.slot.position} hex`);
+      assert(partner.slot.position === POSITION.FRONT,
+        `the fighter behind them stayed on a ${partner.slot.position} hex`);
+      // Both halves of the link repaired, or something on the board is
+      // standing in a hex that thinks it holds somebody else.
+      assert(mark.slot.unit === mark && partner.slot.unit === partner,
+        'a hex and its occupant disagree after the swap');
+
+      // And the half the sect actually cares about.
+      const hex = mark.statusEffects.find(
+        (fx) => fx.kind === 'debuff' && fx.stat === 'speed');
+      assert(hex, 'nobody came out of the gate reeling');
+      assert(mark.effectiveStat('speed') < wasSpeed,
+        `the mark left the gate at ${mark.effectiveStat('speed')} of ${wasSpeed}`);
+      battle.units = battle.units.filter((u) => u !== mark && u !== partner);
+    }
+
+    // ---- Vanishing Point: 50% more into the back of the field ----
+    {
+      const swing = (slot) => {
+        const f = at(slot);
+        const before = f.hp;
+        const real = Math.random;
+        Math.random = () => 0.99;          // no crit in the reading
+        try { Abilities.execute(nehru.abilities[2].def, nehru, f, battle); }
+        finally { Math.random = real; }
+        battle.units = battle.units.filter((u) => u !== f);
+        return before - f.hp;
+      };
+      const deep = swing(back[0]);
+      const near = swing(front[0]);
+      // 1.5 from the skill and 1.25 from Far Gate, which reads the same
+      // hex: his finisher and his own hex want the same thing, and the
+      // ratio is the product of the two rather than either alone.
+      const want = 1.5 * 1.25;
+      assert(Math.abs(deep / near - want) < 0.02,
+        `the far side paid ${(deep / near).toFixed(3)}, wanted ${want}`);
+    }
+
+    // ---- Displacement: every hit slows, and it is CONTESTED ----
+    {
+      const soft = at(front[0]);
+      const before = soft.effectiveStat('speed');
+      nehru.dealt(500, soft);
+      assert(soft.effectiveStat('speed') < before,
+        'a landed hit left the victim at full speed');
+
+      // A boss's resistance is exactly what a free party-wide speed cut
+      // would walk straight through, so the rider goes through the same
+      // contest every hex does. Chance floors at 15%, so the roll is
+      // pinned rather than the outcome assumed.
+      const tough = at(back[0]);
+      tough.gearResistance = 0.70;
+      const real = Math.random;
+      Math.random = () => 0.99;
+      try { nehru.dealt(500, tough); } finally { Math.random = real; }
+      assert(!tough.statusEffects.some(
+        (fx) => fx.kind === 'debuff' && fx.stat === 'speed'),
+        'the slow walked through a 0.85 resistance without rolling for it');
+
+      // ...and lands on the same body when the roll goes the other way.
+      Math.random = () => 0;
+      try { nehru.dealt(500, tough); } finally { Math.random = real; }
+      assert(tough.statusEffects.some(
+        (fx) => fx.kind === 'debuff' && fx.stat === 'speed'),
+        'the slow could not land even on a winning roll');
+
+      // Never on his own side.
+      const mate = place(battle, HEROES.tervan, TEAM.PLAYER, 1);
+      Math.random = () => 0;
+      try { nehru.dealt(500, mate); } finally { Math.random = real; }
+      assert(!mate.statusEffects.some(
+        (fx) => fx.kind === 'debuff' && fx.stat === 'speed'),
+        'Nehru slowed his own ally');
+    }
+  } finally { Battle.active = prev; }
+
+  // The sect is two birds deep now, so its FIRST tier can actually be
+  // fielded -- and this is the wiring the hook tests below cannot reach:
+  // membership counted, threshold met, hooks handed to real units.
+  {
+    const b2 = makeBattle();
+    const birds = ['tervan', 'nehru'].map((id, i) => {
+      const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: 3 });
+      u.slot = b2.playerSlots[i];
+      b2.units.push(u);
+      return u;
+    });
+    RACES.applyParty(birds);
+    const foe = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 3 });
+    foe.slot = b2.enemySlots[0];
+    const mine = birds[1].effectiveStat('speed');
+
+    foe.speed = mine - 10;
+    const over = birds[1].damageDealtMult(foe, null);
+    foe.speed = mine + 10;
+    const under = birds[1].damageDealtMult(foe, null);
+    assert(Math.abs(over / under - 1.25) < 1e-9,
+      `two fielded Razorwings paid ${(over / under).toFixed(3)} for outrunning, wanted 1.25`);
+
+    // Two is the 2pc and ONLY the 2pc: Terminal Velocity needs three,
+    // so the gap must not yet change what the ratio is worth.
+    foe.speed = mine - 200;
+    const miles = birds[1].damageDealtMult(foe, null);
+    assert(Math.abs(miles - over) < 1e-9,
+      'the size of the gap paid out at two birds -- the 3pc fired early');
+  }
+});
+
 // The Razorwings' pack. The sect is one bird deep, so the tiers cannot
 // be FIELDED yet -- 2/3/4 members is the threshold and there is one.
 // What can be tested is the part that breaks: the hook logic itself and

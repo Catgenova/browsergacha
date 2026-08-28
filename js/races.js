@@ -28,7 +28,7 @@ const RACES = (() => {
     'korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
     'stella', 'sarena', 'orri', 'chirp',
     // Razorwings, filling one bird at a time.
-    'tervan',
+    'tervan', 'nehru',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -157,7 +157,7 @@ const RACES = (() => {
     // 1/2/3/2/1 shape the other two hold.
     razorwings: { id: 'razorwings', name: 'Razorwings', number: 10,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
-                 members: ['tervan'] },
+                 members: ['tervan', 'nehru'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
