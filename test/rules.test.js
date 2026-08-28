@@ -8077,8 +8077,15 @@ test('looping action animations still fire their completion callback', () => {
 // it shows up as a named failure instead of a character quietly turning
 // their back on the enemy.
 test('the facing audit is what it was last time somebody looked', () => {
+  // Malachar came off this list: his strip is authored facing RIGHT
+  // like every other bird in the Hollowbone -- the beak points right and
+  // the lantern hangs on that side -- and the flag was carried on a
+  // comment that described the art wrongly, so he spent his fights
+  // turned away from whatever he was hitting. The other eleven were
+  // re-checked against their own idle frames at the same time and all
+  // eleven are correct.
   const LEFT = ['andrew', 'angelica', 'artur', 'cain', 'esmerelda',
-    'franz', 'javarious', 'lin', 'lucian', 'malachar', 'mavros', 'slick'];
+    'franz', 'javarious', 'lin', 'lucian', 'mavros', 'slick'];
   // One strip authored the other way round from its own sheet: Lin's
   // skill3 plants the ball to the right while the rest of her faces left.
   const STRIP = { 'lin:skill3': false };
