@@ -1420,4 +1420,115 @@ test('the sweep raised skill 2 and 3 base cooldowns by one', () => {
   assert(wrong.length === 0, wrong.join('; '));
 });
 
+// ---------------------------------------------------------------------------
+// Card text is mechanics, not prose. Every description on the roster —
+// skill, passive and positional alike — reads "<scope or trigger>:
+// <effects>", quotes the numbers it applies and nothing else, and never
+// narrates. These three rules are what keeps the next hero written to
+// the same pattern as the last one.
+// ---------------------------------------------------------------------------
+
+test('card text never narrates: no gendered prose in any description', () => {
+  const { HEROES, BOSSES, ENEMIES } = g;
+  // The flair pass stripped the flavour off 475 cards. What the prose
+  // always had, and the mechanics never need, is a hero being TALKED
+  // ABOUT: "he takes a piece off whatever is nearest", "the closer to
+  // death, the harder the swing". A pronoun is the cheapest reliable
+  // tell, and it does double duty -- a card that says "his DEF" is also
+  // a card that misgenders the hero the moment the art changes.
+  const PROSE = /\b(he|him|his|she|her|hers|himself|herself)\b/i;
+  const problems = [];
+  for (const pool of [HEROES, BOSSES, ENEMIES]) {
+    for (const def of Object.values(pool)) {
+      const cards = [
+        ...(def.abilities || []),
+        ...[def.passive, def.positional].filter(Boolean),
+        ...(def.passives || []),
+      ];
+      for (const c of cards) {
+        if (c.description && PROSE.test(c.description)) {
+          problems.push(`${def.id}/${c.id || c.name}: "${c.description.slice(0, 70)}"`);
+        }
+      }
+    }
+  }
+  assert(problems.length === 0,
+    `${problems.length} narrating: ` + problems.slice(0, 4).join(' | '));
+});
+
+test('a positional card names the hex it actually wants', () => {
+  const { HEROES, POSITION } = g;
+  // A positional that says "Front hex" and pays out on the back is the
+  // worst kind of wrong card: the player builds a formation around it.
+  // The prefix is not decoration, it is the requirement.
+  const WORD = { [POSITION.FRONT]: 'Front', [POSITION.CENTER]: 'Center',
+    [POSITION.BACK]: 'Back' };
+  const problems = [];
+  for (const def of Object.values(HEROES)) {
+    const p = def.positional;
+    if (!p || !p.description) continue;
+    const want = `${WORD[p.position]} hex: `;
+    if (!p.description.startsWith(want)) {
+      problems.push(`${def.id}/${p.name}: sits on ${p.position} but says ` +
+        `"${p.description.slice(0, 40)}"`);
+    }
+  }
+  assert(problems.length === 0,
+    `${problems.length} mismatched: ` + problems.slice(0, 4).join(' | '));
+});
+
+test('passive cards quote the numbers their hooks actually carry', () => {
+  const { HEROES, BOSSES } = g;
+  // The declarative half of the hook table is a plain number sitting on
+  // the passive -- +15% dodge, ignore 25% DEF, 1 extra turn of debuff.
+  // Those are exactly the numbers a player reads a passive FOR, and
+  // nothing was checking that the card and the hook agreed. (The other
+  // half lives inside hook function bodies, where a data test cannot
+  // reach; those are held by the no-prose rule and by review.)
+  const FRACTION = new Set(['dodgeAdd', 'accuracyAdd', 'resistanceAdd',
+    'defIgnoreAdd', 'dotBoostAdd', 'healBoostAdd', 'healTakenAdd',
+    'shieldPowerAdd', 'buffPowerAdd', 'overhealBoost', 'meterGiftAdd',
+    'perBurnAdd', 'chainChanceAdd', 'stripBurnChance', 'apDrainAdd',
+    'extraTurnAdd', 'reflectAdd', 'debuffSpread', 'summonHpAdd',
+    'raiseCap', 'eggBearer', 'onBurnLit']);
+  const COUNT = new Set(['debuffExtraTurns', 'buffExtraTurns',
+    'shieldExtraTurns', 'doomExtraTurns', 'cooldownPushAdd', 'extraMeals',
+    'lanternStart']);
+  const pct = (x) => String(Math.round(x * 1000) / 10).replace(/\.0$/, '');
+  const problems = [];
+  for (const pool of [HEROES, BOSSES]) {
+    for (const def of Object.values(pool)) {
+      for (const p of [def.passive, def.positional, ...(def.passives || [])]
+        .filter(Boolean)) {
+        if (!p.description) continue;
+        for (const [key, value] of Object.entries(p.hooks || {})) {
+          if (typeof value !== 'number') continue;
+          const want = FRACTION.has(key) ? `${pct(value)}%`
+            : (COUNT.has(key) ? String(value) : null);
+          if (want === null) continue;
+          if (!p.description.includes(want)) {
+            problems.push(`${def.id}/${p.name}: ${key} is ${value} but the card ` +
+              `never says ${want}`);
+          }
+        }
+        // A flat stat rung on a positional is the same promise.
+        if (p.stat && p.mult !== undefined &&
+            !p.description.includes(`${pct(p.mult - 1)}%`)) {
+          problems.push(`${def.id}/${p.name}: ${p.stat} x${p.mult} but the card ` +
+            `never says ${pct(p.mult - 1)}%`);
+        }
+        if (p.stat && p.add !== undefined) {
+          const shown = p.stat === 'speed' ? String(p.add) : `${pct(p.add)}%`;
+          if (!p.description.includes(shown)) {
+            problems.push(`${def.id}/${p.name}: ${p.stat} +${p.add} but the card ` +
+              `never says ${shown}`);
+          }
+        }
+      }
+    }
+  }
+  assert(problems.length === 0,
+    `${problems.length} unquoted: ` + problems.slice(0, 5).join(' | '));
+});
+
 report();

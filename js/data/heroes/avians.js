@@ -120,7 +120,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Eye of the Storm',
       icon: 'assets/icons/fc866.png',
-      description: 'Gains 5% action bar for every enemy struck by a skill that hits more than one.',
+      description: '+5% turn meter per enemy struck by a multi-target skill.',
       hooks: {
         // Fired once per victim by the battle's damage bookkeeping. The
         // meter is NOT clamped here: a gift that would push him past the
@@ -211,7 +211,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Long Reach',
       icon: 'assets/icons/fc1117.png',
-      description: 'His front-row sweeps reach the enemy CENTER hex as well.',
+      description: 'Front-row skills also reach the enemy center hex.',
       hooks: {
         // Read by resolveTargets, which folds the centre into every
         // 'front-enemies' cast this hero makes. It is a damage passive
@@ -272,9 +272,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Powder Monkey',
       icon: 'assets/icons/fc786.png',
-      description: 'He is carrying the charges. When Jack falls, the keg goes with ' +
-        'him: 180% of his ATK to every enemy on a front hex, and 12% more to each ' +
-        'of them for every enemy beyond the first caught in the blast.',
+      description: 'On death: 180% ATK damage to every front-row enemy (+12% per enemy beyond the first).',
       hooks: {
         // The one passive on the roster that pays out for its OWNER
         // dying rather than for somebody else doing it. The victim is
@@ -368,8 +366,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Finds a Gap',
       icon: 'assets/icons/fc1041.png',
-      description: 'A bucket of fish guts does not care what anyone is wearing: ' +
-        'everything Phil throws slips past 25% of the target\'s DEF.',
+      description: 'Attacks ignore 25% of the target\'s DEF.',
       hooks: {
         // Read by Abilities.strike, so it applies to every hit he lands
         // -- the skills, the rot, and anything a hook throws for him.
@@ -457,8 +454,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Nothing Goes Back in the Pot',
       icon: 'assets/icons/fc866.png',
-      description: 'Healing somebody who is already full is not wasted on Peck: half of ' +
-        'any overheal he causes sets as a ward on that ally for 2 turns.',
+      description: 'On overhealing: half the overflow becomes a shield on that ally for 2 turns.',
       hooks: {
         // Fired by notifyOverheal, which every mend in the game already
         // reports through -- so this catches his own pot, and any of it
@@ -558,8 +554,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Ground Tackle',
       icon: 'assets/icons/fc1053.png',
-      description: 'The more of them pull on it, the deeper it sets: Talon takes 5% less ' +
-        'damage for every living enemy, down to 30% less against a full line.',
+      description: '-5% damage taken per living enemy, up to -30%.',
       hooks: {
         // The sect's crowd bonus, worn by the one Gulldigger who is not
         // hitting anybody with it. Capped at six bodies so a seven-hex
@@ -670,8 +665,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Full Pouch',
       icon: 'assets/icons/fc1073.png',
-      description: 'Whatever he knocks down goes in the bill: Bo mends 4% of his max HP ' +
-        'every time he damages an enemy.',
+      description: 'On dealing damage to an enemy: heals 4% of max HP.',
       hooks: {
         // The sect's crowd bonus, eaten rather than dealt. A front-row
         // sweep that catches three birds is three meals, so the wider
@@ -764,8 +758,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Carries on the Wind',
       icon: 'assets/icons/fc1053.png',
-      description: 'A conch heard once is heard for a while: every buff Wanda hands out ' +
-        'lasts 1 turn longer.',
+      description: 'Buffs this hero applies last 1 turn longer.',
       hooks: {
         // Read off the SOURCE when a buff lands, so it lengthens what
         // she gives other people rather than what she happens to be
@@ -858,8 +851,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Dead Reckoning',
       icon: 'assets/icons/fc866.png',
-      description: 'He does not need the hex to know where he is: Polo\'s own positional ' +
-        'bonus is active on every tile of the field.',
+      description: 'This hero\'s positional bonus is active on every hex.',
       hooks: {
         // Read directly out of positionalActive(), which is the single
         // question every hex bonus in the game already asks.
@@ -954,8 +946,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'The Court Stands',
       icon: 'assets/icons/fc1053.png',
-      description: 'He is only as strong as the court behind him: Korvid takes 5% less ' +
-        'damage for every other ally still standing.',
+      description: '-5% damage taken per other living ally, up to -30%.',
       hooks: {
         // The inverse of a lone wall. Korvid is at his softest in the
         // fight he has left to hold on his own, which is the opposite
@@ -1042,8 +1033,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Ash Knives',
       icon: 'assets/icons/fc1117.png',
-      description: 'Every fire on the field is one more thing to cut: Kavit deals 5% more ' +
-        'damage for each burning enemy.',
+      description: '+5% damage per burning enemy, up to +20%.',
       hooks: {
         damageDealtMult(unit) {
           const b = typeof Battle !== 'undefined' ? Battle.active : null;
@@ -1132,8 +1122,7 @@ Object.assign(HEROES, {
       // pack, so hers front-loads what is already there: the fire bites
       // the moment it catches instead of waiting a turn. It adds to the
       // pack rather than multiplying through it.
-      description: 'Flurry\'s fires take at once: every burn she sets deals its ' +
-        'first tick the instant it lands, instead of waiting for the enemy\'s turn.',
+      description: 'Burns this hero applies deal their first tick immediately.',
       hooks: { dotBitesOnApply: true },
     },
     positional: POSITIONALS.vanguard_press,
@@ -1207,8 +1196,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Form',
       icon: 'assets/icons/fc1041.png',
-      description: 'A duellist finishes what he opens: 10% more damage to any enemy ' +
-        'that is already burning.',
+      description: '+10% damage to burning enemies.',
       hooks: {
         damageDealtMult: (u, t) => (t && t.burning && t.burning() ? 1.10 : 1),
       },
@@ -1282,7 +1270,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'The Smoke Carries',
       icon: 'assets/icons/fc866.png',
-      description: 'Gains 5% action bar whenever an enemy catches fire.',
+      description: 'Whenever an enemy catches fire: +5% turn meter.',
       hooks: { onBurnLit: 0.05 },
     },
     positional: POSITIONALS.censer_swing,
@@ -1336,8 +1324,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Never Goes Out',
       icon: 'assets/icons/fc1053.png',
-      description: 'The coal outlasts the bird: the first time Stella would fall each ' +
-        'battle, she survives on 1 health instead.',
+      description: 'The first lethal blow each battle leaves this hero at 1 HP instead.',
       hooks: { lastEmber: true },
     },
     positional: POSITIONALS.slow_simmer,
@@ -1419,7 +1406,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Draught',
       icon: 'assets/icons/fc1066.png',
-      description: 'Fans feed a fire: burns on enemies tick 15% harder while Sarena stands.',
+      description: 'Burns on enemies tick 15% harder while this hero lives.',
       hooks: { dotBoostAdd: 0.15 },
     },
     positional: POSITIONALS.fanfare,
@@ -1475,8 +1462,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Marginalia',
       icon: 'assets/icons/fc1041.png',
-      description: 'A note in the margin outlives the page: the blessings Orri hands out ' +
-        'cannot be stripped away.',
+      description: 'Buffs this hero applies cannot be stripped.',
       hooks: { unstrippableBuffs: true },
     },
     positional: POSITIONALS.still_air,
@@ -1516,8 +1502,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Never Lands',
       icon: 'assets/icons/fc1062.png',
-      description: 'Nothing that small holds still: gains 8% action bar whenever an ally ' +
-        'is blessed.',
+      description: 'Whenever another ally is buffed: +8% turn meter.',
       hooks: {
         onAllyBuffed(unit, { receiver }) {
           if (!unit.alive || receiver === unit) return null;
@@ -1587,8 +1572,7 @@ Object.assign(HEROES, {
       // would just be the party bonus twice. Armour blindness is its
       // own channel, so this reads as a different thing on the sheet as
       // well as in the maths.
-      description: 'Nothing slow gets its guard up in time: Tervan ignores 15% of the DEF ' +
-        'of any enemy slower than he is.',
+      description: 'Attacks ignore 15% of the DEF of enemies slower than this hero.',
       hooks: {
         defIgnoreAdd(unit, target) {
           if (!unit || !target) return 0;
@@ -1720,8 +1704,7 @@ Object.assign(HEROES, {
       // tiers unconditional against everything with a pulse, and a boss
       // carries 50% resistance precisely so that a rider like this has
       // to earn it.
-      description: 'The air does not quite close behind him: enemies Nehru damages lose ' +
-        '10% SPD for 2 turns.',
+      description: 'On dealing damage to an enemy: -10% SPD for 2 turns.',
       hooks: {
         onDealtDamage(unit, { target, battle } = {}) {
           if (!unit.alive || !target || !target.alive) return null;
@@ -1822,8 +1805,7 @@ Object.assign(HEROES, {
       // knock every bar on the field backwards every fourth turn. The
       // drain itself is contested and meterGuard-aware like any other,
       // because it runs through drainMeter with everything else.
-      description: 'The air closes badly behind him: every hit has a 20% chance to knock ' +
-        "20% off the victim's action bar.",
+      description: '20% chance on any hit to take 20% turn meter.',
       hooks: { apDrainAdd: 0.20 },
     },
     // Hallow's hex, and it fits the second bird to wear it as well as
@@ -1907,8 +1889,8 @@ Object.assign(HEROES, {
       //
       // Capped, because the rungs are cheap: five of them at +5% is
       // +25% on top of a blessing that already ladders.
-      description: "Kiri reads the air around whoever she blesses: her buffs are worth " +
-        '5% more for every 10 SPD they hold above 100, up to 25% more.',
+      description: 'Buffs this hero applies grant an extra +5% per 10 SPD the receiver has above ' +
+        '100, up to +25%.',
       hooks: {
         buffPowerAdd(unit, receiver) {
           if (!receiver || !receiver.effectiveStat) return 0;
@@ -1995,8 +1977,7 @@ Object.assign(HEROES, {
       // Cover rather than a ward: the reduction is HIS, so the damage
       // meter credits him for it instead of it vanishing into the
       // defences of whichever bird was not hit.
-      description: 'While Strix stands, every ally takes 10% less damage from enemies ' +
-        'slower than he is.',
+      description: 'All allies take 10% less damage from enemies slower than this hero.',
       hooks: {
         coverMult(unit, victim, attacker) {
           if (!unit.alive || !attacker || !attacker.effectiveStat) return 1;
@@ -2095,8 +2076,7 @@ Object.assign(HEROES, {
       // simply cannot be given one. Tied to the ward rather than to her
       // standing there, so it is paid for cast by cast and runs out
       // when the ward does.
-      description: 'Nothing settles on still water: an ally carrying one of ' +
-        "Calima's wards cannot be slowed.",
+      description: 'An ally carrying a shield from this hero cannot be slowed.',
       hooks: { slowGuard: true },
     },
     // Peck's hex, and it is worth more here than it is to him: a
@@ -2192,8 +2172,7 @@ Object.assign(HEROES, {
       // would be anywhere else. Longest cooldown first, so it always
       // lands where the wait is worst rather than being spent on
       // somebody a turn from ready anyway.
-      description: "Never without something in the bag: at the start of each of Mendral's " +
-        'turns, the ally sitting on the longest cooldown gets a turn of it back.',
+      description: 'Start of each turn: -1 turn on the party\'s longest remaining cooldown.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle || !unit.alive) return null;
@@ -2316,8 +2295,7 @@ Object.assign(HEROES, {
       // while reading fine everywhere I had tested it. The whole blow
       // into an eighth of the pool fills in about a fight at both ends
       // of the curve.
-      description: 'Nothing is wasted on a pelican: Balmor keeps every blow he takes in ' +
-        'his bill, up to an eighth of his max HP.',
+      description: 'When struck: banks the damage taken, holding up to 12.5% of max HP.',
       // What the renderer draws under his health bar, and the single
       // place the ceiling is written. The hook below reads it rather
       // than carrying its own copy, so the bar, the cap and the card can
@@ -2432,8 +2410,7 @@ Object.assign(HEROES, {
       // `assist: false`, because it is his blow and nobody else's
       // setup: an ATK buff on him is his own business, and the meter
       // should read it as damage he dealt rather than splitting it.
-      description: 'Go through him and he charges for it: whenever an enemy damages one ' +
-        "of Brannoc's allies, he strikes them back for 40% ATK.",
+      description: 'Whenever an enemy damages an ally: 40% ATK damage to that enemy.',
       hooks: {
         onAllyStruck(unit, { ally, attacker, battle } = {}) {
           if (!unit.alive || !attacker || !attacker.alive) return null;
@@ -2537,8 +2514,7 @@ Object.assign(HEROES, {
       // is the expensive one and the choice between his skills is a
       // real one; and it can never kill him, because a hero who can
       // lose a fight to his own basic is not a cost, he is a trap.
-      description: 'He burns himself to burn brighter: every enemy Aurek hits costs him ' +
-        '3% of his max HP, and everything he throws lands 25% harder.',
+      description: '+25% damage dealt. On dealing damage to an enemy: costs 3% of max HP, never fatal.',
       hooks: {
         damageDealtMult: () => 1.25,
         onDealtDamage(unit, { target, battle } = {}) {
@@ -2656,8 +2632,7 @@ Object.assign(HEROES, {
       // is meant to be a conversion the party spends rather than one he
       // keeps. It is also why his hex points at the same ally: the
       // wounded one is where everything he does goes.
-      description: 'What the shield catches, the brood gets back: every blow Durn takes ' +
-        'mends the most-wounded OTHER ally for 15% of it.',
+      description: 'When struck: heals the most-wounded other ally 15% of the damage taken.',
       hooks: {
         onStruck(unit, { amount, battle } = {}) {
           if (!unit.alive || !(amount > 0) || !battle) return null;
@@ -2802,9 +2777,8 @@ Object.assign(HEROES, {
       // of execution. His is spent on somebody else, once, and leaves
       // them standing on something real. See Unit.takeDamage for the
       // charge, and for why it is never spent on Nemeris himself.
-      description: "The egg is the brood's, not his: while Nemeris stands, the first ally " +
-        'who would fall is caught instead, holding on with health equal to 35% of ' +
-        'his max HP. Once per battle, and never for Nemeris.',
+      description: 'Once per battle: the first ally who would die survives at 35% of caster max HP instead. ' +
+        'Never this hero.',
       hooks: { eggBearer: 0.35 },
     },
     positional: POSITIONALS.under_the_egg,
@@ -2925,9 +2899,8 @@ Object.assign(HEROES, {
       //
       // Held on the unit as `longNote`, the way Balmor's bill is held as
       // `pouch`. Units are rebuilt per battle, so it opens empty.
-      description: 'The longer he is left to play, the further it carries: +10% damage at ' +
-        'the start of each of his turns, stacking to +50%. Every blow he takes ' +
-        'knocks a step off.',
+      description: '+10% damage dealt at the start of each turn, stacking to +50%. Each hit taken removes 1 ' +
+        'stack.',
       hooks: {
         onTurnStart(unit) {
           const cap = Math.max(5, ...unit.hookSources().map(
@@ -3040,8 +3013,7 @@ Object.assign(HEROES, {
       // a DIFFERENT one, so a kit carrying both widens instead of
       // doubling. It picks the weakest thing still standing, which is
       // what makes him a finisher and Aster an opener.
-      description: "When Rizzo crits, the shaft splits: the enemy with the least health " +
-        'left takes half the shot as well.',
+      description: 'On a crit: the lowest-health enemy takes 50% of the hit as well.',
       hooks: { critCarry: 0.5 },
     },
     positional: POSITIONALS.called_shot,
@@ -3167,8 +3139,7 @@ Object.assign(HEROES, {
       // data suite named it for what it was -- a positional wearing a
       // passive's coat. The placement decision lives in Gatepost, where
       // it belongs: the hex is what adds the centre rank.
-      description: 'The armour has no gap to find: Mavros can never be struck critically, ' +
-        'and neither can any ally standing on a BACK hex.',
+      description: 'This hero and all back-row allies cannot be struck critically.',
       hooks: {
         critProof(unit, victim) {
           // No liveness guard: the engine scans livingUnits, so a fallen
@@ -3301,9 +3272,8 @@ Object.assign(HEROES, {
       //
       // A party running two healers fills it in one cast. A party
       // running none never fills it at all, which is the point.
-      description: 'Nothing the brood spills is wasted on Orien: every point of healing ' +
-        'that lands on an ally already full is caught in the orb, up to 15% ' +
-        'of his max HP.',
+      description: 'Whenever healing overflows on an ally: banks the overflow, holding up to 15% of caster max ' +
+        'HP.',
       bank: { prop: 'orb', capPct: 0.15, label: 'ORB', color: '#ffd76a' },
       hooks: {
         onAllyOverheal(unit, { overflow } = {}) {
@@ -3427,8 +3397,7 @@ Object.assign(HEROES, {
       // Wards, heals-over-time and bubbles are not blessings and do not
       // count -- only `kind: 'buff'`, the same thing her seven tears
       // off, so what pays her and what she takes are the same list.
-      description: 'A mirror gives back whatever it is shown: Solari deals 20% more ' +
-        'damage for every blessing on her target, up to 60%.',
+      description: '+20% damage per buff on the target, up to +60%.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target || !target.statusEffects) return 1;
@@ -3544,9 +3513,8 @@ Object.assign(HEROES, {
       // of a real fight. She is meant to be the reason a Sunbrood party
       // wants the fight to go long, not a hero who front-loads a party
       // buff and then stands there.
-      description: 'A nest is a slow business: at the start of each of her turns every ' +
-        'ally permanently gains +5% ATK, up to +30%. Nothing can strip what she ' +
-        'raises, and dying does not lose it.',
+      description: 'Start of each turn: all allies permanently gain +5% ATK, up to +30%. Cannot be stripped ' +
+        'and is not lost on death.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
@@ -3670,8 +3638,7 @@ Object.assign(HEROES, {
       //
       // Read off `raisedBy`, which raiseBody stamps on every body it
       // stands up -- so it pays HIS dead and never somebody else's.
-      description: 'The raised move when he does: at the start of each of his turns, every ' +
-        'body Necros has stood up gains 20% turn meter.',
+      description: 'Start of each turn: +20% turn meter to every body this hero has raised.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
@@ -3789,8 +3756,7 @@ Object.assign(HEROES, {
       // Read off the SOURCE in Unit.tickStatusEffects, the way
       // buffExtraTurns is -- it is the ringer's doing, not the
       // recipient's luck.
-      description: 'The bell does not stop for the dying: a ward from Click never runs out ' +
-        'while the ally holding it is below half health. Only spending it clears it.',
+      description: 'Shields from this hero do not expire while the ally holding one is below half health.',
       hooks: { wardHold: true },
     },
     positional: POSITIONALS.long_peal,
@@ -3885,8 +3851,7 @@ Object.assign(HEROES, {
       // armour and starts being a hero who cannot be killed. It is also
       // the only reduction on the roster the ENEMY controls: they can
       // simply not curse him, and then he is a 3-star wall with a mouth.
-      description: 'The cage is other birds’ bones: Rend takes 5% less damage for every ' +
-        'affliction on him, up to 25%.',
+      description: '-5% damage taken per debuff or DoT on this hero, up to -25%.',
       hooks: {
         damageTakenMult(unit) {
           const worn = unit.statusEffects.filter(
@@ -4009,8 +3974,7 @@ Object.assign(HEROES, {
       // Slot-one fillers are skipped, exactly as they are by the push:
       // a skill on a zero cooldown is never "away", so counting it would
       // pay him for nothing.
-      description: 'He charges for what you have already spent: Crook deals 12% more ' +
-        'damage for every skill the target has on cooldown.',
+      description: '+12% damage per skill the target has on cooldown.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target || !Array.isArray(target.abilities)) return 1;
@@ -4137,8 +4101,7 @@ Object.assign(HEROES, {
       // is never itself spread: only the affliction actually cast is
       // ever offered to the roll, so there is no chain and no latch is
       // needed to stop one.
-      description: 'A plague does not stay where it is put: every curse Pox lands has a ' +
-        '30% chance to take a second enemy as well.',
+      description: 'Debuffs this hero applies have a 30% chance to also land on a second enemy.',
       hooks: { debuffSpread: 0.30 },
     },
     positional: POSITIONALS.upwind,
@@ -4261,8 +4224,8 @@ Object.assign(HEROES, {
       // the fight has cost. Capped at eight bodies, which on a 7v7 board
       // is most of one side gone: past that a support handing out +60%
       // blessings is not a payoff, it is a different game.
-      description: 'The glass keeps what the fight takes: every blessing Malachar hands ' +
-        'out is 5% stronger for each unit that has died this battle, up to 40%.',
+      description: 'Buffs this hero applies grant an extra +5% per unit that has died this ' +
+        'battle, up to +40%.',
       hooks: {
         buffPowerAdd(unit) {
           const b = (typeof Battle !== 'undefined' && Battle.active) || null;
@@ -4394,9 +4357,7 @@ Object.assign(HEROES, {
       //
       // Reads the TARGET, where deadeye and last_stand read the hero's
       // own wounds.
-      description: 'He can see how far gone it is: Shrike deals up to 50% more damage the ' +
-        'further worn down his target is — half a point for every point of health ' +
-        'they have lost.',
+      description: '+50% damage dealt against a target at 0 HP, scaling down to +0% at full HP.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target || !(target.maxHp > 0)) return 1;
@@ -4500,8 +4461,7 @@ Object.assign(HEROES, {
       // property read and nothing else. It also means the growth is a
       // property of the PROPHECY rather than of the prophet: an omen
       // he laid keeps filling after he is dead, which is exactly right.
-      description: 'Nothing is sudden: every blow a doomed enemy takes from anyone adds ' +
-        '25% of it to what is coming.',
+      description: 'Every blow a doomed enemy takes adds 25% of it to the doom.',
       hooks: { doomGrowth: 0.25 },
     },
     positional: POSITIONALS.further_ahead,
@@ -4606,9 +4566,7 @@ Object.assign(HEROES, {
       // A tank who mends himself off the board's leavings rather than
       // off a healer is the sect's answer to having no healer -- and
       // it costs the enemy every revive they were holding.
-      description: 'He waits, and then he clears up: at the start of each of his turns ' +
-        'Carrion takes one body off the field — either side — and recovers 15% of ' +
-        'his max HP for it.',
+      description: 'Start of each turn: consumes 1 body from either side and heals 15% of max HP.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
