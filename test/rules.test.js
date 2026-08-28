@@ -10543,8 +10543,8 @@ test("Durn: what the shield catches, the brood gets back", () => {
     assert(bad.hp > badBefore, 'the worst-off ally was not mended');
     assert(ok.hp === okBefore,
       `a healthier ally was mended ${ok.hp - okBefore} as well -- it should be one bird`);
-    assert(Math.abs((bad.hp - badBefore) - Math.round(landed * 0.25)) <= 1,
-      `the shield paid ${bad.hp - badBefore} off a ${landed} blow, wanted a quarter`);
+    assert(Math.abs((bad.hp - badBefore) - Math.round(landed * 0.15)) <= 1,
+      `the shield paid ${bad.hp - badBefore} off a ${landed} blow, wanted 15%`);
 
     // NEVER himself. A tank who mends his own hide off being hit is a
     // self-sustain engine; this is a conversion the party spends.
@@ -10579,6 +10579,52 @@ test("Durn: what the shield catches, the brood gets back", () => {
     const row = Meter.rows('healing', 'battle').list.find((r) => r.id === 'durn');
     assert(row && row.value > 0, 'Durn was credited nothing for the healing he caused');
   } finally { Battle.active = prev; }
+
+  // Shield Hand is priced off DEF, which is the point of a
+  // shieldbearer: the stat he stacks feeds both halves of him. Measured
+  // as damage rather than read off the def, so a silent switch back to
+  // ATK scaling shows up as the number moving.
+  {
+    const b2 = makeBattle();
+    const prev2 = Battle.active;
+    Battle.active = b2;
+    try {
+      const durn = place(b2, HEROES.durn, TEAM.PLAYER, 1);
+      const foe = roomy(place(b2, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      foe.hookSources = () => [];
+      const swing = () => {
+        const before = foe.hp;
+        const real = Math.random;
+        Math.random = () => 0.99;
+        try { Abilities.execute(durn.abilities[0].def, durn, foe, b2); }
+        finally { Math.random = real; }
+        return before - foe.hp;
+      };
+      const base = swing();
+      // Double his DEF and the swing follows; double his ATK and it
+      // does not. One of those is true of an ATK-scaled skill and the
+      // other of a DEF-scaled one, so the pair pins which this is.
+      durn.baseDef *= 2;
+      const harder = swing();
+      durn.baseDef /= 2;
+      assert(harder > base * 1.5,
+        `doubling his DEF moved the swing ${base} -> ${harder}; it is not DEF-scaled`);
+      durn.baseAtk *= 4;
+      const same = swing();
+      durn.baseAtk /= 4;
+      assert(same === base,
+        `quadrupling his ATK moved the swing ${base} -> ${same}; it is still ATK-scaled`);
+    } finally { Battle.active = prev2; }
+  }
+
+  // Hold the Line covers the front rank, not the field. A cd7 warding
+  // seven birds off a tank's pool was most of why he read strong.
+  {
+    const wall = HEROES.durn.abilities.find((a) => a.id === 'durn_hold_the_line');
+    assert(wall.targeting === 'front-allies',
+      `Hold the Line reaches '${wall.targeting}', wanted the front rank only`);
+  }
 
   // Both cooldowns are priced off HIS pool rather than growing it --
   // the rule Aurek follows, for the reason the sect exists: light sells

@@ -2643,9 +2643,17 @@ Object.assign(HEROES, {
       {
         id: 'durn_shield_hand', name: 'Shield Hand',
         icon: 'assets/icons/fc819.png',
-        description: 'The boss of the shield, swung flat: 85% ATK to one enemy.',
+        // Priced off DEF, not ATK: a shieldbearer hits with the thing he
+        // is holding, and it means the stat he actually stacks feeds
+        // both halves of him. 0.50 is the bottom of the band the other
+        // DEF-scaled cd0 skills sit in (Toll 0.50, Korvid 0.65, Morrow
+        // and Talon 0.70, Bit 0.80), which is where a 3-star belongs
+        // among five 4-and-5-stars -- and it keeps his output close to
+        // what the old 85% ATK produced rather than quietly paying him
+        // for the change.
+        description: 'The boss of the shield, swung flat: 50% of his DEF to one enemy.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 0.85 }],
+        effects: [{ type: 'damageDef', mult: 0.50 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
@@ -2675,9 +2683,12 @@ Object.assign(HEROES, {
       {
         id: 'durn_hold_the_line', name: 'Hold the Line',
         icon: 'assets/icons/fc1272.png',
-        description: "Everyone behind the shield: every ally gains a ward worth 10% of " +
-          "Durn's max HP for 3 turns.",
-        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        // The front rank only. A shield covers what is behind IT, not
+        // the whole field, and a cd7 that warded seven birds off a
+        // tank's pool was most of why he read strong for a 3-star.
+        description: "Everyone behind the shield: FRONT-row allies gain a ward worth " +
+          "10% of Durn's max HP for 3 turns.",
+        cooldown: 7, targeting: 'front-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.10, turns: 3 }],
         levelUps: [
           { heal: 0.02 },
@@ -2699,7 +2710,7 @@ Object.assign(HEROES, {
       // keeps. It is also why his hex points at the same ally: the
       // wounded one is where everything he does goes.
       description: 'What the shield catches, the brood gets back: every blow Durn takes ' +
-        'mends the most-wounded OTHER ally for 25% of it.',
+        'mends the most-wounded OTHER ally for 15% of it.',
       hooks: {
         onStruck(unit, { amount, battle } = {}) {
           if (!unit.alive || !(amount > 0) || !battle) return null;
@@ -2707,7 +2718,7 @@ Object.assign(HEROES, {
             .filter((u) => u !== unit && u.hp < u.maxHp)
             .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
           if (!hurt) return null;
-          const healed = hurt.heal(Math.round(amount * 0.25), unit);
+          const healed = hurt.heal(Math.round(amount * 0.15), unit);
           if (healed <= 0) return null;
           return { floats: [{ target: hurt, text: `+${healed}`, color: '#f0d878' }] };
         },
