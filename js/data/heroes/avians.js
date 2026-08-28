@@ -1852,4 +1852,95 @@ Object.assign(HEROES, {
     // the first: two of his three skills catch the whole field.
     positional: POSITIONALS.stormglass,
   },
+
+  // The sect's blesser, and the one bird who welds its two halves
+  // together. Everything else in the Razorwings turns speed into
+  // damage on the swing; Kiri turns it into ATK before the swing ever
+  // happens, which is the only place in the sect where being fast is
+  // worth something to somebody ELSE.
+  //
+  // Deliberately not the meter support: Wanda already pipes the side
+  // and hands the whole crew a push, and a second one of those is a
+  // recolour with different feathers. Kiri never touches the action
+  // bar.
+  kiri: {
+    id: 'kiri',
+    element: 'wind',
+    name: 'Kiri',
+    title: 'Hoverwing of the Razorwings',
+    rarity: 2,
+    // A hummingbird's build: almost nothing to her, and second only to
+    // Tervan on the whole roster for speed.
+    stats: { hp: 1100, atk: 96, def: 96, speed: 130 },
+    tint: { body: '#2f8f7a', helm: '#e8e4d8', weapon: '#c8a83a', shield: '#5fd8c8' },
+    sprite: {
+      displayH: 70, // tiny -- but Chirp keeps the smallest-bird title
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/kiriidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    // TWO skills: a 2-star gets a second button and no third.
+    abilities: [
+      {
+        id: 'kiri_pinwheel', name: 'Pinwheel',
+        icon: 'assets/icons/fc866.png',
+        // Chirp's Taper is the nearest thing on the roster -- a cd0
+        // single-ally ATK blessing -- and the difference is what the
+        // rider reads. Hers grows with the fires already lit; this one
+        // grows with the wing receiving it, which is Kiri's passive
+        // doing the work rather than the skill.
+        description: 'Hold the vane up and let it spin: one ally gains 15% ATK for 2 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.15, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'kiri_thermal', name: 'Thermal',
+        icon: 'assets/icons/fc1062.png',
+        description: 'The whole flight finds the rising air: every ally gains 10% ATK ' +
+          'for 2 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'atk', mult: 1.10, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Hover',
+      icon: 'assets/icons/fc1066.png',
+      // The sect's two halves, welded. Every Razorwing tier is paid off
+      // the gap between an attacker and their mark, which means a fast
+      // wing is already worth more per swing -- and this makes them
+      // worth more per BLESSING too, on a channel none of the tiers
+      // touch. Read off the receiver rather than off Kiri, so she is
+      // rewarded for buffing the right bird rather than for being fast
+      // herself; her own speed never enters it.
+      //
+      // Capped, because the rungs are cheap: five of them at +5% is
+      // +25% on top of a blessing that already ladders.
+      description: "Kiri reads the air around whoever she blesses: her buffs are worth " +
+        '5% more for every 10 SPD they hold above 100, up to 25% more.',
+      hooks: {
+        buffPowerAdd(unit, receiver) {
+          if (!receiver || !receiver.effectiveStat) return 0;
+          const over = receiver.effectiveStat('speed') - 100;
+          if (over <= 0) return 0;
+          return Math.min(0.25, Math.floor(over / 10) * 0.05);
+        },
+      },
+    },
+    positional: POSITIONALS.standard_bearer,
+  },
 });

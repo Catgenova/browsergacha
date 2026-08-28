@@ -207,7 +207,7 @@ test('every sect holds one race, once each, with its number', () => {
                 'stella', 'sarena', 'orri', 'chirp'] },
     // The wind bird sect, filling one bird at a time. The shape check
     // below is a CEILING, so it holds while the sect is part-built.
-    razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus'] },
+    razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus', 'kiri'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
