@@ -94,7 +94,13 @@ const App = {
     }
   },
 
-  // Scale the fixed 960px layout to fill the viewport (no scrolling).
+  // Shrink the layout when the window is too small for it (no scrolling
+  // the play area). The shell is FLUID now, so width never drives this:
+  // #game-root is already the window less the body padding, and only
+  // falls back to a transform below the 960px design floor. What is
+  // left is the vertical fit -- a short window still has to show the
+  // whole board -- so the scale is a height fit, clamped at 1 because
+  // zooming a full-width layout past 1 would push it off both edges.
   //
   // Phones are the exception. Shrinking a 960px layout into 390px means a
   // 0.4x scale, which renders body text at 6px and leaves every button a
@@ -139,20 +145,20 @@ const App = {
     }
 
     const floor = 0.5;
-    const pad = 24;
+    const pad = 24; // the body's 12px, both sides
     const k = Math.max(floor, Math.min(
-      (vw - pad) / root.offsetWidth,
-      (vh - pad) / h,
-      2.5 // sanity cap for huge monitors
+      1,                          // never zoom past life size
+      (vw - pad) / root.offsetWidth, // only bites under the 960 floor
+      (vh - pad) / h
     ));
-    root.style.transform = `scale(${k})`;
+    root.style.transform = k === 1 ? 'none' : `scale(${k})`;
     // Scaling leaves the layout box at its unscaled size; trim the
-    // leftover so page scroll matches what's visible. Height scales from
-    // the top (one margin); width from the center (split both sides).
+    // leftover so page scroll matches what's visible. Only the height
+    // needs it: k never exceeds 1, so a shrunk layout sits inside its
+    // own box with room to spare rather than overflowing the sides.
     root.style.marginBottom = `${Math.round(root.offsetHeight * (k - 1))}px`;
-    const mx = Math.round(root.offsetWidth * (k - 1) / 2);
-    root.style.marginLeft = `${mx}px`;
-    root.style.marginRight = `${mx}px`;
+    root.style.marginLeft = '0';
+    root.style.marginRight = '0';
 
     this.sizeCanvases(false, k);
   },

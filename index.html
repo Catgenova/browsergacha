@@ -42,24 +42,35 @@
 
     <!-- ================= Summon screen ================= -->
     <section id="screen-summon" class="screen hidden">
+      <!-- Three columns on a wide window, one stack on a narrow one: the
+           odds you are pulling against, what you are holding, and the
+           buttons. Every id keeps its own element so summon_screen.js
+           writes into exactly what it wrote into before. -->
       <div id="summon-header">
-        <h2>Hero Summon</h2>
-        <div class="summon-rates">Common 📜: 1★ 60% · 2★ 30% · 3★ 10% &nbsp;|&nbsp; Rare ✨: 3★ 80% · 4★ 18% · 5★ 2%</div>
-        <div class="summon-rates">Temporal 🌀 (Dark 🌙 &amp; Light ☀️ only, always 3★+): 3★ 85% · 4★ 12% · 5★ 3%</div>
-        <div id="summon-banner" class="summon-banner hidden"></div>
-        <div id="scroll-counts"></div>
-        <div id="summon-roster-space"></div>
-        <div id="pity-counter"></div>
-        <div id="summon-wishlist"></div>
-        <div id="summon-actions">
-          <button id="summon-common-one" class="panel-btn">Common ×1 (1 📜)</button>
-          <button id="summon-common-ten" class="panel-btn">Common ×10 (10 📜)</button>
-          <button id="summon-rare-one" class="panel-btn gold">Rare ×1 (1 ✨)</button>
-          <button id="summon-rare-ten" class="panel-btn gold">Rare ×10 (10 ✨)</button>
-          <button id="summon-temporal-one" class="panel-btn danger">Temporal ×1 (1 🌀)</button>
-          <button id="summon-temporal-ten" class="panel-btn danger">Temporal ×10 (10 🌀)</button>
+        <div class="summon-col summon-col-rates">
+          <h2>Hero Summon</h2>
+          <div class="summon-rates">Common 📜: 1★ 60% · 2★ 30% · 3★ 10%</div>
+          <div class="summon-rates">Rare ✨: 3★ 80% · 4★ 18% · 5★ 2%</div>
+          <div class="summon-rates">Temporal 🌀 (Dark 🌙 &amp; Light ☀️ only, always 3★+): 3★ 85% · 4★ 12% · 5★ 3%</div>
         </div>
-        <div id="summon-error"></div>
+        <div class="summon-col summon-col-status">
+          <div id="summon-banner" class="summon-banner hidden"></div>
+          <div id="scroll-counts"></div>
+          <div id="summon-roster-space"></div>
+          <div id="pity-counter"></div>
+          <div id="summon-wishlist"></div>
+        </div>
+        <div class="summon-col summon-col-act">
+          <div id="summon-actions">
+            <button id="summon-common-one" class="panel-btn">Common ×1 (1 📜)</button>
+            <button id="summon-common-ten" class="panel-btn">Common ×10 (10 📜)</button>
+            <button id="summon-rare-one" class="panel-btn gold">Rare ×1 (1 ✨)</button>
+            <button id="summon-rare-ten" class="panel-btn gold">Rare ×10 (10 ✨)</button>
+            <button id="summon-temporal-one" class="panel-btn danger">Temporal ×1 (1 🌀)</button>
+            <button id="summon-temporal-ten" class="panel-btn danger">Temporal ×10 (10 🌀)</button>
+          </div>
+          <div id="summon-error"></div>
+        </div>
       </div>
       <div id="summon-results"></div>
       <!-- The elective banner summons: same scrolls, tilted pool. One
