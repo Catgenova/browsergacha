@@ -724,6 +724,11 @@ class Battle {
         this.log(`No room to raise anything — ${caster.name} puts it into ` +
           `${res.target.name} instead: their guard opens and ${res.cut} health ` +
           `goes with it.`, cls);
+      } else if (res.kind === 'eatCorpses') {
+        this.log(res.count > 0
+          ? `${caster.name} clears the table — ${res.count} body` +
+            `${res.count > 1 ? 's' : ''} gone, ${res.amount} back.`
+          : `${caster.name} looks over an empty field.`, cls);
       } else if (res.kind === 'doom') {
         if (res.amount > 0) {
           this.addFloatingText(res.target, '\u25cc', '#c86ae8');

@@ -13911,4 +13911,169 @@ test('Omen: Further Ahead buys the clock a turn', () => {
   assert(on.amount === off.amount, 'the hex made the omen bigger as well as longer');
 });
 
+// The last Hollowbone. A carrion vulture does not hunt -- it arrives
+// where things have already died and it eats -- and the sect makes
+// bodies faster than any other on the roster.
+//
+// Not Rend's job and not Malachar's. Rend CONVERTS what is done to the
+// party; Malachar COUNTS what the fight has cost and never touches a
+// body. Carrion takes the body off the board, which is the only one of
+// the three the enemy feels.
+test('Carrion: nothing goes to waste', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const carrion = seatOn(battle, HEROES.carrion, TEAM.PLAYER, 2);
+    carrion.slot = battle.playerSlots[4];       // off his hex: one meal a turn
+    carrion.hp = Math.round(carrion.maxHp * 0.20);
+    // The LIVING bird is seated first, so it is first in battle.units
+    // and a search that forgot to ask whether a body is dead would find
+    // it before any corpse. Seated after the corpses the assertion
+    // proved nothing -- the array order was doing the work.
+    const standing = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 2);
+    standing.hookSources = () => [];
+    const fallen = [1, 0].map((i) => {
+      const u = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i);
+      u.hookSources = () => [];
+      u.hp = 0;
+      return u;
+    });
+
+    const before = carrion.hp;
+    carrion.startTurn(battle);
+    assert(carrion.hp > before, 'he ate and got nothing for it');
+    assert(carrion.hp - before === Math.round(carrion.maxHp * 0.15),
+      `a body was worth ${carrion.hp - before}, wanted 15% of his pool`);
+
+    // One a turn off the hex, and the body is GONE -- off the board and
+    // off its hex, not merely dead.
+    const eaten = fallen.filter((u) => !battle.units.includes(u));
+    assert(eaten.length === 1, `${eaten.length} bodies went in one turn`);
+    assert(eaten[0].slot === null, 'the body still holds a hex');
+    assert(battle.enemySlots.filter((s) => s.unit === eaten[0]).length === 0,
+      'the hex still points at what he ate');
+
+    // Which means nothing can raise it -- and the rule lives in TARGET
+    // SELECTION rather than in revive(). Every revive on the roster is
+    // `dead-ally` targeting, and the fallen a player or the auto-battler
+    // can pick come from battle.units; a body that is not in that array
+    // cannot be chosen, clicked or reached. Calling revive() on the
+    // object directly still works, because nothing is guarding a method
+    // nobody can get to it through, and asserting otherwise would have
+    // been asserting a guard that does not exist.
+    assert(!battle.units.includes(eaten[0]),
+      'the body is still on the field for a revive to find');
+    assert(!battle.livingUnits().includes(eaten[0]), 'the body is still in play');
+    assert(battle.units.filter((u) => !u.alive).length === 1,
+      'the field does not hold exactly the one corpse he left');
+
+    // Never the living, and never himself.
+    assert(battle.units.includes(standing), 'he ate somebody who was still standing');
+    carrion.startTurn(battle);
+    assert(battle.units.includes(carrion), 'he ate himself');
+
+    // Rip is priced off DEF, like every wall's slot one. Unpinned, a
+    // swap to ATK broke nothing at all -- and on a hero whose attack
+    // stat is deliberately small it is the difference between a swing
+    // and a tickle.
+    {
+      const rip = carrion.abilities.find((a) => a.def.id === 'carrion_rip');
+      const dmg = rip.def.effects.find((e) => e.type.startsWith('damage'));
+      assert(dmg.type === 'damageDef', `Rip is priced off ${dmg.type}`);
+      const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 3), 400);
+      foe.hookSources = () => [];
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      const swing = () => {
+        const was = foe.hp;
+        const real = Math.random;
+        Math.random = () => 0.99;
+        try { Abilities.execute(rip.def, carrion, foe, battle); }
+        finally { Math.random = real; }
+        return was - foe.hp;
+      };
+      const bare = swing();
+      carrion.baseDef *= 2;
+      assert(swing() > bare * 1.5, 'doubling his DEF did not move the swing');
+      carrion.baseDef /= 2;
+      carrion.baseAtk *= 4;
+      assert(Math.abs(swing() - bare) <= 2, 'quadrupling his ATK moved the swing');
+      carrion.baseAtk /= 4;
+    }
+
+    // And an empty field costs nothing: the hook says so rather than
+    // reporting a meal of nothing.
+    const clean = makeBattle();
+    Battle.active = clean;
+    const alone = seatOn(clean, HEROES.carrion, TEAM.PLAYER, 2);
+    assert(HEROES.carrion.passive.hooks.onTurnStart(alone, clean) === null,
+      'he announced clearing up an empty field');
+  } finally { Battle.active = prev; }
+});
+
+// His hex is a RATE, not a ceiling -- three hexes on this roster
+// already lift a cap and it had become a habit -- and the rate is the
+// only thing that matters to a hero fed one body a turn.
+test('Carrion: First at the Table is two a turn', () => {
+  const hex = POSITIONALS.first_at_the_table;
+  assert(HEROES.carrion.positional === hex, 'Carrion is not on his own hex');
+  assert(hex.position === POSITION.FRONT, 'he stands where the bodies fall');
+
+  const clear = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const carrion = seatOn(battle, HEROES.carrion, TEAM.PLAYER, 2);
+      if (!onHex) carrion.slot = battle.playerSlots[4];
+      assert(carrion.positionalActive() === onHex, 'the fixture seated him wrong');
+      [0, 1, 3].forEach((i) => {
+        const u = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i);
+        u.hookSources = () => [];
+        u.hp = 0;
+      });
+      carrion.startTurn(battle);
+      return battle.units.filter((u) => !u.alive).length;
+    } finally { Battle.active = prev; }
+  };
+  assert(clear(false) === 2, 'off the hex he took more than one');
+  assert(clear(true) === 1, 'on the hex he did not take two');
+});
+
+// The whole table at once: worth nothing on an untouched field and a
+// great deal on one that has gone badly, which is the only kind a
+// 5-star wall is still standing on.
+test('Carrion: The Whole Table clears everything there is', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const carrion = seatOn(battle, HEROES.carrion, TEAM.PLAYER, 2);
+    const table = carrion.abilities.find((a) => a.def.id === 'carrion_the_whole_table');
+    assert(table, 'The Whole Table is missing');
+
+    // An empty field pays nothing rather than reading as a skill that
+    // did something invisible.
+    carrion.hp = Math.round(carrion.maxHp * 0.10);
+    const dry = carrion.hp;
+    Abilities.execute(table.def, carrion, carrion, battle);
+    assert(carrion.hp === dry, 'an empty field mended him');
+
+    // Four bodies, both sides, all of them.
+    [0, 1, 2].forEach((i) => {
+      const u = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i);
+      u.hookSources = () => [];
+      u.hp = 0;
+    });
+    const ally = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 3);
+    ally.hookSources = () => [];
+    ally.hp = 0;
+
+    Abilities.execute(table.def, carrion, carrion, battle);
+    assert(!battle.units.some((u) => !u.alive), 'a body was left on the table');
+    assert(carrion.hp - dry === Math.round(carrion.maxHp * 0.12) * 4,
+      `four bodies mended ${carrion.hp - dry}, wanted four twelfths of his pool`);
+  } finally { Battle.active = prev; }
+});
+
 report();
