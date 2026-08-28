@@ -3,15 +3,19 @@
 // The roster is a list of individual heroes now, not a set of characters
 // with duplicate counters, so growth costs bodies:
 //
-//   STAR UP   sacrifice as many heroes at the SAME star rating as the
-//             rating itself -- three 3-star heroes to reach 4.
+//   STAR UP   bank points. Every hero is worth Progression.starValue(its
+//             stars) and every rating costs that rating's own worth, so
+//             four 3-stars reach 4 -- and so do twenty-four 1-stars, over
+//             as many sittings as you like, with the overflow rolling
+//             into the next bar.
 //   SKILL UP  sacrificing the same CHARACTER also raises one of their
 //             skills, so a true duplicate is worth more than a stranger
 //             of the same rank.
 //
-// The candidate list only ever shows heroes that do one of those two
-// things. Anything that cannot contribute is not a choice, so it is not
-// on the page.
+// The candidate list shows everything spendable, because under the
+// points rule everything contributes. It used to show same-rank heroes
+// and duplicates only, which was right when a 1-star could do nothing
+// for a 3-star.
 
 class ImproveScreen {
   constructor(app) {
@@ -154,9 +158,13 @@ class ImproveScreen {
     if (!this.selected) {
       this.detailEl.innerHTML = `<div class="imp-hint">
         <b>Pick a hero to improve.</b>
-        <p>Star ups cost heroes at the same star rating &mdash; three 3&#9733;
-        heroes to reach 4&#9733;. Sacrificing another copy of the same
-        character also raises one of their skills.</p>
+        <p>Star ups are banked in POINTS. A hero is worth what its rating
+        is worth &mdash; 1&#9733; a point, 2&#9733; two, 3&#9733; six,
+        4&#9733; twenty-four &mdash; and reaching a rating costs what that
+        rating is worth. So four 3&#9733; heroes reach 4&#9733;, and so do
+        twenty-four 1&#9733; heroes, in as many sittings as you like.
+        Anything left over rolls into the next bar. Sacrificing another
+        copy of the same character also raises one of their skills.</p>
         <p class="imp-note">Heroes on your team and favourites are never
         offered as sacrifices.</p>
       </div>`;
@@ -182,12 +190,20 @@ class ImproveScreen {
 
     const options = GameState.sacrificeOptions(uid);
     const picked = [...this.chosen];
-    const atRank = picked.filter((u) => {
-      const p = GameState.progressOf(u);
-      return p && p.stars === pr.stars;
-    }).length;
+    // Points, not head count: a star up is a bank now, so what matters
+    // is what the picks are WORTH and where that lands the hero.
+    const bank = pr.starPoints || 0;
+    const picking = picked.reduce(
+      (n, u) => n + Progression.starValue(GameState.progressOf(u).stars), 0);
+    let toStars = pr.stars;
+    let after = bank + picking;
+    while (toStars < Progression.MAX_STARS &&
+           after >= Progression.starUpCost(toStars)) {
+      after -= Progression.starUpCost(toStars);
+      toStars++;
+    }
     const skillPicks = picked.filter((u) => GameState.defIdOf(u) === def.id).length;
-    const willStar = !maxed && atRank >= need;
+    const willStar = toStars > pr.stars;
 
     const skillsHtml = def.abilities.map((a, i) => {
       const lv = GameState.skillLevel(uid, i);
@@ -203,7 +219,8 @@ class ImproveScreen {
       const info = Elements.info(fodder.element);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
-      tags.push(`<span class="imp-tag${o.star ? '' : ' imp-tag-dim'}">${o.stars}&#9733;</span>`);
+      tags.push(`<span class="imp-tag imp-tag-dim">${o.stars}&#9733;</span>`);
+      tags.push(`<span class="ros-worth">+${o.value}</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
         <canvas class="imp-portrait" width="34" height="34"></canvas>
         <div class="imp-row-text">
@@ -215,10 +232,15 @@ class ImproveScreen {
       </div>`;
     };
 
+    const num = (v) => Math.round(v || 0).toLocaleString();
     const canStar = maxed ? 'Already at the star cap.'
-      : `${need} hero${need > 1 ? 'es' : ''} at ${pr.stars}&#9733; \u2014 ` +
-        `<b>${atRank}/${need}</b> chosen. Raises the level cap to ` +
-        `${Progression.maxLevel(pr.stars + 1)}; the level is kept.`;
+      : `<b>${num(bank + picking)} / ${num(need)}</b> points` +
+        (picking ? ` (${num(bank)} banked, ${num(picking)} picked)` : ' banked') +
+        `. ${willStar
+          ? `Reaches ${toStars}&#9733;` + (after ? `, ${num(after)} carried over` : '') + '.'
+          : `${num(need - bank - picking)} more for ${pr.stars + 1}&#9733;.`} ` +
+        `Raises the level cap to ${Progression.maxLevel(pr.stars + 1)}; ` +
+        'the level is kept.'
 
     // What the star up buys, shown before it is paid for. Dim until the
     // sacrifices are actually picked, so the panel reads as a forecast
@@ -272,9 +294,9 @@ class ImproveScreen {
       <button id="imp-go" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
         ${picked.length
           ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
-            (willStar ? ' and star up'
+            (willStar ? ` and star up to ${toStars}★`
               : maxed ? ''
-              : ` — NO star up (${atRank}/${need} at ${pr.stars}★)`)
+              : ` — +${picking} points, no star up yet`)
           : 'Choose sacrifices below'}
       </button>
       ${this.message ? `<div class="imp-msg">${this.message}</div>` : ''}

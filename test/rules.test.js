@@ -1088,8 +1088,12 @@ test('star ups and skill ups are paid for in heroes', () => {
   const startLevel = GameState.progressOf(target).level;
   assert(startLevel > 1 && startLevel < Progression.maxLevel(stars),
     `test needs a part-levelled hero, got Lv ${startLevel}`);
+  // The cost is POINTS now, and it is the value of the rating being
+  // bought: reaching 4 stars costs what a 4-star is worth.
   const need = Progression.starUpCost(stars);
-  assert(need === stars, `cost should equal the rating, got ${need} for ${stars}`);
+  assert(need === Progression.starValue(stars + 1),
+    `${stars}* should cost a ${stars + 1}*'s worth (${
+      Progression.starValue(stars + 1)}), got ${need}`);
   assert(GameState.starUpReady(target),
     'a hero below the star cap should be able to star up whatever its level');
 
@@ -1107,22 +1111,26 @@ test('star ups and skill ups are paid for in heroes', () => {
   };
   const sameChar = [fodderHero(hero.id), fodderHero(hero.id)];
   const strangers = [];
+  // Enough strangers at this rank to cover the bar in one go.
+  const perHead = Progression.starValue(stars);
+  const heads = Math.ceil(need / perHead);
   for (const other of Object.values(HEROES)) {
-    if (strangers.length >= need) break;
+    if (strangers.length >= heads) break;
     if (other.id === hero.id) continue;
     if ((other.rarity || 1) !== stars) continue;
     strangers.push(fodderHero(other.id));
   }
-  assert(strangers.length === need, `could not find ${need} strangers at ${stars} stars`);
+  assert(strangers.length === heads, `could not find ${heads} strangers at ${stars} stars`);
 
-  // Only contributors are offered: same character or at-rank fodder.
-  // A hero that can do neither is off the list, not greyed out.
+  // EVERY spendable hero is offered now, because every hero is worth
+  // points. The old list showed same-rank heroes and duplicates only,
+  // which stopped being true the moment a 1-star became worth a point.
   const offered = GameState.sacrificeOptions(target);
   const ids = new Set(offered.map((o) => o.uid));
   assert(!ids.has(target), 'the hero being improved was offered as its own fodder');
   for (const o of offered) {
-    assert(o.skill || o.star,
-      `${o.heroId} is offered but can neither star up nor skill up`);
+    assert(o.value === Progression.starValue(o.stars),
+      `${o.heroId} at ${o.stars}* is priced ${o.value}`);
   }
   assert(sameChar.every((uid) => ids.has(uid)), 'a duplicate was not offered');
   // Skill ups sort to the top: they are the reason to keep a duplicate.
@@ -1142,13 +1150,17 @@ test('star ups and skill ups are paid for in heroes', () => {
     'a favourite was offered as a sacrifice');
   GameState.toggleFavorite(strangers[0]);
 
-  // Too few, and nothing is starred -- but a duplicate still pays a skill.
+  // Too few points, and nothing is starred -- but the points BANK, and
+  // a duplicate still pays a skill. Not being able to finish the bar in
+  // one sitting is the thing this rework exists to allow.
   const before = GameState.progressOf(target);
   const partial = GameState.sacrifice(target, [sameChar[0]]);
   assert(partial.spent === 1, `spent ${partial.spent}`);
   assert(!partial.starred, 'starred up on one sacrifice');
   assert(partial.skills.length === 1, 'a duplicate paid no skill level');
   assert(GameState.progressOf(target).stars === before.stars, 'stars moved anyway');
+  assert(GameState.progressOf(target).starPoints === perHead,
+    `banked ${GameState.progressOf(target).starPoints}, wanted ${perHead}`);
   assert(!GameState.defOf(sameChar[0]), 'the sacrificed hero is still in the roster');
 
   // Enough at the rank, and it stars up -- keeping the level it had and
@@ -1162,7 +1174,7 @@ test('star ups and skill ups are paid for in heroes', () => {
     `${GameState.progressOf(target).level}`);
   assert(Progression.maxLevel(report.to) > Progression.maxLevel(stars),
     'starring up did not raise the level cap');
-  assert(GameState.rosterCount() === count - need,
+  assert(GameState.rosterCount() === count - heads,
     'the roster did not shrink by the heroes spent');
   for (const uid of strangers) {
     assert(!GameState.defOf(uid), 'a spent hero is still in the roster');
@@ -14109,6 +14121,93 @@ test('auto-equip fills empty slots for a hero held by uid', () => {
   const wornAfter = Gear.SLOTS.filter((s) => GameState.equipmentOf(uid)[s]).length;
   assert(wornAfter === changed,
     `reported ${changed} slots upgraded but ${wornAfter} are worn`);
+});
+
+// The star-point economy, on its own terms.
+//
+// The table is the factorials, which buys two properties at once: each
+// rank still costs N of the rank below (four 3-stars make a 4-star), and
+// the same bar can equally be filled with anything smaller. The old rule
+// had neither -- it only ever accepted same-rank heroes, so a spare
+// 1-star could do nothing for a 3-star and a hero one body short of a
+// star up stayed one body short of it forever.
+test('star points: the table, the rollover, and the cascade', () => {
+  const G = loadGame();
+  const { GameState, Progression, HEROES } = G;
+  const P = Progression;
+
+  // The table, and the two readings of it agreeing.
+  const WANT = [1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
+  for (let s = 1; s <= P.MAX_STARS; s++) {
+    assert(P.starValue(s) === WANT[s - 1],
+      `${s}* is worth ${P.starValue(s)}, wanted ${WANT[s - 1]}`);
+  }
+  for (let s = 1; s < P.MAX_STARS; s++) {
+    assert(P.starUpCost(s) === P.starValue(s + 1),
+      `${s}* -> ${s + 1}* costs ${P.starUpCost(s)}, not a ${s + 1}*'s worth`);
+    // Each rank is exactly (s+1) heroes of the rank below. This is the
+    // property the factorials are chosen FOR, so it is asserted rather
+    // than left as a comment.
+    assert(P.starUpCost(s) === (s + 1) * P.starValue(s),
+      `${s}* -> ${s + 1}* is not ${s + 1} heroes of the rank below`);
+  }
+  assert(P.starUpCost(P.MAX_STARS) === 0, 'the cap still quotes a price');
+
+  const spendable = (id) => {
+    const uid = GameState.addHero(id).uid;
+    // Blessed arrivals pin themselves as favourites and then refuse to
+    // be fodder; that roll is random and is not what this is testing.
+    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
+    return uid;
+  };
+  const byRarity = (r) => Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === r);
+  const one = byRarity(1), three = byRarity(3), five = byRarity(5);
+  assert(one && three && five, 'the roster is missing a rarity this test needs');
+
+  // The headline case: twenty-four 1-stars take a 3-star to 4, and they
+  // do NOT have to arrive together.
+  const target = spendable(three);
+  assert(GameState.progressOf(target).stars === 3, 'expected a 3-star target');
+  const junk = [];
+  for (let i = 0; i < 24; i++) junk.push(spendable(one));
+  GameState.sacrifice(target, junk.slice(0, 10));
+  let pr = GameState.progressOf(target);
+  assert(pr.stars === 3 && pr.starPoints === 10,
+    `ten 1-stars should bank 10 and star nothing; got ${pr.stars}* / ${pr.starPoints}`);
+  GameState.sacrifice(target, junk.slice(10));
+  pr = GameState.progressOf(target);
+  assert(pr.stars === 4 && pr.starPoints === 0,
+    `twenty-four 1-stars should reach 4*; got ${pr.stars}* / ${pr.starPoints}`);
+
+  // Cascade and rollover: one 5-star (120) dropped on a 1-star pays
+  // 2 + 6 + 24 for three ratings and banks the remaining 88.
+  const climber = spendable(one);
+  assert(GameState.progressOf(climber).stars === 1, 'expected a 1-star climber');
+  const report = GameState.sacrifice(climber, [spendable(five)]);
+  const after = GameState.progressOf(climber);
+  assert(report.points === 120, `a 5-star paid ${report.points}`);
+  assert(after.stars === 4, `one 5-star should carry a 1-star to 4*, got ${after.stars}*`);
+  assert(after.starPoints === 120 - 2 - 6 - 24,
+    `rollover is ${after.starPoints}, wanted ${120 - 2 - 6 - 24}`);
+
+  // Nothing is banked against a bar that does not exist. Seeded through
+  // the save loader, because climbing to the cap honestly costs several
+  // million points.
+  const seeded = loadGame({ save: { schemaVersion: 7, roster: {
+    cap: { heroId: three, level: 1, xp: 0, stars: P.MAX_STARS, attune: 0,
+      equipment: {}, skills: {}, favorite: false, starPoints: 0 },
+    food: { heroId: five, level: 1, xp: 0, stars: 5, attune: 0,
+      equipment: {}, skills: {}, favorite: false, starPoints: 0 },
+  }, nextHeroUid: 99 } });
+  const S = seeded.GameState;
+  assert(S.progressOf('cap') && S.progressOf('cap').stars === P.MAX_STARS,
+    'the seeded save did not produce a capped hero');
+  const r2 = S.sacrifice('cap', ['food']);
+  const cappedPr = S.progressOf('cap');
+  assert(r2 && r2.spent === 1, 'the sacrifice at the cap did not happen');
+  assert(cappedPr.stars === P.MAX_STARS, 'a capped hero moved');
+  assert(cappedPr.starPoints === 0,
+    `a capped hero banked ${cappedPr.starPoints} points against nothing`);
 });
 
 report();

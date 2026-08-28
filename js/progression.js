@@ -16,10 +16,40 @@ const Progression = (() => {
     return stars * 10;
   }
 
-  // Heroes at the SAME star rating consumed to go from `stars` to
-  // `stars + 1`: three 3-star heroes to reach 4.
+  // ---- Star points -----------------------------------------------------
+  //
+  // Starring up is a BANK now, not a shopping list. Every hero is worth
+  // points as fodder, every rating costs points to reach, and the two
+  // numbers are the same table -- so a hero's worth as fodder is exactly
+  // what somebody else paid to become it.
+  //
+  // The table is the factorials, which is not a flourish: it makes each
+  // rank cost exactly N of the rank below (four 3-stars make a 4-star,
+  // because 4x6 = 24), while ALSO letting the whole cost be paid in
+  // anything at all. Twenty-four 1-stars reach the same 4-star, and so
+  // does any mixture that adds up.
+  //
+  //   1*      1        6*        720
+  //   2*      2        7*      5,040
+  //   3*      6        8*     40,320
+  //   4*     24        9*    362,880
+  //   5*    120       10*  3,628,800
+  //
+  // The old rule was "as many heroes at the SAME rating as the rating
+  // itself", which meant a spare 1-star could never help a 3-star at
+  // all, and a hero one body short of a star up was one body short of
+  // it forever. A bank fills a little at a time and nothing is wasted.
+  const STAR_POINTS = [0, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
+
+  // What a hero at `stars` is worth when spent.
+  function starValue(stars) {
+    return STAR_POINTS[Math.max(0, Math.min(MAX_STARS, stars))] || 0;
+  }
+
+  // Points banked to go from `stars` to `stars + 1`. Zero at the cap,
+  // where there is nothing left to buy.
   function starUpCost(stars) {
-    return stars;
+    return stars >= MAX_STARS ? 0 : starValue(stars + 1);
   }
 
   // XP required to advance from `level` to `level + 1`.
@@ -463,7 +493,8 @@ const Progression = (() => {
   }
 
   return {
-    MAX_STARS, maxLevel, starUpCost, xpToNext, statMult, scaledStats, enemyXp,
+    MAX_STARS, maxLevel, STAR_POINTS, starValue, starUpCost, xpToNext,
+    statMult, scaledStats, enemyXp,
     BOSS_MAX_STAGE, bossLevel, bossScaledStats, power,
     MAX_SKILL_LEVEL, skillPower,
     SKILL_RUNGS, skillRungs, maxSkillLevel, skillCap, skillLadder,
