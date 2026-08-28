@@ -199,20 +199,29 @@ const Gacha = (() => {
     return { def, rarity: def.rarity, uid: added ? added.uid : null,
       isNew: !!added && added.isNew, copies: GameState.countOf(def.id),
       blessing: (added && added.blessing) || null,
+      // Carried through so the screen can say a hero went to the vault
+      // rather than the roster. Without it the overflow is silent, and a
+      // player watching the reveal has no idea where the hero went.
+      stored: !!(added && added.stored),
       bannerPity: !!pityDef };
   }
 
   // Spend `count` scrolls of `kind` for that many summons.
   //
   // A pull that would not fit is refused outright rather than part-filled:
-  // a summon now hands over a whole hero, and dropping some of them on
-  // the floor because the roster is full is not something to do quietly.
+  // a summon hands over a whole hero, and dropping some of them on the
+  // floor is not something to do quietly.
+  //
+  // "Fit" counts the VAULT as well as the roster now. A full roster used
+  // to cancel the pull outright, which meant a player one slot short lost
+  // the summon rather than the shelf space -- so heroes overflow into
+  // storage and only a roster AND vault both full refuses.
   // Returns { error, space } instead of results when there is no room.
   // `opts.banner` marks an elective banner pull: same scrolls, same
   // band rates, but the running banner's sect draws at double weight.
   function pull(kind, count, opts = {}) {
-    if (GameState.rosterSpace() < count) {
-      return { error: 'roster-full', space: GameState.rosterSpace(),
+    if (GameState.intakeSpace() < count) {
+      return { error: 'roster-full', space: GameState.intakeSpace(),
         need: count, max: GameState.MAX_ROSTER };
     }
     if (!GameState.spendScrolls(kind, count)) return null;

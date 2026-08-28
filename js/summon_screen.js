@@ -48,12 +48,20 @@ class SummonScreen {
     const spaceEl = document.getElementById('summon-roster-space');
     if (spaceEl) {
       const free = GameState.rosterSpace();
+      const vault = Math.max(0, GameState.MAX_STORAGE - GameState.storageCount());
       spaceEl.textContent =
         `Roster: ${GameState.rosterCount()}/${GameState.MAX_ROSTER} — ` +
-        (free === 0 ? 'FULL! Free up space before summoning.'
+        (free === 0
+          // A full roster is no longer a wall: summons overflow into the
+          // vault, so the readout says where they will land rather than
+          // telling the player to stop.
+          ? (vault > 0
+            ? `full — the next ${vault} go to storage`
+            : 'FULL, and the vault is too. Free up space before summoning.')
           : `${free} free slot${free === 1 ? '' : 's'}`);
       spaceEl.classList.toggle('roster-low', free > 0 && free <= 10);
-      spaceEl.classList.toggle('roster-full', free === 0);
+      spaceEl.classList.toggle('roster-full', free === 0 && vault === 0);
+      spaceEl.classList.toggle('roster-overflow', free === 0 && vault > 0);
     }
     // The running rate-up banners point at their elective blocks below.
     const bannerEl = document.getElementById('summon-banner');
@@ -209,9 +217,16 @@ class SummonScreen {
     }
     if (results.error === 'roster-full') {
       this.errorEl.textContent =
-        `Roster full (${GameState.rosterCount()}/${results.max}) \u2014 ` +
-        `room for ${results.space}. Spend heroes in Improve to make space.`;
+        `Roster AND vault are full (${GameState.rosterCount()}/${results.max} + ` +
+        `${GameState.storageCount()}/${GameState.MAX_STORAGE}) \u2014 room for ` +
+        `${results.space}. Spend heroes in Improve to make space.`;
       return;
+    }
+    // Some or all of this pull may have landed in the vault instead.
+    const toVault = results.filter((r) => r && r.stored).length;
+    if (toVault > 0) {
+      this.errorEl.textContent = `Roster full \u2014 ${toVault} of these went to ` +
+        'storage. Withdraw them from the Team screen.';
     }
 
     this.revealing = true;

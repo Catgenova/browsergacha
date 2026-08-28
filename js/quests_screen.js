@@ -56,7 +56,8 @@ class QuestsScreen {
       first7Btn.addEventListener('click', () => {
         const got = GameState.claimFirstSeven();
         this.loginMsg = got && got.error === 'roster-full'
-          ? 'The roster is full — make room before claiming today\'s hero.' : '';
+          ? 'The roster and the vault are both full — make room before claiming ' +
+            'today\'s hero.' : '';
         if (got && !got.error && typeof Sound !== 'undefined') Sound.play('claim');
         this.refresh();
       });

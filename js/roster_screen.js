@@ -335,8 +335,10 @@ class RosterScreen {
       <div class="detail-section">What a dumpling is worth</div>
       <div class="ros-ladder">${ladder}</div>
       <div class="ros-note">You hold ${GameState.dumplingCount()} dumpling${
-        GameState.dumplingCount() === 1 ? '' : 's'}. They take up roster room like
-        anyone else, so they are worth spending rather than hoarding.</div>`;
+        GameState.dumplingCount() === 1 ? '' : 's'}, vault included. They take up
+        roster room like anyone else, so they are worth spending rather than
+        hoarding — and one in storage cannot be fed to anybody until it is
+        withdrawn.</div>`;
   }
 
   // ---- Ascend -----------------------------------------------------------
