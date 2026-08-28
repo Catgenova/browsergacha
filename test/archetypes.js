@@ -30,8 +30,35 @@
 // Runs are seeded, so the same hero replays the same fight every time
 // and a difference between two heroes is a difference in the heroes.
 //
+// WHAT A BOON IS WORTH. `boons` and `hexes` count how many blessings a
+// hero is sustaining and refuse to price them, because turning a DEF
+// buff or a cleanse into HP means inventing an exchange rate. `lift`
+// prices them without inventing one: the same fight is run twice off
+// the same seed, once with the hero and once with the hero's own BLANK
+// -- their statline and their hex, one plain swing, no passive, no
+// kit -- and the difference in what the whole side produced is what the
+// kit was worth. A cleanse, an immunity, a meter push and a cooldown
+// refresh all land in it, because it never asks what they do.
+//
+// It comes with `+/-`, its own standard error over the paired runs, and
+// the bar is not decoration. Swapping a hero for a blank changes the
+// whole trajectory of a 60-second fight, so the two runs diverge
+// chaotically even off one seed and the difference of two noisy totals
+// is noisier than either. At 9 sims Calima's lift is 17 error bars wide
+// and Kiri's is 0.2 -- Kiri's contribution is real and simply smaller
+// than what this method can resolve. A lift under about twice its bar
+// is an unmeasured effect, not a small one. Use --sims 9 or more before
+// reading anything off it.
+//
+// `worth/s` is a different question and both are worth having: it is
+// what the LEDGERS credit, which double-counts a buffer's share of an
+// ally's swing on purpose (see js/meter.js), while `lift` is what the
+// team actually gained. Leonardo's ledgers say 559 and his lift says
+// 221; both are true answers to different questions.
+//
 //   node test/archetypes.js                      # everything
-//   node test/archetypes.js --sims 9             # steadier numbers
+//   node test/archetypes.js --sims 9             # steadier numbers, and
+//                                                # the minimum for lift
 //   node test/archetypes.js --archetype back_dps # one bucket
 //   node test/archetypes.js --top 10             # best and worst only
 //   node test/archetypes.js --csv                # for a spreadsheet
@@ -205,14 +232,50 @@ function seat(battle, def, team, wantPosition) {
 // So each hero is measured twice, in the same team, against two shapes
 // of opponent: the seven-body line it already faced, and ONE opponent
 // carrying the whole enemy side's health. `solo` is the second reading.
-function runOne(def, cast, seedValue, boss = false) {
+// A hero with their own body and none of their kit: the same statline,
+// the same hex, one plain 100%-ATK swing, and nothing else. Every buff,
+// hex, cleanse, ward, meter push and passive is gone.
+//
+// This is the control the boon measurement needs. `boons` and `hexes`
+// count how many blessings a hero is SUSTAINING, deliberately refusing
+// to price them, because converting a DEF buff or a cleanse into HP
+// means inventing an exchange rate. Running the same fight twice --
+// once with the hero, once with their own blank -- prices them without
+// inventing anything: whatever the rest of the team does differently IS
+// the kit, in the same HP the other columns are already measured in.
+//
+// The positional stays. It is part of standing in that hex rather than
+// part of the kit, and stripping it would fold the hex's value into the
+// hero's and flatter every positional-heavy build.
+const blankCache = new Map();
+function blankOf(def) {
+  if (blankCache.has(def.id)) return blankCache.get(def.id);
+  const blank = {
+    ...def,
+    id: `${def.id}__blank`,
+    name: `${def.name} (blank)`,
+    abilities: [{
+      id: `${def.id}__blank_swing`, name: 'Swing',
+      description: 'A plain swing, and nothing else.',
+      cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+      effects: [{ type: 'damage', mult: 1.0 }],
+      levelUps: [{ mult: 0.1 }],
+    }],
+    passive: { name: 'Nothing', description: 'Nothing.', hooks: {} },
+  };
+  blankCache.set(def.id, blank);
+  return blank;
+}
+
+function runOne(def, cast, seedValue, boss = false, blank = false) {
   g.seed(seedValue);
   Meter.resetBattle();
   const battle = new Battle();
   battle.autoMode = true;
 
   const position = def.positional ? def.positional.position : POSITION.FRONT;
-  const hero = seat(battle, def, TEAM.PLAYER, position);
+  const seated = blank ? blankOf(def) : def;
+  const hero = seat(battle, seated, TEAM.PLAYER, position);
   for (const ally of cast.allies) seat(battle, ally, TEAM.PLAYER, ally.positional.position);
   if (boss) {
     // One opponent, pooled: the same total health and the same total
@@ -380,13 +443,18 @@ function runOne(def, cast, seedValue, boss = false) {
   }
   const seconds = Math.max(0.1, ticks * DT);
   const mine = (kind) => {
-    const row = Meter.rows(kind, 'battle').list.find((r) => r.id === def.id);
+    const row = Meter.rows(kind, 'battle').list.find((r) => r.id === seated.id);
     return row ? row.value : 0;
   };
+  // What the WHOLE player side produced, the hero included. The meter
+  // only tallies TEAM.PLAYER, so this is exactly the side under test.
+  const teamTotal = ['damage', 'healing', 'mitigated'].reduce(
+    (sum, kind) => sum + Meter.rows(kind, 'battle').total, 0);
   return {
     seconds,
     stalled: !winner,
     died: !hero.alive,
+    teamTotal,
     damage: mine('damage'),
     poison: dotDealt,
     // Own swings and bought swings are separate ledgers now, so this is
@@ -467,18 +535,40 @@ const median = (xs) => {
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 };
-const round = (n, p = 1) => Number(n.toFixed(p));
+const round = (n, p = 1) =>
+  (typeof n === 'number' && Number.isFinite(n) ? Number(n.toFixed(p)) : n);
+
+// Paired lift and its standard error. Pairing matters: run i and blank
+// i share a seed and a cast, so differencing them cancels everything
+// the two fights had in common and leaves the kit plus whatever
+// trajectory divergence the swap caused. The spread of those paired
+// differences IS the uncertainty, so it is measured rather than assumed.
+function liftStats(runs, blanks) {
+  const d = runs.map((r, i) => r.teamTotal / r.seconds -
+    blanks[i].teamTotal / blanks[i].seconds);
+  const n = d.length;
+  const mean = d.reduce((a, b) => a + b, 0) / n;
+  if (n < 2) return { lift: mean, liftErr: Infinity };
+  const varSum = d.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1);
+  return { lift: mean, liftErr: Math.sqrt(varSum / n) };
+}
 const pad = (s, n) => String(s).padStart(n);
 
 function measure(def, cast) {
   const runs = [];
   const solos = [];
+  const blanks = [];
   for (let i = 0; i < SIMS; i++) {
     runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
     solos.push(runOne(def, castWithout(cast, def), 1000 + i * 7919, true));
+    // The same fight, same seed, same cast, same hex -- with the hero's
+    // own blank standing in their place. Everything that differs is the
+    // kit.
+    blanks.push(runOne(def, castWithout(cast, def), 1000 + i * 7919, false, true));
   }
   const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
   const avgSolo = (pick) => solos.reduce((s, r) => s + pick(r), 0) / solos.length;
+  const avgBlank = (pick) => blanks.reduce((s, r) => s + pick(r), 0) / blanks.length;
   // Direct and poison must reconstruct the hero's own damage. Assist is
   // NOT part of that sum any more and must not be checked against it:
   // damage and facilitation are two ledgers now (see js/meter.js), the
@@ -516,7 +606,32 @@ function measure(def, cast) {
     'saved/s': avg((r) => (r.healing + r.mitigated) / r.seconds),
     // Saved plus dealt: the whole contribution in one number, so a hero
     // who buffs the team's attack is comparable with one who heals it.
-    'worth/s': avg((r) => (r.healing + r.mitigated + r.damage) / r.seconds),
+    // Assist belongs here and used to arrive by accident: when assists
+    // were carved out of the attacker's own column, r.damage carried
+    // the buffer's share and worth/s picked it up. Moving facilitation
+    // to its own ledger silently emptied this of every boon it was
+    // supposed to hold, which is why Leonardo posted 564 assist and 0
+    // worth. It is added explicitly now.
+    'worth/s': avg((r) =>
+      (r.healing + r.mitigated + r.damage + r.assist) / r.seconds),
+    // The differential, PAIRED. What the whole side produced with this
+    // hero in the hex, less what it produced with the hero's own blank
+    // in the same hex on the same seed -- per second, in the same HP as
+    // every other column. This is the one number that prices a cleanse,
+    // an immunity, a meter push or a DEF buff, because it never asks
+    // what they are worth: it asks what the team did differently, and
+    // the answer includes them.
+    //
+    // It comes with an error bar, and it has to. Swapping a hero for a
+    // blank changes the whole trajectory of a 60-second fight -- who
+    // dies, in what order, who was holding what when -- so the two runs
+    // diverge chaotically even off one seed, and the difference of two
+    // noisy totals is noisier than either. Measured across sim counts,
+    // Calima's lift held to 3% while Kiri's ran 112 / 72 / 15 and
+    // Slick's changed SIGN. A lift smaller than its own error bar is
+    // not a small contribution, it is an unmeasured one, and the table
+    // says so rather than printing a number that reads like a finding.
+    ...liftStats(runs, blanks),
     // Effective health: the pool an attacker actually has to chew
     // through, once this hero's dodges, reflects and guards are counted.
     // Survival time saturates in a mirror — nobody dies inside the
@@ -543,6 +658,11 @@ const COLUMNS = [
   ['worth/s', 'worth/s', 8, 1],
   ['solo', 'solo', 8, 1],
   ['boons', 'boons', 6, 2], ['hexes', 'hexes', 6, 2],
+  // Both numbers, always. A lift is only a finding when it is bigger
+  // than the bar beside it; printing the one without the other would
+  // dress noise up as a measurement, which for the small-effect heroes
+  // this column exists to measure is most of them.
+  ['lift', 'lift', 8, 1], ['liftErr', '+/-', 7, 0],
   ['taken/s', 'taken/s', 8, 1], ['mit%', 'mit%', 5, 1], ['ehp', 'ehp', 8, 0],
 ];
 
