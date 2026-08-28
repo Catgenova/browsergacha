@@ -4118,4 +4118,128 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.fence,
   },
+
+  // The plague doctor, and the sect's supply line. Everything the
+  // Hollowbone pack does is priced per curse -- Rigor deepens each one,
+  // Deadweight drags 3% of speed off each one, Dry Bones asks only
+  // whether a bird is cursed at all -- and none of the four birds
+  // written before him lands many. Pox is where the curses come from.
+  //
+  // His passive multiplies the COUNT, which is the one term in that
+  // arithmetic nothing else touches: the element sells whether a curse
+  // lands and how long it lasts, the pack sells how hard it bites, the
+  // Nightflowers sell what it is worth to hit somebody wearing one. How
+  // MANY there are was free.
+  //
+  // That it feeds two of his own pack's tiers is deliberate and it is
+  // the Phoenix Court's arrangement, not an accident: their dealers set
+  // the fires their court is paid for, and the two halves are worth
+  // fielding together for exactly that reason.
+  pox: {
+    id: 'pox',
+    element: 'dark',
+    name: 'Pox',
+    title: 'Bottlebearer of the Hollowbone',
+    rarity: 3,
+    // Declared, because the derivation gets him wrong. The bench and
+    // Tags both read a kit for what it DOES, and all three of his
+    // skills carry a damage line, so he classified as a back-row
+    // dealer -- which is not what he is for. The damage is the delivery
+    // mechanism; the curses are the hero.
+    role: 'support',
+    // Enough attack to matter, because his poison is priced off it and
+    // a poisoner whose poison does nothing is a hero who casts three
+    // status effects and goes home.
+    stats: { hp: 1300, atk: 176, def: 100, speed: 122 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#8a5ac8', shield: '#6a4a9a' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/poxidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'pox_draught', name: 'Draught',
+        icon: 'assets/icons/fc823.png',
+        // Unflavoured on purpose: `burn` is fire's word and everything
+        // that reads it (the Court's tiers, oil, Cleo's fortunes) is
+        // fire's business. This is just something in you.
+        description: 'Whatever is in the bottle, in them: 55% ATK, and 30% ATK a turn ' +
+          'for 3 turns after.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
+        // `pct`, not `mult`: a DoT prices its tick off ATK through its
+        // own field and deepens on `debuffPower`, not on the damage
+        // rung. Written with `mult` first, it applied NaN and the
+        // description audit said so on the same run.
+        effects: [
+          { type: 'damage', mult: 0.55 },
+          { type: 'dot', pct: 0.30, turns: 3 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffPower: 0.05 },
+          { mult: 0.1 },
+          { debuffPower: 0.05 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'pox_bad_air', name: 'Bad Air',
+        icon: 'assets/icons/fc1141.png',
+        description: 'He unstoppers it into the wind: a 50% chance on EVERY enemy to lose ' +
+          '25% ATK for 3 turns.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'strike_purple',
+        effects: [{ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3, chance: 0.5 }],
+        levelUps: [
+          { debuffPower: 0.05 },
+          { debuffChance: 0.25 },
+          { debuffPower: 0.05 },
+          { debuffChance: 0.25 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'pox_stopper_the_bottle', name: 'Stopper the Bottle',
+        icon: 'assets/icons/fc1272.png',
+        // Noctelle's heal block is narrow and deep -- one enemy, twice.
+        // This one is wide and shallow, which is the same relationship
+        // Aster's mark has with Doom Mark, and it is the sect's answer
+        // to a healer comp standing beside the pack's own Dry Bones.
+        description: 'Nothing gets in and nothing gets better: 90% ATK to ALL enemies, ' +
+          'with a 50% chance on each to be cut off from healing for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 0.90 },
+          { type: 'healBlock', turns: 2, chance: 0.5 },
+        ],
+        // No `duration` rung: it lengthens buffs, wards and mends, never
+        // a hex and never a block (see Abilities, case 'debuff'), so one
+        // here would have bought nothing.
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'It Gets Around',
+      icon: 'assets/icons/fc1066.png',
+      // A COPY, and the original is untouched -- this rescues nobody
+      // and doubles nothing about the bird that was aimed at. The copy
+      // is never itself spread: only the affliction actually cast is
+      // ever offered to the roll, so there is no chain and no latch is
+      // needed to stop one.
+      description: 'A plague does not stay where it is put: every curse Pox lands has a ' +
+        '30% chance to take a second enemy as well.',
+      hooks: { debuffSpread: 0.30 },
+    },
+    positional: POSITIONALS.upwind,
+  },
 });

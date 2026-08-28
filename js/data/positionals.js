@@ -542,6 +542,18 @@ const POSITIONALS = (() => {
     hooks: { cooldownPushAdd: 1 },
   });
 
+  // Pox's hex: standing back is standing upwind. Raises the RATE the
+  // plague travels rather than a ceiling -- three hexes on this roster
+  // already lift a cap (Aster's note, Nestora's nest, and it was a
+  // habit forming) and what matters about a plague is how often it
+  // jumps, not how much of it one bird can hold.
+  def('upwind', {
+    position: POSITION.BACK,
+    name: 'Upwind',
+    description: 'Back hex: his curses are 15% more likely to take a second enemy.',
+    hooks: { debuffSpread: 0.15 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

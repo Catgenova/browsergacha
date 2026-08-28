@@ -13233,4 +13233,165 @@ test('Crook: Fence pushes a turn deeper', () => {
   assert(on === 3, `the fence took ${on} turns, wanted 3`);
 });
 
+// The sect's supply line. Everything the Hollowbone pack does is priced
+// PER CURSE -- Rigor deepens each, Deadweight drags 3% of speed off
+// each, Dry Bones asks only whether a bird is cursed at all -- and none
+// of the four birds written before him lands many. His passive
+// multiplies the COUNT, which is the one term in that arithmetic
+// nothing else touches.
+test('Pox: a plague does not stay where it is put', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const pox = seatOn(battle, HEROES.pox, TEAM.PLAYER, 4);
+    pox.slot = battle.playerSlots[0];           // off his hex: the bare 30%
+    const foes = [0, 1, 2].map((i) => {
+      const u = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 40);
+      u.hookSources = () => [];
+      u.debuffResistance = () => 0;
+      return u;
+    });
+    const cursed = () => foes.filter((f) =>
+      f.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'atk')).length;
+
+    // The roll refuses: one bird, and the original is where it was aimed.
+    foes.forEach((f) => { f.statusEffects = []; });
+    Math.random = () => 0.99;
+    Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3 },
+      pox, foes[0]);
+    Math.random = real;
+    assert(cursed() === 1, `a refused roll still spread to ${cursed()} birds`);
+    assert(foes[0].statusEffects.length === 1, 'the aimed bird was missed');
+
+    // The roll opens: two birds, and the SECOND one is a copy -- the
+    // original is untouched, so this doubles nothing about the target.
+    foes.forEach((f) => { f.statusEffects = []; });
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3 },
+      pox, foes[0]);
+    Math.random = real;
+    assert(cursed() === 2, `the plague took ${cursed()} birds, wanted 2`);
+    assert(foes[0].statusEffects.length === 1,
+      'the aimed bird caught it twice — the copy went to the wrong place');
+
+    // Worth what the original was worth, turns and all -- and carrying
+    // everything stamped onto it. A copy that skipped the pack's own
+    // Deadweight would mean a bird wearing three of his hexes was
+    // dragged by exactly one, which is what a browser probe found on
+    // the first pass.
+    const copy = foes.find((f, i) => i > 0 && f.statusEffects.length)
+      .statusEffects.find((fx) => fx.stat === 'atk');
+    assert(Math.abs(copy.mult - 0.75) < 1e-9 && copy.turns === 3,
+      'the copy is not the curse that was cast');
+    {
+      const dragger = seatOn(battle, HEROES.pox, TEAM.PLAYER, 5);
+      dragger.passives.push(RACES.sectTiers('hollowbone', 3)
+        .find((t) => t.name === 'Deadweight'));
+      // Every bird clean first: the copies land on whoever the roll
+      // picks, and an older hex left lying about from the blocks above
+      // would be counted as one that travelled.
+      foes.forEach((f) => { f.statusEffects = []; });
+      const mark = foes[2];
+      const opened = mark.effectiveStat('speed');
+      Math.random = () => 0.01;
+      Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3 },
+        dragger, mark);
+      Math.random = real;
+      const spread = foes.filter((f) => f.statusEffects.some((fx) => fx.speedBite > 0));
+      assert(spread.length === 2, `${spread.length} birds carry the weight, wanted 2`);
+      assert(mark.effectiveStat('speed') < opened, 'the original did not drag');
+      const other = spread.find((f) => f !== mark);
+      assert(other.statusEffects.every((fx) => fx.speedBite > 0),
+        'the copy travelled without the weight stamped on it');
+    }
+
+    // Never onto his own side, and never a chain: one jump, not a
+    // cascade through the whole enemy line.
+    assert(!pox.statusEffects.length, 'the plague turned on its own caster');
+    assert(cursed() < 3, 'the copy spread on again');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// Poisons and blocks travel too. A plague that jumped stat cuts and
+// nothing else would be a strange plague, and it is the block that
+// matters most: it is the sect's answer to a healer comp.
+test('Pox: poisons and heal blocks get around as well', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const pox = seatOn(battle, HEROES.pox, TEAM.PLAYER, 4);
+    pox.slot = battle.playerSlots[0];
+    const foes = [0, 1].map((i) => {
+      const u = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 40);
+      u.hookSources = () => [];
+      u.debuffResistance = () => 0;
+      return u;
+    });
+
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'dot', pct: 0.30, turns: 3 }, pox, foes[0]);
+    assert(foes[1].statusEffects.some((fx) => fx.kind === 'dot'),
+      'the poison stayed where it was put');
+
+    // And the cards say what they lay. Without this the stat on a swept
+    // debuff is unpinned -- swapping Bad Air's ATK cut for a DEF cut
+    // broke nothing at all.
+    const air = pox.abilities.find((a) => a.def.id === 'pox_bad_air');
+    const cut = air.def.effects.find((e) => e.type === 'debuff');
+    assert(cut.stat === 'atk' && Math.abs(cut.mult - 0.75) < 1e-9,
+      `Bad Air lays ${cut.stat} x${cut.mult}, wanted atk x0.75`);
+    assert(air.def.targeting === 'all-enemies', 'bad air does not stay in one place');
+    const bottle = pox.abilities.find((a) => a.def.id === 'pox_stopper_the_bottle');
+    assert(bottle.def.effects.some((e) => e.type === 'healBlock'),
+      'the bottle does not stopper anything');
+    assert(bottle.def.targeting === 'all-enemies',
+      "Noctelle's block is the narrow one; this is meant to be the wide one");
+
+    foes.forEach((f) => { f.statusEffects = []; });
+    Abilities.applyEffect({ type: 'healBlock', turns: 2, chance: 0.5 }, pox, foes[0]);
+    Math.random = real;
+    assert(foes[0].healBlocked(), 'the block never landed');
+    assert(foes[1].healBlocked(), 'the block did not get around');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex raises the RATE the plague travels rather than a ceiling.
+// Three hexes on this roster already lift a cap and it was becoming a
+// habit; what matters about a plague is how often it jumps.
+test('Pox: Upwind is a rate, not a ceiling', () => {
+  const hex = POSITIONALS.upwind;
+  assert(HEROES.pox.positional === hex, 'Pox is not on his own hex');
+  assert(hex.position === POSITION.BACK, 'standing back is standing upwind');
+
+  // A roll that sits between the two rates: refused off the hex at 30%,
+  // taken on it at 45%.
+  const jumps = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      const pox = seatOn(battle, HEROES.pox, TEAM.PLAYER, 4);
+      if (!onHex) pox.slot = battle.playerSlots[0];
+      assert(pox.positionalActive() === onHex, 'the fixture seated him wrong');
+      const foes = [0, 1].map((i) => {
+        const u = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 40);
+        u.hookSources = () => [];
+        u.debuffResistance = () => 0;
+        return u;
+      });
+      Math.random = () => 0.38;
+      Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3 },
+        pox, foes[0]);
+      return foes[1].statusEffects.length > 0;
+    } finally { Math.random = real; Battle.active = prev; }
+  };
+  assert(!jumps(false), 'a 0.38 roll jumped off the hex, where the rate is 0.30');
+  assert(jumps(true), 'a 0.38 roll refused on the hex, where the rate is 0.45');
+});
+
 report();
