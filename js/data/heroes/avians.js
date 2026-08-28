@@ -2865,4 +2865,138 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.under_the_egg,
   },
+
+  // The brood's artillery, and the first Sunbrood who is neither mending
+  // nor being mended. He is a horn: he reaches over the wall, he is
+  // worth more the longer he is allowed to keep playing, and what he
+  // mostly does for the party is make everybody ELSE's damage land.
+  //
+  // That last part is the point. A sect with two healers and a tank
+  // whose output is healing has almost no damage of its own, and the
+  // answer is not to bolt a big number onto a 3-star -- it is to give
+  // the brood a hero whose seven marks the whole enemy line for 20%
+  // more from everyone. The sect does not out-hit anybody. It outlasts
+  // them and then charges them rent.
+  //
+  // He is also the one bird here who touches no pillar at all: not
+  // healing, not max HP, not speed sold as anything. He just SPENDS the
+  // sect's speed -- Quick Feathers takes him from 112 to 123, and every
+  // turn that buys is another step up the Long Note.
+  aster: {
+    id: 'aster',
+    element: 'light',
+    name: 'Aster',
+    title: 'Hornbearer of the Sunbrood',
+    rarity: 3,
+    // Thin, and it has to be: a ramp that sheds a step every time he is
+    // struck is only a ramp if standing in the back row means something.
+    stats: { hp: 1180, atk: 205, def: 82, speed: 112 },
+    tint: { body: '#f0e8d0', helm: '#e8c84a', weapon: '#e07a3a', shield: '#c8a83a' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/asteridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'aster_sound_off', name: 'Sound Off',
+        icon: 'assets/icons/fc823.png',
+        // Sound goes over a shield wall, which is the whole reason a
+        // horn is a back-row weapon. 60% where Slop Toss is 65% and
+        // carries a perTarget rung on top -- that one is a Gulldigger
+        // crowd skill and this is not.
+        description: 'A flat blast over the top of the line: 60% ATK to the enemy BACK row.',
+        cooldown: 0, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.60 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'aster_one_long_blast', name: 'One Long Blast',
+        icon: 'assets/icons/fc1141.png',
+        // Deliberately single-target, and deliberately in the middle of
+        // his kit. Three sweeps would have made him a hero who does
+        // nothing to a boss; this is the note held on one bird.
+        description: 'The whole horn emptied at one of them: 135% ATK to a single enemy.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.35 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'aster_reveille', name: 'Reveille',
+        icon: 'assets/icons/fc1272.png',
+        // The sect's damage, paid to everybody but him. The vulnerability
+        // mark is the roster's existing one -- Doom Mark's channel, the
+        // same icon a player already knows -- taken wide and shallow
+        // where hers is narrow and deep (one enemy, x1.4, three turns,
+        // on an eight). Reusing the mark rather than inventing a second
+        // one is the point: a debuff nobody can read at a glance is a
+        // debuff that may as well not be on the field.
+        description: 'The note the whole field hears: 110% ATK to ALL enemies, and a 50% ' +
+          'chance on each to take 20% more damage from everyone for 2 turns.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.10 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.20, turns: 2, chance: 0.5 },
+        ],
+        // No `duration` rung: it lengthens buffs only (see Abilities,
+        // case 'debuff'), so one here would have bought nothing.
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Long Note',
+      icon: 'assets/icons/fc1066.png',
+      // A ramp charged by TURNS rather than by kills, hits or fires,
+      // which is what makes the sect's first pillar worth something to a
+      // hero who converts none of it: Quick Feathers buys him turns, and
+      // every turn is a step. The cost is that he has to be left alone
+      // to play -- one step comes off every time he is struck -- so he
+      // is the reason the brood's wall is standing in front of him.
+      //
+      // Held on the unit as `longNote`, the way Balmor's bill is held as
+      // `pouch`. Units are rebuilt per battle, so it opens empty.
+      description: 'The longer he is left to play, the further it carries: +10% damage at ' +
+        'the start of each of his turns, stacking to +50%. Every blow he takes ' +
+        'knocks a step off.',
+      hooks: {
+        onTurnStart(unit) {
+          const cap = Math.max(5, ...unit.hookSources().map(
+            (p) => (p.hooks && p.hooks.longNoteCap) || 0));
+          const before = unit.longNote || 0;
+          unit.longNote = Math.min(cap, before + 1);
+          if (unit.longNote === before) return null;
+          return { floats: [{ target: unit, text: '♪', color: '#ffd76a' }] };
+        },
+        onStruck(unit) {
+          if (!unit.longNote) return null;
+          unit.longNote -= 1;
+          return { floats: [{ target: unit, text: '♪–', color: '#c88a3a' }] };
+        },
+        damageDealtMult: (u) => 1 + 0.10 * (u.longNote || 0),
+      },
+    },
+    positional: POSITIONALS.carrying_distance,
+  },
 });

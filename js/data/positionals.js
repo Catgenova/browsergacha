@@ -413,6 +413,18 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Aster's hex: the note carries as far as there is room behind him to
+  // let it out. Raises the ceiling on his ramp rather than the rate --
+  // the back row is where an artillery piece is left alone long enough
+  // to reach the top of it, so the hex pays exactly the hero who can
+  // afford to stand still.
+  def('carrying_distance', {
+    position: POSITION.BACK,
+    name: 'Carrying Distance',
+    description: 'Back hex: the Long Note carries to +70% instead of +50%.',
+    hooks: { longNoteCap: 7 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
