@@ -1181,7 +1181,7 @@ test('star ups and skill ups are paid for in heroes', () => {
   }
 });
 
-test('the roster is capped and summoning refuses to overflow it', () => {
+test('a full roster overflows into the vault, and only a full vault refuses', () => {
   const { GameState, Gacha } = g;
   const max = GameState.MAX_ROSTER;
   assert(max === 100, `expected a 100 base cap, got ${max}`);
@@ -1189,11 +1189,33 @@ test('the roster is capped and summoning refuses to overflow it', () => {
     assert(GameState.addHero('silas'), 'addHero refused below the cap');
   }
   assert(GameState.rosterCount() === max, `roster holds ${GameState.rosterCount()}`);
-  assert(GameState.addHero('silas') === null, 'a hero was added past the cap');
 
-  // A pull that cannot fit is refused whole rather than part-filled: a
-  // summon hands over a hero now, and dropping some on the floor is not
-  // something to do quietly.
+  // Past the cap a hero goes to the VAULT rather than evaporating. A
+  // summon that arrives as a hero should never be lost because the
+  // roster happened to be one slot short -- that is the shelf being
+  // full, not the hero being unwanted.
+  const stored = GameState.storageCount();
+  const over = GameState.addHero('silas');
+  assert(over && over.stored === true, `overflow returned ${JSON.stringify(over)}`);
+  assert(GameState.storageCount() === stored + 1, 'the overflow hero went nowhere');
+  assert(GameState.rosterCount() === max, 'the roster grew past its cap');
+  assert(GameState.storedEntry(over.uid), 'the overflow hero is not in the vault');
+
+  // Dumplings take the same road.
+  const dump = GameState.addDumpling(2);
+  assert(dump && dump.stored === true, `dumpling overflow returned ${JSON.stringify(dump)}`);
+  assert(GameState.storedEntry(dump.uid), 'the overflow dumpling is not in the vault');
+
+  // A pull that cannot fit is still refused whole rather than
+  // part-filled -- but "fit" counts the vault now.
+  assert(GameState.intakeSpace() > 0, 'the vault is already full');
+  const ok = Gacha.pull('common', 1);
+  assert(Array.isArray(ok), `a pull with vault room was refused: ${JSON.stringify(ok)}`);
+
+  // Fill the vault too, and only then does it refuse.
+  while (GameState.intakeShelf()) GameState.addHero('silas');
+  assert(GameState.addHero('silas') === null, 'a hero was added with nowhere to go');
+  assert(GameState.addDumpling(1) === null, 'a dumpling was added with nowhere to go');
   const scrolls = GameState.scrollsCommon;
   const res = Gacha.pull('common', 1);
   assert(res && res.error === 'roster-full', `expected a refusal, got ${JSON.stringify(res)}`);

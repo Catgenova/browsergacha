@@ -647,8 +647,26 @@ const GameState = (() => {
       return { uid };
     },
 
+    // Where a newly-granted hero or dumpling can go: the roster if it has
+    // room, otherwise the vault. Only when BOTH are full is there
+    // nowhere to put it.
+    //
+    // Overflowing to storage rather than refusing is the difference
+    // between "your summon was cancelled" and "your summon is waiting in
+    // the vault". A pull that arrives as a hero should never evaporate
+    // because the roster happened to be one slot short.
+    intakeShelf() {
+      if (!this.rosterFull()) return 'roster';
+      if (!this.storageFull()) return 'storage';
+      return null;
+    },
+    intakeSpace() {
+      return this.rosterSpace() + Math.max(0, this.MAX_STORAGE - this.storageCount());
+    },
+
     addHero(heroId) {
-      if (this.rosterFull()) return null;
+      const shelf = this.intakeShelf();
+      if (!shelf) return null;
       const uid = String(state.nextHeroUid++);
       const entry = freshEntry(heroId);
       // The blessing roll: this COPY may arrive Blessed or Godtouched.
@@ -661,13 +679,14 @@ const GameState = (() => {
           (def.rarity === 4 && ['light', 'dark'].includes(def.element))))) {
         entry.favorite = true;
       }
-      state.roster[uid] = entry;
+      if (shelf === 'storage') state.storage[uid] = entry;
+      else state.roster[uid] = entry;
       // NEW! means new to the COLLECTION, not to the current roster: a
       // character once held and since spent is a dupe, not a discovery.
       const isNew = !state.collected[heroId];
       state.collected[heroId] = true;
       save();
-      return { uid, heroId, isNew, blessing };
+      return { uid, heroId, isNew, blessing, stored: shelf === 'storage' };
     },
 
     // Hand the player a dumpling at `stars`. It goes in through the
@@ -675,23 +694,29 @@ const GameState = (() => {
     // exactly as they do for a hero -- a dumpling occupies a roster slot,
     // which is the price of it sitting where you can see it.
     addDumpling(stars = 1) {
-      if (this.rosterFull()) return null;
+      const shelf = this.intakeShelf();
+      if (!shelf) return null;
       const uid = String(state.nextHeroUid++);
       const s = Math.max(1, Math.min(Progression.MAX_STARS, Math.round(stars)));
-      state.roster[uid] = {
+      const entry = {
         heroId: 'dumpling',
         level: 1, xp: 0, stars: s,
         attune: 0, starPoints: 0,
         equipment: {}, skills: {}, favorite: false,
       };
+      if (shelf === 'storage') state.storage[uid] = entry;
+      else state.roster[uid] = entry;
       save();
-      return { uid, stars: s };
+      return { uid, stars: s, stored: shelf === 'storage' };
     },
 
-    // How many are in hand, for a readout that would otherwise count
-    // them by walking the roster itself.
+    // How many are in hand. Counts the vault as well as the roster,
+    // because overflow puts them there and a readout that ignored it
+    // would tell a player they own none while a dozen sit in storage.
     dumplingCount() {
-      return Object.keys(state.roster).filter((uid) => this.isConsumable(uid)).length;
+      const isDump = (e) => e && e.heroId === 'dumpling';
+      return Object.values(state.roster).filter(isDump).length +
+        Object.values(state.storage).filter(isDump).length;
     },
 
     // The permanent collection: characters ever obtained, whether or not
@@ -707,17 +732,21 @@ const GameState = (() => {
       const e = state.roster[uid];
       return e ? e.heroId : null;
     },
-    // The one place a roster uid becomes a definition. Heroes first, then
-    // the consumables that also sit in the roster without being heroes
-    // (dumplings). Everything that sweeps `Object.values(HEROES)` --
-    // gacha, compendium, balance, the benches, the data tests -- keeps
+    // The one place a CHARACTER ID becomes a definition. Heroes first,
+    // then the consumables that also sit in the roster without being
+    // heroes (dumplings). Everything that sweeps `Object.values(HEROES)`
+    // -- gacha, compendium, balance, the benches, the data tests -- keeps
     // seeing heroes only, which is the point of the split.
-    defOf(uid) {
-      const id = this.defIdOf(uid);
-      if (!id) return null;
-      if (typeof HEROES !== 'undefined' && HEROES[id]) return HEROES[id];
-      if (typeof DUMPLINGS !== 'undefined' && DUMPLINGS[id]) return DUMPLINGS[id];
+    defById(heroId) {
+      if (!heroId) return null;
+      if (typeof HEROES !== 'undefined' && HEROES[heroId]) return HEROES[heroId];
+      if (typeof DUMPLINGS !== 'undefined' && DUMPLINGS[heroId]) return DUMPLINGS[heroId];
       return null;
+    },
+
+    // ...and the same lookup from a roster uid.
+    defOf(uid) {
+      return this.defById(this.defIdOf(uid));
     },
 
     // Is this roster entry a dumpling (or anything else that is fodder
@@ -1269,7 +1298,7 @@ const GameState = (() => {
       if (!this.firstSevenClaimable()) return null;
       const week = Events.LOGIN_WEEK[state.login.cycle];
       // A hero reward needs a roster slot; refuse rather than vanish it.
-      if (week.hero && this.rosterFull()) return { error: 'roster-full' };
+      if (week.hero && !this.intakeShelf()) return { error: 'roster-full' };
       const day = state.login.cycle + 1;
       state.login.cycle++;
       this.grantLoginReward(week);

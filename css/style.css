@@ -3766,3 +3766,6 @@ svg.icon {
   opacity: 0.35;
   pointer-events: none;
 }
+
+/* A full roster that still has vault room: a warning, not a wall. */
+.roster-overflow { color: #ffb36a; }
