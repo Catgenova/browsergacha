@@ -22,6 +22,7 @@ const FILES = [
   // Test-only enemy bodies (see test/dummies.js); never registered into HEROES.
   'test/dummies.js',
   'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/avians.js',
+  'js/data/summons.js',
   'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
   'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
@@ -88,7 +89,7 @@ function loadGame(opts = {}) {
   // Top-level `const` in a vm script lives in the context's lexical
   // scope, not on the sandbox object, so surface what the tests need.
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES', 'Tags',
-    'LOCATION_ENEMIES', 'POSITIONALS', 'RACES', 'Elements', 'Gear',
+    'LOCATION_ENEMIES', 'POSITIONALS', 'SUMMONS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState', 'Events',
     'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
     'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit', 'Blessing',

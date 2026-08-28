@@ -6,7 +6,7 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState, RACES, DUMMIES, Progression, POSITIONALS } = g;
+  Battle, GameState, RACES, DUMMIES, Progression, POSITIONALS, SUMMONS } = g;
 
 // The bottom of the roster. It used to be 1-star -- the generated
 // cohorts filled that shelf -- and is 3-star now that only authored
@@ -46,6 +46,15 @@ function makeBattle() {
     // bursts the bubble), so any test that spends a ward to zero lands
     // here. It was missing simply because no test had broken one yet.
     addFloatingText() {}, log() {}, spawnImpact() {},
+    // Summons arrive mid-fight, so the stand-in has to be able to seat
+    // one. Same contract as the real Battle: refuse an occupied hex.
+    placeUnit(unit, slotIndex) {
+      const slot = battle.slotsFor(unit.team)[slotIndex];
+      if (slot.unit) throw new Error(`Slot ${slotIndex} is occupied`);
+      slot.unit = unit;
+      unit.slot = slot;
+      battle.units.push(unit);
+    },
     onUnitHealed(healed, amount) {
       for (const u of battle.livingUnits(healed.team)) {
         for (const p of (u.hookSources ? u.hookSources() : u.passives)) {
@@ -12472,19 +12481,278 @@ test('Hollowbone 4pc Dry Bones: a cursed enemy mends less', () => {
   } finally { Battle.active = prev; }
 });
 
-// The sect itself: founded, numbered, packed, and deliberately empty.
-test('Hollowbone: founded and packed ahead of its roster', () => {
+// The sect itself. It was founded, numbered and packed before a single
+// bird existed; the `founding` flag came off the day Necros landed and
+// the roster test went back to demanding members.
+test('Hollowbone: numbered, shaped and packed', () => {
   const sect = RACES.SECTS.hollowbone;
   assert(sect && sect.number === 12, 'the Hollowbones are not No. 12');
   assert(sect.race === 'avian', `the Hollowbones are ${sect.race}`);
-  assert(sect.founding && sect.members.length === 0,
-    'a founding order holds nobody until the art lands');
+  assert(!sect.founding && sect.members.length > 0,
+    'the order is filling and is still marked founding');
   // Light and dark share an order structure.
   assert(JSON.stringify(sect.shape) === JSON.stringify(RACES.SECTS.sunbrood.shape),
     'the dark order is not on the same shape as the light one');
   const names = RACES.sectTiers('hollowbone', 4).map((t) => t.name);
   assert(names.join() === 'Rigor,Deadweight,Dry Bones',
     `the pack reads ${names.join(', ')}`);
+});
+
+// Seat a unit the way a real battle does -- through placeUnit, so the
+// HEX knows who is on it. The plain `place` helper above only sets
+// unit.slot, which is enough for a positional and not enough for
+// anything that has to find an empty square.
+function seatOn(battle, def, team, slotIdx, level = 30) {
+  const u = new Unit(def, team, { level, stars: def.rarity || 3 });
+  battle.placeUnit(u, slotIdx);
+  return u;
+}
+
+// Necros brings bodies onto the board that were never on the roster --
+// the only hero in the game who does. The bodies live in SUMMONS rather
+// than HEROES, and that separation is load-bearing: everything that
+// walks the roster reads HEROES, so a thing you can never own, level,
+// gear or seat before a fight would need an exemption in every one of
+// them.
+test('Summons are not heroes and never reach the roster', () => {
+  for (const id of Object.keys(SUMMONS)) {
+    assert(!HEROES[id], `${id} is in HEROES and will turn up in the gacha`);
+    assert(SUMMONS[id].summon === true, `${id} is not marked as a summon`);
+  }
+  // And every summon a skill names actually exists, or the button is a
+  // no-op that logs nothing and looks like a bug.
+  for (const h of Object.values(HEROES)) {
+    for (const a of (h.abilities || [])) {
+      for (const e of (a.effects || [])) {
+        if (e.type !== 'summon') continue;
+        assert(SUMMONS[e.id], `${h.id}/${a.id} raises '${e.id}', which does not exist`);
+        assert(e.fallback, `${h.id}/${a.id} has no branch for a full board`);
+      }
+    }
+  }
+});
+
+test('Necros: a body gets up, priced off the bird that raised it', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const necros = seatOn(battle, HEROES.necros, TEAM.PLAYER, 0);
+    necros.slot = battle.playerSlots[3];        // off his hex: the bare share
+    seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    const call = necros.abilities.find((a) => a.def.id === 'necros_carrion_call');
+    assert(call, 'Second Legs is missing');
+    assert(call.def.targeting === 'self',
+      'the summon is self-targeted so its full-board branch can pick its own host');
+
+    const before = battle.units.length;
+    Abilities.execute(call.def, necros, necros, battle);
+    assert(battle.units.length === before + 1, 'nothing got up');
+    const body = battle.units[battle.units.length - 1];
+    assert(body.def.id === 'crossowary_undead', `${body.def.id} got up instead`);
+    assert(body.team === TEAM.PLAYER, 'it came up on the wrong side');
+    assert(body.slot && body.slot.unit === body, 'it is not standing on a hex');
+    assert(body.slot.position === POSITION.FRONT,
+      'a raised body goes where the body was — in the way');
+
+    // Its statline is a SHARE of his, which is what makes every point of
+    // gear and every star on Necros an investment in it too.
+    assert(body.maxHp === Math.round(necros.maxHp * 0.60),
+      `${body.maxHp} health against ${Math.round(necros.maxHp * 0.60)}`);
+    assert(body.baseAtk === Math.round(necros.effectiveStat('atk') * 0.55),
+      `${body.baseAtk} attack against ${Math.round(necros.effectiveStat('atk') * 0.55)}`);
+    assert(body.turnMeter === 0, 'it arrived already queued to act');
+    assert(body.raisedBy === necros, 'nobody owns it');
+
+    // The second button raises the other one, on the next hex along.
+    const bill = necros.abilities.find((a) => a.def.id === 'necros_the_long_bill');
+    Abilities.execute(bill.def, necros, necros, battle);
+    const second = battle.units[battle.units.length - 1];
+    assert(second.def.id === 'heron_undead', `${second.def.id} got up second`);
+    assert(second.slot !== body.slot, 'both bodies were stood on one hex');
+  } finally { Battle.active = prev; }
+});
+
+// A corpse is CONSUMED, and that is a real cost rather than flavour: a
+// bird pulled apart for parts can no longer be raised by Nestora,
+// revived by Emily, or brought back by anything else.
+test('Necros: a body in the way is taken apart for the one going up', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const necros = seatOn(battle, HEROES.necros, TEAM.PLAYER, 0);
+    const fallen = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    fallen.hookSources = () => [];
+    fallen.hp = 0;
+    assert(!fallen.alive, 'the fixture did not put him down');
+    // Fill every other hex, so the corpse's is the only one going spare.
+    [2, 3, 4, 5, 6].forEach((i) => {
+      const u = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, i);
+      u.hookSources = () => [];
+    });
+    seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+
+    const call = necros.abilities.find((a) => a.def.id === 'necros_carrion_call');
+    Abilities.execute(call.def, necros, necros, battle);
+
+    const body = battle.units.find((u) => u.def.id === 'crossowary_undead');
+    assert(body, 'nothing got up on the corpse');
+    assert(body.slot.index === 1, `it stood on hex ${body.slot.index}, not the corpse's`);
+    assert(!battle.units.includes(fallen),
+      'the corpse is still on the board — it can still be revived');
+    assert(fallen.slot === null, 'the corpse still holds a hex');
+  } finally { Battle.active = prev; }
+});
+
+// The full-board branch, and the half that makes the hero. The power
+// gets out either way.
+test('Necros: with nowhere to stand, it goes into the hardest hitter', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const necros = seatOn(battle, HEROES.necros, TEAM.PLAYER, 0);
+    const mates = [1, 2, 3, 4, 5, 6].map((i) => {
+      const u = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, i);
+      u.hookSources = () => [];
+      return u;
+    });
+    seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    // One of them is plainly the party's swing, and one is nearly dead.
+    const hitter = mates[2];
+    hitter.baseAtk *= 4;
+    const wounded = mates[0];
+    wounded.hp = Math.round(wounded.maxHp * 0.05);
+
+    const before = battle.units.length;
+    const hp = hitter.hp;
+    const call = necros.abilities.find((a) => a.def.id === 'necros_carrion_call');
+    Abilities.execute(call.def, necros, necros, battle);
+
+    assert(battle.units.length === before, 'something got up on a full board');
+    assert(hitter.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'atk'),
+      'the hardest hitter was not empowered');
+    assert(hitter.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'def'),
+      'the guard was not opened');
+    assert(hitter.hp === hp - Math.round(hp * 0.30),
+      `it took ${hp - hitter.hp} of a 30% cut on ${hp}`);
+    // Never the most-wounded ally, which is what a naive targeting layer
+    // would have picked, and never Necros himself.
+    assert(wounded.hp === Math.round(wounded.maxHp * 0.05),
+      'the dying ally was picked and cut');
+    assert(!necros.statusEffects.length, 'the summoner possessed himself');
+
+    // And it cannot kill, however thin the host is -- not because
+    // anything clamps it but because a third of what is left is never
+    // all of what is left. Driven from one health, which is the
+    // worst case there is.
+    hitter.hp = 1;
+    const bill = necros.abilities.find((a) => a.def.id === 'necros_the_long_bill');
+    Abilities.execute(bill.def, necros, necros, battle);
+    assert(hitter.alive && hitter.hp === 1, `the blessing left its host on ${hitter.hp}`);
+  } finally { Battle.active = prev; }
+});
+
+// Slot one counts his own side, which is the interlock: the thing he
+// digs up makes the swing he was already making land harder. Every
+// other crowd term in the engine counts the enemy.
+test('Necros: The Standing Count grows with the flock, raised included', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const necros = seatOn(battle, HEROES.necros, TEAM.PLAYER, 0);
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    const count = necros.abilities.find((a) => a.def.id === 'necros_the_standing_count');
+
+    const swing = () => {
+      const was = foe.hp;
+      Math.random = () => 0.99;
+      try { Abilities.execute(count.def, necros, foe, battle); }
+      finally { Math.random = real; }
+      return was - foe.hp;
+    };
+
+    const alone = swing();
+    const mate = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    mate.hookSources = () => [];
+    const pair = swing();
+    assert(pair > alone, `one ally added nothing (${alone} then ${pair})`);
+
+    // A raised body counts. It is a living unit on his side, and that is
+    // the whole point of the term.
+    const call = necros.abilities.find((a) => a.def.id === 'necros_carrion_call');
+    Abilities.execute(call.def, necros, necros, battle);
+    assert(battle.units.some((u) => u.def.id === 'crossowary_undead'), 'nothing got up');
+    const raised = swing();
+    assert(raised > pair, `the raised body paid nothing (${pair} then ${raised})`);
+
+    // And it shrinks when the flock does, which is what makes him weak
+    // in exactly the fight he is losing.
+    mate.hp = 0;
+    assert(swing() < raised, 'a death cost him nothing');
+
+    // It counts HIS side and nobody else's. Asserted absolutely rather
+    // than by comparison: every check above is relative, and a version
+    // counting the whole field would add the same constant to all of
+    // them and slip straight through.
+    const held = swing();
+    const extra = seatOn(battle, DUMMIES.rat_archer, TEAM.ENEMY, 3);
+    extra.hookSources = () => [];
+    assert(swing() === held,
+      'a fresh ENEMY changed the count — it is reading the whole field');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex pays the BODIES rather than the bird, and his passive moves
+// them on his own clock -- which is what separates a summoner from a
+// hero who leaves things lying around.
+test('Necros: Gravecircle and the strings', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const hex = POSITIONALS.gravecircle;
+    assert(HEROES.necros.positional === hex, 'Necros is not on his own hex');
+    assert(hex.position === POSITION.CENTER, 'the circle is drawn in the middle');
+
+    const raise = (onHex) => {
+      const b = makeBattle();
+      Battle.active = b;
+      const n = seatOn(b, HEROES.necros, TEAM.PLAYER, 0);
+      if (!onHex) { b.playerSlots[0].unit = null; n.slot = b.playerSlots[3]; }
+      assert(n.positionalActive() === onHex, 'the fixture seated him wrong');
+      seatOn(b, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+      const call = n.abilities.find((a) => a.def.id === 'necros_carrion_call');
+      Abilities.execute(call.def, n, n, b);
+      return b.units.find((u) => u.def.id === 'crossowary_undead');
+    };
+    const off = raise(false);
+    const on = raise(true);
+    assert(off && on, 'one of the bodies never got up');
+    assert(on.maxHp > off.maxHp * 1.2,
+      `the circle raised ${on.maxHp} against ${off.maxHp} outside it`);
+
+    // The strings: his turn moves his dead, and only his.
+    Battle.active = battle;
+    const necros = seatOn(battle, HEROES.necros, TEAM.PLAYER, 0);
+    seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    const call = necros.abilities.find((a) => a.def.id === 'necros_carrion_call');
+    Abilities.execute(call.def, necros, necros, battle);
+    const body = battle.units.find((u) => u.def.id === 'crossowary_undead');
+    const stranger = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 5);
+    stranger.hookSources = () => [];
+    body.turnMeter = 0;
+    stranger.turnMeter = 0;
+    necros.startTurn(battle);
+    assert(body.turnMeter === CONFIG.TURN_METER_MAX * 0.20,
+      `the raised body gained ${body.turnMeter}`);
+    assert(stranger.turnMeter === 0, 'the strings pulled on somebody else’s bird');
+  } finally { Battle.active = prev; }
 });
 
 report();

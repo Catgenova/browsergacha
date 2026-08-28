@@ -309,7 +309,7 @@ test('every sect holds one race, once each, with its number', () => {
     // what the three tiers may not be was most of the design and it was
     // settled before the art arrived. Empty members is not defunct --
     // the flag below is what tells a closed order from an unfilled one.
-    hollowbone: { number: 12, race: 'avian', founding: true, members: [] },
+    hollowbone: { number: 12, race: 'avian', members: ['necros'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

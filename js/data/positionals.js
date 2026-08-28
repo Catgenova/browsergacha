@@ -494,6 +494,17 @@ const POSITIONALS = (() => {
     hooks: { raiseCap: 0.50 },
   });
 
+  // Necros's hex: the circle is drawn in the middle or it is not drawn.
+  // Pays the BODIES rather than the bird -- a summoner standing where he
+  // can work is worth more through what he digs up, which is the only
+  // lever that does not just make him a better caster.
+  def('gravecircle', {
+    position: POSITION.CENTER,
+    name: 'Gravecircle',
+    description: 'Center hex: the bodies he raises come up with 25% more health.',
+    hooks: { summonHpAdd: 0.25 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
