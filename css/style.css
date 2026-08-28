@@ -3354,6 +3354,13 @@ svg.icon {
 .insp-hp { margin: 6px 0; color: #b8b2cc; }
 .insp-hp-bar { height: 6px; background: #3a3450; border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
 .insp-hp-fill { height: 100%; background: #4ad46a; }
+/* Per-battle banks (Balmor's bill, Orien's orb): the same shape as the
+   health readout above it, half the weight, and the fill color comes
+   from the hero's own bank descriptor rather than from here. */
+.insp-bank { margin: 4px 0 2px; font-size: 11px; color: #cfc6a8; }
+.insp-bank-bar { height: 4px; background: #3a3450; border-radius: 2px;
+  overflow: hidden; margin-bottom: 3px; }
+.insp-bank-fill { height: 100%; background: #ffd76a; }
 .insp-stats { color: #b8b2cc; margin: 3px 0; line-height: 1.5; }
 .insp-dim { color: #9a92b8; font-size: 11px; }
 .insp-sub {
