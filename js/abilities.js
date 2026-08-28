@@ -948,6 +948,55 @@ const Abilities = (() => {
         host.hp -= cut;
         return { kind: 'possess', target: host, cut, turns: fb.turns || 3 };
       }
+      case 'doom': {
+        // A clock, not a poison. It does nothing at all while it counts
+        // -- no ticks, no drip -- and then it happens. Contested like
+        // any other affliction, and it cleanses like one too: a party
+        // with an answer gets to use it, which is what makes laying one
+        // a decision rather than free damage on a delay.
+        const dmLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (dmLad.debuffChance || 0))) {
+          return { kind: 'doom', target, amount: 0, missed: true };
+        }
+        if (!debuffLands(caster, target)) {
+          return { kind: 'doom', target, amount: 0, resisted: true };
+        }
+        // A `doomGrowth` hook stamps the omen with a share of every blow
+        // its holder takes afterwards (Omen's own passive). Stamped at
+        // cast the way Deadweight's drag is, so a blow landing on a bird
+        // with no omen on it pays for nothing.
+        let growth = 0;
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.doomGrowth) growth += p.hooks.doomGrowth;
+        }
+        let clock = effect.turns + (dmLad.duration || 0);
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.doomExtraTurns) clock += p.hooks.doomExtraTurns;
+        }
+        const amount = Math.round(caster.effectiveStat('atk') *
+          (effect.mult + (dmLad.mult || 0)) * power);
+        target.addStatusEffect({ kind: 'debuff', stat: 'doom',
+          turns: clock, amount, growth, source: caster });
+        return { kind: 'doom', target, amount, turns: effect.turns };
+      }
+      case 'detonateDoom': {
+        // Every omen on the field, spent now. The payoff for a hero
+        // whose whole kit is waiting -- and the reason the clocks are
+        // worth laying on more than one bird.
+        const b = fieldFor(caster);
+        if (!b) return null;
+        let rung = 0;
+        let total = 0;
+        for (const foe of b.livingUnits()) {
+          if (foe.team === caster.team) continue;
+          const omens = foe.statusEffects.filter((fx) => fx.stat === 'doom');
+          if (!omens.length) continue;
+          foe.statusEffects = foe.statusEffects.filter((fx) => fx.stat !== 'doom');
+          for (const fx of omens) { total += Unit.fireDoom(foe, fx); rung++; }
+        }
+        return { kind: 'detonateDoom', target, count: rung, amount: total };
+      }
       case 'cleanse': {
         // Strip debuffs (poisons included) from the target — all of
         // them, or only the oldest `count` when the effect names a

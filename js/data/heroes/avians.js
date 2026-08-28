@@ -4511,4 +4511,105 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.thornbush,
   },
+
+  // The seer, and Shrike's opposite number. Shrike is worth more the
+  // closer a thing is to dead; Omen is worth more the longer it has
+  // been coming. Fielded together the sect's two back-row dealers cover
+  // the whole length of a fight between them.
+  //
+  // What he lays is a CLOCK, not a poison. It does nothing at all while
+  // it counts -- no ticks, no drip -- and then it happens. Nothing else
+  // on the roster fires when a status expires; every other affliction
+  // simply stops being there, and waiting one out is the answer to it.
+  // Waiting this one out is the opposite of an answer.
+  //
+  // And it fills. Every blow the doomed bird takes from ANYBODY adds a
+  // share to what is coming, so the omen is a record of the fight
+  // rather than a figure fixed at cast, and the whole party is loading
+  // it whether they know or not.
+  omen: {
+    id: 'omen',
+    element: 'dark',
+    name: 'Omen',
+    title: 'Signreader of the Hollowbone',
+    rarity: 4,
+    stats: { hp: 1300, atk: 238, def: 96, speed: 118 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#c8a83a', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/omenidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'omen_read_the_signs', name: 'Read the Signs',
+        icon: 'assets/icons/fc823.png',
+        description: 'He looks at one of them a moment too long: 100% ATK to a single enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
+        effects: [{ type: 'damage', mult: 1.00 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'omen_the_long_look', name: 'The Long Look',
+        icon: 'assets/icons/fc1141.png',
+        description: 'He names one, and a date: 90% ATK now, and in 3 turns they take ' +
+          '160% ATK more — grown by everything that has hit them in between.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 0.90 },
+          { type: 'doom', mult: 1.60, turns: 3 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'omen_it_was_always', name: 'It Was Always Going To',
+        icon: 'assets/icons/fc1272.png',
+        // The payoff for a hero whose whole kit is waiting, and the
+        // reason the clocks are worth laying on more than one bird.
+        description: 'He stops waiting: 80% ATK to ALL enemies, and every omen on the ' +
+          'field comes due at once.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 0.80 },
+          { type: 'detonateDoom' },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'It Adds Up',
+      icon: 'assets/icons/fc1066.png',
+      // Stamped onto the omen at cast, the way Deadweight stamps its
+      // drag, so a blow landing on a bird with no omen on it costs one
+      // property read and nothing else. It also means the growth is a
+      // property of the PROPHECY rather than of the prophet: an omen
+      // he laid keeps filling after he is dead, which is exactly right.
+      description: 'Nothing is sudden: every blow a doomed enemy takes from anyone adds ' +
+        '25% of it to what is coming.',
+      hooks: { doomGrowth: 0.25 },
+    },
+    positional: POSITIONALS.further_ahead,
+  },
 });

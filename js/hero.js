@@ -820,6 +820,17 @@ class Unit {
     const absorbed = this.absorb(amount);
     amount -= absorbed;
     this.hp = Math.max(0, this.hp - amount);
+    // A doom fills up (Omen). Every blow the holder takes while it is
+    // counting down adds a share to what it will be worth -- so the
+    // whole party feeds it and the payload is a record of the fight
+    // rather than a number fixed at cast. `growth` is stamped on the
+    // omen when it is laid, the same way Deadweight stamps its drag, so
+    // this costs one property read on a blow that has no doom on it.
+    if (amount > 0) {
+      for (const fx of this.statusEffects) {
+        if (fx.stat === 'doom' && fx.growth > 0) fx.amount += amount * fx.growth;
+      }
+    }
     this.hitFlash = 0.18;
     // A `lastEmber` hook (Stella's coal) refuses the first killing blow
     // of the fight outright. She is not brought BACK -- she never goes
@@ -1325,7 +1336,31 @@ class Unit {
       }
       fx.turns--;
     }
+    // A doom that reaches zero HAPPENS. Nothing else on the roster
+    // fires on expiry -- every other status simply stops being there --
+    // and it is the whole point of an omen: the thing was always going
+    // to arrive, and waiting it out is not an answer.
+    const done = this.statusEffects.filter((fx) => fx.turns <= 0 && fx.stat === 'doom');
     this.statusEffects = this.statusEffects.filter((fx) => fx.turns > 0);
+    for (const fx of done) Unit.fireDoom(this, fx);
+  }
+
+  // Spend one omen on the bird wearing it. Thrown as an ordinary blow so
+  // the DEF curve, wards and everything else answer it -- a prophecy is
+  // still a hit -- and credited to whoever laid it.
+  static fireDoom(victim, fx) {
+    const amount = Math.round(fx.amount || 0);
+    if (amount <= 0 || !victim.alive) return 0;
+    const b = (typeof Battle !== 'undefined' && Battle.active) || null;
+    const dealt = typeof Abilities !== 'undefined' && Abilities.strike
+      ? Abilities.strike(fx.source || victim, victim, amount,
+          { dodge: false, reflect: false, assist: false, redirect: false }).amount
+      : 0;
+    if (b) {
+      b.addFloatingText(victim, `\u25c9 ${dealt}`, '#c86ae8');
+      b.log(`It was always going to — ${victim.name} takes ${dealt}.`, 'log-system');
+    }
+    return dealt;
   }
 
   // ---- Turns / cooldowns -------------------------------------------------

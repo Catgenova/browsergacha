@@ -724,6 +724,19 @@ class Battle {
         this.log(`No room to raise anything — ${caster.name} puts it into ` +
           `${res.target.name} instead: their guard opens and ${res.cut} health ` +
           `goes with it.`, cls);
+      } else if (res.kind === 'doom') {
+        if (res.amount > 0) {
+          this.addFloatingText(res.target, '\u25cc', '#c86ae8');
+          this.log(`${caster.name} reads it off ${res.target.name} — ` +
+            `${res.turns} turns.`, cls);
+        } else {
+          this.log(`${res.target.name} does not want to hear it.`, cls);
+        }
+      } else if (res.kind === 'detonateDoom') {
+        this.log(res.count > 0
+          ? `${caster.name} stops waiting — ${res.count} omen` +
+            `${res.count > 1 ? 's' : ''} come due at once for ${res.amount}.`
+          : `${caster.name} stops waiting, and there is nothing to come due.`, cls);
       } else if (res.kind === 'cooldownPush') {
         if (res.moved > 0) {
           this.addFloatingText(res.target, `\u23f3 +${res.turns}`, '#b07ae8');
