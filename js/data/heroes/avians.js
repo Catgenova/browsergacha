@@ -4131,10 +4131,12 @@ Object.assign(HEROES, {
     tint: { body: '#2a2438', helm: '#6a4a9a', weapon: '#c86ae8', shield: '#8a5ac8' },
     sprite: {
       displayH: 96,
-      // Authored facing LEFT -- the cowl and the beak both point that
-      // way on the strip. The art is never touched; the def says which
-      // way it was drawn.
-      faceLeft: true,
+      // Authored facing RIGHT, like every other bird in the sect: the
+      // beak points right and the lantern hangs on that side. This
+      // carried faceLeft for a while on a comment that simply described
+      // the strip wrongly, which flipped him away from the enemy he was
+      // hitting. The art is never touched; the def says which way it
+      // was drawn, so the fix is the flag going away.
       strips: {
         idle: { src: 'assets/heroes/hollowbone/malacharidle.png', frames: 9, fps: 5, loop: true },
       },
