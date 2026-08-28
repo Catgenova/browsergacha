@@ -2019,14 +2019,14 @@ Object.assign(HEROES, {
       // Cover rather than a ward: the reduction is HIS, so the damage
       // meter credits him for it instead of it vanishing into the
       // defences of whichever bird was not hit.
-      description: 'While Strix stands, every ally takes 25% less damage from enemies ' +
+      description: 'While Strix stands, every ally takes 10% less damage from enemies ' +
         'slower than he is.',
       hooks: {
         coverMult(unit, victim, attacker) {
           if (!unit.alive || !attacker || !attacker.effectiveStat) return 1;
           if (attacker.team === unit.team) return 1;
           return unit.effectiveStat('speed') > attacker.effectiveStat('speed')
-            ? 0.75 : 1;
+            ? 0.90 : 1;
         },
       },
     },

@@ -9661,11 +9661,11 @@ test("Strix shelters the flight from anything he can outrun", () => {
     const fastHit = swing(mine + 20);
     assert(slowHit < fastHit,
       `a slow swing landed ${slowHit} and a fast one ${fastHit} -- the shelter did nothing`);
-    assert(Math.abs(slowHit / fastHit - 0.75) < 0.01,
-      `the shelter cut the blow to ${(slowHit / fastHit).toFixed(3)}, wanted 0.75`);
+    assert(Math.abs(slowHit / fastHit - 0.90) < 0.01,
+      `the shelter cut the blow to ${(slowHit / fastHit).toFixed(3)}, wanted 0.90`);
     // Something faster than him goes STRAIGHT THROUGH. That is the
     // price of tanking on a comparison rather than on armour, and
-    // without this the passive is just a flat 25% ward.
+    // without this the passive is just a flat 10% ward.
     const dead = swing(mine);
     assert(Math.abs(dead - fastHit) <= 1,
       'an enemy of exactly equal speed was still sheltered -- strictly faster, or nothing');
