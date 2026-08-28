@@ -10505,6 +10505,192 @@ test("Nehru's kit: the gate, the reeling, and the far side of the field", () => 
   }
 });
 
+// The brood's pack: tempo spent as SUSTAIN, which is the Razorwings'
+// conversion pointed the other way. The sect is one bird deep so the
+// tiers cannot be fielded yet -- what is tested is the hook logic
+// through the real heal pipeline, handed to a unit the way applyParty
+// does.
+test('Sunbrood pack: speed spent as healing, and paid where it is needed', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.sunbrood;
+  const tier = (n) => PACK.find((t) => t.count === n);
+  assert(tier(2) && tier(3) && tier(4),
+    `the pack has tiers ${PACK.map((t) => t.count).join('/')}, wanted 2/3/4`);
+
+  // Concat, never push: `passives` comes off the def by reference.
+  const wear = (unit, ...tiers) => {
+    unit.passives = (unit.passives || []).concat(tiers.map((t) => ({ hooks: t.hooks })));
+    return unit;
+  };
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    // ---- 2pc is plain mods, and neither of them is light's own ----
+    {
+      const mods = tier(2).mods || {};
+      assert(Math.abs(mods.spdPct - 0.10) < 1e-9 && Math.abs(mods.healBoost - 0.10) < 1e-9,
+        `Quick Feathers reads ${JSON.stringify(mods)}`);
+      const lightMods = RACES.ELEMENT_PARTY_BONUSES.light
+        .flatMap((t) => Object.keys(t.mods || {}));
+      for (const t of PACK) {
+        for (const key of Object.keys(t.mods || {})) {
+          assert(!lightMods.includes(key),
+            `Sunbrood ${t.count}pc pays into '${key}', which a light tier already sells`);
+        }
+      }
+    }
+
+    // ---- 3pc: healing priced off the healer's own speed ----
+    {
+      const healer = place(battle, HEROES.nemeris ? HEROES.nemeris : HEROES.aurek,
+        TEAM.PLAYER, 0);
+      wear(healer, tier(3));
+      const at = (spd) => { healer.speed = spd; return healer.healingBoost(null); };
+      const base = at(100);
+      assert(Math.abs(at(100) - base) < 1e-9, 'a 100-speed healer earned a rung');
+      assert(Math.abs(at(124) - base) < 1e-9, '24 points over bought a rung it had not earned');
+      assert(Math.abs(at(125) - base - 0.05) < 1e-9, `125 SPD paid ${at(125) - base}`);
+      assert(Math.abs(at(175) - base - 0.15) < 1e-9, `175 SPD paid ${at(175) - base}`);
+      // Slower than 100 never runs backwards.
+      assert(Math.abs(at(60) - base) < 1e-9, 'a slow healer was penalised');
+      battle.units = battle.units.filter((u) => u !== healer);
+    }
+
+    // ---- 4pc: reads the PATIENT, and only pays for the hurt one ----
+    {
+      const healer = wear(place(battle, HEROES.aurek, TEAM.PLAYER, 0), tier(4));
+      const patient = (frac) => {
+        const u = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+        u.hookSources = () => [];
+        u.hp = Math.round(u.maxHp * frac);
+        return u;
+      };
+      const bare = healer.healingBoost(null);
+      assert(Math.abs(healer.healingBoost(patient(0.9)) - bare) < 1e-9,
+        'a healthy ally drew the wounded rate');
+      assert(Math.abs(healer.healingBoost(patient(0.49)) - bare - 0.40) < 1e-9,
+        `an ally under half drew ${healer.healingBoost(patient(0.49)) - bare}`);
+      // The boundary is BELOW half, not at it.
+      assert(Math.abs(healer.healingBoost(patient(0.5)) - bare) < 1e-9,
+        'an ally at exactly half drew the wounded rate');
+    }
+
+    // ---- and the whole pack, through a real mend ----
+    {
+      const healer = wear(place(battle, HEROES.aurek, TEAM.PLAYER, 0),
+        tier(3), tier(4));
+      healer.speed = 150;                       // two rungs of Wingbeat
+      healer.gearHealBoost += 0.10;             // stand in for the 2pc mod
+      const hurt = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+      hurt.hookSources = () => [];
+      hurt.hp = 1;
+      // 0.10 + 0.10 + 0.40. They ADD -- healingBoost sums its hooks --
+      // so a full brood on a badly hurt bird is +60%, not a product.
+      assert(Math.abs(healer.healingBoost(hurt) - 0.60) < 1e-9,
+        `the full pack read ${healer.healingBoost(hurt)}, wanted 0.60`);
+    }
+
+    // ---- and through a REAL cast, which is the part that can break ----
+    //
+    // Reading healingBoost() directly proves the hook and nothing else.
+    // The patient has to travel from the heal case in applyEffect down
+    // into the boost, and that is five separate call sites any one of
+    // which can quietly go back to passing nothing -- so this drives an
+    // actual mend at an actually hurt ally and compares it to the same
+    // mend at a healthy one.
+    {
+      const ilyra = wear(place(battle, HEROES.ilyra, TEAM.PLAYER, 0), tier(4));
+      const clearSky = ilyra.abilities.find((a) =>
+        (a.def.effects || []).some((e) => e.type === 'healHpPct'));
+      assert(clearSky, 'Ilyra has no HP-priced mend to drive this with');
+      const mend = (frac) => {
+        // A deep pool either way, so both patients have room to absorb
+        // the whole mend and the comparison is the boost and not the
+        // ceiling.
+        const u = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4), 50);
+        u.hookSources = () => [];
+        u.hp = Math.round(u.maxHp * frac);
+        const before = u.hp;
+        Abilities.execute(clearSky.def, ilyra, u, battle);
+        const healed = u.hp - before;
+        battle.units = battle.units.filter((x) => x !== u);
+        return healed;
+      };
+      const healthy = mend(0.9);
+      const hurt = mend(0.4);
+      assert(healthy > 0, 'the mend restored nothing at all');
+      assert(Math.abs(hurt / healthy - 1.40) < 0.02,
+        `a hurt ally was mended ${(hurt / healthy).toFixed(3)}x a healthy one, wanted 1.40`);
+      battle.units = battle.units.filter((u) => u !== ilyra);
+    }
+
+    // ---- every SHAPE of mend, not just the one ----
+    //
+    // The patient is threaded through five separate call sites in
+    // applyEffect and reverting any one of them is a silent regression.
+    // Driving a single healHpPct proved exactly one of the five: the
+    // other four came back green under sabotage. So each shape gets
+    // driven, including the two that are not strictly heals -- a
+    // heal-over-time and a ward both take healing modifiers already,
+    // on the stated ground that they are HP the target does not lose.
+    {
+      const healer = wear(place(battle, HEROES.aurek, TEAM.PLAYER, 0), tier(4));
+      const shapes = [
+        ['heal (ATK-priced)', { type: 'heal', mult: 0.5 },
+          (u) => u.hp],
+        ['healHpPct (pool-priced)', { type: 'healHpPct', pct: 0.10 },
+          (u) => u.hp],
+        ['hot', { type: 'hot', pct: 0.05, turns: 3 },
+          (u) => (u.statusEffects.find((fx) => fx.kind === 'hot') || {}).amount || 0],
+        ['shield', { type: 'shield', pct: 0.10, turns: 3 },
+          (u) => u.shieldTotal()],
+      ];
+      for (const [name, effect, read] of shapes) {
+        const got = (frac) => {
+          const u = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4), 50);
+          u.hookSources = () => [];
+          u.hp = Math.round(u.maxHp * frac);
+          const before = read(u);
+          Abilities.applyEffect(effect, healer, u, 1);
+          const after = read(u);
+          battle.units = battle.units.filter((x) => x !== u);
+          return after - before;
+        };
+        const healthy = got(0.9);
+        const hurt = got(0.4);
+        assert(healthy > 0, `${name}: produced nothing to measure`);
+        assert(Math.abs(hurt / healthy - 1.40) < 0.02,
+          `${name}: a hurt ally got ${(hurt / healthy).toFixed(3)}x a healthy one, ` +
+          'wanted 1.40 -- the patient is not reaching this call site');
+      }
+
+      // healPerDot is the fifth site and needs a field to read: it is
+      // priced off how many poisons are burning on the other side, so
+      // without an enemy carrying one it produces nothing and the check
+      // passes by measuring zero against zero.
+      const lit = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+      lit.hookSources = () => [];
+      lit.addStatusEffect({ kind: 'dot', amount: 10, turns: 5, flavor: 'burn' });
+      const perDot = (frac) => {
+        const u = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4), 50);
+        u.hookSources = () => [];
+        u.hp = Math.round(u.maxHp * frac);
+        const before = u.hp;
+        Abilities.applyEffect({ type: 'healPerDot', pct: 0.2 }, healer, u, 1);
+        battle.units = battle.units.filter((x) => x !== u);
+        return u.hp - before;
+      };
+      const dotHealthy = perDot(0.9);
+      const dotHurt = perDot(0.4);
+      assert(dotHealthy > 0, 'healPerDot produced nothing to measure');
+      assert(Math.abs(dotHurt / dotHealthy - 1.40) < 0.02,
+        `healPerDot: a hurt ally got ${(dotHurt / dotHealthy).toFixed(3)}x a healthy ` +
+        'one, wanted 1.40 -- the patient is not reaching this call site');
+    }
+  } finally { Battle.active = prev; }
+});
+
 // The first Sunbrood, and the only fighter in the game who pays HEALTH
 // for damage. Light's own pack sells max HP twice over, so a brood that
 // sold a bigger pool would hand the party its own element bonus back;

@@ -360,10 +360,23 @@ class Unit {
 
   // Outgoing-healing amplifier (Bear set 6pc + healBoostAdd hooks):
   // heals, HP%-heals, and HoTs this unit casts are this much stronger.
-  healingBoost() {
+  // `patient` is who is being mended, when the caller knows. A hook may
+  // be a NUMBER for an amplifier worth the same to everybody (the gear
+  // set), or a FUNCTION for one that reads the healer (the Sunbrood's
+  // Wingbeat Mend, off their own speed) or the patient (Everything
+  // Given, which pays for mending somebody who actually needs it). The
+  // same two shapes defIgnoreAdd and buffPowerAdd already take, for the
+  // same reason.
+  //
+  // Hooks ADD rather than multiply here, so three amplifiers on one
+  // healer is a sum and not a product -- which is what keeps a stack of
+  // them from running away.
+  healingBoost(patient = null) {
     let h = this.gearHealBoost;
     for (const p of this.hookSources()) {
-      if (p.hooks && p.hooks.healBoostAdd) h += p.hooks.healBoostAdd;
+      const hook = p.hooks && p.hooks.healBoostAdd;
+      if (!hook) continue;
+      h += typeof hook === 'function' ? (hook(this, patient) || 0) : hook;
     }
     return h;
   }
