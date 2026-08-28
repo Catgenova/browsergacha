@@ -13,13 +13,29 @@
 //
 //   node test/lift.js <heroId> [sims] [ticks]
 //
-// `ticks` is the length of the fight, and it is a real dial rather than
-// a detail: a hero whose value accumulates reads differently at 200 and
-// at 1200, and being able to SEE that curve is most of why this exists.
+// `ticks` is the CAP, not the length: the fight runs until the wave is
+// down or the cap is hit. That matters, and a hero broke the first
+// version to prove it -- see below.
 //
 //   node test/lift.js nestora 25 200    ->  -11 +/- 31   (-0.3%)
 //   node test/lift.js nestora 25 400    ->  286 +/- 73    (6.0%)
 //   node test/lift.js nestora 25 1200   -> 1742 +/- 162  (12.9%)
+//
+// TURNS ARE SERIALISED. Battle.update stops filling every meter on the
+// field while one unit is acting, so a tick budget is not a turn budget:
+// put two more bodies on the board and the four heroes already there
+// each get FEWER turns inside the same number of ticks. The first
+// version of this file reported damage-in-a-window and nothing else,
+// and it read Click -- a summoner whose own damage is zero -- at -379
+// +/- 35, a confident negative that was entirely the bench's own
+// accounting. Adding bodies made the party busier and the window did
+// not grow.
+//
+// So the headline is TIME TO CLEAR, which has no such bias: more bodies
+// clear the wave sooner or they do not, and that is the question a
+// player is actually asking. Damage-in-window is still printed, because
+// it is the right measure for the fights that never clear, but it is no
+// longer the number the tool leads with.
 
 const { loadGame } = require('./harness');
 const g = loadGame();
@@ -62,25 +78,30 @@ function run(seed, withHero) {
   // dropping the hero drops a sect head-count with them -- which is
   // honest: that IS part of what fielding them is worth.
   RACES.applyParty(units);
-  // Deep enough that the wave survives the clock: the measure is damage
-  // dealt over a fixed span, not a race to a kill, so a wave that dies
-  // early would truncate the very tail the long-fight heroes live in.
+  // Killable inside a long cap, so time-to-clear is a real number
+  // rather than a censored one. Too deep and every run hits the cap and
+  // the headline says nothing; too shallow and the fight is over before
+  // a hero whose value accumulates has shown any of it.
   for (let i = 0; i < 6; i++) {
     const f = new Unit(ENEMIES[FOE], TEAM.ENEMY, { level: 40, stars: 5 });
-    f.maxHp *= 6;
     f.hp = f.maxHp;
     battle.placeUnit(f, i);
   }
-  let turns = 0;
-  while (turns < CAP && battle.livingUnits(TEAM.PLAYER).length &&
+  let ticks = 0;
+  while (ticks < CAP && battle.livingUnits(TEAM.PLAYER).length &&
          battle.livingUnits(TEAM.ENEMY).length) {
     battle.update(0.05);
-    turns++;
+    ticks++;
   }
   const foes = battle.units.filter((u) => u.team === TEAM.ENEMY);
+  const cleared = battle.livingUnits(TEAM.ENEMY).length === 0;
   return {
     dealt: foes.reduce((n, u) => n + (u.maxHp - Math.max(0, u.hp)), 0),
     standing: battle.livingUnits(TEAM.PLAYER).length,
+    // Censored at the cap when the wave never went down, and the share
+    // of runs that cleared is printed beside it so a reader can see how
+    // much of the figure is real.
+    ticks, cleared, wiped: battle.livingUnits(TEAM.PLAYER).length === 0,
   };
 }
 
@@ -99,11 +120,33 @@ const se = (xs) => {
 };
 const diffs = withs.map((w, i) => w.dealt - withouts[i].dealt);
 const base = mean(withouts.map((r) => r.dealt));
+// Negative is FASTER, so the sign is flipped on the way out: a hero who
+// clears the wave sooner should read as a positive number like every
+// other lift in this project.
+const tickDiffs = withs.map((w, i) => withouts[i].ticks - w.ticks);
+const clearRate = (rs) => `${Math.round(mean(rs.map((r) => (r.cleared ? 1 : 0))) * 100)}%`;
 
-console.log(`${HERO}: ${SIMS} paired fights, ${CAP} ticks, vs a fixed wave`);
-console.log(`  team damage with     ${Math.round(mean(withs.map((r) => r.dealt)))}`);
-console.log(`  team damage without  ${Math.round(base)}`);
-console.log(`  lift ${Math.round(mean(diffs))} +/- ${Math.round(se(diffs))}` +
+console.log(`${HERO}: ${SIMS} paired fights, cap ${CAP} ticks, vs a fixed wave`);
+const outcome = (rs) => `cleared ${clearRate(rs)}, wiped ` +
+  `${Math.round(mean(rs.map((r) => (r.wiped ? 1 : 0))) * 100)}%`;
+console.log(`  ticks to finish  with ${Math.round(mean(withs.map((r) => r.ticks)))}` +
+  ` (${outcome(withs)})`);
+console.log(`                without ${Math.round(mean(withouts.map((r) => r.ticks)))}` +
+  ` (${outcome(withouts)})`);
+// Only meaningful when fights are actually ENDING in a clear. A run
+// that stops early because the party died is not a fast one, and a
+// "faster by -566 ticks" printed under an 80% wipe rate reads as the
+// exact opposite of what happened.
+const anyCleared = withs.concat(withouts).some((r) => r.cleared);
+if (anyCleared) {
+  console.log(`  faster by ${Math.round(mean(tickDiffs))} +/- ${Math.round(se(tickDiffs))}` +
+    ` ticks  (${(mean(tickDiffs) / mean(withouts.map((r) => r.ticks)) * 100).toFixed(1)}%)`);
+} else {
+  console.log('  (no run cleared the wave — read the outcome line above, ' +
+    'not the tick counts)');
+}
+console.log(`  damage in window ${Math.round(mean(withs.map((r) => r.dealt)))}` +
+  ` vs ${Math.round(base)}  ->  ${Math.round(mean(diffs))} +/- ${Math.round(se(diffs))}` +
   `  (${(mean(diffs) / base * 100).toFixed(1)}%)`);
 console.log(`  party standing  with ${mean(withs.map((r) => r.standing)).toFixed(2)}` +
   `  without ${mean(withouts.map((r) => r.standing)).toFixed(2)}`);

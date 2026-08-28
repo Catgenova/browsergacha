@@ -1304,7 +1304,19 @@ class Unit {
   }
 
   tickStatusEffects() {
-    for (const fx of this.statusEffects) fx.turns--;
+    for (const fx of this.statusEffects) {
+      // A ward from somebody carrying `wardHold` (Click's bells) stops
+      // counting down while the bird holding it is under half health.
+      // Read off the SOURCE rather than the holder, because it is the
+      // ringer's doing and not the recipient's luck -- the same rule
+      // buffExtraTurns is read by.
+      if (fx.kind === 'shield' && this.maxHp > 0 && this.hp / this.maxHp < 0.5 &&
+          fx.source && fx.source !== this && fx.source.hookSources &&
+          fx.source.hookSources().some((p) => p.hooks && p.hooks.wardHold)) {
+        continue;
+      }
+      fx.turns--;
+    }
     this.statusEffects = this.statusEffects.filter((fx) => fx.turns > 0);
   }
 

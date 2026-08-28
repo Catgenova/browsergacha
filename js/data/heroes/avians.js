@@ -3776,4 +3776,112 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.gravecircle,
   },
+
+  // The second Hollowbone, and the sect's only sustain. A dark order of
+  // eight debuffers, assassins and walls has nobody keeping anybody
+  // alive, and Click does it without a single heal in her kit: what the
+  // bells hand out is a ward, and a ward is health that never left.
+  //
+  // She is also the apprentice. She raises the same cassowary Necros
+  // does off a longer cooldown and a smaller bird, which is the whole
+  // relationship: he is the one who digs, she is the one who rings for
+  // it. Fielding both is two bodies on the board and no new mechanic to
+  // learn.
+  //
+  // Note the ATK on a support statline, and note that it is deliberate.
+  // A summon takes its swing as a share of the summoner's, so a raiser
+  // with nothing to give raises something that cannot hit -- the same
+  // trap Necros's own line is written around, and it bites harder here
+  // because a 3-star support is exactly where the temptation to spend
+  // everything on health and defence is strongest. Her share of attack
+  // is the highest on the roster (0.85) for the same reason: it is
+  // 85% of a small number.
+  click: {
+    id: 'click',
+    element: 'dark',
+    name: 'Click',
+    title: 'Bellbearer of the Hollowbone',
+    rarity: 3,
+    stats: { hp: 1420, atk: 148, def: 110, speed: 118 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#c8a83a', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/clickidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'click_first_bell', name: 'First Bell',
+        icon: 'assets/icons/fc866.png',
+        // Priced off HER pool rather than her attack, which is what
+        // makes a support with a summoner's attack stat still worth
+        // gearing for health.
+        description: 'One note, held: an ally gains a ward worth 12% of Click’s max HP ' +
+          'for 2 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', pct: 0.12, turns: 2 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+        ],
+      },
+      {
+        id: 'click_ring_the_round', name: 'Ring the Round',
+        icon: 'assets/icons/fc1141.png',
+        // The sect's tempo tool, and the only one it has. Gated at the
+        // roster-standard 50% every drain is held to.
+        description: 'She swings the whole rack at once and the room forgets what it was ' +
+          'doing: a 50% chance on EVERY enemy to lose 20% of their action bar.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'strike_purple',
+        effects: [{ type: 'turnMeter', amount: -0.20, chance: 0.5 }],
+        levelUps: [
+          { meter: 0.05 },
+          { debuffChance: 0.25 },
+          { meter: 0.05 },
+          { debuffChance: 0.25 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'click_last_bell', name: 'Last Bell',
+        icon: 'assets/icons/fc1272.png',
+        description: 'The note the dead answer: a bone cassowary gets up on the first free ' +
+          'hex — an empty one, or one with a body still on it. With the board full the ' +
+          "power goes into the party's hardest hitter instead: +40% ATK and −30% DEF " +
+          'for 3 turns, and 30% of their health as the price.',
+        cooldown: 6, targeting: 'self', animation: 'idle', impact: 'strike_purple',
+        effects: [{
+          type: 'summon', id: 'crossowary_undead',
+          share: { hp: 0.55, atk: 0.85, def: 0.55, speed: 0.95 },
+          fallback: { atk: 1.40, def: 0.70, turns: 3, hpCut: 0.30 },
+        }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Bell, Book, Bone',
+      icon: 'assets/icons/fc1066.png',
+      // A ward with a conditional duration, which nothing else on the
+      // roster has: every other shield on the board counts down whatever
+      // is happening to the bird wearing it. Hers stops counting exactly
+      // when it is doing the most work, so a bird under half health
+      // keeps its ward until something spends it.
+      //
+      // Read off the SOURCE in Unit.tickStatusEffects, the way
+      // buffExtraTurns is -- it is the ringer's doing, not the
+      // recipient's luck.
+      description: 'The bell does not stop for the dying: a ward from Click never runs out ' +
+        'while the ally holding it is below half health. Only spending it clears it.',
+      hooks: { wardHold: true },
+    },
+    positional: POSITIONALS.long_peal,
+  },
 });

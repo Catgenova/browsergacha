@@ -505,6 +505,17 @@ const POSITIONALS = (() => {
     hooks: { summonHpAdd: 0.25 },
   });
 
+  // Click's hex: a bell rung from the middle of the room is heard in all
+  // of it. Widens the ward rather than lengthening it, because the
+  // LENGTH is already her passive's job and a hex that paid the same
+  // axis twice would be the compounding trap on a single hero.
+  def('long_peal', {
+    position: POSITION.CENTER,
+    name: 'Long Peal',
+    description: 'Center hex: the wards she hands out are 30% larger.',
+    hooks: { shieldPowerAdd: 0.30 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
