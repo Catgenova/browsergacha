@@ -125,6 +125,28 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Nehru's hex: a gate opens where it likes, and what it likes is the
+  // far side of the field. The mirror of Vanguard Press -- that one
+  // rewards trading blows with whoever stands opposite, this one
+  // rewards reaching past them entirely.
+  //
+  // It is also what makes his own Waygate a decision rather than a
+  // flourish: the portal trades a fighter's hex for the one level with
+  // it, so throwing an enemy FRONT rank into the back walks them into
+  // this, and dragging their caster forward walks them out of it.
+  def('far_gate', {
+    position: POSITION.BACK,
+    name: 'Far Gate',
+    description: 'Back hex: +25% damage to enemies standing on BACK hexes.',
+    hooks: {
+      // A boss occupies the whole formation and is never "in the back",
+      // so it is excluded rather than counted both ways -- the same
+      // reading Vanguard Press takes from the other end of the field.
+      damageDealtMult: (u, t) =>
+        (t && t.slot && !t.isBoss && t.slot.position === POSITION.BACK ? 1.25 : 1),
+    },
+  });
+
   // Hallow's hex: the storm is worse where there is more sky to fill.
   def('stormglass', {
     position: POSITION.BACK,

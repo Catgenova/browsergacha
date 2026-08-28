@@ -1624,4 +1624,140 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.reckless_charge,
   },
+
+  // The top of the sect: a gatekeeper who does not chase anything down.
+  // He opens a hole in the field, drops whoever is standing there
+  // through it, and shoots what comes out the other side dizzy.
+  //
+  // Displacement is not new -- Wren yanks a caster into the open and
+  // Tumble spins a whole formation -- so the point of Nehru is NOT that
+  // he moves people. Both of those are Whisperchime, and both move
+  // people for position. Nehru moves them for SPEED: a fighter who has
+  // just been through a gate is reeling, and a reeling fighter is
+  // exactly what every Razorwing tier is paid to stand in front of. He
+  // manufactures the sect's condition rather than taking a bigger cut
+  // of it, which is the same shape Tumble, Lenore and Hallow take with
+  // their own sects.
+  nehru: {
+    id: 'nehru',
+    element: 'wind',
+    name: 'Nehru',
+    title: 'Gatekeeper of the Razorwings',
+    rarity: 5,
+    // A caster's build: the damage and the speed, none of the armour.
+    // Fast for a 5-star, and deliberately still behind Tervan -- the
+    // 1-star keeps the roster's speed crown.
+    stats: { hp: 1090, atk: 268, def: 74, speed: 120 },
+    tint: { body: '#e8e4d8', helm: '#2f6f4a', weapon: '#5fd8c8', shield: '#c8a83a' },
+    sprite: {
+      displayH: 98, // he stands tall, and the staff stands taller
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/nehruidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'nehru_riftshot', name: 'Riftshot',
+        icon: 'assets/icons/fc823.png',
+        description: 'A bolt that arrives before the sound does: 115% ATK to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.15 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'nehru_waygate', name: 'Waygate',
+        icon: 'assets/icons/fc1142.png',
+        // The swap is Wren's mechanic; what Nehru does WITH it is not.
+        // She reaches past a wall to expose the caster behind it. He
+        // throws whoever is in front of him out the far side of the
+        // field and they come out of it dizzy, which is the half the
+        // sect cares about.
+        description: 'Open the gate under one enemy: 120% ATK, they trade hexes with ' +
+          'whoever stands level with them, and they come out reeling — 25% less SPD ' +
+          'for 2 turns.',
+        cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.20 },
+          { type: 'swapRank' },
+          { type: 'debuff', stat: 'speed', mult: 0.75, turns: 2 },
+        ],
+        // Six rungs is what slot 2 allows, and a cooldown skill buys
+        // exactly two turns back. No duration rung: `duration` lengthens
+        // friendly timers only, and lengthening a hex has no ladder key
+        // at all -- the severity rungs are what deepen this one.
+        levelUps: [
+          { mult: 0.1 },
+          { debuffPower: 0.05 },
+          { mult: 0.1 },
+          { debuffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'nehru_vanishing_point', name: 'Vanishing Point',
+        icon: 'assets/icons/fc1272.png',
+        // Reads the target's HEX rather than whether they are standing
+        // outside it: "+damage to the displaced" is the Whisperchime
+        // 4pc's line, and this sect does not need a second printing of
+        // it. Keyed to the back row it becomes half of a combination
+        // instead -- gate their front rank into the back, then put this
+        // through them -- and Far Gate pays on the same reading, so his
+        // hex and his finisher want the same thing.
+        description: 'Everything he has, into one hole in the air: 250% ATK to one ' +
+          'enemy, and 50% more if they are standing on a BACK hex.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 2.5,
+            bonusPosition: { position: POSITION.BACK, mult: 1.5 } },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Displacement',
+      icon: 'assets/icons/fc1066.png',
+      // The sect's currency, manufactured. Overtake and Terminal
+      // Velocity are both paid off the gap between a Razorwing and
+      // whoever is in front of them, and every other bird in the sect
+      // can only widen that gap from its own end. Nehru widens it from
+      // the other end, for everybody.
+      //
+      // Contested like any other hex rather than landing free: an
+      // always-on party-wide speed cut would make the sect's two damage
+      // tiers unconditional against everything with a pulse, and a boss
+      // carries 50% resistance precisely so that a rider like this has
+      // to earn it.
+      description: 'The air does not quite close behind him: enemies Nehru damages lose ' +
+        '10% SPD for 2 turns.',
+      hooks: {
+        onDealtDamage(unit, { target, battle } = {}) {
+          if (!unit.alive || !target || !target.alive) return null;
+          if (target.team === unit.team) return null;
+          if (!Abilities.takeLands(unit, target)) return null;
+          target.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.90,
+            turns: 2, source: unit });
+          if (battle && battle.addFloatingText) {
+            battle.addFloatingText(target, 'SPD \u25bc', '#8ee8ff');
+          }
+          return null;
+        },
+      },
+    },
+    positional: POSITIONALS.far_gate,
+  },
 });
