@@ -9613,6 +9613,120 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The sect's sweeper. Tervan spends a speed lead as armour blindness
+// and Nehru manufactures the lead by slowing what he throws through a
+// gate; Cirrus takes THEIRS instead. The action bar is the one resource
+// the sect cares about that none of its damage tiers touch, which is
+// the whole reason his passive lives on that channel and not on the
+// damage one the pack already multiplies into twice.
+test("Cirrus's kit: the sweeps, and a bar knocked backwards", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const cirrus = place(battle, HEROES.cirrus, TEAM.PLAYER, 0);
+    cirrus.slot = battle.playerSlots.find((sl) => sl.position === POSITION.BACK);
+    const foes = [1, 2, 4].map((i) => {
+      const f = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 4000);
+      f.dodgeChance = () => 0; f.reflectChance = () => 0;
+      f.hookSources = () => [];
+      return f;
+    });
+
+    // ---- Backdraft is on the METER channel, not the damage one ----
+    assert(Math.abs(cirrus.apDrainChance() - 0.20) < 1e-9,
+      `Backdraft reads ${cirrus.apDrainChance()}, wanted 0.20`);
+    const hooks = HEROES.cirrus.passive.hooks || {};
+    assert(!hooks.damageDealtMult,
+      'Cirrus is paying into damageDealtMult, which Overtake and Terminal ' +
+      'Velocity already multiply into');
+
+    // ---- the drain lands, once per body a sweep caught ----
+    {
+      for (const f of foes) f.turnMeter = CONFIG.TURN_METER_MAX;
+      const real = Math.random;
+      Math.random = () => 0;              // every gate opens
+      try { Abilities.execute(cirrus.abilities[1].def, cirrus, foes[0], battle); }
+      finally { Math.random = real; }
+      const knocked = foes.filter((f) => f.turnMeter < CONFIG.TURN_METER_MAX);
+      assert(knocked.length === foes.length,
+        `a sweep over ${foes.length} bodies knocked ${knocked.length} bars back`);
+      // 20% of a full bar, off each of them.
+      for (const f of knocked) {
+        assert(Math.abs(f.turnMeter - CONFIG.TURN_METER_MAX * 0.80) < 1e-6,
+          `a drained bar sits at ${f.turnMeter}, wanted 80% of full`);
+      }
+    }
+
+    // ---- and it is a CHANCE, not a certainty ----
+    {
+      for (const f of foes) f.turnMeter = CONFIG.TURN_METER_MAX;
+      const real = Math.random;
+      Math.random = () => 0.99;           // every gate fails
+      try { Abilities.execute(cirrus.abilities[1].def, cirrus, foes[0], battle); }
+      finally { Math.random = real; }
+      assert(foes.every((f) => f.turnMeter === CONFIG.TURN_METER_MAX),
+        'the drain landed on a losing roll -- it is meant to be a 20% gate');
+    }
+
+    // ---- Stormglass reads the CAST, not the aim ----
+    {
+      const sweep = cirrus.damageDealtMult(foes[0], cirrus.abilities[1].def);
+      const single = cirrus.damageDealtMult(foes[0], cirrus.abilities[0].def);
+      assert(Math.abs(sweep / single - 1.15) < 1e-9,
+        `his hex paid ${(sweep / single).toFixed(3)} on a team sweep, wanted 1.15`);
+      // Two of his three skills catch the whole field, which is the
+      // reason he wears this hex at all.
+      const wide = HEROES.cirrus.abilities
+        .filter((a) => a.targeting === 'all-enemies').length;
+      assert(wide === 2, `${wide} of his skills catch the field, wanted 2`);
+    }
+  } finally { Battle.active = prev; }
+
+  // Three birds: the 3pc can be FIELDED for the first time. Terminal
+  // Velocity scales with the size of the gap where Overtake only asks
+  // whether there is one, so the pair is measured at two gap sizes --
+  // a flat tier cannot tell them apart and would fail here.
+  {
+    const b3 = makeBattle();
+    const birds = ['tervan', 'nehru', 'cirrus'].map((id, i) => {
+      const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: 3 });
+      u.slot = b3.playerSlots[i];
+      b3.units.push(u);
+      return u;
+    });
+    RACES.applyParty(birds);
+    const foe = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 3 });
+    foe.slot = b3.enemySlots[0];
+    const bird = birds[2];
+    const mine = bird.effectiveStat('speed');
+    const at = (gap) => { foe.speed = mine - gap; return bird.damageDealtMult(foe, null); };
+
+    const level = at(0);
+    // 20 points: Overtake's flat 1.25 and Terminal Velocity's 1.10.
+    assert(Math.abs(at(20) / level - 1.25 * 1.10) < 1e-9,
+      `three birds at a 20-point lead paid ${(at(20) / level).toFixed(4)}`);
+    // 60+: Terminal Velocity at its cap, and the sect at its ceiling.
+    assert(Math.abs(at(60) / level - 1.625) < 1e-9,
+      `three birds at a 60-point lead paid ${(at(60) / level).toFixed(4)}, wanted 1.625`);
+    assert(Math.abs(at(200) / level - 1.625) < 1e-9,
+      'the cap stopped holding once the tier was actually fielded');
+
+    // Three is not four: Rip Current must not be paying yet.
+    const killer = birds[0];
+    killer.turnMeter = 0;
+    const doomed = new Unit(DUMMIES.rat_archer, TEAM.ENEMY, { level: 30, stars: 3 });
+    doomed.slot = b3.enemySlots[1];
+    b3.units.push(doomed);
+    doomed.hp = 1;
+    const prev3 = Battle.active;
+    Battle.active = b3;
+    try { doomed.takeDamage(9e9, killer); } finally { Battle.active = prev3; }
+    assert(killer.turnMeter === 0,
+      `three birds paid ${killer.turnMeter} meter for a kill -- the 4pc fired early`);
+  }
+});
+
 // The Razorwings' 5-star. His job is not to move people -- Wren and
 // Tumble already do that, and both are Whisperchime -- it is to make
 // what he moves SLOW, which is the one thing the sect's own tiers are
