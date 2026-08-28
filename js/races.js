@@ -420,17 +420,24 @@ const RACES = (() => {
       {
         count: 3, name: 'Wingbeat Mend',
         // The conversion itself, and the sect's whole thesis in one
-        // line: the faster the brood flies, the more it mends. Stepped
-        // per 25 like Crosswind, and uncapped like Crosswind too -- a
-        // party that has invested that heavily in speed has paid for it
-        // somewhere else.
+        // line: the faster the brood flies, the more it mends.
+        //
+        // Stepped per 20 rather than per 25, and the difference is the
+        // element. Crosswind's rungs sit on wind, where the roster runs
+        // 104 to 136 and the 2pc lifts it further; light runs 84 to 116
+        // and its own pack buys no speed at all. At Crosswind's rung
+        // size the first one needed 125 and exactly one light hero in
+        // ten could reach it, so the tier would have been decoration on
+        // a sect built to any normal statline. 20 puts the first rung
+        // at 120, which a bird written anywhere near the brood's own
+        // pace clears. Uncapped, like Crosswind.
         hooks: {
           healBoostAdd(unit) {
             const over = unit.effectiveStat('speed') - 100;
-            return over <= 0 ? 0 : Math.floor(over / 25) * 0.05;
+            return over <= 0 ? 0 : Math.floor(over / 20) * 0.05;
           },
         },
-        label: '+5% healing done for every full 25 SPD above 100',
+        label: '+5% healing done for every full 20 SPD above 100',
       },
       {
         count: 4, name: 'Everything Given',
