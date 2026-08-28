@@ -59,7 +59,16 @@ if (!HERO || !HEROES[HERO]) {
 const BASE = { aurek: 1, durn: 2, mavros: 6, solari: 0, aster: 3, rizzo: 4 };
 const SEAT = { ...BASE };
 delete SEAT[HERO];
-SEAT[HERO] = 5;
+// The first hex nobody in the base party is on. Hardcoding one worked
+// until a fixture put a base hero there and the run died on "slot
+// occupied" -- the seat has to be found, not assumed, because the base
+// party is meant to be edited.
+const taken = new Set(Object.values(SEAT));
+SEAT[HERO] = [0, 1, 2, 3, 4, 5, 6].find((i) => !taken.has(i));
+if (SEAT[HERO] === undefined) {
+  console.error('no free hex for the hero under test — trim the base party');
+  process.exit(1);
+}
 const FOE = Object.keys(ENEMIES)[0];
 
 function run(seed, withHero) {

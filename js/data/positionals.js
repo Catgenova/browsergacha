@@ -531,6 +531,17 @@ const POSITIONALS = (() => {
     hooks: { afflictionSink: true },
   });
 
+  // Crook's hex: standing at the front is where the pockets are. Deepens
+  // the theft rather than widening what it hits, because how MUCH of a
+  // move he takes is the whole mechanic and a hex that hit more birds
+  // for less would be a different hero.
+  def('fence', {
+    position: POSITION.FRONT,
+    name: 'Fence',
+    description: 'Front hex: the cooldowns he lifts are pushed 1 turn deeper.',
+    hooks: { cooldownPushAdd: 1 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
