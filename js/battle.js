@@ -697,6 +697,17 @@ class Battle {
             ? ` ${res.fires} times over` : ''} for ${res.amount} per turn ` +
             `(${res.turns} turns).`, cls);
         }
+      } else if (res.kind === 'pouch') {
+        // The whole point of the mechanic is the number, so it is said
+        // out loud -- and an empty bill says so rather than reading as
+        // a skill that did nothing for no reason.
+        if (res.spent > 0) {
+          this.addFloatingText(res.target, `-${res.amount}`, '#e8903a');
+          this.log(`${res.target.name} takes back everything ${caster.name} was given — ` +
+            `${res.spent} out of the bill for ${res.amount} damage.`, cls);
+        } else {
+          this.log(`${caster.name}'s bill is empty — nothing to give back.`, cls);
+        }
       } else if (res.kind === 'forge') {
         // Lucian's forge heat: permanent flat ATK off the burning field.
         if (res.amount > 0) {

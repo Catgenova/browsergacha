@@ -2245,4 +2245,111 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.field_medic,
   },
+
+  // The sect's other wall, and deliberately the opposite of the first
+  // one. Strix prevents: he reads the speed gap from the defensive side
+  // and takes damage off the flight before it lands. Balmor prevents
+  // nothing. He is a pelican, and what a pelican has is a BILL -- so he
+  // takes the blow, keeps it, and hands it back later at somebody
+  // else's expense.
+  //
+  // Nothing else on the roster banks damage. The nearest thing is
+  // Lucian's forge heat, which is also a per-battle counter living on
+  // the caster and also only means anything next to the kit that fills
+  // it; the difference is that his is fed by the fight going well and
+  // Balmor's is fed by the fight going badly.
+  balmor: {
+    id: 'balmor',
+    element: 'wind',
+    name: 'Balmor',
+    title: 'Bill of the Razorwings',
+    rarity: 3,
+    // Built to be hit: the heaviest bird in the sect, and the second
+    // slowest. He is the one Razorwing who does not especially mind
+    // being outrun, because nothing he does is priced off the gap.
+    stats: { hp: 1980, atk: 94, def: 148, speed: 106 },
+    tint: { body: '#e8e4d8', helm: '#2f6f4a', weapon: '#e8903a', shield: '#c8a83a' },
+    sprite: {
+      displayH: 98,
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/Balmoridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'balmor_bill_slap', name: 'Bill Slap',
+        icon: 'assets/icons/fc819.png',
+        description: 'A yard of beak, swung flat: 90% ATK to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.90 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'balmor_broad_shadow', name: 'Broad Shadow',
+        icon: 'assets/icons/fc1062.png',
+        // Spread over the front rank rather than hoarded: Bo keeps his
+        // own hide and Talon covers the whole crew, so this one takes
+        // the middle -- and it is in real tension with the bill, since
+        // damage he does not take is damage he does not get to keep.
+        description: 'Wings out over the whole rank: front-row allies take 15% less ' +
+          'damage for 2 turns.',
+        cooldown: 5, targeting: 'front-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 2 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'balmor_tip_the_bill', name: 'Tip the Bill',
+        icon: 'assets/icons/fc1272.png',
+        description: 'Upend the whole bill over one enemy: everything Balmor has been ' +
+          'given so far, given back as a single blow.',
+        cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'spendPouch' }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Catchall',
+      icon: 'assets/icons/fc1066.png',
+      // Capped against his own POOL, not his ATK. The first draft
+      // measured the bill in ATK the way a skill multiplier is measured
+      // and it was nonsense: a tank's ATK is small precisely because he
+      // is a tank, so 250% of it came to 528 while a single ordinary
+      // blow landed on him for 2521. The bill was full after one hit
+      // and "keeps a share of every blow" meant nothing.
+      //
+      // Health is the scale he actually absorbs on, and it moves with
+      // his gear and his stars the way the incoming damage does. A
+      // quarter of his pool takes about fourteen blows to fill at half
+      // rate -- most of a real fight, for one cast.
+      description: 'Nothing is wasted on a pelican: Balmor keeps half of every blow he ' +
+        'takes in his bill, up to a quarter of his max HP.',
+      hooks: {
+        onStruck(unit, { amount } = {}) {
+          if (!unit.alive || !(amount > 0)) return null;
+          const cap = unit.maxHp * 0.25;
+          const before = unit.pouch || 0;
+          if (before >= cap) return null;
+          unit.pouch = Math.min(cap, before + amount * 0.50);
+          return null;
+        },
+      },
+    },
+    positional: POSITIONALS.bedrock,
+  },
 });
