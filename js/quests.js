@@ -131,11 +131,62 @@ const Quests = (() => {
     DEFS.journey = journey;
   })();
 
+  // ---- The Kitchen: five hundred quests that pay in dumplings --------
+  //
+  // A fifth board beside the timed three and the Journey. It runs the
+  // same lifetime counters against its own ladder, and pays in DUMPLINGS
+  // rather than currency -- fodder with a face, worth far more in the
+  // star-up bank than a hero of the same rating.
+  //
+  // The star of the dumpling climbs with the tier rather than the count
+  // does: ten 1-star dumplings are a hundred points and ten roster
+  // slots, where one 3-star is a hundred points and one slot. Paying in
+  // bigger dumplings instead of more of them is what keeps a board this
+  // long from burying the player in roster clutter.
+  (() => {
+    const CHAINS = [
+      // [counter, phrasing, first goal, tiers]
+      ['wins', (g) => `Win ${g} battles`, 20, 63],
+      ['huntWins', (g) => `Win ${g} hunts`, 20, 63],
+      ['bossWins', (g) => `Clear ${g} boss stages`, 8, 63],
+      ['campaignWins', (g) => `Clear ${g} campaign nodes`, 8, 63],
+      ['towerFloors', (g) => `Climb ${g} tower floors`, 8, 63],
+      ['starUps', (g) => `Star up ${g} heroes`, 3, 63],
+      ['sacrifices', (g) => `Spend ${g} heroes on star-ups`, 5, 63],
+      ['flawless', (g) => `Win ${g} battles without losing a hero`, 8, 59],
+    ];
+    const nice = (x) => {
+      const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(x)) - 1));
+      return Math.round(x / mag) * mag;
+    };
+    // Tier 1-8 pays a 1-star, 9-16 a 2-star, and so on to a 10-star at
+    // the very top of a chain. Two of them early, one of them later:
+    // the count comes DOWN as the rating goes up, so the roster cost of
+    // clearing the board stays roughly flat while the payout climbs.
+    const payFor = (tier) => {
+      const stars = Math.min(10, 1 + Math.floor((tier - 1) / 8));
+      return { dumplings: { stars, n: stars <= 2 ? 2 : 1 } };
+    };
+    const kitchen = [];
+    for (const [counter, phrase, base, tiers] of CHAINS) {
+      let prev = 0;
+      for (let t = 1; t <= tiers; t++) {
+        const goal = Math.max(prev + 1, nice(base * Math.pow(1.16, t - 1)));
+        prev = goal;
+        kitchen.push({
+          id: `k_${counter}_${t}`, name: phrase(goal.toLocaleString()),
+          counter, goal, reward: payFor(t), tier: t, tiers,
+        });
+      }
+    }
+    DEFS.kitchen = kitchen;
+  })();
+
   // Period keys in local time: daily 'YYYY-MM-DD', weekly the date of
   // that week's Monday prefixed 'w', monthly 'YYYY-MM'. The Journey
   // never rolls over — its "period" is a constant.
   function periodKey(type) {
-    if (type === 'journey') return 'forever';
+    if (type === 'journey' || type === 'kitchen') return 'forever';
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -178,17 +229,40 @@ const Quests = (() => {
     if (reward.scrollsTemporal) parts.push(`${reward.scrollsTemporal} 🌀`);
     if (reward.whetstones) parts.push(`${reward.whetstones} 🪨`);
     if (reward.arcana) parts.push(`${reward.arcana} ✦`);
+    if (reward.dumplings) {
+      const { stars, n } = reward.dumplings;
+      parts.push(`${n > 1 ? `${n}× ` : ''}${stars}★ 🥟`);
+    }
     return parts.join(' · ');
   }
 
   // Grant a quest reward into the save.
+  //
+  // Returns a receipt naming the keys it actually understood. A reward
+  // key that grant() has never heard of pays nothing and says nothing --
+  // the quest still reads as claimed -- so the receipt is what
+  // test/data.test.js checks against the reward, rather than watching a
+  // purse that a roster-paid reward would never move.
   function grant(reward) {
-    if (reward.diamonds) GameState.addDiamonds(reward.diamonds);
-    if (reward.scrollsCommon) GameState.addScrolls('common', reward.scrollsCommon);
-    if (reward.scrollsRare) GameState.addScrolls('rare', reward.scrollsRare);
-    if (reward.scrollsTemporal) GameState.addScrolls('temporal', reward.scrollsTemporal);
-    if (reward.whetstones) GameState.addWhetstones(reward.whetstones);
-    if (reward.arcana) GameState.addArcana(reward.arcana);
+    const handled = [];
+    const take = (key, fn) => { if (reward[key]) { fn(reward[key]); handled.push(key); } };
+    take('diamonds', (v) => GameState.addDiamonds(v));
+    take('scrollsCommon', (v) => GameState.addScrolls('common', v));
+    take('scrollsRare', (v) => GameState.addScrolls('rare', v));
+    take('scrollsTemporal', (v) => GameState.addScrolls('temporal', v));
+    take('whetstones', (v) => GameState.addWhetstones(v));
+    take('arcana', (v) => GameState.addArcana(v));
+    // Dumplings are roster entries, so a full roster refuses them. The
+    // quest is still claimed -- refusing the claim would strand a
+    // finished quest behind a roster the player may never empty -- and
+    // the screen says how many actually landed.
+    const receipt = { handled };
+    take('dumplings', ({ stars, n }) => {
+      let made = 0;
+      for (let i = 0; i < n; i++) if (GameState.addDumpling(stars)) made++;
+      receipt.dumplings = { stars, wanted: n, made };
+    });
+    return receipt;
   }
 
   return { DEFS, periodKey, timeToReset, formatCountdown, rewardLabel, grant };

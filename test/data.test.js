@@ -1114,11 +1114,28 @@ test('every quest and achievement reward can be shown and paid', () => {
     for (const q of list) {
       assert(Quests.rewardLabel(q.reward) !== '',
         `${type}/${q.id}: reward ${JSON.stringify(q.reward)} renders as nothing`);
-      const before = purse();
-      Quests.grant(q.reward);
-      const moved = PURSE.some((k) => GameState[k] !== before[k]);
-      assert(moved, `${type}/${q.id}: granting ${JSON.stringify(q.reward)} paid nothing`);
+      // grant() names the keys it understood. Watching a purse instead
+      // only works while every reward IS a currency: a dumpling is a
+      // roster entry, and the roster has a cap, so a purse diff would
+      // read the 101st dumpling of this sweep as an unpaid reward.
+      const receipt = Quests.grant(q.reward) || { handled: [] };
+      const missed = Object.keys(q.reward).filter((k) => !receipt.handled.includes(k));
+      assert(missed.length === 0,
+        `${type}/${q.id}: grant() ignored ${missed.join(', ')} in ` +
+        `${JSON.stringify(q.reward)}`);
     }
+  }
+
+  // ...and the currency path still moves a purse, end to end, on one
+  // reward of each currency kind, so the check above cannot pass on a
+  // grant() that merely NAMES a key it then fails to pay.
+  for (const key of PURSE) {
+    const q = Object.values(Quests.DEFS).flat().find((d) => d.reward[key]);
+    if (!q) continue;
+    const before = purse();
+    Quests.grant(q.reward);
+    assert(GameState[key] !== before[key],
+      `a ${key} reward (${q.id}) named the key but moved nothing`);
   }
 
   for (const a of ACHIEVEMENTS.LIST) {

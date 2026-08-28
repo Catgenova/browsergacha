@@ -947,6 +947,20 @@ class BattleScreen {
           GameState.addDiamonds(d);
           sub.push(`💎 ${d} Diamond${d > 1 ? 's' : ''} glitter in the wreckage!`);
         }
+        // And a 1% chance of a dumpling, sized to the fight. Difficulty
+        // is read off the enemies that were actually on the board rather
+        // than from the launch site: every fight kind sets its own level
+        // and there are seven of them, so the board is the one place
+        // that knows about all of them at once.
+        if (Math.random() < 0.01) {
+          const stars = this.dumplingStars(battle);
+          const got = GameState.addDumpling(stars);
+          sub.push(got
+            ? `🥟 A ${stars}★ Dumpling rolls out of the wreckage! ` +
+              `Worth ${Progression.starValue(stars, DUMPLINGS.dumpling).toLocaleString()} ` +
+              'star-up points.'
+            : '🥟 A dumpling rolled out — but the roster is full, so it got away.');
+        }
         // Random scroll drops (10% Common, 3% Rare) apply outside the
         // tower and the campaign — both pay their own fixed rewards.
         if (!this.towerFight && !this.campaignFight) {
@@ -1111,6 +1125,22 @@ class BattleScreen {
       battle.log(`${b.title} ×${b.count} — ${b.labels.join(' · ')}`, 'log-system');
     }
     battle.log('Battle start! Click an ability, then a target.', 'log-system');
+  }
+
+  // How big a dumpling this fight has earned, 1 to 5.
+  //
+  // Off the ENEMY LEVELS on the board, which is the only difficulty
+  // signal every fight kind shares: campaign nodes, boss stages, tower
+  // floors, attunement stages, dungeons and the rift all compute a level
+  // at their own launch site and none of them records it anywhere
+  // common. What you fought is a fair reading of how hard it was, and it
+  // cannot drift out of step with a launcher that changes.
+  dumplingStars(battle) {
+    const foes = battle.units.filter((u) => u.team === TEAM.ENEMY);
+    const level = foes.reduce((n, u) => Math.max(n, u.level || 1), 1);
+    // Twenty levels a star: the level cap is 100, so a 5-star dumpling
+    // wants an endgame fight rather than a lucky roll on floor one.
+    return Math.max(1, Math.min(5, Math.ceil(level / 20)));
   }
 
   update(dt) {

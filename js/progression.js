@@ -42,8 +42,14 @@ const Progression = (() => {
   const STAR_POINTS = [0, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
 
   // What a hero at `stars` is worth when spent.
-  function starValue(stars) {
-    return STAR_POINTS[Math.max(0, Math.min(MAX_STARS, stars))] || 0;
+  //
+  // A def may carry its OWN table and override the factorials: a
+  // dumpling is fodder and nothing else, so it is priced on a scale of
+  // its own rather than pretending to be a hero of that rating.
+  function starValue(stars, def = null) {
+    const s = Math.max(0, Math.min(MAX_STARS, stars));
+    if (def && Array.isArray(def.starPoints)) return def.starPoints[s] || 0;
+    return STAR_POINTS[s] || 0;
   }
 
   // Points banked to go from `stars` to `stars + 1`. Zero at the cap,
