@@ -454,6 +454,25 @@ const Abilities = (() => {
     }
   }
 
+  // Deadweight (Hollowbone 3pc): a curse laid by these birds drags. The
+  // weight is stamped onto the affliction AS IT LANDS rather than read
+  // off the field afterwards, and that is the whole reason the tier is
+  // affordable: effectiveStat runs on every meter tick and every damage
+  // calculation, so a version that scanned the opposing team for a hook
+  // would be paid for thousands of times a fight. Unit.effectiveStat
+  // reads `speedBite` out of the status loop it was already running.
+  //
+  // It also lays no second icon, which is the standing rule for this
+  // roster -- the drag rides on the curse that is already showing.
+  function deadweight(caster, fx) {
+    let bite = 0;
+    for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.slowPerDebuff) bite += p.hooks.slowPerDebuff;
+    }
+    if (bite > 0) fx.speedBite = bite;
+    return fx;
+  }
+
   // Permanent growth (Nestora's nest). Written onto BASE attack rather
   // than handed out as a blessing, and that is the whole mechanic:
   //
@@ -817,8 +836,11 @@ const Abilities = (() => {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
         }
         for (let i = 0; i <= spread; i++) {
-          target.addStatusEffect({ kind: 'dot', amount, turns: dotTurns,
-            flavor: effect.flavor || null, source: caster });
+          // Poisons drag too: a curse is a curse whether it is a stat cut
+          // or something eating you, and a tier that skipped the DoT
+          // half would read as a bug to anybody playing a poison kit.
+          target.addStatusEffect(deadweight(caster, { kind: 'dot', amount,
+            turns: dotTurns, flavor: effect.flavor || null, source: caster }));
         }
         // A caster with `dotBitesOnApply` (Flurry) lights fires that
         // take AT ONCE: every fresh plate pays one tick the moment it
@@ -951,7 +973,17 @@ const Abilities = (() => {
         // alike: a -30% DEF break (mult 0.70) deepens to 0.65, while a
         // +30% damage-taken mark (mult 1.30) rises to 1.35.
         let mult = effect.mult;
-        const severity = ladder.debuffPower || 0;
+        // A `debuffPowerAdd` hook deepens every hex its owner lands, the
+        // way the rung deepens one skill (Hollowbone's Rigor, which
+        // prices the depth off speed). Same arithmetic, same direction,
+        // one number: severity always moves AWAY from neutral.
+        let severity = ladder.debuffPower || 0;
+        if (effect.type === 'debuff') {
+          for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+            const add = p.hooks && p.hooks.debuffPowerAdd;
+            if (add) severity += typeof add === 'function' ? (add(caster, target) || 0) : add;
+          }
+        }
         if (severity > 0 && typeof mult === 'number' && effect.type === 'debuff') {
           mult = mult < 1 ? Math.max(0, mult - severity) : mult + severity;
         }
@@ -1020,7 +1052,7 @@ const Abilities = (() => {
         if (effect.type === 'buff' && target.buffsSealed()) {
           return { kind: 'buff', target, stat: effect.stat, sealed: true };
         }
-        target.addStatusEffect({
+        target.addStatusEffect(deadweight(effect.type === 'debuff' ? caster : null, {
           kind: effect.type,
           stat: effect.stat,
           // `mult`, not `effect.mult`: severity rungs have already been
@@ -1032,7 +1064,7 @@ const Abilities = (() => {
           source: caster,
           add: addAmt,
           turns,
-        });
+        }));
         return { kind: effect.type, target, stat: effect.stat, turns };
       }
       case 'freeze': {

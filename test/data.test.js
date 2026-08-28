@@ -302,6 +302,14 @@ test('every sect holds one race, once each, with its number', () => {
     // The light brood. No 1-star and no 2-star: the light and dark
     // orders run four 3-stars, three 4-stars and two 5-stars instead.
     sunbrood: { number: 11, race: 'avian', members: ['aurek', 'durn', 'nemeris', 'aster', 'rizzo', 'mavros', 'orien', 'solari', 'nestora'] },
+    // The dark birds. Named, numbered and PACKED ahead of a single
+    // hero: this sect has less free ground than any other on the roster
+    // (its element already sells the whole make-a-debuff-stick axis and
+    // the Nightflowers are already dark debuffs and death), so knowing
+    // what the three tiers may not be was most of the design and it was
+    // settled before the art arrived. Empty members is not defunct --
+    // the flag below is what tells a closed order from an unfilled one.
+    hollowbone: { number: 12, race: 'avian', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -334,7 +342,16 @@ test('every sect holds one race, once each, with its number', () => {
     if (sect.defunct) {
       assert(sect.members.length === 0,
         `${id} is a closed order but holds ${sect.members.length} hero(es)`);
+    } else if (want.founding) {
+      // Founded, numbered, packed, waiting on art. Neither standing nor
+      // buried, and the flag has to be DECLARED on both sides -- a sect
+      // that lost its roster to a bad edit still fails, because nothing
+      // here infers "founding" from an empty array.
+      assert(!!sect.founding, `${id} is expected to be a founding order and is not`);
+      assert(sect.members.length === 0,
+        `${id} is still marked founding but holds ${sect.members.length} hero(es)`);
     } else {
+      assert(!sect.founding, `${id} is a filled order still marked founding`);
       assert(sect.members.length > 0, `${id} is a standing order with nobody in it`);
     }
   }

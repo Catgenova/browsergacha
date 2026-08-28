@@ -223,6 +223,13 @@ class Unit {
 
     // Status effects: `add` is a flat bonus (crit stats), `mult` scales.
     for (const fx of this.statusEffects) {
+      // Deadweight (Hollowbone 3pc): a curse laid by those birds carries
+      // a `speedBite` stamped on at application, and it drags whatever
+      // the curse itself was about. Read here rather than off a hook
+      // scanning the field, because this function runs on every meter
+      // tick and every damage calculation and a per-call scan of the
+      // opposing team would be paid for thousands of times a fight.
+      if (stat === 'speed' && fx.speedBite) value *= 1 - fx.speedBite;
       if (fx.stat !== stat) continue;
       if (fx.add) value += fx.add;
       if (fx.mult) value *= fx.mult;
@@ -1135,6 +1142,27 @@ class Unit {
     let taken = amount;
     for (const p of this.hookSources()) {
       if (p.hooks && p.hooks.healTakenAdd) taken *= 1 + p.hooks.healTakenAdd;
+    }
+    // Dry Bones (Hollowbone 4pc): a cursed enemy recovers less from
+    // anything. Scanned off the field rather than stamped onto a curse,
+    // because it is a property of being afflicted AT ALL rather than of
+    // any one affliction -- and gated behind that question first, so a
+    // party nobody has cursed never pays for the scan. heal() runs a
+    // few times a turn where effectiveStat runs constantly, which is
+    // what makes a scan affordable here and not there.
+    const cursed = this.statusEffects.some(
+      (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+    if (cursed && typeof Battle !== 'undefined' && Battle.active) {
+      let cut = 0;
+      for (const foe of Battle.active.livingUnits()) {
+        if (foe.team === this.team) continue;
+        for (const p of (foe.hookSources ? foe.hookSources() : [])) {
+          if (p.hooks && p.hooks.healCutOnDebuff) {
+            cut = Math.max(cut, p.hooks.healCutOnDebuff);
+          }
+        }
+      }
+      if (cut > 0) taken *= 1 - Math.min(0.9, cut);
     }
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + Math.round(taken));

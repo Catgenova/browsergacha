@@ -12303,4 +12303,188 @@ test('Nestora: The High Nest raises the ceiling to +50%', () => {
   } finally { Battle.active = prev; }
 });
 
+// The Hollowbone pack, written before a single bird of the sect exists.
+// It has less free ground than any other on the roster -- the dark
+// ELEMENT already sells whether a curse lands and how long it lasts, and
+// the Nightflowers are already a dark sect of debuffs and death -- so
+// all three tiers are about how hard an affliction BITES, which is the
+// one axis neither of those touches.
+//
+// The tiers are driven directly rather than through a fielded sect: the
+// roster is empty by design, so there is nobody to field.
+test('Hollowbone 2pc Rigor: speed spent as debuff depth', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    // The real tier, off the sect, so the test measures the pack rather
+    // than a copy of it written in the test file.
+    const rigor = RACES.sectTiers('hollowbone', 2).find((t) => t.name === 'Rigor');
+    assert(rigor, 'Rigor is not in the Hollowbone pack');
+
+    const caster = place(battle, HEROES.aster, TEAM.PLAYER, 4);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+    foe.debuffResistance = () => 0;
+
+    const land = (spd) => {
+      foe.statusEffects = [];
+      caster.speed = spd;
+      const real = Math.random;
+      Math.random = () => 0.01;
+      try {
+        Abilities.applyEffect(
+          { type: 'debuff', stat: 'atk', mult: 0.80, turns: 3 }, caster, foe);
+      } finally { Math.random = real; }
+      const fx = foe.statusEffects.find((x) => x.kind === 'debuff' && x.stat === 'atk');
+      assert(fx, `nothing landed at ${spd} speed`);
+      return fx.mult;
+    };
+
+    // Off the pack: the printed number, untouched.
+    assert(Math.abs(land(140) - 0.80) < 1e-9, 'the bare hex was not 0.80');
+
+    caster.passives.push(rigor);
+    // Under 100 buys nothing; the rungs are whole steps of 20 over it.
+    assert(Math.abs(land(96) - 0.80) < 1e-9, 'a slow bird was paid a rung');
+    assert(Math.abs(land(119) - 0.80) < 1e-9, '119 bought a rung it had not reached');
+    assert(Math.abs(land(120) - 0.75) < 1e-9, `120 landed ${land(120)}, wanted 0.75`);
+    assert(Math.abs(land(160) - 0.65) < 1e-9, `160 landed ${land(160)}, wanted 0.65`);
+
+    // Severity moves AWAY from neutral, so the same rung reads correctly
+    // on an amplification: a x1.20 vulnerability rises rather than falls.
+    foe.statusEffects = [];
+    caster.speed = 160;
+    const real = Math.random;
+    Math.random = () => 0.01;
+    try {
+      Abilities.applyEffect(
+        { type: 'debuff', stat: 'damageTaken', mult: 1.20, turns: 3 }, caster, foe);
+    } finally { Math.random = real; }
+    const mark = foe.statusEffects.find((x) => x.stat === 'damageTaken');
+    assert(mark && Math.abs(mark.mult - 1.35) < 1e-9,
+      `the mark deepened to ${mark && mark.mult}, wanted 1.35`);
+  } finally { Battle.active = prev; }
+});
+
+// Carried ON the curse rather than read off the field, which is what
+// makes it affordable: effectiveStat runs on every meter tick and every
+// damage calculation. It also lays no second icon -- the drag rides on
+// the affliction already showing, which is the standing rule.
+test('Hollowbone 3pc Deadweight: every curse they land drags', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const caster = place(battle, HEROES.aster, TEAM.PLAYER, 4);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+    foe.debuffResistance = () => 0;
+    const opened = foe.effectiveStat('speed');
+
+    const curse = () => {
+      Math.random = () => 0.01;
+      try {
+        Abilities.applyEffect(
+          { type: 'debuff', stat: 'atk', mult: 0.90, turns: 5 }, caster, foe);
+      } finally { Math.random = real; }
+    };
+
+    // Off the pack, a hex is just a hex.
+    curse();
+    assert(foe.effectiveStat('speed') === opened, 'a bare hex dragged');
+    foe.statusEffects = [];
+
+    // The real tier, off the sect. A locally written copy would have
+    // measured the test file rather than the pack -- moving the pack's
+    // 3% to 6% left the first draft passing, which is exactly the
+    // failure a sabotage sweep is for.
+    const deadweight = RACES.sectTiers('hollowbone', 3)
+      .find((t) => t.name === 'Deadweight');
+    assert(deadweight, 'Deadweight is not in the Hollowbone pack');
+    caster.passives.push(deadweight);
+    curse();
+    assert(foe.effectiveStat('speed') === Math.round(opened * 0.97),
+      `one curse left ${foe.effectiveStat('speed')} of ${opened}`);
+    curse(); curse();
+    assert(foe.effectiveStat('speed') === Math.round(opened * 0.97 ** 3),
+      `three curses left ${foe.effectiveStat('speed')} of ${opened}`);
+
+    // No second icon: the drag is on the hexes already there.
+    assert(foe.statusEffects.length === 3,
+      `${foe.statusEffects.length} statuses for three curses — it laid its own`);
+    assert(foe.statusEffects.every((fx) => fx.stat === 'atk'),
+      'a speed debuff was laid alongside the hex');
+
+    // Poisons drag too. A tier that skipped the DoT half would read as a
+    // bug to anybody playing a poison kit.
+    foe.statusEffects = [];
+    Abilities.applyEffect({ type: 'dot', mult: 0.3, turns: 3 }, caster, foe);
+    assert(foe.statusEffects.some((fx) => fx.kind === 'dot' && fx.speedBite > 0),
+      'a poison landed without its weight');
+    assert(foe.effectiveStat('speed') < opened, 'a poison did not drag');
+
+    // And it lifts when the curse does.
+    foe.statusEffects = [];
+    assert(foe.effectiveStat('speed') === opened, 'the drag outlived the curse');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The answer to what a debuff party actually loses to, which is not
+// damage -- it is an enemy healer outrunning them.
+test('Hollowbone 4pc Dry Bones: a cursed enemy mends less', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const hollow = place(battle, HEROES.aster, TEAM.PLAYER, 4);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+    const mate = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1), 40);
+    mate.hookSources = () => [];
+
+    const mend = (unit) => {
+      unit.hp = Math.round(unit.maxHp * 0.10);
+      const before = unit.hp;
+      unit.heal(1000, unit);
+      return unit.hp - before;
+    };
+
+    // Off the pack, and cursed: the full mend.
+    foe.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.9, turns: 5 });
+    assert(mend(foe) === 1000, `a bare curse cut the mend to ${mend(foe)}`);
+
+    const dryBones = RACES.sectTiers('hollowbone', 4).find((t) => t.name === 'Dry Bones');
+    assert(dryBones, 'Dry Bones is not in the Hollowbone pack');
+    hollow.passives.push(dryBones);
+    assert(mend(foe) === 700, `a cursed enemy recovered ${mend(foe)} of 1000`);
+
+    // Uncursed enemies are untouched -- it is the affliction that does
+    // it, not the sect merely being on the field.
+    foe.statusEffects = [];
+    assert(mend(foe) === 1000, `an uncursed enemy recovered ${mend(foe)}`);
+
+    // And it never turns on its own side. A Hollowbone bird carrying a
+    // hex of its own must not be reading its own party's tier.
+    mate.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.9, turns: 5 });
+    assert(mend(mate) === 1000, `the pack cut its own ally's mend to ${mend(mate)}`);
+  } finally { Battle.active = prev; }
+});
+
+// The sect itself: founded, numbered, packed, and deliberately empty.
+test('Hollowbone: founded and packed ahead of its roster', () => {
+  const sect = RACES.SECTS.hollowbone;
+  assert(sect && sect.number === 12, 'the Hollowbones are not No. 12');
+  assert(sect.race === 'avian', `the Hollowbones are ${sect.race}`);
+  assert(sect.founding && sect.members.length === 0,
+    'a founding order holds nobody until the art lands');
+  // Light and dark share an order structure.
+  assert(JSON.stringify(sect.shape) === JSON.stringify(RACES.SECTS.sunbrood.shape),
+    'the dark order is not on the same shape as the light one');
+  const names = RACES.sectTiers('hollowbone', 4).map((t) => t.name);
+  assert(names.join() === 'Rigor,Deadweight,Dry Bones',
+    `the pack reads ${names.join(', ')}`);
+});
+
 report();

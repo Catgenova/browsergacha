@@ -169,6 +169,31 @@ const RACES = (() => {
     sunbrood: { id: 'sunbrood', name: 'Sunbrood', number: 11,
                  shape: { 3: 4, 4: 3, 5: 2 },
                  members: ['aurek', 'durn', 'nemeris', 'aster', 'rizzo', 'mavros', 'orien', 'solari', 'nestora'] },
+    // The dark birds, named and numbered ahead of their roster and
+    // running the same shape the Sunbrood does -- light and dark share
+    // an order structure, four 3-stars, three 4-stars and two 5-stars.
+    //
+    // The pack is written FIRST here, before a single hero, and it is
+    // written that way on purpose: this sect has less free ground than
+    // any other on the roster. The dark ELEMENT already sells the whole
+    // "make a debuff stick" axis (+25% Accuracy, 20% resistance pierced,
+    // a 50% chance of an extra turn), and the Nightflowers are already a
+    // dark sect of debuffs and death (+8% damage per debuff on the
+    // target, cooldowns off a fallen ally, damage per body on the
+    // field). Knowing what the three tiers may NOT be is most of the
+    // design, so they were settled before the art arrived rather than
+    // after nine birds had been fitted around a guess.
+    //
+    // `founding` is a third state, and it needed one. A sect used to be
+    // either standing (members) or defunct (buried, never gains any),
+    // and this is neither: founded, numbered, packed, and waiting on
+    // art. The flag is what tells an unfilled order from a sect that
+    // lost its roster to a bad edit -- it is declared here and removed
+    // the day the first bird lands, at which point the roster test goes
+    // back to demanding members.
+    hollowbone: { id: 'hollowbone', name: 'Hollowbone', number: 12,
+                 race: 'avian', shape: { 3: 4, 4: 3, 5: 2 },
+                 founding: true, members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -451,6 +476,70 @@ const RACES = (() => {
           },
         },
         label: '+40% healing to an ally below half HP',
+      },
+    ],
+    // The Hollowbones spend speed on DEBUFF DEPTH, and that is the
+    // fourth conversion of the same pillar on the roster: wind banks
+    // speed as extra turns, the Razorwings spend it as damage, the
+    // Sunbrood spend it as healing, and these birds spend it on how much
+    // a curse is worth once it is on.
+    //
+    // Depth is the one thing left. Their own element sells whether a
+    // debuff LANDS (accuracy, resistance pierced) and how long it LASTS
+    // (Lingering) -- never how hard it bites -- so all three tiers below
+    // are about what an affliction is worth rather than about getting
+    // one to stick, and none of them repeats the Nightflowers.
+    hollowbone: [
+      {
+        count: 2, name: 'Rigor',
+        // The conversion itself. Stepped per 20 like the Sunbrood's
+        // rung rather than per 25 like Crosswind's, and for the same
+        // reason: this is a dark roster, not a wind one, and a rung
+        // nobody in the sect can reach is decoration.
+        //
+        // `debuffPowerAdd` moves a debuff AWAY FROM NEUTRAL, exactly as
+        // the `debuffPower` ladder rung does -- so a -20% ATK deepens to
+        // -25% and a x1.20 vulnerability rises to x1.25, and one number
+        // reads correctly on a cut and an amplification alike.
+        hooks: {
+          debuffPowerAdd(unit) {
+            const over = unit.effectiveStat('speed') - 100;
+            return over <= 0 ? 0 : Math.floor(over / 20) * 0.05;
+          },
+        },
+        label: '+5% debuff potency for every full 20 SPD above 100',
+      },
+      {
+        count: 3, name: 'Deadweight',
+        // Every curse they lay is heavier than it looks: it drags.
+        //
+        // Carried ON the debuff rather than read off the field, which is
+        // the whole reason it is affordable. effectiveStat is called on
+        // every tick of every meter and every damage calculation, and a
+        // tier that made it scan the opposing team for a hook would be
+        // paid for thousands of times a fight. Instead the weight is
+        // stamped onto the affliction at the moment it lands (see
+        // Abilities, the debuff and dot cases) and read out of the
+        // status loop that was already running.
+        //
+        // It also keeps the board readable, which is the standing rule:
+        // this lays no second icon. The drag rides on the curse that is
+        // already showing.
+        hooks: { slowPerDebuff: 0.03 },
+        label: 'every curse they land also drags 3% off the victim\'s Speed',
+      },
+      {
+        count: 4, name: 'Dry Bones',
+        // The answer to the thing a debuff party actually loses to,
+        // which is not damage -- it is an enemy healer outrunning them.
+        // Scanned off the field rather than stamped on the curse,
+        // because it is a property of being afflicted at all rather than
+        // of any one affliction; heal() runs a few times a turn where
+        // effectiveStat runs constantly, so the scan is affordable
+        // there, and it is gated behind "is this unit even cursed"
+        // so an unafflicted party never pays for it.
+        hooks: { healCutOnDebuff: 0.30 },
+        label: 'a cursed enemy recovers 30% less from anything',
       },
     ],
     razorwings: [
