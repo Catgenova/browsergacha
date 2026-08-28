@@ -448,6 +448,17 @@ const POSITIONALS = (() => {
     hooks: { critShelterWide: true },
   });
 
+  // Orien's hex: light straight down finds every gap there is. Standing
+  // back is what gives him the angle -- and it is the only lever that
+  // matters to a hero whose payout is one big stored blow, because the
+  // thing standing between the orb and the enemy is armour.
+  def('noon_angle', {
+    position: POSITION.BACK,
+    name: 'Noon Angle',
+    description: 'Back hex: everything he throws slips past 30% of the target\'s DEF.',
+    hooks: { defIgnoreAdd: 0.30 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
