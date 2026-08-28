@@ -957,7 +957,14 @@ const Abilities = (() => {
       case 'revive': {
         if (target.alive) return null;
         const revLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
-        target.revive(effect.pct + (revLad.heal || 0), caster);
+        // `perDeath` reads what the fight has already cost (Malachar's
+        // lantern gives back more the more it has taken in). Written on
+        // the effect without this it was a silent no-op -- the card said
+        // a number the engine never looked at.
+        const bodies = effect.perDeath
+          ? ((fieldFor(target) || {}).deaths || 0) : 0;
+        target.revive(effect.pct + (revLad.heal || 0) +
+          (effect.perDeath || 0) * bodies, caster);
         return { kind: 'revive', target, amount: target.hp };
       }
       case 'turnMeter': {

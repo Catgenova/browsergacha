@@ -554,6 +554,17 @@ const POSITIONALS = (() => {
     hooks: { debuffSpread: 0.15 },
   });
 
+  // Malachar's hex: a lantern lit before the fighting starts is already
+  // holding something. Answers the one real problem with a hero whose
+  // whole value is a running total -- on turn one the total is zero and
+  // he is a 4-star support handing out ordinary blessings.
+  def('struck_early', {
+    position: POSITION.BACK,
+    name: 'Struck Early',
+    description: 'Back hex: the lantern opens every battle already holding 3.',
+    hooks: { lanternStart: 3 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

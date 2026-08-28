@@ -4242,4 +4242,122 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.upwind,
   },
+
+  // The lantern, and the sect's last support. What is in the glass is
+  // whatever the fight has cost so far -- both sides, no favourites --
+  // and everything he hands out is worth more for it.
+  //
+  // He shares an INPUT with the Nightflowers' fourth tier, which counts
+  // the same bodies, and that is worth being straight about rather than
+  // hiding: theirs turns the count into damage for everyone holding it,
+  // his turns it into stronger blessings from one bird. Same reading,
+  // different output, different sect -- and a party running both is
+  // stacking two effects rather than compounding one.
+  //
+  // The real problem with a hero whose value is a running total is turn
+  // one, when the total is zero. His hex is the answer and it does
+  // nothing else: the lantern opens already holding three.
+  malachar: {
+    id: 'malachar',
+    element: 'dark',
+    name: 'Malachar',
+    title: 'Lanternbearer of the Hollowbone',
+    rarity: 4,
+    stats: { hp: 1560, atk: 118, def: 116, speed: 120 },
+    tint: { body: '#2a2438', helm: '#6a4a9a', weapon: '#c86ae8', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 96,
+      // Authored facing LEFT -- the cowl and the beak both point that
+      // way on the strip. The art is never touched; the def says which
+      // way it was drawn.
+      faceLeft: true,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/malacharidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'malachar_wickwork', name: 'Wickwork',
+        icon: 'assets/icons/fc866.png',
+        // SPEED, and not attack: a cd0 single-ally attack blessing is
+        // Kiri's Pinwheel exactly. Speed is also the better gift here --
+        // the sect's 2pc buys it and Rigor turns it into curse depth, so
+        // a wing he hurries is a wing whose hexes bite harder.
+        description: 'He turns the wick up under one of them: an ally gains +15% Speed ' +
+          'for 3 turns.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'buff', stat: 'speed', mult: 1.15, turns: 3 }],
+        levelUps: [
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+        ],
+      },
+      {
+        id: 'malachar_hold_it_up', name: 'Hold It Up',
+        icon: 'assets/icons/fc1073.png',
+        // Two stats, not one: a party-wide +20% ATK at cd5 is Orien's
+        // Handfuls of Sun exactly, and the roster said so the moment it
+        // was written. Two smaller blessings is also the better shape
+        // for this hero -- the passive deepens BOTH, so the lantern is
+        // worth twice as much on a skill that hands out twice as many.
+        description: 'He lifts the glass and the whole flock can see: ALL allies gain ' +
+          '+15% ATK and +15% DEF for 3 turns.',
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'buff', stat: 'atk', mult: 1.15, turns: 3 },
+          { type: 'buff', stat: 'def', mult: 1.15, turns: 3 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'malachar_what_it_kept', name: 'What It Kept',
+        icon: 'assets/icons/fc1272.png',
+        // The sect's only revive, and the one skill of his the passive
+        // does NOT touch -- a revive is not a blessing, so it carries
+        // its own scaling off the same count. The lantern gives back
+        // more the more it has taken in, which is the hero said twice.
+        description: 'He opens the glass over a body: a fallen ally is back up at 30% ' +
+          'health, plus 5% for every unit that has died this battle.',
+        cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'revive', pct: 0.30, perDeath: 0.05 }],
+        levelUps: [
+          { heal: 0.05 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+          { heal: 0.05 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Lantern Fills',
+      icon: 'assets/icons/fc1066.png',
+      // `buffPowerAdd` in its function form, the same shape Kiri's hover
+      // uses -- except hers reads WHO is receiving and this reads what
+      // the fight has cost. Capped at eight bodies, which on a 7v7 board
+      // is most of one side gone: past that a support handing out +60%
+      // blessings is not a payoff, it is a different game.
+      description: 'The glass keeps what the fight takes: every blessing Malachar hands ' +
+        'out is 5% stronger for each unit that has died this battle, up to 40%.',
+      hooks: {
+        buffPowerAdd(unit) {
+          const b = (typeof Battle !== 'undefined' && Battle.active) || null;
+          const head = unit.hookSources().reduce(
+            (n, p) => n + ((p.hooks && p.hooks.lanternStart) || 0), 0);
+          return Math.min(0.40, 0.05 * ((b ? b.deaths : 0) + head));
+        },
+      },
+    },
+    positional: POSITIONALS.struck_early,
+  },
 });
