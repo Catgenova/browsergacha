@@ -3331,8 +3331,16 @@ Object.assign(HEROES, {
         // Thrown as an ordinary blow, exactly like Balmor's bill: it can
         // be dodged, it can be reflected, and the DEF curve answers it.
         // Stored light is still a hit.
-        description: 'Everything the brood wasted, spent at once: the whole orb into a ' +
-          'single enemy.',
+        //
+        // The card has to carry the whole mechanic, because a bank is
+        // invisible: nothing in the UI shows what is in the orb, so a
+        // player who has not read the passive on the next tab over has
+        // no idea what pressing this is worth. It names what fills it,
+        // what the ceiling is, and what happens when it is empty.
+        description: 'Every mend the brood wasted, thrown at one of them: Orien empties ' +
+          'the orb as a single blow. It holds whatever healing has been spent on ' +
+          'already-full allies since the fight began, to a ceiling of 15% of his ' +
+          'max HP — and an empty orb throws nothing.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'spendPouch', store: 'orb' }],
         levelUps: [
