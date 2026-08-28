@@ -3105,4 +3105,146 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.called_shot,
   },
+
+  // The brood's second wall, and the opposite kind of one. Durn is a
+  // CONVERTER: he takes the blow and turns it into a mend, which means
+  // the damage still happens and the sect pays for it afterwards.
+  // Mavros is a DENIER. Nothing he does gives anything back, because
+  // his job is that there is nothing to give back.
+  //
+  // He answers the sect's actual loss condition. Everything the Sunbrood
+  // owns beats attrition -- two healers, a tank whose output is healing,
+  // a pack that pays 40% more on anyone under half -- and none of it
+  // beats a bird deleted between turns. Nemeris's egg covers exactly one
+  // such moment. Mavros covers the rest by making the big hits smaller
+  // and by standing where the enemy has to look at him.
+  //
+  // He is also the first taunt on the roster. The channel has been wired
+  // the whole time -- the AI picks a taunter outright, and Battle has a
+  // whole turn shape for the enemy it drew -- with nobody carrying it.
+  mavros: {
+    id: 'mavros',
+    element: 'light',
+    name: 'Mavros',
+    title: 'Casquebearer of the Sunbrood',
+    rarity: 4,
+    // Bulk over armour, where Durn takes the armour over the bulk. Two
+    // walls of the same sect should not be the same wall, and it is the
+    // same split Balmor and Strix are cut along.
+    //
+    // 104 is the slowest bird in the brood on purpose. He is the one
+    // thing here that is not in a hurry, and the 2pc still lifts him to
+    // 114 -- the sect's floor rather than an exception to it.
+    stats: { hp: 2100, atk: 92, def: 150, speed: 104 },
+    tint: { body: '#2a3a5a', helm: '#f0e0a8', weapon: '#c8a83a', shield: '#e8c84a' },
+    sprite: {
+      displayH: 100,
+      // Authored facing LEFT -- the beak and the casque both point that
+      // way on the strip -- so the flag turns him to face the enemy.
+      // The art is never touched; the def says which way it was drawn.
+      faceLeft: true,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/mavrosidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'mavros_shoulder', name: 'Shoulder',
+        icon: 'assets/icons/fc819.png',
+        // DEF-priced, like every wall who hits with what he is wearing.
+        // 0.65 is Korvid's rung of the band (Toll 0.50, Korvid 0.65,
+        // Morrow and Talon 0.70, Bit 0.80) and sits a step above Durn's
+        // 0.50, which is the whole of what a shelf buys on a slot one.
+        description: 'He simply arrives: 65% of his DEF to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damageDef', mult: 0.65 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'mavros_hold_the_gate', name: 'Hold the Gate',
+        icon: 'assets/icons/fc856.png',
+        // The roster's first taunt. It is cast on HIMSELF -- a taunt is
+        // a buff on the bird being looked at, not a hex on the ones
+        // looking -- and the DEF rides with it, because drawing the whole
+        // field onto a wall who has not braced is just a slower loss.
+        description: 'He puts himself in the doorway: enemies are drawn onto Mavros for ' +
+          '2 turns, and he braces for +30% DEF while they come.',
+        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'taunt', turns: 2 },
+          { type: 'buff', stat: 'def', mult: 1.30, turns: 2 },
+        ],
+        levelUps: [
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'mavros_the_whole_gate', name: 'The Whole Gate',
+        icon: 'assets/icons/fc1272.png',
+        description: 'The casque goes through the line: 95% of his DEF to the enemy FRONT ' +
+          'row, with a 50% chance on each to swing 20% softer for 2 turns.',
+        cooldown: 7, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damageDef', mult: 0.95 },
+          { type: 'debuff', stat: 'atk', mult: 0.80, turns: 2, chance: 0.5 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { debuffPower: 0.05 },
+          { debuffChance: 0.25 },
+          { debuffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Casque',
+      icon: 'assets/icons/fc1066.png',
+      // Crit immunity is a new axis: nothing on the roster has ever
+      // touched an INCOMING crit, and it is the precise counter to the
+      // one thing a healing sect cannot heal through -- a single blow
+      // arriving at 150%.
+      //
+      // He shelters the back hexes rather than the whole party, and that
+      // is aimed: Aster's ramp sheds a step every time he is struck and
+      // Rizzo is made of paper, so the two birds the brood most needs
+      // left alone are exactly the two standing behind Mavros.
+      //
+      // It reads where the VICTIM stands and never where HE does. A
+      // first draft gated the shelter on him holding a front hex and the
+      // data suite named it for what it was -- a positional wearing a
+      // passive's coat. The placement decision lives in Gatepost, where
+      // it belongs: the hex is what adds the centre rank.
+      description: 'The armour has no gap to find: Mavros can never be struck critically, ' +
+        'and neither can any ally standing on a BACK hex.',
+      hooks: {
+        critProof(unit, victim) {
+          // No liveness guard: the engine scans livingUnits, so a fallen
+          // casque is already out of the list before it asks. One was
+          // written here and could not be made to bite, which is the
+          // tell that it was never doing anything.
+          if (victim === unit) return true;
+          if (!victim.slot) return false;
+          if (victim.slot.position === POSITION.BACK) return true;
+          // His hex widens WHO is covered, not what is stopped.
+          return victim.slot.position === POSITION.CENTER &&
+            unit.hookSources().some((p) => p.hooks && p.hooks.critShelterWide);
+        },
+      },
+    },
+    positional: POSITIONALS.gatepost,
+  },
 });

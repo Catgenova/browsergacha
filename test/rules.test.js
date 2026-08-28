@@ -8069,7 +8069,7 @@ test('looping action animations still fire their completion callback', () => {
 // their back on the enemy.
 test('the facing audit is what it was last time somebody looked', () => {
   const LEFT = ['andrew', 'angelica', 'artur', 'cain', 'esmerelda',
-    'franz', 'javarious', 'lin', 'lucian', 'slick'];
+    'franz', 'javarious', 'lin', 'lucian', 'mavros', 'slick'];
   // One strip authored the other way round from its own sheet: Lin's
   // skill3 plants the ball to the right while the rest of her faces left.
   const STRIP = { 'lin:skill3': false };
@@ -11794,6 +11794,100 @@ test('Rizzo: The Long Shot always crits', () => {
     assert(weak.hp < was,
       'the seven did not crit, so it did not split, on a hero with no crit chance');
   } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The brood's second wall, and the opposite kind of one. Durn converts
+// a blow into a mend, so the damage still happens and the sect pays for
+// it afterwards; Mavros denies it. Crit immunity is a new axis -- until
+// him nothing on the roster touched an INCOMING crit -- and it is the
+// exact counter to the one thing a healing sect cannot heal through: a
+// single blow arriving at 150%.
+test('Mavros: the casque has no gap to find', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const mavros = roomy(place(battle, HEROES.mavros, TEAM.PLAYER, 1), 20);
+    mavros.dodgeChance = () => 0; mavros.reflectChance = () => 0;
+    const back = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4), 20);
+    const front = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2), 20);
+    const centre = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0), 20);
+    [back, front, centre].forEach((u) => {
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+    });
+    assert(back.slot.position === POSITION.BACK &&
+      front.slot.position === POSITION.FRONT &&
+      centre.slot.position === POSITION.CENTER, 'the fixture seated them wrong');
+
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    foe.effectiveStat = ((base) => function (stat) {
+      return stat === 'critChance' ? 1 : base.call(this, stat);
+    })(foe.effectiveStat);
+
+    const swing = (victim) => {
+      Math.random = () => 0;                    // every roll says yes
+      try {
+        return Abilities.strike(foe, victim, 500,
+          { crit: true, dodge: false, reflect: false }).crit;
+      } finally { Math.random = real; }
+    };
+
+    // Off his own hex, so what is under test is the passive alone.
+    mavros.slot = battle.playerSlots[4];
+    assert(swing(mavros) === false, 'the casque was cracked');
+    assert(swing(back) === false, 'the bird behind him was cracked');
+    assert(swing(front) === true,
+      'the front rank was sheltered — the shelter is the BACK hexes');
+    assert(swing(centre) === true,
+      'the centre was sheltered off his hex — that is Gatepost, not the passive');
+
+    // On the gate, the centre comes under the casque too.
+    mavros.slot = battle.playerSlots[1];
+    assert(mavros.positionalActive(), 'slot 1 is not a front hex');
+    assert(swing(centre) === false, 'Gatepost did not reach the centre');
+    assert(swing(front) === true, 'Gatepost swallowed the front rank as well');
+
+    // Dead birds shelter nobody.
+    mavros.hp = 0;
+    assert(swing(centre) === true, 'a fallen casque was still holding the gate');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The roster's first taunt. The channel has been wired the whole time --
+// the AI picks a taunter outright and Battle has a turn shape for the
+// enemy it drew -- with nobody carrying it.
+test('Mavros: Hold the Gate draws the field and braces for it', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const mavros = place(battle, HEROES.mavros, TEAM.PLAYER, 1);
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+    mate.hookSources = () => [];
+    const foes = [0, 1].map((i) => place(battle, DUMMIES.rat_knight, TEAM.ENEMY, i));
+
+    const gate = mavros.abilities.find((a) => a.def.id === 'mavros_hold_the_gate');
+    assert(gate, 'Hold the Gate is missing');
+    assert(gate.def.targeting === 'self',
+      'a taunt is a blessing on the bird being looked at, not a hex on the ones looking');
+
+    const defBefore = mavros.effectiveStat('def');
+    Abilities.execute(gate.def, mavros, mavros, battle);
+
+    assert(mavros.statusEffects.some((fx) => fx.stat === 'taunt'), 'nobody was drawn');
+    assert(mavros.effectiveStat('def') > defBefore,
+      'he drew the whole field without bracing for it');
+    assert(!mate.statusEffects.some((fx) => fx.stat === 'taunt'),
+      'the taunt landed on somebody else too');
+
+    // The AI has to actually answer it: a taunter is picked outright.
+    const drawn = AI.taunting([mavros, mate]);
+    assert(drawn.length === 1 && drawn[0] === mavros,
+      'the targeting layer did not single him out');
+  } finally { Battle.active = prev; }
 });
 
 report();
