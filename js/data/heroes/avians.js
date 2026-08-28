@@ -2352,4 +2352,120 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.bedrock,
   },
+
+  // The last bird, the senior wall, and the third answer to the same
+  // job. Strix PREVENTS -- he reads the speed gap and takes damage off
+  // the flight before it lands. Balmor ABSORBS -- he keeps what he is
+  // given and hands it back. Brannoc does neither: he PUNISHES, and he
+  // is the only one of the three who is worth anything while the enemy
+  // is ignoring him, which is the tank's real problem rather than the
+  // one tanks are usually built for.
+  //
+  // Carl, Slick, Toll and Oak all answer being hit themselves. Nobody
+  // answers somebody ELSE being hit, and that is the whole difference:
+  // the more the other side works around him, the more he charges for
+  // it.
+  //
+  // He also does not restate the sect's thesis, and that is deliberate
+  // -- Balmor already broke the pattern. Five conversions of a speed
+  // comparison is a sect; seven would be a gimmick.
+  brannoc: {
+    id: 'brannoc',
+    element: 'wind',
+    name: 'Brannoc',
+    title: 'Standing Line of the Razorwings',
+    rarity: 4,
+    stats: { hp: 2240, atk: 128, def: 162, speed: 104 },
+    tint: { body: '#e8e0c8', helm: '#2f6f4a', weapon: '#c8a83a', shield: '#8a9a5a' },
+    sprite: {
+      displayH: 102, // the tallest bird in the sect
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/Brannocidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'brannoc_rake', name: 'Rake',
+        icon: 'assets/icons/fc819.png',
+        description: 'A long reach across the near hexes: 75% ATK to the enemy front row ' +
+          'and their middle.',
+        cooldown: 0, targeting: 'front-and-center-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.75 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'brannoc_broken_ground', name: 'Broken Ground',
+        icon: 'assets/icons/fc1062.png',
+        // The third kind of defence, after Strix's prevention and
+        // Balmor's absorption: suppression. Damage stopped at the
+        // source rather than at the target.
+        description: 'Take the footing out from under the rank: 90% ATK to the enemy ' +
+          'front row, with a 50% chance each to cut 25% off their ATK for 2 turns.',
+        cooldown: 5, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 0.90 },
+          { type: 'debuff', stat: 'atk', mult: 0.75, turns: 2, chance: 0.5 },
+        ],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'brannoc_last_word', name: 'Last Word',
+        icon: 'assets/icons/fc1272.png',
+        description: 'Everything he has been saving up, into one of them: 220% ATK to a ' +
+          'single enemy.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 2.20 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Answer For It',
+      icon: 'assets/icons/fc1066.png',
+      // Fired inside the retaliation guard the engine already holds
+      // open, so an answer can never set off another answer -- two of
+      // these on one field would otherwise bounce blows off each other
+      // until the stack gave out.
+      //
+      // The counter is thrown through the ordinary pipe with
+      // `assist: false`, because it is his blow and nobody else's
+      // setup: an ATK buff on him is his own business, and the meter
+      // should read it as damage he dealt rather than splitting it.
+      description: 'Go through him and he charges for it: whenever an enemy damages one ' +
+        "of Brannoc's allies, he strikes them back for 40% ATK.",
+      hooks: {
+        onAllyStruck(unit, { ally, attacker, battle } = {}) {
+          if (!unit.alive || !attacker || !attacker.alive) return null;
+          if (attacker.team === unit.team) return null;
+          if (!ally || ally === unit || ally.team !== unit.team) return null;
+          Abilities.strike(unit, attacker,
+            unit.effectiveStat('atk') * 0.40, { assist: false });
+          return { floats: [{ target: attacker, text: '\u21ba', color: '#c8a83a' }] };
+        },
+      },
+    },
+    // Florence's hex, and it reads as well on him: the more of him they
+    // take, the harder every answer lands.
+    positional: POSITIONALS.last_stand,
+  },
 });
