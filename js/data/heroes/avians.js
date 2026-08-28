@@ -2035,4 +2035,102 @@ Object.assign(HEROES, {
     // slice of their own turn for it.
     positional: POSITIONALS.set_fast,
   },
+
+  // The still thing in a sect that never stops. Everything else in the
+  // Razorwings is priced off motion; Calima stands in the middle of the
+  // flower and raises haze, and what the haze is for is the one thing
+  // that beats the whole order -- being slowed.
+  //
+  // The sect's warder rather than its healer. Ilyra is already the wind
+  // 3-star mender, down to a skill called Following Wind, and a second
+  // one of those is a recolour with longer legs. Absorb is a different
+  // mechanic from a mend and almost nobody on the roster casts it: six
+  // abilities in the whole game before this one.
+  calima: {
+    id: 'calima',
+    element: 'wind',
+    name: 'Calima',
+    title: 'Haze of the Razorwings',
+    rarity: 3,
+    stats: { hp: 1420, atk: 104, def: 112, speed: 118 },
+    tint: { body: '#e8a8b8', helm: '#2f6f4a', weapon: '#5fd8c8', shield: '#e8e4d8' },
+    sprite: {
+      displayH: 94, // long legs, and the staff stands taller again
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/calimaidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'calima_haze', name: 'Haze',
+        icon: 'assets/icons/fc866.png',
+        description: "Warm air off the shallows: one ally gains a ward worth 14% of " +
+          "Calima's max HP for 2 turns.",
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', pct: 0.14, turns: 2 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+        ],
+      },
+      {
+        id: 'calima_standing_water', name: 'Standing Water',
+        icon: 'assets/icons/fc1062.png',
+        description: "The whole flat goes still: every ally gains a ward worth 7% of " +
+          "Calima's max HP, and 2% more each for every ally sharing it, for 3 turns.",
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', pct: 0.07, perTarget: 0.02, turns: 3 }],
+        levelUps: [
+          { heal: 0.02 },
+          { perTarget: 0.01 },
+          { heal: 0.02 },
+          { perTarget: 0.01 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'calima_clearing', name: 'Clearing',
+        icon: 'assets/icons/fc1272.png',
+        description: 'The haze lifts and takes something with it: every ally recovers ' +
+          '12% of their max HP and sheds one affliction.',
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'healHpPct', pct: 0.12 },
+          { type: 'cleanse', count: 1 },
+        ],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cleanseCount: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Slack Water',
+      icon: 'assets/icons/fc1066.png',
+      // The sect's one real weakness, answered. Every Razorwing tier is
+      // priced off outrunning the other side, so the counter to the
+      // whole order is a speed hex -- and a bird carrying Calima's haze
+      // simply cannot be given one. Tied to the ward rather than to her
+      // standing there, so it is paid for cast by cast and runs out
+      // when the ward does.
+      description: 'Nothing settles on still water: an ally carrying one of ' +
+        "Calima's wards cannot be slowed.",
+      hooks: { slowGuard: true },
+    },
+    // Peck's hex, and it is worth more here than it is to him: a
+    // Razorwing party takes its turns quickly, so a ward measured in
+    // TURNS burns down faster in this flight than in any other, and the
+    // extra one is the difference between a ward that covers a round
+    // and one that covers a swing.
+    positional: POSITIONALS.slow_simmer,
+  },
 });

@@ -1113,6 +1113,25 @@ class Unit {
     if (e.source === undefined && Unit.hookOwner && Unit.hookOwner !== this) {
       e.source = Unit.hookOwner;
     }
+    // Slow-guard (Calima's haze): a SPEED hex is voided outright while
+    // the target carries a ward raised by somebody holding the hook.
+    // Deliberately tied to the WARD rather than to her presence, the
+    // way meterGuard is tied to Artur simply standing there: this one
+    // has to be paid for cast by cast, and it runs out when the ward
+    // does.
+    //
+    // Only speed, and only a reduction. A sect whose every tier is
+    // priced off outrunning the other side has exactly one thing that
+    // beats it, and this answers that one thing rather than handing out
+    // a general hex immunity.
+    if (e.kind === 'debuff' && e.stat === 'speed' &&
+        typeof e.mult === 'number' && e.mult < 1) {
+      const warded = this.statusEffects.some((fx) => fx.kind === 'shield' &&
+        fx.amount > 0 && fx.source && fx.source !== this &&
+        (fx.source.hookSources ? fx.source.hookSources() : []).some(
+          (p) => p.hooks && p.hooks.slowGuard));
+      if (warded) return false;
+    }
     // Incoming-damage reductions from the SAME caster refresh rather
     // than stack. damageTakenBreakdown multiplies every damageTaken
     // status it finds, and a ward whose duration outruns its own
