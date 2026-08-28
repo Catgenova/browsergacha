@@ -479,6 +479,38 @@ const Abilities = (() => {
     }
   }
 
+  // A plague that gets around (Pox). A curse he lands may take a second
+  // bird as well -- a COPY, so the original is untouched, and the copy
+  // is never itself spread: the call sites below only ever offer the
+  // affliction that was actually cast, so there is no chain to run away
+  // with and no latch needed to stop one.
+  //
+  // Sibling to sinkAffliction above and pointed the other way: that one
+  // copies onto the caster's OWN side, this one onto the victim's.
+  function spreadAffliction(caster, victim, fx) {
+    let chance = 0;
+    for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.debuffSpread) chance += p.hooks.debuffSpread;
+    }
+    if (chance <= 0 || Math.random() >= Math.min(1, chance)) return null;
+    const b = fieldFor(victim);
+    if (!b || typeof b.livingUnits !== 'function') return null;
+    const others = b.livingUnits(victim.team).filter((u) => u !== victim);
+    if (!others.length) return null;
+    const onto = others[Math.floor(Math.random() * others.length)];
+    onto.addStatusEffect({ ...fx });
+    // Announced from HERE rather than from the result Battle unpacks,
+    // and that is not a detail. Battle's handler is a chain of
+    // `else if (res.kind === ...)`, so a branch that matched on a
+    // `spreadTo` field would swallow the debuff's own line -- the cast
+    // would report a plague and never report the hex it was actually
+    // casting. The spread is an extra thing that happened, so it says
+    // so extra.
+    if (b.addFloatingText) b.addFloatingText(onto, '\u2623', '#8ae85a');
+    if (b.log) b.log(`It gets around — ${onto.name} catches it too.`, 'log-enemy');
+    return onto;
+  }
+
   function deadweight(caster, fx) {
     let bite = 0;
     for (const p of (caster && caster.hookSources ? caster.hookSources() : [])) {
@@ -1021,8 +1053,10 @@ const Abilities = (() => {
           // passive and his own cooldown -- both of which count a
           // poison as a curse -- and in a dark meta that is most of what
           // is being thrown.
-          sinkAffliction(target, { kind: 'dot', amount, turns: dotTurns,
-            flavor: effect.flavor || null, source: caster });
+          const laid = { kind: 'dot', amount, turns: dotTurns,
+            flavor: effect.flavor || null, source: caster };
+          sinkAffliction(target, laid);
+          spreadAffliction(caster, target, laid);
         }
         // A caster with `dotBitesOnApply` (Flurry) lights fires that
         // take AT ONCE: every fresh plate pays one tick the moment it
@@ -1234,7 +1268,13 @@ const Abilities = (() => {
         if (effect.type === 'buff' && target.buffsSealed()) {
           return { kind: 'buff', target, stat: effect.stat, sealed: true };
         }
-        target.addStatusEffect(deadweight(effect.type === 'debuff' ? caster : null, {
+        // ONE object, stamped once, used by all three of the things that
+        // want it. The first pass built a second `laid` for the copies
+        // and it never went through deadweight, so a curse that spread
+        // dragged a victim's speed once however many copies of it they
+        // were wearing -- a browser probe caught three hexes on one bird
+        // slowing it by exactly one hex's worth.
+        const laid = deadweight(effect.type === 'debuff' ? caster : null, {
           kind: effect.type,
           stat: effect.stat,
           // `mult`, not `effect.mult`: severity rungs have already been
@@ -1246,10 +1286,11 @@ const Abilities = (() => {
           source: caster,
           add: addAmt,
           turns,
-        }));
+        });
+        target.addStatusEffect(laid);
         if (effect.type === 'debuff') {
-          sinkAffliction(target, { kind: 'debuff', stat: effect.stat, mult, turns,
-            source: caster });
+          sinkAffliction(target, laid);
+          spreadAffliction(caster, target, laid);
         }
         return { kind: effect.type, target, stat: effect.stat, turns };
       }
@@ -1566,6 +1607,8 @@ const Abilities = (() => {
           held.turns = Math.max(held.turns, turns);
           return { kind: 'healBlock', target, turns: held.turns, refreshed: true };
         }
+        spreadAffliction(caster, target,
+          { kind: 'debuff', stat: 'healblock', turns, source: caster });
         target.addStatusEffect({ kind: 'debuff', stat: 'healblock', turns,
           source: caster });
         return { kind: 'healBlock', target, turns };
