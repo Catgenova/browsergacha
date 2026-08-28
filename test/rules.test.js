@@ -42,7 +42,10 @@ function makeBattle() {
     livingUnits(team = null) {
       return battle.units.filter((u) => u.alive && (team === null || u.team === team));
     },
-    addFloatingText() {}, log() {},
+    // spawnImpact is what a BREAKING shield reaches for (Unit.absorb
+    // bursts the bubble), so any test that spends a ward to zero lands
+    // here. It was missing simply because no test had broken one yet.
+    addFloatingText() {}, log() {}, spawnImpact() {},
     onUnitHealed(healed, amount) {
       for (const u of battle.livingUnits(healed.team)) {
         for (const p of (u.hookSources ? u.hookSources() : u.passives)) {
@@ -9629,6 +9632,76 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The still thing in a sect that never stops. Her haze answers the one
+// thing that beats the whole order: every Razorwing tier is priced off
+// outrunning the other side, so the counter to all of it is a speed
+// hex -- and a bird carrying one of Calima's wards cannot be given one.
+test("Calima's Slack Water: nothing settles on still water", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const calima = place(battle, HEROES.calima, TEAM.PLAYER, 0);
+    const mate = () => {
+      const u = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+      u.hookSources = () => [];
+      return u;
+    };
+    const slow = (u, from) => u.addStatusEffect(
+      { kind: 'debuff', stat: 'speed', mult: 0.75, turns: 2, source: from });
+    const slowed = (u) => u.statusEffects.some(
+      (fx) => fx.kind === 'debuff' && fx.stat === 'speed');
+
+    // Unwarded, a hex lands exactly as it always did.
+    const bare = mate();
+    slow(bare, calima);
+    assert(slowed(bare), 'a speed hex failed to land on an unwarded ally');
+
+    // Warded by Calima, it does not.
+    const kept = mate();
+    Abilities.execute(calima.abilities[0].def, calima, kept, battle);
+    assert(kept.shieldTotal() > 0, 'Haze raised no ward at all');
+    slow(kept, calima);
+    assert(!slowed(kept), 'a speed hex settled on a bird carrying the haze');
+
+    // Only SPEED. This is the answer to the one thing that beats the
+    // sect, not a general hex immunity -- an armour break still lands.
+    kept.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.75, turns: 2 });
+    assert(kept.statusEffects.some((fx) => fx.stat === 'def'),
+      'the haze turned into a blanket immunity to every hex');
+    // ...and a speed BUFF is not a hex and must still land.
+    kept.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.2, turns: 2 });
+    assert(kept.statusEffects.some((fx) => fx.kind === 'buff' && fx.stat === 'speed'),
+      'the haze refused a speed blessing as though it were a hex');
+
+    // It runs out with the ward rather than with her presence: spend
+    // the pool and the next hex lands. Calima is still standing.
+    kept.statusEffects = kept.statusEffects.filter((fx) => fx.stat !== 'def');
+    kept.absorb(kept.shieldTotal());
+    assert(kept.shieldTotal() === 0, 'the ward survived being spent');
+    slow(kept, calima);
+    assert(slowed(kept),
+      'a spent ward still guarded -- the haze is tied to the ward, not to Calima');
+
+    // An EMPTY ward guards nothing either. Spending a ward to zero
+    // prunes it outright (Unit.absorb drops the plate), so that path
+    // alone never reaches the check -- but a ward can be raised worth
+    // nothing, and one worth nothing is not cover.
+    const hollow = mate();
+    hollow.addStatusEffect({ kind: 'shield', amount: 0, turns: 3, source: calima });
+    slow(hollow, calima);
+    assert(slowed(hollow), 'a ward worth nothing still turned a hex aside');
+
+    // And it is HER ward that does it, not any ward. A bubble somebody
+    // else put up buys nothing.
+    const other = mate();
+    other.addStatusEffect({ kind: 'shield', amount: 500, turns: 3, source: bare });
+    slow(other, calima);
+    assert(slowed(other),
+      "somebody else's ward guarded against a slow -- the hook is Calima's");
+  } finally { Battle.active = prev; }
+});
+
 // The sect's wall, and the answer to the question the Razorwings had
 // not had to face: what a TANK does in an order built on being faster.
 // He tanks on the sect's own currency -- the same speed gap every tier
@@ -9661,11 +9734,11 @@ test("Strix shelters the flight from anything he can outrun", () => {
     const fastHit = swing(mine + 20);
     assert(slowHit < fastHit,
       `a slow swing landed ${slowHit} and a fast one ${fastHit} -- the shelter did nothing`);
-    assert(Math.abs(slowHit / fastHit - 0.75) < 0.01,
-      `the shelter cut the blow to ${(slowHit / fastHit).toFixed(3)}, wanted 0.75`);
+    assert(Math.abs(slowHit / fastHit - 0.90) < 0.01,
+      `the shelter cut the blow to ${(slowHit / fastHit).toFixed(3)}, wanted 0.90`);
     // Something faster than him goes STRAIGHT THROUGH. That is the
     // price of tanking on a comparison rather than on armour, and
-    // without this the passive is just a flat 25% ward.
+    // without this the passive is just a flat 10% ward.
     const dead = swing(mine);
     assert(Math.abs(dead - fastHit) <= 1,
       'an enemy of exactly equal speed was still sheltered -- strictly faster, or nothing');
