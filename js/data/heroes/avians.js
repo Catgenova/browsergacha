@@ -1943,4 +1943,96 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.standard_bearer,
   },
+
+  // The sect's wall, and the answer to a question the Razorwings had
+  // not had to face yet: what a TANK does in an order whose whole
+  // thesis is being faster and hitting harder.
+  //
+  // The answer is that he tanks on the sect's own currency. Every
+  // Razorwing tier is paid off the gap between an attacker and their
+  // mark; Strix reads the same gap from the other side of the field and
+  // shelters the flight from anything he can outrun. Nothing slow gets
+  // past him -- and something faster than him goes straight through,
+  // which is the price and the reason he is not simply a wall.
+  //
+  // Not the dodge tank: Oak already owns that, hex and riposte
+  // together. Not a second Snub the Cable either. This is the fifth
+  // different thing the sect does with a speed comparison, after armour
+  // blindness, a blessing, a drained bar and a gate.
+  strix: {
+    id: 'strix',
+    element: 'wind',
+    name: 'Strix',
+    title: 'Bulwark of the Razorwings',
+    rarity: 2,
+    // The heavy one, and the slowest bird in the sect -- but still
+    // quick by the roster's standards, which his own passive requires:
+    // a shelter that only stops what it outruns is worth nothing on a
+    // body that outruns nobody.
+    stats: { hp: 1620, atk: 82, def: 128, speed: 112 },
+    tint: { body: '#8a7a5a', helm: '#2f6f4a', weapon: '#c8a83a', shield: '#e8e4d8' },
+    sprite: {
+      displayH: 96, // wings out, planted -- he takes up the whole hex
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/strixidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'strix_mantle', name: 'Mantle',
+        icon: 'assets/icons/fc819.png',
+        description: 'Wings out and forward: 70% ATK to the enemy FRONT row.',
+        cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.70 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'strix_headwind', name: 'Headwind',
+        icon: 'assets/icons/fc1272.png',
+        // A tank cooldown that is also the sect's engine. Slowing the
+        // whole enemy line widens the gap every Razorwing tier is paid
+        // off, deepens his own shelter, and is the ordinary speed hex
+        // rather than a new plate invented to mean the same thing.
+        description: 'Set against the whole line: a 50% chance each to strip 20% SPD ' +
+          'off every enemy for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'debuff', stat: 'speed', mult: 0.80, turns: 2, chance: 0.5 }],
+        levelUps: [
+          { debuffChance: 0.2 },
+          { debuffChance: 0.2 },
+          { debuffChance: 0.1 },
+          { debuffPower: 0.05 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Slow Gets Past',
+      icon: 'assets/icons/fc1062.png',
+      // Cover rather than a ward: the reduction is HIS, so the damage
+      // meter credits him for it instead of it vanishing into the
+      // defences of whichever bird was not hit.
+      description: 'While Strix stands, every ally takes 25% less damage from enemies ' +
+        'slower than he is.',
+      hooks: {
+        coverMult(unit, victim, attacker) {
+          if (!unit.alive || !attacker || !attacker.effectiveStat) return 1;
+          if (attacker.team === unit.team) return 1;
+          return unit.effectiveStat('speed') > attacker.effectiveStat('speed')
+            ? 0.75 : 1;
+        },
+      },
+    },
+    // Talon's hex, and it reads the same on a bird who is holding the
+    // line for a flight of casters: anyone who swings at him pays a
+    // slice of their own turn for it.
+    positional: POSITIONALS.set_fast,
+  },
 });

@@ -9629,6 +9629,108 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The sect's wall, and the answer to the question the Razorwings had
+// not had to face: what a TANK does in an order built on being faster.
+// He tanks on the sect's own currency -- the same speed gap every tier
+// is paid off, read from the other side of the field.
+test("Strix shelters the flight from anything he can outrun", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const strix = place(battle, HEROES.strix, TEAM.PLAYER, 1);
+    const mate = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4), 4000);
+    mate.dodgeChance = () => 0; mate.reflectChance = () => 0;
+    mate.hookSources = () => [];
+    const mine = strix.effectiveStat('speed');
+
+    const swing = (speed) => {
+      const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+      foe.speed = speed;
+      foe.hookSources = () => [];
+      mate.hp = mate.maxHp;
+      const real = Math.random;
+      Math.random = () => 0.99;           // no crit, no dodge, no reflect
+      try { Abilities.strike(foe, mate, 4000, { dodge: false, reflect: false }); }
+      finally { Math.random = real; }
+      battle.units = battle.units.filter((u) => u !== foe);
+      return mate.maxHp - mate.hp;
+    };
+
+    const slowHit = swing(mine - 20);
+    const fastHit = swing(mine + 20);
+    assert(slowHit < fastHit,
+      `a slow swing landed ${slowHit} and a fast one ${fastHit} -- the shelter did nothing`);
+    assert(Math.abs(slowHit / fastHit - 0.75) < 0.01,
+      `the shelter cut the blow to ${(slowHit / fastHit).toFixed(3)}, wanted 0.75`);
+    // Something faster than him goes STRAIGHT THROUGH. That is the
+    // price of tanking on a comparison rather than on armour, and
+    // without this the passive is just a flat 25% ward.
+    const dead = swing(mine);
+    assert(Math.abs(dead - fastHit) <= 1,
+      'an enemy of exactly equal speed was still sheltered -- strictly faster, or nothing');
+
+    // It is COVER, not a ward: the prevention belongs to Strix, so the
+    // meter credits him rather than losing it inside the defences of
+    // the bird who was not hit.
+    Meter.resetSession();
+    swing(mine - 20);
+    const mit = Meter.rows('mitigated', 'battle');
+    const his = (mit.list.find((r) => r.id === 'strix') || { value: 0 }).value;
+    assert(his > 0, 'Strix was credited nothing for the damage he prevented');
+
+    // And he shelters the FLIGHT, not himself: his own hide is his own
+    // business, so the cover must not fire when he is the one hit.
+    Meter.resetSession();
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.speed = mine - 20;
+    foe.hookSources = () => [];
+    strix.hp = strix.maxHp = 9e6;
+    strix.dodgeChance = () => 0; strix.reflectChance = () => 0;
+    const real = Math.random;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, strix, 4000, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    const self = Meter.rows('mitigated', 'battle').list
+      .find((r) => r.id === 'strix');
+    assert(!self || self.value === 0,
+      'Strix sheltered himself -- cover is for the ally standing behind him');
+    battle.units = battle.units.filter((u) => u !== foe);
+  } finally { Battle.active = prev; }
+
+  // Headwind is the ordinary speed hex, cast wide. A tank cooldown that
+  // is also the sect's engine: everything it slows is something every
+  // Razorwing tier now gets paid more for standing in front of.
+  {
+    const b2 = makeBattle();
+    const prev2 = Battle.active;
+    Battle.active = b2;
+    try {
+      const strix = place(b2, HEROES.strix, TEAM.PLAYER, 1);
+      maxSkill(strix, 1);
+      const foes = [1, 2, 4].map((i) => {
+        const f = roomy(place(b2, DUMMIES.rat_knight, TEAM.ENEMY, i), 400);
+        f.hookSources = () => [];
+        return f;
+      });
+      const was = foes.map((f) => f.effectiveStat('speed'));
+      const real = Math.random;
+      Math.random = () => 0;
+      try { Abilities.execute(strix.abilities[1].def, strix, foes[0], b2); }
+      finally { Math.random = real; }
+      foes.forEach((f, i) => {
+        assert(f.effectiveStat('speed') < was[i],
+          `${f.name} kept its full ${was[i]} speed through a Headwind`);
+      });
+      // The ordinary speed plate, not a new one invented to mean the
+      // same thing -- a player reads one icon and knows what it is.
+      const hex = foes[0].statusEffects.find((fx) => fx.kind === 'debuff');
+      assert(hex && hex.stat === 'speed',
+        `Headwind laid a '${hex && hex.stat}' plate instead of the speed one`);
+    } finally { Battle.active = prev2; }
+  }
+});
+
 // The sect's blesser. Everything else in the Razorwings turns speed
 // into damage on the swing; Kiri turns it into ATK before the swing,
 // which is the only place in the sect where being fast is worth
