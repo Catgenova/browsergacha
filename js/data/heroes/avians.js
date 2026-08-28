@@ -65,7 +65,7 @@ Object.assign(HEROES, {
       {
         id: 'cork_snap', name: 'Cork Snap',
         icon: 'assets/icons/fc819.png',
-        description: 'Thumb the cork off and let one bolt out: 160% ATK to a single enemy.',
+        description: 'One enemy: 160% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.6 }],
         // No crowd bonus: this is the one button he owns that is aimed
@@ -82,8 +82,7 @@ Object.assign(HEROES, {
       {
         id: 'squall_line', name: 'Squall Line',
         icon: 'assets/icons/fc823.png',
-        description: 'Tip the bottle across the whole enemy line: 60% ATK to ALL enemies, ' +
-          'and 3% more to each of them for every enemy beyond the first that the squall catches.',
+        description: 'All enemies: 60% ATK damage (+3% per extra target).',
         // His cheap sweep, and it was compounding twice: it hits every
         // body on the field AND gets deeper for each one. The crowd
         // bonus is the half that scales, so it is the half that moves.
@@ -101,9 +100,7 @@ Object.assign(HEROES, {
       {
         id: 'uncork_the_bottle', name: 'Uncork the Bottle',
         icon: 'assets/icons/fc786.png',
-        description: 'Pull the cork out entirely: 140% ATK to ALL enemies, and 10% more to ' +
-          'each of them for every enemy beyond the first caught in it, with a 50% chance ' +
-          'each to knock 20% off their action bars.',
+        description: 'All enemies: 140% ATK damage (+10% per extra target); 50% chance: -20% turn meter.',
         cooldown: 8, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.4, perTarget: 0.10 },
@@ -165,8 +162,7 @@ Object.assign(HEROES, {
       {
         id: 'sweep_the_deck', name: 'Sweep the Deck',
         icon: 'assets/icons/fc1045.png',
-        description: 'Work the pike along the enemy front rank: 70% ATK to the enemy FRONT row, ' +
-          'and 6% more to each of them for every enemy beyond the first the sweep catches.',
+        description: 'Enemy front row: 70% ATK damage (+6% per extra target).',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.7, perTarget: 0.06 }],
         levelUps: [
@@ -180,8 +176,7 @@ Object.assign(HEROES, {
       {
         id: 'gaff_and_haul', name: 'Gaff and Haul',
         icon: 'assets/icons/fc1050.png',
-        description: 'Drive the hook through a whole rank: 115% ATK to one enemy and everyone ' +
-          'level with them, and 8% more to each for every enemy beyond the first on the line.',
+        description: 'One enemy and their row: 115% ATK damage (+8% per extra target).',
         cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.15, perTarget: 0.08 }],
         levelUps: [
@@ -196,7 +191,7 @@ Object.assign(HEROES, {
       {
         id: 'skewer', name: 'Skewer',
         icon: 'assets/icons/fc89.png',
-        description: 'Both wings behind it, straight through one bird: 260% ATK to a single enemy.',
+        description: 'One enemy: 260% ATK damage.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
         // Deliberately no crowd bonus. Every other button he owns wants
         // a full enemy line; this is the one he presses when there is
@@ -254,8 +249,7 @@ Object.assign(HEROES, {
       {
         id: 'shivwork', name: 'Shivwork',
         icon: 'assets/icons/fc819.png',
-        description: 'In under the guard and out again: 60% ATK to the enemy FRONT row, ' +
-          'and 5% more to each of them for every enemy beyond the first he gets among.',
+        description: 'Enemy front row: 60% ATK damage (+5% per extra target).',
         // These numbers were cut once and put straight back. The cut was
         // made when Jack benched above the whole 3-star shelf -- but that
         // was the STAR MULTIPLIER talking, not the skill: it compounded
@@ -340,8 +334,7 @@ Object.assign(HEROES, {
       {
         id: 'slop_toss', name: 'Slop Toss',
         icon: 'assets/icons/fc823.png',
-        description: 'Lob a handful over the enemy line: 65% ATK to the enemy BACK row, ' +
-          'and 5% more to each of them for every enemy beyond the first it lands among.',
+        description: 'Enemy back row: 65% ATK damage (+5% per extra target).',
         cooldown: 0, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.65, perTarget: 0.05 }],
         levelUps: [
@@ -355,9 +348,8 @@ Object.assign(HEROES, {
       {
         id: 'chum_the_water', name: 'Chum the Water',
         icon: 'assets/icons/fc1117.png',
-        description: 'Upend the whole bucket over the rail: 110% ATK to the enemy BACK row, ' +
-          '8% more to each for every enemy beyond the first, and a 50% chance each to leave ' +
-          'them rotting for 25% ATK a turn over 3 turns.',
+        description: 'Enemy back row: 110% ATK damage (+8% per extra target); 50% chance: 25% ATK per turn for ' +
+          '3 turns.',
         cooldown: 5, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.1, perTarget: 0.08 },
@@ -412,7 +404,7 @@ Object.assign(HEROES, {
       {
         id: 'ladle_out', name: 'Ladle Out',
         icon: 'assets/icons/fc1041.png',
-        description: "A bowl pressed into somebody's wings: heal one ally for 15% of Peck's max HP.",
+        description: 'One ally: heals 15% of caster max HP.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', pct: 0.15 }],
         levelUps: [
@@ -426,8 +418,7 @@ Object.assign(HEROES, {
       {
         id: 'share_the_pot', name: 'Share the Pot',
         icon: 'assets/icons/fc1073.png',
-        description: 'Set the cauldron down where everyone can reach it: heal ALL allies for ' +
-          "5% of Peck's max HP, and 2% more each for every ally beyond the first at the table.",
+        description: 'All allies: heals 5% of caster max HP (+2% per extra target).',
         cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // Deliberately feeble at a thin table and the best team heal in
         // the game at a full one. Benched against every all-allies mend
@@ -449,8 +440,7 @@ Object.assign(HEROES, {
       {
         id: 'a_full_belly', name: 'A Full Belly',
         icon: 'assets/icons/fc1113.png',
-        description: 'Second helpings all round: ALL allies gain a ward worth 5% of ' +
-          "Peck's max HP for 3 turns, and 2% more each for every ally beyond the first fed.",
+        description: 'All allies: shield worth 5% of caster max HP for 3 turns (+2% per extra target).',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.05, perTarget: 0.02, turns: 3 }],
         // Same cut as the pot, for the same reason: `heal` rungs price
@@ -511,8 +501,7 @@ Object.assign(HEROES, {
       {
         id: 'anchor_swing', name: 'Anchor Swing',
         icon: 'assets/icons/fc1045.png',
-        description: 'Bring the whole anchor round: 70% of Talon\'s DEF to the enemy FRONT row, ' +
-          'and 5% more to each of them for every enemy beyond the first it reaches.',
+        description: 'Enemy front row: 70% DEF damage (+5% per extra target).',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damageDef', mult: 0.7, perTarget: 0.05 }],
         levelUps: [
@@ -526,8 +515,7 @@ Object.assign(HEROES, {
       {
         id: 'snub_the_cable', name: 'Snub the Cable',
         icon: 'assets/icons/fc1113.png',
-        description: 'Take the strain for the whole crew: ALL allies take 20% less damage ' +
-          'for 2 turns.',
+        description: 'All allies: -20% damage taken for 2 turns.',
         cooldown: 4, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // The first team-wide mitigation in the game. Nothing on the
         // roster reduced incoming damage for the whole side before
@@ -551,9 +539,8 @@ Object.assign(HEROES, {
       {
         id: 'let_go_the_anchor', name: 'Let Go the Anchor',
         icon: 'assets/icons/fc786.png',
-        description: 'Drop the whole weight of it: 140% of Talon\'s DEF to the enemy FRONT row, ' +
-          '10% more to each for every enemy beyond the first, and Talon takes a ward worth ' +
-          '20% of his max HP for 3 turns.',
+        description: 'Enemy front row: 140% DEF damage (+10% per extra target); self: shield worth 20% of ' +
+          'caster max HP for 3 turns.',
         cooldown: 7, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damageDef', mult: 1.4, perTarget: 0.10 }],
         selfEffects: [{ type: 'shield', pct: 0.20, turns: 3 }],
@@ -619,7 +606,7 @@ Object.assign(HEROES, {
       {
         id: 'bill_sweep', name: 'Bill Sweep',
         icon: 'assets/icons/fc819.png',
-        description: "Rake the bill along the line: 3% of Bo's max HP as damage to the enemy FRONT row.",
+        description: 'Enemy front row: 3% of caster max HP as damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         // No crowd bonus on the damage itself -- his crowd bonus is the
         // PASSIVE, which pays once per bird he catches. Every Gulldigger
@@ -644,8 +631,7 @@ Object.assign(HEROES, {
       {
         id: 'bill_full_of_sea', name: 'Bill Full of Sea',
         icon: 'assets/icons/fc1041.png',
-        description: "Scoop up half the harbour and swallow it: heal 20% of Bo's max HP " +
-          'and take 25% less damage for 2 turns.',
+        description: 'Self: heals 20% of caster max HP; -25% damage taken for 2 turns.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -664,8 +650,7 @@ Object.assign(HEROES, {
       {
         id: 'swallow_it_whole', name: 'Swallow It Whole',
         icon: 'assets/icons/fc786.png',
-        description: "Something far too big for him, gone in one: 30% of Bo's max HP as " +
-          'damage to a single enemy, and Bo mends 25% of his own max HP on the way down.',
+        description: 'One enemy: 30% of caster max HP as damage; self: heals 25% of caster max HP.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
         // Both numbers on this card are HP-priced, so ONE heal rung
         // raises both of them -- the ladder cannot tell the bite from
@@ -734,7 +719,7 @@ Object.assign(HEROES, {
       {
         id: 'pipe_the_side', name: 'Pipe the Side',
         icon: 'assets/icons/fc866.png',
-        description: 'Two notes on the conch and somebody moves: one ally gains 15% action bar.',
+        description: 'One ally: +15% turn meter.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         // Rungs of three rather than the usual five. At the standard
         // step this reached 45% -- and 56% off her own back hex --
@@ -754,9 +739,7 @@ Object.assign(HEROES, {
       {
         id: 'all_hands', name: 'All Hands',
         icon: 'assets/icons/fc1113.png',
-        description: 'The long call, and the whole deck answers: ALL allies gain 8% action ' +
-          'bar and 2% more each for every ally beyond the first who answers, plus 15% ATK ' +
-          'for 2 turns.',
+        description: 'All allies: +8% turn meter (+2% per extra target); +15% ATK for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // The sect's crowd bonus on tempo. It matters more to the
         // Gulldiggers than it would to anyone else: their damage is
@@ -818,8 +801,7 @@ Object.assign(HEROES, {
       {
         id: 'take_a_bearing', name: 'Take a Bearing',
         icon: 'assets/icons/fc1050.png',
-        description: 'Fix somebody\'s position and hold them to it: one ally gains 25% ' +
-          'Accuracy and 25% Resistance for 2 turns.',
+        description: 'One ally: +15% Accuracy for 2 turns; +15% Resistance for 2 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         // Two stats almost nothing on the roster hands out, and the two
         // the Gulldiggers most need: half the sect's riders are gated
@@ -838,8 +820,7 @@ Object.assign(HEROES, {
       {
         id: 'sound_the_depths', name: 'Sound the Depths',
         icon: 'assets/icons/fc823.png',
-        description: 'Read the bottom and mark the shoals: ALL allies gain 10% Crit Chance ' +
-          'for 3 turns.',
+        description: 'All allies: +10% Crit Chance for 3 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // The roster's first TEAM crit buff -- Artur hands crit to one
         // ally at a time and nobody else hands it out at all. Sized
@@ -858,8 +839,7 @@ Object.assign(HEROES, {
       {
         id: 'every_berth_charted', name: 'Every Berth Charted',
         icon: 'assets/icons/fc1117.png',
-        description: 'The whole deck, drawn to scale: for 2 turns every ally counts as ' +
-          'standing on their own favoured hex, wherever they actually are.',
+        description: 'All allies: positional bonus active on any hex, for 2 turns.',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // The map. Every hero in the game carries a bonus locked to one
         // hex and spends the whole fight either on it or without it;
@@ -924,9 +904,7 @@ Object.assign(HEROES, {
       {
         id: 'shield_bell', name: 'Shield Bell',
         icon: 'assets/icons/fc1045.png',
-        description: 'Ring the boss of the shield across the enemy front rank: 65% of ' +
-          "Korvid's DEF, and a 50% chance each to set them burning for 20% ATK a turn " +
-          'over 3 turns.',
+        description: 'Enemy front row: 65% DEF damage; 50% chance: 20% ATK per turn for 3 turns.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damageDef', mult: 0.65 },
@@ -943,9 +921,7 @@ Object.assign(HEROES, {
       {
         id: 'close_the_ranks', name: 'Close the Ranks',
         icon: 'assets/icons/fc1113.png',
-        description: 'Set the shield down where the whole court can get behind it: ALL ' +
-          'allies gain a ward worth 100% of Korvid\'s ATK for 3 turns, and 10% more for ' +
-          'every burning enemy.',
+        description: 'All allies: shield worth 100% ATK for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', mult: 1.0, turns: 3 }],
         levelUps: [
@@ -960,8 +936,7 @@ Object.assign(HEROES, {
       {
         id: 'from_the_ashes', name: 'From the Ashes',
         icon: 'assets/icons/fc786.png',
-        description: 'The Court does not end: raise one fallen ally at 40% health, and ' +
-          'give every ally 20% ATK for 3 turns.',
+        description: 'One fallen ally: revives at 40% HP; self: +20% ATK for 3 turns.',
         cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'revive', pct: 0.40 }],
         selfEffects: [{ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }],
@@ -1015,7 +990,7 @@ Object.assign(HEROES, {
       {
         id: 'twin_cut', name: 'Twin Cut',
         icon: 'assets/icons/fc89.png',
-        description: 'Both knives, one after the other: 75% ATK twice to a single enemy.',
+        description: 'One enemy: 2 hits of 75% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.75 },
@@ -1032,8 +1007,7 @@ Object.assign(HEROES, {
       {
         id: 'cinder_in_the_wound', name: 'Cinder in the Wound',
         icon: 'assets/icons/fc819.png',
-        description: 'Leave something in it: 130% ATK to one enemy, with a 50% chance to ' +
-          'set them burning for 30% ATK a turn over 3 turns.',
+        description: 'One enemy: 130% ATK damage; 50% chance: 30% ATK per turn for 3 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.3 },
@@ -1051,8 +1025,7 @@ Object.assign(HEROES, {
       {
         id: 'carrion_call', name: 'Carrion Call',
         icon: 'assets/icons/fc1050.png',
-        description: 'A vulture knows when to come down: 200% ATK to one enemy, and half ' +
-          'again against anyone already burning.',
+        description: 'One enemy: 200% ATK damage (300% vs a burning target).',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 2.0, bonusVs: { flavor: 'burn', mult: 1.5 } }],
         levelUps: [
@@ -1102,8 +1075,7 @@ Object.assign(HEROES, {
       {
         id: 'brandwork', name: 'Brandwork',
         icon: 'assets/icons/fc1045.png',
-        description: 'A burning blade along the front rank: 75% ATK to the enemy FRONT row, ' +
-          'with a 50% chance each to set them burning for 15% ATK a turn over 2 turns.',
+        description: 'Enemy front row: 75% ATK damage; 50% chance: 15% ATK per turn for 2 turns.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.75 },
@@ -1120,8 +1092,7 @@ Object.assign(HEROES, {
       {
         id: 'running_flame', name: 'Running Flame',
         icon: 'assets/icons/fc823.png',
-        description: 'Drag the blade and let it catch: 140% ATK to one enemy and everyone ' +
-          'level with them.',
+        description: 'One enemy and their row: 140% ATK damage.',
         cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.4 }],
         levelUps: [
@@ -1136,7 +1107,7 @@ Object.assign(HEROES, {
       {
         id: 'crest_and_comb', name: 'Crest and Comb',
         icon: 'assets/icons/fc786.png',
-        description: 'Everything he has, into one bird: 250% ATK to a single enemy.',
+        description: 'One enemy: 250% ATK damage.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 2.5 }],
         levelUps: [
@@ -1186,8 +1157,7 @@ Object.assign(HEROES, {
       {
         id: 'point_work', name: 'Point Work',
         icon: 'assets/icons/fc89.png',
-        description: 'A rapier does not swing: 145% ATK to a single enemy, slipping past ' +
-          '15% of their DEF.',
+        description: 'One enemy: 145% ATK damage (ignores 15% DEF).',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.45, ignoreDef: 0.15 }],
         levelUps: [
@@ -1201,8 +1171,7 @@ Object.assign(HEROES, {
       {
         id: 'riposte', name: 'Riposte',
         icon: 'assets/icons/fc819.png',
-        description: 'Answer the opening: 110% ATK to one enemy, and Barrington takes 30% ' +
-          'Crit Chance for 3 turns.',
+        description: 'One enemy: 110% ATK damage; self: +30% Crit Chance for 3 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.1 }],
         selfEffects: [{ type: 'buff', stat: 'critChance', add: 0.30, turns: 3 }],
@@ -1218,9 +1187,7 @@ Object.assign(HEROES, {
       {
         id: 'the_whole_line', name: 'The Whole Line',
         icon: 'assets/icons/fc1050.png',
-        description: 'Down the length of the rank, one thrust each: 105% ATK to the enemy ' +
-          'BACK row, with a 50% chance each to set them burning for 20% ATK a turn over ' +
-          '3 turns.',
+        description: 'Enemy back row: 105% ATK damage; 50% chance: 20% ATK per turn for 3 turns.',
         cooldown: 7, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.05 },
@@ -1267,8 +1234,7 @@ Object.assign(HEROES, {
       {
         id: 'swing_the_censer', name: 'Swing the Censer',
         icon: 'assets/icons/fc823.png',
-        description: 'Coals on a chain, out across the line: 60% ATK to ALL enemies, with ' +
-          'a 50% chance each to set them burning for 15% ATK a turn over 2 turns.',
+        description: 'All enemies: 60% ATK damage; 50% chance: 15% ATK per turn for 2 turns.',
         cooldown: 0, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.6 },
@@ -1285,8 +1251,7 @@ Object.assign(HEROES, {
       {
         id: 'incense_and_oath', name: 'Incense and Oath',
         icon: 'assets/icons/fc1113.png',
-        description: 'The smoke settles on his own side: ALL allies gain 12% ATK for 3 ' +
-          'turns, and 3% more for every burning enemy.',
+        description: 'All allies: +12% ATK for 3 turns (+3% per burning enemy).',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.12, perBurn: 0.03, turns: 3 }],
         levelUps: [
@@ -1301,8 +1266,7 @@ Object.assign(HEROES, {
       {
         id: 'last_rites', name: 'Last Rites',
         icon: 'assets/icons/fc1073.png',
-        description: 'Read over the whole court at once: heal ALL allies for 12% of ' +
-          "Stoddard's max HP, and 3% more for every burning enemy.",
+        description: 'All allies: heals 12% of caster max HP (+3% per burning enemy).',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', pct: 0.12, perBurn: 0.03 }],
         levelUps: [
@@ -1342,8 +1306,7 @@ Object.assign(HEROES, {
       {
         id: 'warm_the_coal', name: 'Warm the Coal',
         icon: 'assets/icons/fc1041.png',
-        description: "Hold it out to whoever needs it: heal one ally for 18% of Stella's " +
-          'max HP, and 3% more for every burning enemy.',
+        description: 'One ally: heals 18% of caster max HP (+3% per burning enemy).',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', pct: 0.18, perBurn: 0.03 }],
         levelUps: [
@@ -1357,8 +1320,7 @@ Object.assign(HEROES, {
       {
         id: 'bank_the_fire', name: 'Bank the Fire',
         icon: 'assets/icons/fc1073.png',
-        description: 'Set it down where the whole court can feel it: ALL allies recover ' +
-          "5% of Stella's max HP at the start of each of their turns for 3 turns.",
+        description: 'All allies: heals 5% of caster max HP each turn for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'hot', pct: 0.05, turns: 3 }],
         levelUps: [
@@ -1404,8 +1366,7 @@ Object.assign(HEROES, {
       {
         id: 'open_the_fans', name: 'Open the Fans',
         icon: 'assets/icons/fc1113.png',
-        description: 'One fan turned toward a single bird: that ally gains 15% ATK for 2 ' +
-          'turns, and 3% more for every burning enemy.',
+        description: 'One ally: +15% ATK for 2 turns (+3% per burning enemy).',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.15, perBurn: 0.03, turns: 2 }],
         levelUps: [
@@ -1419,8 +1380,7 @@ Object.assign(HEROES, {
       {
         id: 'both_fans_wide', name: 'Both Fans Wide',
         icon: 'assets/icons/fc866.png',
-        description: 'Both fans, both wings, the whole court: ALL allies gain 15% action ' +
-          'bar and 10% SPD for 3 turns.',
+        description: 'All allies: +15% turn meter; +10% SPD for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'turnMeter', amount: 0.15 },
@@ -1438,8 +1398,7 @@ Object.assign(HEROES, {
       {
         id: 'the_long_figure', name: 'The Long Figure',
         icon: 'assets/icons/fc1053.png',
-        description: 'The turn the whole court waits for: ALL allies gain 25% Crit Damage ' +
-          'for 3 turns, and 5% more for every burning enemy.',
+        description: 'All allies: +25% Crit Damage for 3 turns (+5% per burning enemy).',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         // Crit DAMAGE, team-wide, which nothing else on the roster hands
         // out -- Artur gives it to one ally at a time and Polo gives the
@@ -1484,8 +1443,7 @@ Object.assign(HEROES, {
       {
         id: 'read_it_back', name: 'Read It Back',
         icon: 'assets/icons/fc1050.png',
-        description: 'Everything is written down: lift the two oldest hexes from one ally ' +
-          'and give them 20% Resistance for 3 turns.',
+        description: 'One ally: removes 2 debuffs; +20% Resistance for 3 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'cleanse', count: 2 },
@@ -1502,8 +1460,7 @@ Object.assign(HEROES, {
       {
         id: 'the_standing_order', name: 'The Standing Order',
         icon: 'assets/icons/fc1117.png',
-        description: 'Enter it into the record: every blessing already on the court gains ' +
-          '2 turns.',
+        description: 'All allies: buffs last 2 turns longer.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'extendBuffs', turns: 2 }],
         levelUps: [
@@ -1544,8 +1501,7 @@ Object.assign(HEROES, {
       {
         id: 'taper', name: 'Taper',
         icon: 'assets/icons/fc866.png',
-        description: 'Touch the quill to somebody and light them up: one ally gains 12% ' +
-          'ATK for 2 turns, and 5% more for every burning enemy.',
+        description: 'One ally: +12% ATK for 2 turns (+5% per burning enemy).',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.12, perBurn: 0.05, turns: 2 }],
         levelUps: [
@@ -1610,7 +1566,7 @@ Object.assign(HEROES, {
         // the work a row sweep does, and Jack, the other 1-star in the
         // bucket, sweeps. Focus fire has to be paid for in size or it
         // is simply less damage.
-        description: 'Fold the wings and fall: 155% ATK to one enemy.',
+        description: 'One enemy: 155% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.55 }],
         levelUps: [
@@ -1683,7 +1639,7 @@ Object.assign(HEROES, {
       {
         id: 'nehru_riftshot', name: 'Riftshot',
         icon: 'assets/icons/fc823.png',
-        description: 'A bolt that arrives before the sound does: 115% ATK to one enemy.',
+        description: 'One enemy: 115% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.15 }],
         levelUps: [
@@ -1702,9 +1658,8 @@ Object.assign(HEROES, {
         // throws whoever is in front of him out the far side of the
         // field and they come out of it dizzy, which is the half the
         // sect cares about.
-        description: 'Open the gate under one enemy: 120% ATK, they trade hexes with ' +
-          'whoever stands level with them, and they come out reeling — 25% less SPD ' +
-          'for 2 turns.',
+        description: 'One enemy: 120% ATK damage; swaps the target between front and back; -25% SPD for 2 ' +
+          'turns.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.20 },
@@ -1734,8 +1689,7 @@ Object.assign(HEROES, {
         // instead -- gate their front rank into the back, then put this
         // through them -- and Far Gate pays on the same reading, so his
         // hex and his finisher want the same thing.
-        description: 'Everything he has, into one hole in the air: 250% ATK to one ' +
-          'enemy, and 50% more if they are standing on a BACK hex.',
+        description: 'One enemy: 250% ATK damage (375% vs the back row).',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 2.5,
@@ -1810,7 +1764,7 @@ Object.assign(HEROES, {
       {
         id: 'cirrus_whorl', name: 'Whorl',
         icon: 'assets/icons/fc823.png',
-        description: 'A pocket of turning air, opened under one enemy: 110% ATK.',
+        description: 'One enemy: 110% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.10 }],
         levelUps: [
@@ -1824,7 +1778,7 @@ Object.assign(HEROES, {
       {
         id: 'cirrus_cross_vortex', name: 'Cross Vortex',
         icon: 'assets/icons/fc1142.png',
-        description: 'Two fronts meeting over the whole field: 75% ATK to every enemy.',
+        description: 'All enemies: 75% ATK damage.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'slash',
         effects: [{ type: 'damage', mult: 0.75 }],
         levelUps: [
@@ -1839,7 +1793,7 @@ Object.assign(HEROES, {
       {
         id: 'cirrus_downdraught', name: 'Downdraught',
         icon: 'assets/icons/fc1272.png',
-        description: 'The whole sky falls at once: 120% ATK to every enemy.',
+        description: 'All enemies: 120% ATK damage.',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.20 }],
         levelUps: [
@@ -1913,7 +1867,7 @@ Object.assign(HEROES, {
         // rider reads. Hers grows with the fires already lit; this one
         // grows with the wing receiving it, which is Kiri's passive
         // doing the work rather than the skill.
-        description: 'Hold the vane up and let it spin: one ally gains 15% ATK for 2 turns.',
+        description: 'One ally: +15% ATK for 2 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.15, turns: 2 }],
         levelUps: [
@@ -1927,8 +1881,7 @@ Object.assign(HEROES, {
       {
         id: 'kiri_thermal', name: 'Thermal',
         icon: 'assets/icons/fc1062.png',
-        description: 'The whole flight finds the rising air: every ally gains 10% ATK ' +
-          'for 2 turns.',
+        description: 'All allies: +10% ATK for 2 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.10, turns: 2 }],
         levelUps: [
@@ -2005,7 +1958,7 @@ Object.assign(HEROES, {
       {
         id: 'strix_mantle', name: 'Mantle',
         icon: 'assets/icons/fc819.png',
-        description: 'Wings out and forward: 70% ATK to the enemy FRONT row.',
+        description: 'Enemy front row: 70% ATK damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.70 }],
         levelUps: [
@@ -2023,8 +1976,7 @@ Object.assign(HEROES, {
         // whole enemy line widens the gap every Razorwing tier is paid
         // off, deepens his own shelter, and is the ordinary speed hex
         // rather than a new plate invented to mean the same thing.
-        description: 'Set against the whole line: a 50% chance each to strip 20% SPD ' +
-          'off every enemy for 2 turns.',
+        description: 'All enemies: 50% chance: -20% SPD for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [{ type: 'debuff', stat: 'speed', mult: 0.80, turns: 2, chance: 0.5 }],
         levelUps: [
@@ -2088,8 +2040,7 @@ Object.assign(HEROES, {
       {
         id: 'calima_haze', name: 'Haze',
         icon: 'assets/icons/fc866.png',
-        description: "Warm air off the shallows: one ally gains a ward worth 14% of " +
-          "Calima's max HP for 2 turns.",
+        description: 'One ally: shield worth 14% of caster max HP for 2 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.14, turns: 2 }],
         levelUps: [
@@ -2103,8 +2054,7 @@ Object.assign(HEROES, {
       {
         id: 'calima_standing_water', name: 'Standing Water',
         icon: 'assets/icons/fc1062.png',
-        description: "The whole flat goes still: every ally gains a ward worth 7% of " +
-          "Calima's max HP, and 2% more each for every ally sharing it, for 3 turns.",
+        description: 'All allies: shield worth 7% of caster max HP for 3 turns (+2% per extra target).',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.07, perTarget: 0.02, turns: 3 }],
         levelUps: [
@@ -2119,8 +2069,7 @@ Object.assign(HEROES, {
       {
         id: 'calima_clearing', name: 'Clearing',
         icon: 'assets/icons/fc1272.png',
-        description: 'The haze lifts and takes something with it: every ally recovers ' +
-          '12% of their max HP and sheds one affliction.',
+        description: 'All allies: heals 12% of caster max HP; removes 1 debuff.',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'healHpPct', pct: 0.12 },
@@ -2193,8 +2142,7 @@ Object.assign(HEROES, {
         // bill is for: a big bird gets a big dose. It is also what keeps
         // this from being Ilyra's Clear Sky with a longer neck -- hers
         // is measured out of her own pool.
-        description: "A measured dose off the end of the bill: one ally recovers 14% of " +
-          'their OWN max HP.',
+        description: 'One ally: heals 14% of their own max HP.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', targetPct: 0.14 }],
         levelUps: [
@@ -2210,8 +2158,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1062.png',
         // Deeper than Evelune's Play It Again and narrower: she hands
         // the whole room one turn back, he hands one bird two.
-        description: 'Whatever is in the green one: one ally gets 2 turns back on every ' +
-          'cooldown they are sitting on.',
+        description: 'One ally: ally cooldowns -2 turns.',
         cooldown: 5, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'cooldownReduce', turns: 2 }],
         levelUps: [
@@ -2223,8 +2170,7 @@ Object.assign(HEROES, {
       {
         id: 'mendral_long_draught', name: 'Long Draught',
         icon: 'assets/icons/fc1272.png',
-        description: 'Something for everyone, and it keeps working: every ally recovers ' +
-          "6% of Mendral's max HP a turn for 3 turns.",
+        description: 'All allies: heals 6% of caster max HP each turn for 3 turns.',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'hot', pct: 0.06, turns: 3 }],
         levelUps: [
@@ -2303,7 +2249,7 @@ Object.assign(HEROES, {
       {
         id: 'balmor_bill_slap', name: 'Bill Slap',
         icon: 'assets/icons/fc819.png',
-        description: 'A yard of beak, swung flat: 90% ATK to one enemy.',
+        description: 'One enemy: 90% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.90 }],
         levelUps: [
@@ -2321,8 +2267,7 @@ Object.assign(HEROES, {
         // own hide and Talon covers the whole crew, so this one takes
         // the middle -- and it is in real tension with the bill, since
         // damage he does not take is damage he does not get to keep.
-        description: 'Wings out over the whole rank: front-row allies take 15% less ' +
-          'damage for 2 turns.',
+        description: 'Front-row allies: -15% damage taken for 2 turns.',
         cooldown: 5, targeting: 'front-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'damageTaken', mult: 0.85, turns: 2 }],
         levelUps: [
@@ -2341,9 +2286,7 @@ Object.assign(HEROES, {
         // as legible as its card. The readout under the health bar shows
         // how full the bill is DURING a fight; this has to say what the
         // bill is and what fills it before one starts.
-        description: 'Upend the whole bill over one enemy: every blow Balmor has taken so ' +
-          'far, handed back as one. The bill holds up to an eighth of his max HP — ' +
-          'and an empty bill hands back nothing.',
+        description: 'One enemy: spends the whole bank as one hit (holds up to 12.5% of caster max HP).',
         cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'spendPouch' }],
         levelUps: [
@@ -2428,8 +2371,7 @@ Object.assign(HEROES, {
       {
         id: 'brannoc_rake', name: 'Rake',
         icon: 'assets/icons/fc819.png',
-        description: 'A long reach across the near hexes: 75% ATK to the enemy front row ' +
-          'and their middle.',
+        description: 'Enemy front and centre: 75% ATK damage.',
         cooldown: 0, targeting: 'front-and-center-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.75 }],
         levelUps: [
@@ -2446,8 +2388,7 @@ Object.assign(HEROES, {
         // The third kind of defence, after Strix's prevention and
         // Balmor's absorption: suppression. Damage stopped at the
         // source rather than at the target.
-        description: 'Take the footing out from under the rank: 90% ATK to the enemy ' +
-          'front row, with a 50% chance each to cut 25% off their ATK for 2 turns.',
+        description: 'Enemy front row: 90% ATK damage; 50% chance: -25% ATK for 2 turns.',
         cooldown: 5, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 0.90 },
@@ -2465,8 +2406,7 @@ Object.assign(HEROES, {
       {
         id: 'brannoc_last_word', name: 'Last Word',
         icon: 'assets/icons/fc1272.png',
-        description: 'Everything he has been saving up, into one of them: 220% ATK to a ' +
-          'single enemy.',
+        description: 'One enemy: 220% ATK damage.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 2.20 }],
         levelUps: [
@@ -2546,7 +2486,7 @@ Object.assign(HEROES, {
       {
         id: 'aurek_sunder', name: 'Sunder',
         icon: 'assets/icons/fc819.png',
-        description: 'The mace comes down once, hard: 120% ATK to one enemy.',
+        description: 'One enemy: 120% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.20 }],
         levelUps: [
@@ -2560,8 +2500,7 @@ Object.assign(HEROES, {
       {
         id: 'aurek_first_light', name: 'First Light',
         icon: 'assets/icons/fc1062.png',
-        description: 'A swing wide enough to catch the whole rank: 85% ATK to the enemy ' +
-          'FRONT row. Every one of them is another slice off his own bill.',
+        description: 'Enemy front row: 85% ATK damage.',
         cooldown: 4, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 0.85 }],
         levelUps: [
@@ -2576,7 +2515,7 @@ Object.assign(HEROES, {
       {
         id: 'aurek_break_of_day', name: 'Break of Day',
         icon: 'assets/icons/fc1272.png',
-        description: 'Everything at once, on one of them: 240% ATK to a single enemy.',
+        description: 'One enemy: 240% ATK damage.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 2.40 }],
         levelUps: [
@@ -2661,7 +2600,7 @@ Object.assign(HEROES, {
         // among five 4-and-5-stars -- and it keeps his output close to
         // what the old 85% ATK produced rather than quietly paying him
         // for the change.
-        description: 'The boss of the shield, swung flat: 50% of his DEF to one enemy.',
+        description: 'One enemy: 50% DEF damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damageDef', mult: 0.50 }],
         levelUps: [
@@ -2677,8 +2616,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc866.png',
         // Priced off HIS pool, which is the deepest on the field. A
         // tank as the party's reserve rather than its wall.
-        description: "Turn the shield face-up and let it catch the light: every ally " +
-          "recovers 8% of DURN'S max HP.",
+        description: 'All allies: heals 8% of caster max HP.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', pct: 0.08 }],
         levelUps: [
@@ -2696,8 +2634,7 @@ Object.assign(HEROES, {
         // The front rank only. A shield covers what is behind IT, not
         // the whole field, and a cd7 that warded seven birds off a
         // tank's pool was most of why he read strong for a 3-star.
-        description: "Everyone behind the shield: FRONT-row allies gain a ward worth " +
-          "10% of Durn's max HP for 3 turns.",
+        description: 'Front-row allies: shield worth 10% of caster max HP for 3 turns.',
         cooldown: 7, targeting: 'front-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.10, turns: 3 }],
         levelUps: [
@@ -2790,8 +2727,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc866.png',
         // 16% where Mendral's cd0 spoonfeed is 14%, which is the whole
         // gap two shelves buys on a slot-one mend.
-        description: 'The first warmth of the morning, given to whoever needs it: one ally ' +
-          'recovers 16% of their OWN max HP.',
+        description: 'One ally: heals 16% of their own max HP.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', targetPct: 0.16 }],
         levelUps: [
@@ -2818,8 +2754,7 @@ Object.assign(HEROES, {
         // turns): smaller number, twice the window. A burst of speed is
         // worth a burst of turns; a long one is worth every mend cast
         // inside it, which is what this hero is for.
-        description: 'The brood is awake before the light is: ALL allies gain +20% Speed ' +
-          'for 4 turns.',
+        description: 'All allies: +20% SPD for 4 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'speed', mult: 1.20, turns: 4 }],
         levelUps: [
@@ -2838,8 +2773,7 @@ Object.assign(HEROES, {
         // party's real loss condition is not damage, it is a heal block
         // or a stack of poisons outrunning the mends -- so the 5-star's
         // seven answers the thing his own pillar cannot.
-        description: 'Night burns off the nest: every ally sheds 2 debuffs and recovers ' +
-          '20% of their OWN max HP.',
+        description: 'All allies: removes 2 debuffs; heals 20% of their own max HP.',
         cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'cleanse', count: 2 },
@@ -2916,7 +2850,7 @@ Object.assign(HEROES, {
         // horn is a back-row weapon. 60% where Slop Toss is 65% and
         // carries a perTarget rung on top -- that one is a Gulldigger
         // crowd skill and this is not.
-        description: 'A flat blast over the top of the line: 60% ATK to the enemy BACK row.',
+        description: 'Enemy back row: 60% ATK damage.',
         cooldown: 0, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.60 }],
         levelUps: [
@@ -2933,7 +2867,7 @@ Object.assign(HEROES, {
         // Deliberately single-target, and deliberately in the middle of
         // his kit. Three sweeps would have made him a hero who does
         // nothing to a boss; this is the note held on one bird.
-        description: 'The whole horn emptied at one of them: 135% ATK to a single enemy.',
+        description: 'One enemy: 135% ATK damage.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.35 }],
         levelUps: [
@@ -2955,8 +2889,7 @@ Object.assign(HEROES, {
         // on an eight). Reusing the mark rather than inventing a second
         // one is the point: a debuff nobody can read at a glance is a
         // debuff that may as well not be on the field.
-        description: 'The note the whole field hears: 110% ATK to ALL enemies, and a 50% ' +
-          'chance on each to take 10% more damage from everyone for 2 turns.',
+        description: 'All enemies: 110% ATK damage; 50% chance: +10% damage taken for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -3046,7 +2979,7 @@ Object.assign(HEROES, {
       {
         id: 'rizzo_loose', name: 'Loose',
         icon: 'assets/icons/fc823.png',
-        description: 'One arrow, one bird: 95% ATK to a single enemy.',
+        description: 'One enemy: 95% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.95 }],
         levelUps: [
@@ -3062,8 +2995,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1141.png',
         // A narrow head made for armour, and the reason he is the answer
         // to the wall Aster's blast bounces off.
-        description: 'The narrow head, for armour: 155% ATK to one enemy, slipping past ' +
-          '30% of their DEF.',
+        description: 'One enemy: 155% ATK damage (ignores 30% DEF).',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.55, ignoreDef: 0.30 }],
         levelUps: [
@@ -3086,8 +3018,7 @@ Object.assign(HEROES, {
         // swing AND a guaranteed split, so pricing it like an ordinary
         // seven paid for the certainty twice -- and it is a 3-star, on a
         // shelf that does not need another big opening number.
-        description: 'He has been holding this one since the light came up: 140% ATK to a ' +
-          'single enemy, and it always crits.',
+        description: 'One enemy: 140% ATK damage (always crits).',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.40, critAdd: 1 }],
         levelUps: [
@@ -3165,7 +3096,7 @@ Object.assign(HEROES, {
         // 0.65 is Korvid's rung of the band (Toll 0.50, Korvid 0.65,
         // Morrow and Talon 0.70, Bit 0.80) and sits a step above Durn's
         // 0.50, which is the whole of what a shelf buys on a slot one.
-        description: 'He simply arrives: 65% of his DEF to one enemy.',
+        description: 'One enemy: 65% DEF damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damageDef', mult: 0.65 }],
         levelUps: [
@@ -3183,8 +3114,7 @@ Object.assign(HEROES, {
         // a buff on the bird being looked at, not a hex on the ones
         // looking -- and the DEF rides with it, because drawing the whole
         // field onto a wall who has not braced is just a slower loss.
-        description: 'He puts himself in the doorway: enemies are drawn onto Mavros for ' +
-          '2 turns, and he braces for +30% DEF while they come.',
+        description: 'Self: draws enemy attacks for 2 turns; +30% DEF for 2 turns.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'taunt', turns: 2 },
@@ -3202,8 +3132,7 @@ Object.assign(HEROES, {
       {
         id: 'mavros_the_whole_gate', name: 'The Whole Gate',
         icon: 'assets/icons/fc1272.png',
-        description: 'The casque goes through the line: 95% of his DEF to the enemy FRONT ' +
-          'row, with a 50% chance on each to swing 20% softer for 2 turns.',
+        description: 'Enemy front row: 95% DEF damage; 50% chance: -20% ATK for 2 turns.',
         cooldown: 7, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damageDef', mult: 0.95 },
@@ -3305,8 +3234,7 @@ Object.assign(HEROES, {
         // written -- and the crit axis is better for him anyway: neither
         // of his packs touches it, and the bird it lands on hardest is
         // Rizzo, whose whole kit is a lottery ticket.
-        description: 'A handful off the orb, given to one of them: an ally gains +25% Crit ' +
-          'Damage for 2 turns.',
+        description: 'One ally: +25% Crit Damage for 2 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'critDamage', add: 0.25, turns: 2 }],
         levelUps: [
@@ -3322,8 +3250,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1073.png',
         // The only offensive party buff either of his packs will ever
         // see, which is most of the reason he exists.
-        description: 'He opens the wings and the whole brood catches it: ALL allies gain ' +
-          '+20% ATK for 3 turns.',
+        description: 'All allies: +20% ATK for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.20, turns: 3 }],
         levelUps: [
@@ -3347,10 +3274,7 @@ Object.assign(HEROES, {
         // player who has not read the passive on the next tab over has
         // no idea what pressing this is worth. It names what fills it,
         // what the ceiling is, and what happens when it is empty.
-        description: 'Every mend the brood wasted, thrown at one of them: Orien empties ' +
-          'the orb as a single blow. It holds whatever healing has been spent on ' +
-          'already-full allies since the fight began, to a ceiling of 15% of his ' +
-          'max HP — and an empty orb throws nothing.',
+        description: 'One enemy: spends the whole bank as one hit (holds up to 15% of caster max HP).',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'spendPouch', store: 'orb' }],
         levelUps: [
@@ -3435,8 +3359,7 @@ Object.assign(HEROES, {
         // hex (a cooldown refund per strip) a live engine rather than a
         // thing that happens twice a fight, and it puts the same verb in
         // all three slots.
-        description: 'A held angle and a steady hand: 95% ATK to a single enemy, with a ' +
-          '50% chance to take one blessing off them.',
+        description: 'One enemy: 95% ATK damage; 50% chance: removes 1 buff.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.95 },
@@ -3457,8 +3380,7 @@ Object.assign(HEROES, {
         // targets, the back rank and the whole field; a rank the player
         // picks was the shape left over, and it is the one that suits a
         // hero standing in the middle with a line of sight to all of it.
-        description: 'She holds the disc still until the ground smokes: 105% ATK to the ' +
-          'chosen enemy and everyone in their row.',
+        description: 'One enemy and their row: 105% ATK damage.',
         cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.05 }],
         levelUps: [
@@ -3477,8 +3399,7 @@ Object.assign(HEROES, {
         // paid for every blessing the target is wearing and only then
         // takes them off, so the fat buffed tank is both the best target
         // and the one who stops being a problem afterwards.
-        description: 'Everything they were given, shown back to them: 180% ATK to one ' +
-          'enemy, then a 50% chance to tear away up to 3 of their blessings.',
+        description: 'One enemy: 180% ATK damage; 50% chance: removes 3 buffs.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.80 },
@@ -3565,9 +3486,7 @@ Object.assign(HEROES, {
         // distribution, one shared ceiling -- so the player is choosing
         // WHO the party's carry is going to be rather than whether to
         // grow at all.
-        description: 'A beakful for the one that is loudest: an ally permanently gains ' +
-          '+10% ATK for the rest of the battle. Nothing can strip it, and dying does ' +
-          'not lose it.',
+        description: 'One ally: permanent +10% ATK (cap 30%).',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'raise', pct: 0.10, cap: 0.30 }],
         levelUps: [
@@ -3585,8 +3504,7 @@ Object.assign(HEROES, {
         // cleans up afterwards on a seven; this stops it landing, which
         // matters far more to a party whose losing condition is a heal
         // block arriving before its healer moves.
-        description: 'She settles the whole brood down: ALL allies gain +25% Resistance ' +
-          'for 3 turns.',
+        description: 'All allies: +25% Resistance for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'buff', stat: 'resistance', add: 0.25, turns: 3 }],
         levelUps: [
@@ -3606,8 +3524,7 @@ Object.assign(HEROES, {
         // she raised is not in there. A bird she has been feeding all
         // fight gets up still fed. That is the reward for a support who
         // spent eight turns being worth less than everybody else.
-        description: 'Nothing that was raised here is lost: a fallen ally is back on their ' +
-          'feet at 50% health, and everything Nestora grew in them is still theirs.',
+        description: 'One fallen ally: revives at 50% HP.',
         cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'revive', pct: 0.50 }],
         levelUps: [
@@ -3692,8 +3609,7 @@ Object.assign(HEROES, {
         // it that counts his own side. It counts BODIES, so a raised
         // cassowary is one of them: his two summons are worth 30% of
         // this swing on top of whatever they hit for themselves.
-        description: 'He counts the flock and charges for it: 45% ATK to one enemy, plus ' +
-          '15% for every living body on his own side — the raised included.',
+        description: 'One enemy: 45% ATK damage (+15% per living ally).',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.45, perAlly: 0.15 }],
         levelUps: [
@@ -3707,10 +3623,9 @@ Object.assign(HEROES, {
       {
         id: 'necros_carrion_call', name: 'Second Legs',
         icon: 'assets/icons/fc1141.png',
-        description: 'A bone cassowary gets up on the first free hex — an empty one, or ' +
-          "one with a body still on it. With the board full the power goes into the " +
-          "party's hardest hitter instead: +40% ATK and −30% DEF for 3 turns, and 30% " +
-          'of their health as the price.',
+        description: 'Self: summons Bone Cassowary onto the first free or corpse-held hex. With no hex free, ' +
+          'the party\'s highest-ATK ally instead gains +40% ATK and -30% DEF for 3 turns and costs ' +
+          'them 30% of their current HP.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'strike_purple',
         effects: [{
           type: 'summon', id: 'crossowary_undead',
@@ -3727,10 +3642,9 @@ Object.assign(HEROES, {
       {
         id: 'necros_the_long_bill', name: 'The Long Bill',
         icon: 'assets/icons/fc1272.png',
-        description: 'A bone heron gets up on the first free hex — an empty one, or one ' +
-          "with a body still on it. With the board full the power goes into the party's " +
-          'hardest hitter instead: +40% ATK and −30% DEF for 3 turns, and 30% of their ' +
-          'health as the price.',
+        description: 'Self: summons Bone Heron onto the first free or corpse-held hex. With no hex free, the ' +
+          'party\'s highest-ATK ally instead gains +40% ATK and -30% DEF for 3 turns and costs them ' +
+          '30% of their current HP.',
         cooldown: 6, targeting: 'self', animation: 'idle', impact: 'strike_purple',
         effects: [{
           type: 'summon', id: 'heron_undead',
@@ -3817,8 +3731,7 @@ Object.assign(HEROES, {
         // Priced off HER pool rather than her attack, which is what
         // makes a support with a summoner's attack stat still worth
         // gearing for health.
-        description: 'One note, held: an ally gains a ward worth 12% of Click’s max HP ' +
-          'for 2 turns.',
+        description: 'One ally: shield worth 12% of caster max HP for 2 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'shield', pct: 0.12, turns: 2 }],
         levelUps: [
@@ -3834,8 +3747,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1141.png',
         // The sect's tempo tool, and the only one it has. Gated at the
         // roster-standard 50% every drain is held to.
-        description: 'She swings the whole rack at once and the room forgets what it was ' +
-          'doing: a 50% chance on EVERY enemy to lose 20% of their action bar.',
+        description: 'All enemies: 50% chance: -20% turn meter.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'strike_purple',
         effects: [{ type: 'turnMeter', amount: -0.20, chance: 0.5 }],
         levelUps: [
@@ -3850,10 +3762,9 @@ Object.assign(HEROES, {
       {
         id: 'click_last_bell', name: 'Last Bell',
         icon: 'assets/icons/fc1272.png',
-        description: 'The note the dead answer: a bone cassowary gets up on the first free ' +
-          'hex — an empty one, or one with a body still on it. With the board full the ' +
-          "power goes into the party's hardest hitter instead: +40% ATK and −30% DEF " +
-          'for 3 turns, and 30% of their health as the price.',
+        description: 'Self: summons Bone Cassowary onto the first free or corpse-held hex. With no hex free, ' +
+          'the party\'s highest-ATK ally instead gains +40% ATK and -30% DEF for 3 turns and costs ' +
+          'them 30% of their current HP.',
         cooldown: 6, targeting: 'self', animation: 'idle', impact: 'strike_purple',
         effects: [{
           type: 'summon', id: 'crossowary_undead',
@@ -3922,7 +3833,7 @@ Object.assign(HEROES, {
       {
         id: 'rend_bite_down', name: 'Bite Down',
         icon: 'assets/icons/fc819.png',
-        description: 'Whatever is nearest, in the mouth: 55% of his DEF to one enemy.',
+        description: 'One enemy: 55% DEF damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damageDef', mult: 0.55 }],
         levelUps: [
@@ -3939,9 +3850,7 @@ Object.assign(HEROES, {
         // No contest roll on this one, and none should be: he is taking
         // his own side's afflictions off his own side, and a bird
         // volunteering to be poisoned does not get to resist itself.
-        description: 'He opens up and the party empties into him: every affliction on his ' +
-          'allies comes off them and goes onto Rend, keeping whatever it was worth and ' +
-          'whatever turns it had left.',
+        description: 'Self: moves every debuff on your allies onto the caster.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'strike_purple',
         effects: [{ type: 'drawDebuffs' }],
         levelUps: [
@@ -3955,8 +3864,7 @@ Object.assign(HEROES, {
         // The armour, thrown. `perDebuff` reads what the CASTER is
         // carrying rather than the target -- every other conditional on
         // the damage line asks what is wrong with the enemy.
-        description: 'He shakes the whole cage loose at once: 50% of his DEF to ALL ' +
-          'enemies, plus 20% for every affliction Rend is carrying.',
+        description: 'All enemies: 50% DEF damage (+20% per debuff on the caster).',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damageDef', mult: 0.50, perDebuff: 0.20 }],
         levelUps: [
@@ -4036,8 +3944,7 @@ Object.assign(HEROES, {
         // spent. Moving a small one onto the button he presses every
         // turn took him to +2222 +/- 653, and 20% on top of that added
         // a further nothing, so the rate stayed where it was.
-        description: 'The club, swung flat: 100% ATK to one enemy, and a 50% chance to ' +
-          'push one of their cooldowns back a turn.',
+        description: 'One enemy: 100% ATK damage; 50% chance: enemy cooldowns +1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.00 },
@@ -4054,8 +3961,7 @@ Object.assign(HEROES, {
       {
         id: 'crook_pot_lid', name: 'Pot Lid',
         icon: 'assets/icons/fc1141.png',
-        description: 'He takes the shield off his back and puts it through the line: 110% ' +
-          'ATK to the enemy FRONT row.',
+        description: 'Enemy front row: 110% ATK damage.',
         cooldown: 4, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.10 }],
         levelUps: [
@@ -4075,9 +3981,7 @@ Object.assign(HEROES, {
         // is exactly the one worth using it on. Capped against each
         // skill's own cooldown, so nothing is ever shelved for longer
         // than a fresh cast of it would take.
-        description: 'Straight into the pack: 140% ATK to one enemy, and a 50% chance to ' +
-          'push every one of their cooldowns back 2 turns — the ones they had ready ' +
-          'included.',
+        description: 'One enemy: 140% ATK damage; 50% chance: enemy cooldowns +2 turns.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.40 },
@@ -4165,8 +4069,7 @@ Object.assign(HEROES, {
         // Unflavoured on purpose: `burn` is fire's word and everything
         // that reads it (the Court's tiers, oil, Cleo's fortunes) is
         // fire's business. This is just something in you.
-        description: 'Whatever is in the bottle, in them: 55% ATK, and 30% ATK a turn ' +
-          'for 3 turns after.',
+        description: 'One enemy: 55% ATK damage; 30% ATK per turn for 3 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
         // `pct`, not `mult`: a DoT prices its tick off ATK through its
         // own field and deepens on `debuffPower`, not on the damage
@@ -4187,8 +4090,7 @@ Object.assign(HEROES, {
       {
         id: 'pox_bad_air', name: 'Bad Air',
         icon: 'assets/icons/fc1141.png',
-        description: 'He unstoppers it into the wind: a 50% chance on EVERY enemy to lose ' +
-          '25% ATK for 3 turns.',
+        description: 'All enemies: 50% chance: -25% ATK for 3 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'strike_purple',
         effects: [{ type: 'debuff', stat: 'atk', mult: 0.75, turns: 3, chance: 0.5 }],
         levelUps: [
@@ -4207,8 +4109,7 @@ Object.assign(HEROES, {
         // This one is wide and shallow, which is the same relationship
         // Aster's mark has with Doom Mark, and it is the sect's answer
         // to a healer comp standing beside the pack's own Dry Bones.
-        description: 'Nothing gets in and nothing gets better: 90% ATK to ALL enemies, ' +
-          'with a 50% chance on each to be cut off from healing for 2 turns.',
+        description: 'All enemies: 90% ATK damage; 50% chance: cannot be healed for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 0.90 },
@@ -4296,8 +4197,7 @@ Object.assign(HEROES, {
         // is what stops a party eight bodies down handing out absurd
         // numbers, and a mend that grew on the same count would walk
         // straight around it.
-        description: 'He turns the wick up under one of them: an ally recovers 8% of ' +
-          'Malachar’s max HP and gains +15% Speed for 3 turns.',
+        description: 'One ally: heals 8% of caster max HP; +15% SPD for 3 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'healHpPct', pct: 0.08 },
@@ -4319,8 +4219,7 @@ Object.assign(HEROES, {
         // was written. Two smaller blessings is also the better shape
         // for this hero -- the passive deepens BOTH, so the lantern is
         // worth twice as much on a skill that hands out twice as many.
-        description: 'He lifts the glass and the whole flock can see: ALL allies gain ' +
-          '+15% ATK and +15% DEF for 3 turns.',
+        description: 'All allies: +15% ATK for 3 turns; +15% DEF for 3 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.15, turns: 3 },
@@ -4342,8 +4241,7 @@ Object.assign(HEROES, {
         // does NOT touch -- a revive is not a blessing, so it carries
         // its own scaling off the same count. The lantern gives back
         // more the more it has taken in, which is the hero said twice.
-        description: 'He opens the glass over a body: a fallen ally is back up at 30% ' +
-          'health, plus 5% for every unit that has died this battle.',
+        description: 'One fallen ally: revives at 30% HP (+5% per unit that has died).',
         cooldown: 8, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'revive', pct: 0.30, perDeath: 0.05 }],
         levelUps: [
@@ -4414,7 +4312,7 @@ Object.assign(HEROES, {
         // original was, because each talon is priced by his passive
         // independently. The second one is worth more than the first
         // for the simple reason that the first one just landed.
-        description: 'Both talons, one after the other: 50% ATK to a single enemy, twice.',
+        description: 'One enemy: 2 hits of 50% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.50 },
@@ -4433,8 +4331,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1141.png',
         // Over the line, at the soft ones. Aster's Sound Off reaches the
         // same rank at 60% off a cd0; this is a four and it costs one.
-        description: 'He goes over the line for the ones who cannot take it: 140% ATK to ' +
-          'the enemy BACK row.',
+        description: 'Enemy back row: 140% ATK damage.',
         cooldown: 4, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.40 }],
         levelUps: [
@@ -4453,8 +4350,7 @@ Object.assign(HEROES, {
         // deliberately gated behind an actual kill at a seven's
         // multiplier: on a healthy target it is one big hit and a long
         // wait, and it only chains when the board is already breaking.
-        description: 'What he catches, he keeps: 190% ATK to a single enemy — and if it ' +
-          'finishes them, the cooldown comes straight back.',
+        description: 'One enemy: 190% ATK damage (cooldown resets on a kill).',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'damage', mult: 1.90, resetOnKill: true }],
         levelUps: [
@@ -4545,7 +4441,7 @@ Object.assign(HEROES, {
       {
         id: 'omen_read_the_signs', name: 'Read the Signs',
         icon: 'assets/icons/fc823.png',
-        description: 'He looks at one of them a moment too long: 100% ATK to a single enemy.',
+        description: 'One enemy: 100% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
         effects: [{ type: 'damage', mult: 1.00 }],
         levelUps: [
@@ -4559,8 +4455,7 @@ Object.assign(HEROES, {
       {
         id: 'omen_the_long_look', name: 'The Long Look',
         icon: 'assets/icons/fc1141.png',
-        description: 'He names one, and a date: 90% ATK now, and in 3 turns they take ' +
-          '160% ATK more — grown by everything that has hit them in between.',
+        description: 'One enemy: 90% ATK damage; after 3 turns: 160% ATK damage.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.90 },
@@ -4580,8 +4475,7 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1272.png',
         // The payoff for a hero whose whole kit is waiting, and the
         // reason the clocks are worth laying on more than one bird.
-        description: 'He stops waiting: 80% ATK to ALL enemies, and every omen on the ' +
-          'field comes due at once.',
+        description: 'All enemies: 80% ATK damage; triggers every omen on the field.',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 0.80 },
@@ -4657,7 +4551,7 @@ Object.assign(HEROES, {
         // 70% of DEF, which is the top of the band a wall's slot one
         // sits in (Toll and Durn 0.50, Rend 0.55, Korvid and Mavros
         // 0.65, Morrow and Talon 0.70) and where five stars belong.
-        description: 'He takes a piece off whatever is nearest: 70% of his DEF to one enemy.',
+        description: 'One enemy: 70% DEF damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [{ type: 'damageDef', mult: 0.70 }],
         levelUps: [
@@ -4671,8 +4565,7 @@ Object.assign(HEROES, {
       {
         id: 'carrion_open_the_wings', name: 'Open the Wings',
         icon: 'assets/icons/fc1141.png',
-        description: 'He spreads them and the light goes out: 45% of his DEF to ALL ' +
-          'enemies, with a 50% chance on each to swing 20% softer for 2 turns.',
+        description: 'All enemies: 45% DEF damage; 50% chance: -20% ATK for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damageDef', mult: 0.45 },
@@ -4697,9 +4590,7 @@ Object.assign(HEROES, {
         // that has gone badly, which is the only kind of field a 5-star
         // wall is still standing on. No cap on the count: seven bodies
         // is a fight already lost or already won.
-        description: 'Every body still lying there, at once: Carrion recovers 12% of his ' +
-          'max HP for each of them, and each is gone for good — nothing raises what ' +
-          'he has eaten.',
+        description: 'Self: consumes every body on the field; heals 12% of max HP each.',
         cooldown: 6, targeting: 'self', animation: 'idle', impact: 'heal_gold',
         effects: [{ type: 'eatCorpses', pct: 0.12 }],
         levelUps: [

@@ -45,7 +45,7 @@ Object.assign(HEROES, {
         {
           id: 'mirror_lance', name: 'Mirror Lance',
           icon: 'assets/icons/fc305.png',
-          description: 'Strike one enemy for 60% DEF, +30% DEF per active crystal mirror.',
+          description: 'One enemy: 60% DEF damage (+30% per mirror).',
           cooldown: 0, targeting: 'enemy', animation: 'attack',
           effects: [{ type: 'damageDef', mult: 0.6, perMirror: 0.3 }],
           // No cooldown and no debuff, so every rung is damage. Each buys
@@ -63,7 +63,7 @@ Object.assign(HEROES, {
         {
           id: 'prism_wave', name: 'Prism Wave',
           icon: 'assets/icons/fc306.png',
-          description: 'Sweep an enemy row for 40% DEF, +20% DEF per active crystal mirror.',
+          description: 'One enemy and their row: 40% DEF damage (+20% per mirror).',
           // Base cooldown raised 3 -> 4 by the sweep rule; the last two
           // rungs hand it back and then some, landing at 2.
           cooldown: 4, targeting: 'enemy-row', animation: 'attack',
@@ -80,7 +80,7 @@ Object.assign(HEROES, {
         {
           id: 'resonant_shatter', name: 'Resonant Shatter',
           icon: 'assets/icons/fc307.png',
-          description: 'Blast one enemy for 70% DEF, +40% DEF per active crystal mirror, then reform 2 mirrors.',
+          description: 'One enemy: 70% DEF damage (+40% per mirror); self: +2 mirrors.',
           // Base cooldown raised 5 -> 6 by the sweep rule; fully levelled
           // it cycles at 4, one turn faster than it ever did.
           cooldown: 6, targeting: 'enemy', animation: 'skill3',
@@ -162,7 +162,7 @@ Object.assign(HEROES, {
       {
         id: 'first_toll', name: 'First Toll',
         icon: 'assets/icons/fc305.png',
-        description: 'Ring the bell over the front line: 50% DEF to every front-hex enemy.',
+        description: 'Enemy front row: 50% DEF damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [{ type: 'damageDef', mult: 0.5 }],
         // No cooldown and no debuff: every rung is damage, 50% -> 100%.
@@ -174,7 +174,7 @@ Object.assign(HEROES, {
       {
         id: 'full_peal', name: 'Full Peal',
         icon: 'assets/icons/fc306.png',
-        description: 'The peal carries across the field: 50% DEF to ALL enemies.',
+        description: 'All enemies: 50% DEF damage.',
         // Base cooldown raised 3 -> 4 by the sweep rule; the last two
         // rungs hand it back twice over, landing at 2.
         cooldown: 4, targeting: 'all-enemies', animation: 'attack',
@@ -187,8 +187,7 @@ Object.assign(HEROES, {
       {
         id: 'the_reckoning', name: 'The Reckoning',
         icon: 'assets/icons/fc307.png',
-        description: 'Call in the debt: ALL enemies lose 30% DEF and 30% ATK ' +
-          'for 2 turns — each break rolled separately at 50%.',
+        description: 'All enemies: 50% chance: -30% DEF for 2 turns; 50% chance: -30% ATK for 2 turns.',
         // Base cooldown raised 5 -> 6; fully levelled it cycles at 4.
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         // A pure debuff skill: under the old blanket multiplier its five
@@ -331,7 +330,7 @@ Object.assign(HEROES, {
       {
         id: 'reverent_strike', name: 'Reverent Strike',
         icon: 'assets/icons/fc1236.png',
-        description: 'Swing the flail at a single enemy for 120% ATK.',
+        description: 'One enemy: 120% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [{ type: 'damage', mult: 1.2 }],
         levelUps: [
@@ -345,7 +344,7 @@ Object.assign(HEROES, {
       {
         id: 'consecrated_mercy', name: 'Consecrated Mercy',
         icon: 'assets/icons/fc681.png',
-        description: 'Heal herself and the 2 most-wounded allies for 30% ATK each.',
+        description: 'Self and the 2 most-wounded allies: heals 30% ATK.',
         cooldown: 4, targeting: 'self-and-wounded-allies', allyCount: 2,
         animation: 'heal',
         effects: [{ type: 'heal', mult: 0.3 }],
@@ -361,7 +360,7 @@ Object.assign(HEROES, {
       {
         id: 'reverent_sweep', name: 'Reverent Sweep',
         icon: 'assets/icons/fc940.png',
-        description: 'Sweep the flail through the enemy front line for 150% ATK.',
+        description: 'Enemy front row: 150% ATK damage.',
         cooldown: 6, targeting: 'front-enemies', animation: 'skill3',
         impact: 'slash',
         effects: [{ type: 'damage', mult: 1.5 }],
@@ -428,7 +427,7 @@ Object.assign(HEROES, {
       {
         id: 'processional', name: 'Processional',
         icon: 'assets/icons/fc885.png',
-        description: 'The herald sets the pace: ALL allies gain +25% SPD for 2 turns.',
+        description: 'All allies: +25% SPD for 2 turns.',
         cooldown: 0, targeting: 'all-allies', animation: 'skill1',
         effects: [{ type: 'buff', stat: 'speed', mult: 1.25, turns: 2 }],
         levelUps: [
@@ -442,7 +441,7 @@ Object.assign(HEROES, {
       {
         id: 'call_to_arms', name: 'Call to Arms',
         icon: 'assets/icons/fc868.png',
-        description: 'A ringing proclamation: ALL allies gain +30% ATK for 2 turns.',
+        description: 'All allies: +30% ATK for 2 turns.',
         cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [{ type: 'buff', stat: 'atk', mult: 1.3, turns: 2 }],
         levelUps: [
@@ -457,7 +456,7 @@ Object.assign(HEROES, {
       {
         id: 'rite_of_absolution', name: 'Rite of Absolution',
         icon: 'assets/icons/fc855.png',
-        description: 'Absolve the party: removes up to 2 debuffs from every ally.',
+        description: 'All allies: removes 2 debuffs.',
         cooldown: 5, targeting: 'all-allies', animation: 'skill3',
         effects: [{ type: 'cleanse', count: 2 }],
         levelUps: [
@@ -528,8 +527,7 @@ Object.assign(HEROES, {
       {
         id: 'oak_confession', name: 'Confession',
         icon: 'assets/icons/fc746.png',
-        description: 'A measured strike for 110% ATK — 20% chance to chain ' +
-          'straight into Penance.',
+        description: 'One enemy: 110% ATK damage. 20% chance to chain into Penance.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.1 }],
         chain: { id: 'oak_penance', chance: 0.2 },
@@ -544,8 +542,7 @@ Object.assign(HEROES, {
       {
         id: 'oak_penance', name: 'Penance',
         icon: 'assets/icons/fc767.png',
-        description: 'A punishing blow for 150% ATK — 25% chance to chain ' +
-          'straight into Absolution.',
+        description: 'One enemy: 150% ATK damage. 25% chance to chain into Absolution.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.5 }],
         chain: { id: 'oak_absolution', chance: 0.25 },
@@ -561,8 +558,7 @@ Object.assign(HEROES, {
       {
         id: 'oak_absolution', name: 'Absolution',
         icon: 'assets/icons/fc730.png',
-        description: 'The final rite: 175% ATK — 30% chance to begin the ' +
-          'cycle again with Confession.',
+        description: 'One enemy: 175% ATK damage. 30% chance to chain into Confession.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.75 }],
         chain: { id: 'oak_confession', chance: 0.3 },
@@ -636,7 +632,7 @@ Object.assign(HEROES, {
       {
         id: 'silas_boltshot', name: 'Boltshot',
         icon: 'assets/icons/fc746.png',
-        description: 'A snapped shot at one enemy for 115% ATK.',
+        description: 'One enemy: 115% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.15 }],
         levelUps: [
@@ -650,8 +646,7 @@ Object.assign(HEROES, {
       {
         id: 'silas_lumen_arrow', name: 'Lumen Arrow',
         icon: 'assets/icons/fc1050.png',
-        description: 'Loose a holy arrow through an enemy row for 200% ATK. ' +
-          'Can only be fired from Aiming Stance.',
+        description: 'One enemy and their row: 200% ATK damage. requires aiming.',
         cooldown: 4, targeting: 'enemy-row', animation: 'skill2', impact: 'slash',
         requires: 'aiming',
         effects: [{ type: 'damage', mult: 2.0 }],
@@ -667,8 +662,7 @@ Object.assign(HEROES, {
       {
         id: 'silas_aiming_stance', name: 'Aiming Stance',
         icon: 'assets/icons/fc882.png',
-        description: 'Settle and draw: his next shot deals 100% extra damage. ' +
-          'The stance holds until he shoots — or a direct hit lands on him.',
+        description: 'Self: Aiming Stance: +100% damage on the next shot, until they attack or are hit.',
         cooldown: 3, targeting: 'self', animation: 'skill3',
         effects: [{ type: 'buff', stat: 'aiming', mult: 1, turns: 99 }],
         levelUps: [
@@ -727,8 +721,7 @@ Object.assign(HEROES, {
       {
         id: 'eli_sigil_bolt', name: 'Sigil Bolt',
         icon: 'assets/icons/fc1050.png',
-        description: 'Brand one enemy for 100% ATK, with a 50% chance to cut '
-          + 'their turn meter by 20%.',
+        description: 'One enemy: 100% ATK damage; 50% chance: -20% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.0 },
@@ -745,8 +738,7 @@ Object.assign(HEROES, {
       {
         id: 'eli_sealing_glyph', name: 'Sealing Glyph',
         icon: 'assets/icons/fc862.png',
-        description: 'Cast a glyph across the enemy BACK row: 90% ATK, with a ' +
-          '50% chance to strip 15% turn meter from each.',
+        description: 'Enemy back row: 90% ATK damage; 50% chance: -15% turn meter.',
         cooldown: 4, targeting: 'back-enemies', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
@@ -764,8 +756,7 @@ Object.assign(HEROES, {
       {
         id: 'eli_quickening_sigil', name: 'Quickening Sigil',
         icon: 'assets/icons/fc885.png',
-        description: 'Inscribe himself: +30% SPD and +25% Crit Chance for ' +
-          '3 turns — then take another turn immediately.',
+        description: 'Self: +30% SPD for 3 turns; +25% Crit Chance for 3 turns. acts again immediately.',
         cooldown: 6, targeting: 'self', animation: 'skill3', extraTurn: true,
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.3, turns: 3 },
@@ -835,8 +826,7 @@ Object.assign(HEROES, {
       {
         id: 'sawyer_petalfall_cut', name: 'Petalfall Cut',
         icon: 'assets/icons/fc1054.png',
-        description: 'Carve one enemy for 150% ATK and scatter 2 random ' +
-          'debuffs over them for 2 turns.',
+        description: 'One enemy: 150% ATK damage; applies 2 random debuffs for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.5 },
@@ -853,8 +843,7 @@ Object.assign(HEROES, {
       {
         id: 'sawyer_night_bloom', name: 'Night Bloom',
         icon: 'assets/icons/fc1053.png',
-        description: 'Come into flower: +30% ATK, +30% DEF and +30% SPD ' +
-          'for 3 turns.',
+        description: 'Self: +30% ATK for 3 turns; +30% DEF for 3 turns; +30% SPD for 3 turns.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.3, turns: 3 },
@@ -873,8 +862,7 @@ Object.assign(HEROES, {
       {
         id: 'sawyer_deadheading', name: 'Deadheading',
         icon: 'assets/icons/fc1051.png',
-        description: 'Run one enemy through for 230% ATK. A unit holding ' +
-          'the CENTER hex takes 50% more — cut the central bloom first.',
+        description: 'One enemy: 230% ATK damage (345% vs the center row).',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 2.3,
@@ -949,8 +937,7 @@ Object.assign(HEROES, {
       {
         id: 'polarus_glacial_bolt', name: 'Glacial Bolt',
         icon: 'assets/icons/fc1011.png',
-        description: 'Hurl a shard of court ice for 125% ATK, with a 30% ' +
-          'chance to freeze the target solid — unable to act for 2 turns.',
+        description: 'One enemy: 125% ATK damage; 30% chance: frozen for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -967,8 +954,7 @@ Object.assign(HEROES, {
       {
         id: 'polarus_crystalline_mantle', name: 'Crystalline Mantle',
         icon: 'assets/icons/fc1016.png',
-        description: 'Take on Crystalline form for 2 turns: enemies who ' +
-          'strike him have a 30% chance to freeze solid on contact.',
+        description: 'Self: Crystalline: a 30% chance to freeze anyone who strikes them, for 2 turns.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'crystalline', mult: 1, turns: 2 },
@@ -983,8 +969,7 @@ Object.assign(HEROES, {
       {
         id: 'polarus_shatterfall', name: 'Shatterfall',
         icon: 'assets/icons/fc1014.png',
-        description: 'Sweep the whole enemy team for 80% ATK — the frozen ' +
-          'take 300% instead — then the ice shatters away.',
+        description: 'All enemies: 80% ATK damage (300% vs a frozen target); removes freeze.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           // 0.8 x 3.75 keeps the frozen payout at the specced 300%.
@@ -1064,8 +1049,7 @@ Object.assign(HEROES, {
       {
         id: 'andrew_pickwork', name: 'Pickwork',
         icon: 'assets/icons/fc1044.png',
-        description: 'A working swing for 110% ATK with a 50% chance to knock ' +
-          '15 action points off the target.',
+        description: 'One enemy: 110% ATK damage; 50% chance: -15% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.1 },
@@ -1082,8 +1066,7 @@ Object.assign(HEROES, {
       {
         id: 'andrew_shore_up', name: 'Shore Up',
         icon: 'assets/icons/fc1099.png',
-        description: 'Brace the whole team the way you brace a tunnel: ' +
-          '+30% DEF for 2 turns.',
+        description: 'All allies: +30% DEF for 2 turns.',
         cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'def', mult: 1.3, turns: 2 },
@@ -1100,8 +1083,7 @@ Object.assign(HEROES, {
       {
         id: 'andrew_crystal_spoil', name: 'Crystal Spoil',
         icon: 'assets/icons/fc1013.png',
-        description: 'Hurl a basketful of sharp spoil across the enemy ' +
-          'BACK row for 90% ATK each.',
+        description: 'Enemy back row: 90% ATK damage.',
         cooldown: 5, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
@@ -1179,8 +1161,7 @@ Object.assign(HEROES, {
       {
         id: 'angelica_shardcast', name: 'Shardcast',
         icon: 'assets/icons/fc1012.png',
-        description: 'Loose a crystal shard for 90% ATK with a 30% chance ' +
-          'to freeze the target solid for 2 turns.',
+        description: 'One enemy: 90% ATK damage; 30% chance: frozen for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.9 },
@@ -1197,8 +1178,7 @@ Object.assign(HEROES, {
       {
         id: 'angelica_rimeorb', name: 'Rimeorb',
         icon: 'assets/icons/fc1023.png',
-        description: 'Conjure and hurl a sphere of packed rime: 125% ATK ' +
-          'and a 50% chance to freeze for 2 turns.',
+        description: 'One enemy: 125% ATK damage; 50% chance: frozen for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -1216,8 +1196,7 @@ Object.assign(HEROES, {
       {
         id: 'angelica_cryst_lance', name: 'Cryst Lance',
         icon: 'assets/icons/fc1017.png',
-        description: 'Drive the staff home: 150% ATK and a coin-flip 50% ' +
-          'chance to freeze the target solid for 2 turns.',
+        description: 'One enemy: 150% ATK damage; 50% chance: frozen for 2 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.5 },
@@ -1294,7 +1273,7 @@ Object.assign(HEROES, {
       {
         id: 'ari_crystbarb', name: 'Crystbarb',
         icon: 'assets/icons/fc1019.png',
-        description: 'Loose a crystal-tipped arrow for 110% ATK.',
+        description: 'One enemy: 110% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.1 },
@@ -1310,8 +1289,7 @@ Object.assign(HEROES, {
       {
         id: 'ari_lancing_shot', name: 'Lancing Shot',
         icon: 'assets/icons/fc1017.png',
-        description: 'A charged shot for 135% ATK that slips past 10% of ' +
-          "the target's DEF.",
+        description: 'One enemy: 135% ATK damage (ignores 10% DEF).',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.35, ignoreDef: 0.10 },
@@ -1328,8 +1306,7 @@ Object.assign(HEROES, {
       {
         id: 'ari_marrow_volley', name: 'Marrow Volley',
         icon: 'assets/icons/fc1012.png',
-        description: 'A fanned volley for 140% ATK that adds 5% of the ' +
-          "target's max HP to the blow.",
+        description: 'One enemy: 140% ATK damage (+5% of target max HP).',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.4, targetHpPct: 0.05 },
@@ -1403,7 +1380,7 @@ Object.assign(HEROES, {
       {
         id: 'cain_tidemend', name: 'Tidemend',
         icon: 'assets/icons/fc1023.png',
-        description: 'Mend one ally for 30% of Cain\'s own max HP.',
+        description: 'One ally: heals 30% of caster max HP.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.30 },
@@ -1419,8 +1396,7 @@ Object.assign(HEROES, {
       {
         id: 'cain_twin_mercies', name: 'Twin Mercies',
         icon: 'assets/icons/fc1016.png',
-        description: 'The two most-wounded allies are each restored for ' +
-          '25% of Cain\'s own max HP.',
+        description: 'The 2 lowest-health allies: heals 25% of caster max HP.',
         // Two full mends off a four-turn cooldown was the best rate on
         // the board by throughput. The cooldown was doing the damage,
         // so it moves first; the size follows it down.
@@ -1440,8 +1416,7 @@ Object.assign(HEROES, {
       {
         id: 'cain_quickening_waters', name: 'Quickening Waters',
         icon: 'assets/icons/fc1024.png',
-        description: 'Pour 50% of Cain\'s own max HP into one ally and ' +
-          'send them onward with +30% SPD for 2 turns.',
+        description: 'One ally: heals 50% of caster max HP; +30% SPD for 2 turns.',
         cooldown: 6, targeting: 'ally', animation: 'skill3',
         effects: [
           { type: 'healHpPct', pct: 0.50 },
@@ -1523,8 +1498,7 @@ Object.assign(HEROES, {
       {
         id: 'bit_bore_sweep', name: 'Bore Sweep',
         icon: 'assets/icons/fc1013.png',
-        description: 'Grind the enemy FRONT row for 80% of Bit\'s DEF each, ' +
-          'with a 50% chance to strip 30% of their DEF for 1 turn.',
+        description: 'Enemy front row: 80% DEF damage; 50% chance: -30% DEF for 1 turn.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damageDef', mult: 0.8 },
@@ -1541,8 +1515,7 @@ Object.assign(HEROES, {
       {
         id: 'bit_core_sample', name: 'Core Sample',
         icon: 'assets/icons/fc1089.png',
-        description: 'The bit at full bore, driven into one enemy for ' +
-          '125% of Bit\'s DEF.',
+        description: 'One enemy: 125% DEF damage.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageDef', mult: 1.25 },
@@ -1559,8 +1532,7 @@ Object.assign(HEROES, {
       {
         id: 'bit_breakthrough', name: 'Breakthrough',
         icon: 'assets/icons/fc1014.png',
-        description: 'Drive through the enemy FRONT row and CENTER at once ' +
-          'for 90% of Bit\'s DEF each.',
+        description: 'Enemy front and centre: 90% DEF damage.',
         cooldown: 6, targeting: 'front-and-center-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageDef', mult: 0.9 },
@@ -1632,8 +1604,7 @@ Object.assign(HEROES, {
       {
         id: 'tanner_royal_gesture', name: 'Royal Gesture',
         icon: 'assets/icons/fc1023.png',
-        description: 'A token of royal concern: mend one ally for 20% of ' +
-          'Tanner\'s max HP.',
+        description: 'One ally: heals 20% of caster max HP.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -1649,8 +1620,7 @@ Object.assign(HEROES, {
       {
         id: 'tanner_royal_favor', name: 'Royal Favor',
         icon: 'assets/icons/fc1091.png',
-        description: 'Bestow the court\'s favor on one ally: +30% ATK for ' +
-          '2 turns and +50 turn meter on the spot.',
+        description: 'One ally: +30% ATK for 2 turns; +50% turn meter.',
         cooldown: 4, targeting: 'ally', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'atk', mult: 1.3, turns: 2 },
@@ -1668,8 +1638,7 @@ Object.assign(HEROES, {
       {
         id: 'tanner_bubble_court', name: 'Bubble Court',
         icon: 'assets/icons/fc1016.png',
-        description: 'Blow a bubble around every ally for 2 turns: each ' +
-          'bubble swallows ONE entire hit, then pops.',
+        description: 'All allies: blocks the next hit taken for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'skill3',
         effects: [
           { type: 'bubble', turns: 2 },
@@ -1814,7 +1783,7 @@ Object.assign(HEROES, {
       {
         id: 'crystal_slash', name: 'Crystal Slash',
         icon: 'assets/icons/fc1609.png',
-        description: 'A crystal-edged cut for 100% ATK that focuses her: +5% crit chance for 1 turn.',
+        description: 'One enemy: 100% ATK damage; self: +5% Crit Chance for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'attack',
         effects: [
           { type: 'damage', mult: 1.0 },
@@ -1833,7 +1802,7 @@ Object.assign(HEROES, {
       {
         id: 'crystal_resonance', name: 'Crystal Resonance',
         icon: 'assets/icons/fc1024.png',
-        description: 'Attune to the blade: +50% crit chance and +50% crit damage for 3 turns.',
+        description: 'Self: +50% Crit Chance for 3 turns; +50% Crit Damage for 3 turns.',
         cooldown: 6, targeting: 'self', animation: 'buff',
         effects: [
           { type: 'buff', stat: 'critChance', add: 0.5, turns: 3 },
@@ -1851,7 +1820,7 @@ Object.assign(HEROES, {
       {
         id: 'prism_break', name: 'Prism Break',
         icon: 'assets/icons/fc788.png',
-        description: 'Leap skyward and hurl a shearing wave that cuts an entire enemy row for 170% ATK.',
+        description: 'One enemy and their row: 170% ATK damage.',
         cooldown: 8, targeting: 'enemy-row', animation: 'rowslash', vfx: 'windshear', impact: 'slash',
         effects: [{ type: 'damage', mult: 1.7 }],
         levelUps: [
@@ -1914,7 +1883,7 @@ Object.assign(HEROES, {
       {
         id: 'verdant_mend', name: 'Verdant Mend',
         icon: 'assets/icons/fc1073.png',
-        description: 'Heal an ally for 10% of Vivian\'s max HP — 20% if they hold a front hex.',
+        description: 'One ally: heals 10% of caster max HP (20% to front row).',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_green',
         effects: [{ type: 'healHpPct', pct: 0.10, frontPct: 0.20 }],
         levelUps: [
@@ -1928,7 +1897,7 @@ Object.assign(HEROES, {
       {
         id: 'thicket_blessing', name: 'Thicket Blessing',
         icon: 'assets/icons/fc1113.png',
-        description: 'Bless the entire front row with regrowth: heal 5% of Vivian\'s max HP per turn for 4 turns.',
+        description: 'Front-row allies: heals 5% of caster max HP each turn for 4 turns.',
         cooldown: 6, targeting: 'front-allies', animation: 'cast', impact: 'heal_green',
         effects: [{ type: 'hot', pct: 0.05, turns: 4 }],
         levelUps: [
@@ -1943,7 +1912,7 @@ Object.assign(HEROES, {
       {
         id: 'briar_burst', name: 'Briar Burst',
         icon: 'assets/icons/fc1066.png',
-        description: 'Lash an enemy with thorns for 20% of Vivian\'s max HP, with a 50% chance to cut their action bar in half.',
+        description: 'One enemy: 20% of caster max HP as damage; 50% chance: -50% turn meter.',
         cooldown: 7, targeting: 'enemy', animation: 'attack3', impact: 'strike_green',
         effects: [
           { type: 'damageHpPct', pct: 0.20 },
@@ -2011,8 +1980,7 @@ Object.assign(HEROES, {
       {
         id: 'pinprick', name: 'Pinprick',
         icon: 'assets/icons/fc89.png',
-        description: 'Stab the doll: 90% ATK to one enemy and a 50% chance ' +
-          'of -15% ATK for 2 turns.',
+        description: 'One enemy: 90% ATK damage; 50% chance: -15% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.9 },
@@ -2029,9 +1997,7 @@ Object.assign(HEROES, {
       {
         id: 'creeping_malaise', name: 'Creeping Malaise',
         icon: 'assets/icons/fc1117.png',
-        description: 'Curse ALL enemies: a 50% chance each of -25% DEF, and ' +
-          'a 50% chance each of -15% SPD, for 2 turns. The two curses ' +
-          'are rolled apart.',
+        description: 'All enemies: 50% chance: -25% DEF for 2 turns; 50% chance: -15% SPD for 2 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'cast', impact: 'strike_purple',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'def', mult: 0.75, turns: 2 },
@@ -2049,8 +2015,7 @@ Object.assign(HEROES, {
       {
         id: 'doom_mark', name: 'Doom Mark',
         icon: 'assets/icons/fc1050.png',
-        description: 'Condemn one enemy: a 50% chance they take 40% more ' +
-          'damage, and a 50% chance they lose 30% ATK, for 3 turns.',
+        description: 'One enemy: 50% chance: +40% damage taken for 3 turns; 50% chance: -30% ATK for 3 turns.',
         cooldown: 8, targeting: 'enemy', animation: 'attack3', impact: 'strike_purple',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'damageTaken', mult: 1.4, turns: 3 },
@@ -2113,7 +2078,7 @@ Object.assign(HEROES, {
       {
         id: 'lightmend', name: 'Lightmend',
         icon: 'assets/icons/fc1041.png',
-        description: 'Bathe one ally in light, healing 30% of Emily\'s max HP.',
+        description: 'One ally: heals 30% of caster max HP.',
         cooldown: 0, targeting: 'ally', animation: 'cast', impact: 'heal_gold',
         effects: [{ type: 'healHpPct', pct: 0.30 }],
         levelUps: [
@@ -2127,7 +2092,7 @@ Object.assign(HEROES, {
       {
         id: 'purifying_chorus', name: 'Purifying Chorus',
         icon: 'assets/icons/fc1046.png',
-        description: 'Heal ALL allies for 20% of Emily\'s max HP and cleanse their debuffs.',
+        description: 'All allies: heals 20% of caster max HP; removes all debuffs.',
         cooldown: 6, targeting: 'all-allies', animation: 'cast2', impact: 'heal_gold',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -2147,7 +2112,7 @@ Object.assign(HEROES, {
       {
         id: 'second_dawn', name: 'Second Dawn',
         icon: 'assets/icons/fc1075.png',
-        description: 'Call a fallen ally back to the fight with 40% of their max HP.',
+        description: 'One fallen ally: revives at 40% HP.',
         cooldown: 8, targeting: 'dead-ally', animation: 'revive', impact: 'heal_gold',
         effects: [{ type: 'revive', pct: 0.4 }],
         levelUps: [
@@ -2220,7 +2185,7 @@ Object.assign(HEROES, {
       {
         id: 'tide_lash', name: 'Tide Lash',
         icon: 'assets/icons/fc819.png',
-        description: 'Strike one enemy with a surging wave for 110% ATK.',
+        description: 'One enemy: 110% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.1 }],
         levelUps: [
@@ -2234,7 +2199,7 @@ Object.assign(HEROES, {
       {
         id: 'undertow', name: 'Undertow',
         icon: 'assets/icons/fc821.png',
-        description: 'Drag the enemy back row under for 90% ATK.',
+        description: 'Enemy back row: 90% ATK damage.',
         cooldown: 7, targeting: 'back-enemies', animation: 'attack', impact: 'strike',
         effects: [{ type: 'damage', mult: 0.9 }],
         levelUps: [
@@ -2249,7 +2214,7 @@ Object.assign(HEROES, {
       {
         id: 'maelstrom_spear', name: 'Maelstrom Spear',
         icon: 'assets/icons/fc786.png',
-        description: 'Skewer one enemy with a focused torrent for 240% ATK.',
+        description: 'One enemy: 240% ATK damage.',
         cooldown: 8, targeting: 'enemy', animation: 'attack3', impact: 'strike',
         effects: [{ type: 'damage', mult: 2.4 }],
         levelUps: [
@@ -2320,7 +2285,7 @@ Object.assign(HEROES, {
       {
         id: 'unbroken_cut', name: 'Unbroken Cut',
         icon: 'assets/icons/fc1045.png',
-        description: 'A clean cut for 155% ATK. While Javarious is at full health, it lands for double.',
+        description: 'One enemy: 155% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
         effects: [{ type: 'damage', mult: 1.55, bonusWhen: { state: 'fullHp', mult: 2 } }],
         levelUps: [
@@ -2334,7 +2299,7 @@ Object.assign(HEROES, {
       {
         id: 'dawn_reliquary', name: 'Dawn Reliquary',
         icon: 'assets/icons/fc1043.png',
-        description: 'Plant the blade and take the light in: heal 20% ATK and raise a shield worth 30% ATK for 3 turns.',
+        description: 'Self: heals 20% ATK; shield worth 30% ATK for 3 turns.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'heal', mult: 0.2 },
@@ -2352,7 +2317,7 @@ Object.assign(HEROES, {
       {
         id: 'daybreak_sweep', name: 'Daybreak Sweep',
         icon: 'assets/icons/fc1048.png',
-        description: 'Sweep the whole enemy front rank for 140% ATK. While Javarious is at full health, it lands for double.',
+        description: 'Enemy front row: 140% ATK damage.',
         cooldown: 5, targeting: 'front-enemies', animation: 'skill3',
         effects: [{ type: 'damage', mult: 1.4, bonusWhen: { state: 'fullHp', mult: 2 } }],
         levelUps: [
@@ -2442,9 +2407,7 @@ Object.assign(HEROES, {
       {
         id: 'lucian_cinder_lash', name: 'Cinder Lash',
         icon: 'assets/icons/fc1025.png',
-        description: 'Lash one enemy for 110% ATK with a 50% chance to set ' +
-          'them alight: the burn eats 3% of their max HP at the start ' +
-          'of each of their turns, for 3 turns.',
+        description: 'One enemy: 110% ATK damage; 50% chance: 3% of target max HP per turn for 3 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -2461,8 +2424,7 @@ Object.assign(HEROES, {
       {
         id: 'lucian_stoke_the_forge', name: 'Stoke the Forge',
         icon: 'assets/icons/fc1026.png',
-        description: 'Draw heat from the field: permanently gain 50 ATK ' +
-          'for each burning enemy, banking up to 1000 ATK per battle.',
+        description: 'Self: permanent +50 ATK for every burn on the enemy team, up to +1000 this battle.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'atkPerDebuff', flavor: 'burn', per: 50, cap: 1000 },
@@ -2479,9 +2441,7 @@ Object.assign(HEROES, {
       {
         id: 'lucian_wildfire_arc', name: 'Wildfire Arc',
         icon: 'assets/icons/fc1027.png',
-        description: 'Hurl fire for 125% ATK. It leaps to another enemy ' +
-          'and strikes again with a 75% chance, indefinitely — and with ' +
-          'one enemy left, it leaps back into them.',
+        description: 'One enemy: 125% ATK damage, then a 75% chance to bounce to another enemy and repeat.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'bounce', mult: 1.25, chance: 0.75 },
@@ -2562,8 +2522,7 @@ Object.assign(HEROES, {
       {
         id: 'franz_bonk', name: 'Bonk',
         icon: 'assets/icons/fc1030.png',
-        description: 'Hurl a showman\'s iron weight square off one ' +
-          "enemy's head for 20% of Franz's own max HP as damage.",
+        description: 'One enemy: 20% max-HP damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
@@ -2579,8 +2538,7 @@ Object.assign(HEROES, {
       {
         id: 'franz_wagon_wheel', name: 'Wagon Wheel',
         icon: 'assets/icons/fc1031.png',
-        description: 'Send a wagon wheel rolling through the enemy ' +
-          'front row for 20% of his own max HP as damage to each.',
+        description: 'Enemy front row: 20% max-HP damage.',
         cooldown: 4, targeting: 'front-enemies', animation: 'skill2', impact: 'slam',
         effects: [
           { type: 'damageHp', mult: 0.20 },
@@ -2597,8 +2555,7 @@ Object.assign(HEROES, {
       {
         id: 'franz_flaming_finale', name: 'Flaming Finale',
         icon: 'assets/icons/fc1032.png',
-        description: 'Draw a deep breath and hose the entire enemy team ' +
-          'with fire for 15% of his own max HP each.',
+        description: 'All enemies: 15% max-HP damage.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3', impact: 'strike',
         effects: [
           { type: 'damageHp', mult: 0.15 },
@@ -2665,7 +2622,7 @@ Object.assign(HEROES, {
       {
         id: 'carl_clobber', name: 'Opening Act',
         icon: 'assets/icons/fc1033.png',
-        description: "The show opens: one clean bare-knuckle punch for 15% of Carl's own max HP as damage.",
+        description: 'One enemy: 15% max-HP damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.15 },
@@ -2681,8 +2638,7 @@ Object.assign(HEROES, {
       {
         id: 'carl_pole_swing', name: 'Crowd-Pleaser',
         icon: 'assets/icons/fc1034.png',
-        description: 'Wind up and lay one enemy out for 20% of his own ' +
-          'max HP as damage, then flex for the crowd.',
+        description: 'One enemy: 20% max-HP damage.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.20 },
@@ -2699,9 +2655,7 @@ Object.assign(HEROES, {
       {
         id: 'carl_bring_down_the_pole', name: 'Main Event',
         icon: 'assets/icons/fc1035.png',
-        description: 'The headline act: a two-fisted drive for 25% of his ' +
-          'own max HP as damage — a FRONT-row target takes 50% more. ' +
-          'Tanks first.',
+        description: 'One enemy: 25% max-HP damage (37.5% vs the front row).',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.25,
@@ -2782,9 +2736,7 @@ Object.assign(HEROES, {
       {
         id: 'esmerelda_ribbon_lash', name: 'Ribbon Lash',
         icon: 'assets/icons/fc1036.png',
-        description: 'Lash one enemy with a burning silk for 110% ATK, ' +
-          'with a 50% chance to leave a burn eating 3% of their max ' +
-          'HP per turn for 2 turns.',
+        description: 'One enemy: 110% ATK damage; 50% chance: 3% of target max HP per turn for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -2801,9 +2753,7 @@ Object.assign(HEROES, {
       {
         id: 'esmerelda_gathering_embers', name: 'Gathering Embers',
         icon: 'assets/icons/fc1037.png',
-        description: 'Draw the heat home: heal every front-row ally for ' +
-          "20% of Esmerelda's ATK per damage-over-time burning on the " +
-          'enemy team.',
+        description: 'Front-row allies: heals 20% ATK per DoT on the enemy team.',
         cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'healPerDot', pct: 0.20 },
@@ -2820,9 +2770,7 @@ Object.assign(HEROES, {
       {
         id: 'esmerelda_trailing_flame', name: 'Trailing Flame',
         icon: 'assets/icons/fc1038.png',
-        description: 'Send the ribbons arcing over the wall: 125% ATK to ' +
-          'the enemy back row, each with a 50% chance to be left ' +
-          'burning for 3% of their max HP per turn for 2 turns.',
+        description: 'Enemy back row: 125% ATK damage; 50% chance: 3% of target max HP per turn for 2 turns.',
         cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -2893,9 +2841,8 @@ Object.assign(HEROES, {
       {
         id: 'slick_splash_zone', name: 'Splash Zone',
         icon: 'assets/icons/fc1039.png',
-        description: 'Slop a wave of pitch over the enemy front row: a 50% ' +
-          'chance each to leave them Oilslicked for 3 turns — burns ' +
-          'tick twice as hard on an oiled target.',
+        description: 'Enemy front row: 50% chance: Oilslicked: takes more from fire and burns longer for 3 ' +
+          'turns.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
@@ -2909,8 +2856,7 @@ Object.assign(HEROES, {
       {
         id: 'slick_fresh_coat', name: 'Fresh Coat',
         icon: 'assets/icons/fc1040.png',
-        description: 'Slick his own staves with a fresh coat of oil: ' +
-          '+30% SPD and +30% debuff Accuracy for 2 turns.',
+        description: 'Self: +30% SPD for 2 turns; +30% Accuracy for 2 turns.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
@@ -2928,8 +2874,7 @@ Object.assign(HEROES, {
       {
         id: 'slick_the_big_spill', name: 'The Big Spill',
         icon: 'assets/icons/fc1041.png',
-        description: 'Tip the whole barrel: a 50% chance each that an enemy ' +
-          'is Oilslicked for 3 turns.',
+        description: 'All enemies: 50% chance: Oilslicked: takes more from fire and burns longer for 3 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
           { type: 'debuff', chance: 0.5, stat: 'oilslicked', turns: 3 },
@@ -3007,8 +2952,7 @@ Object.assign(HEROES, {
       {
         id: 'samuels_stab_stab_stab', name: 'Stab, Stab, Stab',
         icon: 'assets/icons/fc1042.png',
-        description: 'One knife from each brother: 3 separate strikes of ' +
-          '35% ATK, each with 15% extra chance to crit.',
+        description: 'One enemy: 3 hits of 35% ATK damage (+15% Crit Chance).',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.35, critAdd: 0.15 },
@@ -3026,8 +2970,7 @@ Object.assign(HEROES, {
       {
         id: 'samuels_aim_for_the_middle', name: 'Aim for the Middle',
         icon: 'assets/icons/fc1043.png',
-        description: 'Three thrown blades of 40% ATK each — a target on ' +
-          'the center tile takes double from every one.',
+        description: 'One enemy: 3 hits of 40% ATK damage (80% vs the center row).',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.40, bonusPosition: { position: 'center', mult: 2 } },
@@ -3046,8 +2989,7 @@ Object.assign(HEROES, {
       {
         id: 'samuels_triplet_flurry', name: 'Triplet Flurry',
         icon: 'assets/icons/fc1044.png',
-        description: 'All three brothers commit: 3 separate strikes of ' +
-          '55% ATK, each with 20% extra chance to crit.',
+        description: 'One enemy: 3 hits of 55% ATK damage (+20% Crit Chance).',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.55, critAdd: 0.20 },
@@ -3125,9 +3067,7 @@ Object.assign(HEROES, {
       {
         id: 'lin_center_of_attention', name: 'Center of Attention',
         icon: 'assets/icons/fc1045.png',
-        description: 'A flourish few can ignore: a 50% chance each to taunt ' +
-          'the enemy back row — on its next turn a taunted victim must ' +
-          'throw its skill 1 at Lin and nothing else.',
+        description: 'Enemy back row: 50% chance: taunted: must attack the caster for 2 turns.',
         cooldown: 0, targeting: 'back-enemies', animation: 'attack',
         effects: [
           // turns: 2 because statuses tick at the victim's turn start —
@@ -3143,9 +3083,7 @@ Object.assign(HEROES, {
       {
         id: 'lin_blazing_ball', name: 'Blazing Ball',
         icon: 'assets/icons/fc1046.png',
-        description: 'Set the ball alight and roll it down the line: two ' +
-          'burns roll at the enemy front row, each a separate 50% ' +
-          'chance, each eating 3% of their max HP per turn for 2 turns.',
+        description: 'Enemy front row: 2 separate 50% chances: 3% of target max HP per turn for 2 turns.',
         cooldown: 4, targeting: 'front-enemies', animation: 'skill2',
         effects: [
           { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 2, flavor: 'burn' },
@@ -3163,9 +3101,8 @@ Object.assign(HEROES, {
       {
         id: 'lin_ball_barricade', name: 'Ball Barricade',
         icon: 'assets/icons/fc1047.png',
-        description: 'Plant the ball and brace: Lin gains Blocker for 2 ' +
-          'turns — she cannot act, but absorbs all damage aimed at ' +
-          'front-row allies, mitigating 25% of it.',
+        description: 'Self: Blocker: cannot act, and absorbs every hit aimed at a front-row ally, taking 25% ' +
+          'less from each, for 2 turns.',
         cooldown: 6, targeting: 'self', animation: 'skill3',
         effects: [
           { type: 'buff', stat: 'blocker', turns: 2 },
@@ -3231,8 +3168,7 @@ Object.assign(HEROES, {
       {
         id: 'koe_something_from_nothing', name: 'Something From Nothing',
         icon: 'assets/icons/fc1048.png',
-        description: 'Produce an invisible remedy: heal one ally for 15% ' +
-          'of THEIR max HP and lift 2 debuffs.',
+        description: 'One ally: heals 15% of their own max HP; removes 2 debuffs.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', targetPct: 0.15 },
@@ -3249,9 +3185,7 @@ Object.assign(HEROES, {
       {
         id: 'koe_pull_the_rope', name: 'Pull the Rope',
         icon: 'assets/icons/fc1049.png',
-        description: 'Haul the front line forward on a rope only Koe can ' +
-          'see: front-row allies gain 30% SPD for 2 turns and 20% turn ' +
-          'meter at once.',
+        description: 'Front-row allies: +30% SPD for 2 turns; +20% turn meter.',
         cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
@@ -3269,9 +3203,7 @@ Object.assign(HEROES, {
       {
         id: 'koe_the_invisible_wall', name: 'The Invisible Wall',
         icon: 'assets/icons/fc1050.png',
-        description: 'Press both palms flat and the wall is THERE: every ' +
-          'front-row ally gains a Bubble for 2 turns that absorbs one ' +
-          'whole hit.',
+        description: 'Front-row allies: blocks the next hit taken for 2 turns.',
         cooldown: 6, targeting: 'front-allies', animation: 'skill3',
         effects: [
           { type: 'bubble', turns: 2 },
@@ -3352,8 +3284,7 @@ Object.assign(HEROES, {
       {
         id: 'cleo_kind_fortune', name: 'A Kind Fortune',
         icon: 'assets/icons/fc1051.png',
-        description: 'The ball finds whoever needs it most: heals the ' +
-          'lowest-HP ally for 20% of their max HP.',
+        description: 'The lowest-health ally: heals 20% of their own max HP.',
         cooldown: 0, targeting: 'lowest-allies', allyCount: 1, animation: 'attack',
         effects: [
           { type: 'healHpPct', targetPct: 0.20 },
@@ -3369,8 +3300,7 @@ Object.assign(HEROES, {
       {
         id: 'cleo_twin_fates', name: 'Twin Fates',
         icon: 'assets/icons/fc1052.png',
-        description: 'Two readings at once: heals the 2 lowest-HP allies ' +
-          'for 25% of their max HP each and lifts one debuff from each.',
+        description: 'The 2 lowest-health allies: heals 25% of their own max HP; removes 1 debuff.',
         cooldown: 4, targeting: 'lowest-allies', allyCount: 2, animation: 'skill2',
         effects: [
           { type: 'healHpPct', targetPct: 0.25 },
@@ -3388,8 +3318,7 @@ Object.assign(HEROES, {
       {
         id: 'cleo_fortunes_reversed', name: 'Fortunes Reversed',
         icon: 'assets/icons/fc1053.png',
-        description: 'The wisps fly out and come back with stolen luck: a 50% ' +
-          'chance to strip one buff from each enemy.',
+        description: 'All enemies: 50% chance: removes 1 buff.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         effects: [
           { type: 'stripBuffs', count: 1, chance: 0.5 },
@@ -3468,8 +3397,7 @@ Object.assign(HEROES, {
       {
         id: 'artur_margin_note', name: 'Margin Note',
         icon: 'assets/icons/fc1064.png',
-        description: "A sharp annotation in one ally's margin: +30% Crit " +
-          'Chance for 2 turns and 30% turn meter at once.',
+        description: 'One ally: +30% Crit Chance for 2 turns; +30% turn meter.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'buff', stat: 'critChance', add: 0.30, turns: 2 },
@@ -3486,8 +3414,7 @@ Object.assign(HEROES, {
       {
         id: 'artur_illuminated_letter', name: 'Illuminated Letter',
         icon: 'assets/icons/fc1065.png',
-        description: "Gold leaf on one ally's initial: +60% Crit Damage " +
-          'for 2 turns and 30% turn meter at once.',
+        description: 'One ally: +60% Crit Damage for 2 turns; +30% turn meter.',
         cooldown: 4, targeting: 'ally', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'critDamage', add: 0.60, turns: 2 },
@@ -3505,8 +3432,7 @@ Object.assign(HEROES, {
       {
         id: 'artur_turn_the_page', name: 'Turn the Page',
         icon: 'assets/icons/fc1067.png',
-        description: 'The whole chapter advances: every ally gains 15% ' +
-          'turn meter.',
+        description: 'All allies: +15% turn meter.',
         cooldown: 6, targeting: 'all-allies', animation: 'skill3',
         effects: [
           { type: 'turnMeter', amount: 0.15 },
@@ -3572,8 +3498,7 @@ Object.assign(HEROES, {
       {
         id: 'tumble_passing_whirl', name: 'Passing Whirl',
         icon: 'assets/icons/fc1140.png',
-        description: 'Whirl through the enemy front row for 50% ATK each, ' +
-          'with a 50% chance to tear one blessing off each of them.',
+        description: 'Enemy front row: 50% ATK damage; 50% chance: removes 1 buff.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.50 },
@@ -3590,8 +3515,7 @@ Object.assign(HEROES, {
       {
         id: 'tumble_quickstep', name: 'Quickstep',
         icon: 'assets/icons/fc1141.png',
-        description: 'The whole troupe picks up his tempo: +30% Speed to ' +
-          'every ally for 2 turns.',
+        description: 'All allies: +30% SPD for 2 turns.',
         cooldown: 4, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'buff', stat: 'speed', mult: 1.30, turns: 2 },
@@ -3608,10 +3532,7 @@ Object.assign(HEROES, {
       {
         id: 'tumble_carousel', name: 'Carousel',
         icon: 'assets/icons/fc1142.png',
-        description: 'A spin wide enough to catch both outer rows for 50% ' +
-          'ATK, and the whole enemy formation turns one hex clockwise ' +
-          'around its middle — front ranks swung to the back, casters ' +
-          'dragged to the front.',
+        description: 'Both enemy flanks: 50% ATK damage; self: rotates the enemy formation one hex.',
         cooldown: 6, targeting: 'flank-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 0.50 },
@@ -3686,8 +3607,7 @@ Object.assign(HEROES, {
       {
         id: 'posie_bloom', name: 'Bloom',
         icon: 'assets/icons/fc1170.png',
-        description: "Tip the bough over one ally: heals them for 20% of " +
-          "Posie's own max HP.",
+        description: 'One ally: heals 20% of caster max HP.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -3703,9 +3623,7 @@ Object.assign(HEROES, {
       {
         id: 'posie_windfall', name: 'Windfall',
         icon: 'assets/icons/fc1171.png',
-        description: 'Heal one ally for 20% of THEIR own max HP — and the ' +
-          'bough has a 50% chance to swing on to the lowest-HP ally and ' +
-          'heal again, over and over while the rolls hold.',
+        description: 'One ally: heals 20% of their own max HP. 50% chance to repeat on the lowest-health ally.',
         cooldown: 4, targeting: 'ally', animation: 'skill2',
         effects: [
           { type: 'healHpPct', targetPct: 0.20 },
@@ -3726,8 +3644,7 @@ Object.assign(HEROES, {
       {
         id: 'posie_high_summer', name: 'High Summer',
         icon: 'assets/icons/fc1172.png',
-        description: "The whole bough opens at once: heal every ally for " +
-          "10% of Posie's max HP and raise their Resistance by 30% for 2 turns.",
+        description: 'All allies: heals 10% of caster max HP; +30% Resistance for 2 turns.',
         // The largest team mend in the game, and it was paying a quarter
         // of her pool to everyone every six turns -- the biggest single
         // number on the bench. Cut at both ends: the base is 10%, the
@@ -3799,7 +3716,7 @@ Object.assign(HEROES, {
       {
         id: 'galen_gust', name: 'Gust',
         icon: 'assets/icons/fc1190.png',
-        description: 'Let the pinwheel choose: 125% ATK to a RANDOM enemy.',
+        description: 'Random enemies: 125% ATK damage.',
         cooldown: 0, targeting: 'random-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -3815,8 +3732,7 @@ Object.assign(HEROES, {
       {
         id: 'galen_stripwind', name: 'Stripwind',
         icon: 'assets/icons/fc1191.png',
-        description: 'A cutting pass on one enemy: 140% ATK, with a 50% chance ' +
-          'to tear two blessings away.',
+        description: 'One enemy: 140% ATK damage; 50% chance: removes 2 buffs.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.40 },
@@ -3834,9 +3750,7 @@ Object.assign(HEROES, {
       {
         id: 'galen_squall', name: 'Squall',
         icon: 'assets/icons/fc1192.png',
-        description: 'The wind reaches over the wall: 120% ATK to the ' +
-          'enemy BACK row, with a 50% chance to tear one blessing ' +
-          'off each of them.',
+        description: 'Enemy back row: 120% ATK damage; 50% chance: removes 1 buff.',
         cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.20 },
@@ -3907,8 +3821,7 @@ Object.assign(HEROES, {
       {
         id: 'ilyra_clear_sky', name: 'Clear Sky',
         icon: 'assets/icons/fc1210.png',
-        description: "One ally is aired out: heals for 15% of Ilyra's own " +
-          'max HP and lifts one debuff.',
+        description: 'One ally: heals 15% of caster max HP; removes 1 debuff.',
         cooldown: 0, targeting: 'ally', animation: 'attack',
         effects: [
           { type: 'healHpPct', pct: 0.15 },
@@ -3925,9 +3838,7 @@ Object.assign(HEROES, {
       {
         id: 'ilyra_following_wind', name: 'Following Wind',
         icon: 'assets/icons/fc1211.png',
-        description: "The front rank gets the weather at its back: heals " +
-          "the FRONT row for 20% of Ilyra's max HP each and lifts one " +
-          'debuff from each.',
+        description: 'Front-row allies: heals 20% of caster max HP; removes 1 debuff.',
         cooldown: 4, targeting: 'front-allies', animation: 'skill2',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -3945,8 +3856,7 @@ Object.assign(HEROES, {
       {
         id: 'ilyra_changing_weather', name: 'Changing Weather',
         icon: 'assets/icons/fc1212.png',
-        description: "The whole field turns over: heals EVERY ally for 5% " +
-          "of Ilyra's max HP and lifts one debuff from each.",
+        description: 'All allies: heals 5% of caster max HP; removes 1 debuff.',
         // A 3-star was out-mending most of the 5-stars. The mend is now
         // the smaller half of the skill and the cleanse is the point of
         // it -- which is what a weather-turner should be selling.
@@ -4021,7 +3931,7 @@ Object.assign(HEROES, {
       {
         id: 'ryn_crosscut', name: 'Crosscut', 
         icon: 'assets/icons/fc1230.png',
-        description: 'One clean pass of both chakrams: 100% ATK to a single enemy.',
+        description: 'One enemy: 100% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.00 },
@@ -4037,7 +3947,7 @@ Object.assign(HEROES, {
       {
         id: 'ryn_shear', name: 'Shear',
         icon: 'assets/icons/fc1231.png',
-        description: 'Both blades through the same gap: 140% ATK to a single enemy.',
+        description: 'One enemy: 140% ATK damage.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.40 },
@@ -4054,8 +3964,7 @@ Object.assign(HEROES, {
       {
         id: 'ryn_scything_gale', name: 'Scything Gale',
         icon: 'assets/icons/fc1232.png',
-        description: 'A running cut down the whole line: 130% ATK to the ' +
-          'enemy FRONT row.',
+        description: 'Enemy front row: 130% ATK damage.',
         cooldown: 6, targeting: 'front-enemies', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.30 },
@@ -4134,7 +4043,7 @@ Object.assign(HEROES, {
       {
         id: 'imani_single_note', name: 'Single Note',
         icon: 'assets/icons/fc1250.png',
-        description: 'One bell, struck clean: 125% ATK to a single enemy.',
+        description: 'One enemy: 125% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
@@ -4150,7 +4059,7 @@ Object.assign(HEROES, {
       {
         id: 'imani_two_bells', name: 'Two Bells',
         icon: 'assets/icons/fc1251.png',
-        description: 'The bar swings twice: 130% ATK to TWO random enemies.',
+        description: '2 random enemies: 130% ATK damage.',
         cooldown: 4, targeting: 'random-enemies', targetCount: 2,
         animation: 'skill2', impact: 'slash',
         effects: [
@@ -4168,9 +4077,7 @@ Object.assign(HEROES, {
       {
         id: 'imani_full_peal', name: 'All The Bells',
         icon: 'assets/icons/fc1252.png',
-        description: 'Every bell at once: 130% ATK to THREE random ' +
-          'enemies, with a 50% chance for the sound to drag at each — ' +
-          '-30% Speed for 2 turns.',
+        description: '3 random enemies: 130% ATK damage; 50% chance: -30% SPD for 2 turns.',
         cooldown: 6, targeting: 'random-enemies', targetCount: 3,
         animation: 'skill3', impact: 'slash',
         effects: [
@@ -4242,9 +4149,7 @@ Object.assign(HEROES, {
       {
         id: 'sable_seedfall', name: 'Seedfall',
         icon: 'assets/icons/fc1283.png',
-        description: 'Scatters seed across the field: 70% ATK to two random ' +
-          'enemies, each with a 50% chance to be left poisoned for ' +
-          '30% ATK a turn over 3 turns.',
+        description: '2 random enemies: 70% ATK damage; 50% chance: 30% ATK per turn for 3 turns.',
         cooldown: 0, targeting: 'random-enemies', targetCount: 2,
         animation: 'attack', impact: 'strike_purple',
         effects: [
@@ -4262,9 +4167,8 @@ Object.assign(HEROES, {
       {
         id: 'sable_open_the_flower', name: 'Open The Flower',
         icon: 'assets/icons/fc1284.png',
-        description: 'The bloom on his staff opens and every seeded enemy ' +
-          'answers: all poison on the field comes due at once, dealing every ' +
-          'remaining tick immediately and burning itself out.',
+        description: 'All enemies: detonates every DoT on the target: each deals all its remaining damage at ' +
+          'once and is removed.',
         cooldown: 4, targeting: 'all-enemies', animation: 'skill2',
         effects: [
           { type: 'detonate' },
@@ -4277,9 +4181,7 @@ Object.assign(HEROES, {
       {
         id: 'sable_grave_garden', name: 'Grave Garden',
         icon: 'assets/icons/fc1285.png',
-        description: 'The whole field goes to seed: 110% ATK to every enemy, ' +
-          'each with a 50% chance to be poisoned for 30% ATK a turn ' +
-          'over 3 turns.',
+        description: 'All enemies: 110% ATK damage; 50% chance: 30% ATK per turn for 3 turns.',
         cooldown: 6, targeting: 'all-enemies', animation: 'skill3',
         impact: 'strike_purple',
         effects: [
@@ -4351,8 +4253,7 @@ Object.assign(HEROES, {
       {
         id: 'evelune_struck_note', name: 'Struck Note',
         icon: 'assets/icons/fc1287.png',
-        description: 'One note, struck hard: 130% ATK to a single enemy, with a ' +
-          '50% chance the discord costs them 20 AP.',
+        description: 'One enemy: 130% ATK damage; 50% chance: -20% turn meter.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.30 },
@@ -4369,8 +4270,7 @@ Object.assign(HEROES, {
       {
         id: 'evelune_play_it_again', name: 'Play It Again',
         icon: 'assets/icons/fc1288.png',
-        description: 'The same phrase, sooner: every ally gets 1 turn back ' +
-          'off all of their cooldowns.',
+        description: 'All allies: ally cooldowns -1 turn.',
         cooldown: 5, targeting: 'all-allies', animation: 'skill2',
         effects: [
           { type: 'cooldownReduce', turns: 1 },
@@ -4384,9 +4284,7 @@ Object.assign(HEROES, {
       {
         id: 'evelune_hold_the_chord', name: 'Hold The Chord',
         icon: 'assets/icons/fc1289.png',
-        description: 'A chord held open over the whole line: mends every ally ' +
-          "for 15% of Evelune's max HP, and every blessing the team is " +
-          'wearing lasts 1 turn longer.',
+        description: 'All allies: heals 15% of caster max HP; buffs last 1 turn longer.',
         cooldown: 6, targeting: 'all-allies', animation: 'skill3', impact: 'heal_purple',
         effects: [
           { type: 'healHpPct', pct: 0.15 },
@@ -4463,8 +4361,7 @@ Object.assign(HEROES, {
       {
         id: 'lysandra_running_stitch', name: 'Running Stitch',
         icon: 'assets/icons/fc1291.png',
-        description: 'One clean stitch: 130% ATK to a single enemy, and ' +
-          'Lysandra mends for 20% of what it cost them.',
+        description: 'One enemy: 130% ATK damage (heals 20% of the damage dealt).',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.30, healDealt: { to: 'self', frac: 0.20 } },
@@ -4480,9 +4377,8 @@ Object.assign(HEROES, {
       {
         id: 'lysandra_slip_knot', name: 'Slip Knot',
         icon: 'assets/icons/fc1292.png',
-        description: 'A loop thrown over the whole line: 110% ATK to the ' +
-          'enemy FRONT row, each with a 50% chance to be taunted onto ' +
-          'her needle for 1 turn.',
+        description: 'Enemy front row: 110% ATK damage; 50% chance: taunted: must attack the caster for 1 ' +
+          'turn.',
         cooldown: 4, targeting: 'front-enemies', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.10 },
@@ -4502,10 +4398,8 @@ Object.assign(HEROES, {
         icon: 'assets/icons/fc1293.png',
         // The gate, not a cooldown: one thread at a time.
         blockedWhile: 'soulbond',
-        description: 'The knot tied off: 160% ATK to a single enemy and a ' +
-          'thread run through them. While it holds, every point of damage ' +
-          'Lysandra takes is dealt to them as well, unmitigated. She cannot ' +
-          'throw a second thread until that one is dead or cut.',
+        description: 'One enemy: 160% ATK damage; bonded: damage the target takes is dealt to the caster too, ' +
+          'until one of them falls.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.60 },
@@ -4578,9 +4472,7 @@ Object.assign(HEROES, {
       {
         id: 'morrow_groundbreak', name: 'Groundbreak',
         icon: 'assets/icons/fc1295.png',
-        description: 'The maul comes down: 70% DEF to the enemy FRONT row, ' +
-          "and something grows where it landed — Morrow mends 8% of his " +
-          'own max HP.',
+        description: 'Enemy front row: 70% DEF damage; self: heals 8% of caster max HP.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slam',
         effects: [
           { type: 'damageDef', mult: 0.70 },
@@ -4599,9 +4491,8 @@ Object.assign(HEROES, {
       {
         id: 'morrow_wisteria', name: 'Wisteria',
         icon: 'assets/icons/fc1296.png',
-        description: 'The garden on his back comes into flower: each enemy has ' +
-          'a 50% chance to be taunted onto him for 1 turn, and Morrow takes ' +
-          '+50% DEF for 2 turns.',
+        description: 'All enemies: 50% chance: taunted: must attack the caster for 1 turn; self: +50% DEF for ' +
+          '2 turns.',
         // Base cooldown raised 5 -> 6; the last two rungs land it at 4.
         cooldown: 6, targeting: 'all-enemies', animation: 'skill2',
         effects: [
@@ -4627,9 +4518,7 @@ Object.assign(HEROES, {
       {
         id: 'morrow_pallbearer', name: 'Pallbearer',
         icon: 'assets/icons/fc1297.png',
-        description: 'He brings down everything he has had to carry: 200% DEF ' +
-          'to a single enemy, and 20% DEF more for every unit that has ' +
-          'fallen this fight, either side.',
+        description: 'One enemy: 200% DEF damage (+20% per unit that has died).',
         // Base cooldown raised 6 -> 7; fully levelled it cycles at 5.
         cooldown: 7, targeting: 'enemy', animation: 'skill3', impact: 'slam',
         effects: [
@@ -4706,8 +4595,7 @@ Object.assign(HEROES, {
       {
         id: 'valere_a_rose_for_you', name: 'A Rose For You',
         icon: 'assets/icons/fc1299.png',
-        description: 'A gift they can rarely refuse: 90% ATK to one enemy, and a ' +
-          '50% chance their ATK falls 30% for 2 turns.',
+        description: 'One enemy: 90% ATK damage; 50% chance: -30% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 0.90 },
@@ -4724,9 +4612,7 @@ Object.assign(HEROES, {
       {
         id: 'valere_the_whole_bouquet', name: 'The Whole Bouquet',
         icon: 'assets/icons/fc1300.png',
-        description: 'Every bloom at once: a 50% chance each that an enemy loses ' +
-          '30% Resistance, and a 50% chance each that they lose 20% ' +
-          'DEF, for 2 turns. The two blooms are offered separately.',
+        description: 'All enemies: 50% chance: -30% Resistance for 2 turns; 50% chance: -20% DEF for 2 turns.',
         cooldown: 5, targeting: 'all-enemies', animation: 'skill2',
         effects: [
           { type: 'debuff', stat: 'resistance', add: -0.30, turns: 2, chance: 0.5 },
@@ -4744,10 +4630,8 @@ Object.assign(HEROES, {
       {
         id: 'valere_something_rarer', name: 'Something Rarer',
         icon: 'assets/icons/fc1301.png',
-        description: 'He presents one enemy with everything his own side was ' +
-          'carrying: every debuff and poison on Valere\'s team moves onto ' +
-          'them with the time it had left, and a 50% chance their DEF ' +
-          'falls 30% for 3 turns on top.',
+        description: 'One enemy: 50% chance: -30% DEF for 3 turns; moves every debuff on your team onto the ' +
+          'target.',
         cooldown: 8, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'debuff', stat: 'def', mult: 0.70, turns: 3, chance: 0.5 },
@@ -4813,8 +4697,7 @@ Object.assign(HEROES, {
       {
         id: 'lenore_single_toll', name: 'Single Toll',
         icon: 'assets/icons/fc1303.png',
-        description: 'One ring, for whoever needs it: the ally in the worst ' +
-          "shape recovers 20% of Lenore's max HP.",
+        description: 'The lowest-health ally: heals 20% of caster max HP.',
         cooldown: 0, targeting: 'lowest-allies', allyCount: 1,
         animation: 'attack', impact: 'heal_purple',
         effects: [
@@ -4831,9 +4714,7 @@ Object.assign(HEROES, {
       {
         id: 'lenore_muffled_peal', name: 'Muffled Peal',
         icon: 'assets/icons/fc1304.png',
-        description: 'Rung muffled, the way it is rung for the dead: the ' +
-          'whole team braces at +30% DEF for 2 turns and recovers 10% of ' +
-          "Lenore's max HP a turn while the sound holds.",
+        description: 'All allies: +30% DEF for 2 turns; heals 10% of caster max HP each turn for 2 turns.',
         cooldown: 6, targeting: 'all-allies', animation: 'skill2', impact: 'heal_purple',
         effects: [
           { type: 'buff', stat: 'def', mult: 1.30, turns: 2 },
@@ -4851,8 +4732,7 @@ Object.assign(HEROES, {
       {
         id: 'lenore_open_ring', name: 'Open Ring',
         icon: 'assets/icons/fc1305.png',
-        description: 'The bell opened all the way: every ally recovers 10% ' +
-          "of Lenore's max HP and takes a shield worth 10% of it for 2 turns.",
+        description: 'All allies: heals 10% of caster max HP; shield worth 10% of caster max HP for 2 turns.',
         // The `heal` rungs raise the ward as well as the mend, so this
         // ladder was buying two things at once and had to be the short
         // one. Base halved, ladder halved; the ward it carries is
@@ -4933,8 +4813,7 @@ Object.assign(HEROES, {
       {
         id: 'dorian_low_sweep', name: 'Low Sweep',
         icon: 'assets/icons/fc1307.png',
-        description: 'The glaive comes across at knee height: 140% ATK to a ' +
-          'single enemy.',
+        description: 'One enemy: 140% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.40 },
@@ -4950,8 +4829,7 @@ Object.assign(HEROES, {
       {
         id: 'dorian_nothing_for_the_pain', name: 'Nothing For The Pain',
         icon: 'assets/icons/fc1308.png',
-        description: '150% ATK to a single enemy, with a 50% chance that for 2 ' +
-          'turns nothing can heal them — no mend, no regen, no drain.',
+        description: 'One enemy: 150% ATK damage; 50% chance: cannot be healed for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.50 },
@@ -4969,9 +4847,8 @@ Object.assign(HEROES, {
       {
         id: 'dorian_no_physician', name: 'No Physician',
         icon: 'assets/icons/fc1309.png',
-        description: 'The lit blade: 190% ATK to a single enemy, then two 50% ' +
-          'rolls made apart — one to cut them off from healing for 2 ' +
-          'turns, one to seal them against new blessings for 2.',
+        description: 'One enemy: 190% ATK damage; 50% chance: cannot be healed for 2 turns; 50% chance: cannot ' +
+          'gain buffs for 2 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damage', mult: 1.90 },
@@ -5052,9 +4929,7 @@ Object.assign(HEROES, {
       {
         id: 'noctelle_silent_wing', name: 'Silent Wing',
         icon: 'assets/icons/fc1276.png',
-        description: "10% of Noctelle's own max HP as damage to one " +
-          'enemy, and the ally in the worst shape is mended for exactly ' +
-          'what the wound cost.',
+        description: 'One enemy: 10% max-HP damage (heals 100% of the damage dealt to the lowest-health ally).',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike_purple',
         effects: [
           { type: 'damageHp', mult: 0.10, healDealt: { to: 'lowest-ally', frac: 1 } },
@@ -5070,8 +4945,7 @@ Object.assign(HEROES, {
       {
         id: 'noctelle_nightbloom', name: 'Nightbloom',
         icon: 'assets/icons/fc1277.png',
-        description: "Mends one ally for 20% of Noctelle's own max HP " +
-          'and lifts a debuff off them.',
+        description: 'One ally: heals 20% of caster max HP; removes 1 debuff.',
         cooldown: 4, targeting: 'ally', animation: 'skill2', impact: 'heal_purple',
         effects: [
           { type: 'healHpPct', pct: 0.20 },
@@ -5089,9 +4963,7 @@ Object.assign(HEROES, {
       {
         id: 'noctelle_moth_dust', name: 'Moth Dust',
         icon: 'assets/icons/fc1278.png',
-        description: "10% of Noctelle's own max HP as damage to the enemy " +
-          'BACK row, with a 50% chance the dust drags at each of them: ' +
-          '-30% Speed for 2 turns.',
+        description: 'Enemy back row: 10% max-HP damage; 50% chance: -30% SPD for 2 turns.',
         cooldown: 6, targeting: 'back-enemies', animation: 'skill3', impact: 'strike_purple',
         effects: [
           { type: 'damageHp', mult: 0.10 },
@@ -5160,7 +5032,7 @@ Object.assign(HEROES, {
       {
         id: 'asher_downstroke', name: 'Downstroke',
         icon: 'assets/icons/fc1273.png',
-        description: 'The hammer comes down on one of them for 130% ATK.',
+        description: 'One enemy: 130% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.30 },
@@ -5176,8 +5048,7 @@ Object.assign(HEROES, {
       {
         id: 'asher_helping_myself', name: 'Helping Myself',
         icon: 'assets/icons/fc1274.png',
-        description: '150% ATK to a single enemy, with a 50% chance one buff ' +
-          'comes off them and onto Asher with whatever time it had left.',
+        description: 'One enemy: 150% ATK damage; 50% chance: steals 1 buff.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.50 },
@@ -5195,9 +5066,8 @@ Object.assign(HEROES, {
       {
         id: 'asher_nothing_for_you', name: 'Nothing For You',
         icon: 'assets/icons/fc1275.png',
-        description: '175% ATK to a single enemy, then two 50% rolls made apart: ' +
-          'one to move TWO of their buffs onto Asher, one to seal them ' +
-          'against every new blessing for 3 turns.',
+        description: 'One enemy: 175% ATK damage; 50% chance: steals 2 buffs; 50% chance: cannot gain buffs ' +
+          'for 3 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.75 },
@@ -5278,8 +5148,7 @@ Object.assign(HEROES, {
       {
         id: 'wren_breakwater', name: 'Breakwater',
         icon: 'assets/icons/fc1270.png',
-        description: "A shoulder into the whole line: the enemy FRONT row " +
-          "takes 10% of Wren's own max HP as damage.",
+        description: 'Enemy front row: 10% max-HP damage.',
         cooldown: 0, targeting: 'front-enemies', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.10 },
@@ -5295,8 +5164,7 @@ Object.assign(HEROES, {
       {
         id: 'wren_shoulder_check', name: 'Shoulder Check',
         icon: 'assets/icons/fc1271.png',
-        description: "Everything she has, into one of them: 15% of Wren's " +
-          'own max HP as damage to a single enemy.',
+        description: 'One enemy: 15% max-HP damage.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.15 },
@@ -5313,10 +5181,7 @@ Object.assign(HEROES, {
       {
         id: 'wren_out_you_come', name: 'Out You Come',
         icon: 'assets/icons/fc1272.png',
-        description: 'Reach past the wall for a BACK-row enemy: 10% of ' +
-          "Wren's max HP as damage, and they trade hexes with whoever was " +
-          'covering them — their caster out in the open, their wall shoved ' +
-          'in behind.',
+        description: 'One enemy: 10% max-HP damage; swaps the target between front and back.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
           { type: 'damageHp', mult: 0.10 },
