@@ -670,6 +670,30 @@ const GameState = (() => {
       return { uid, heroId, isNew, blessing };
     },
 
+    // Hand the player a dumpling at `stars`. It goes in through the
+    // ordinary roster path so the cap, the save and the listeners behave
+    // exactly as they do for a hero -- a dumpling occupies a roster slot,
+    // which is the price of it sitting where you can see it.
+    addDumpling(stars = 1) {
+      if (this.rosterFull()) return null;
+      const uid = String(state.nextHeroUid++);
+      const s = Math.max(1, Math.min(Progression.MAX_STARS, Math.round(stars)));
+      state.roster[uid] = {
+        heroId: 'dumpling',
+        level: 1, xp: 0, stars: s,
+        attune: 0, starPoints: 0,
+        equipment: {}, skills: {}, favorite: false,
+      };
+      save();
+      return { uid, stars: s };
+    },
+
+    // How many are in hand, for a readout that would otherwise count
+    // them by walking the roster itself.
+    dumplingCount() {
+      return Object.keys(state.roster).filter((uid) => this.isConsumable(uid)).length;
+    },
+
     // The permanent collection: characters ever obtained, whether or not
     // a copy still stands in the roster. Compendium/achievement fuel.
     everCollected(heroId) { return !!state.collected[heroId]; },
@@ -683,9 +707,31 @@ const GameState = (() => {
       const e = state.roster[uid];
       return e ? e.heroId : null;
     },
+    // The one place a roster uid becomes a definition. Heroes first, then
+    // the consumables that also sit in the roster without being heroes
+    // (dumplings). Everything that sweeps `Object.values(HEROES)` --
+    // gacha, compendium, balance, the benches, the data tests -- keeps
+    // seeing heroes only, which is the point of the split.
     defOf(uid) {
       const id = this.defIdOf(uid);
-      return (id && typeof HEROES !== 'undefined' && HEROES[id]) || null;
+      if (!id) return null;
+      if (typeof HEROES !== 'undefined' && HEROES[id]) return HEROES[id];
+      if (typeof DUMPLINGS !== 'undefined' && DUMPLINGS[id]) return DUMPLINGS[id];
+      return null;
+    },
+
+    // Is this roster entry a dumpling (or anything else that is fodder
+    // rather than a fighter)?
+    isConsumable(uid) {
+      const def = this.defOf(uid);
+      return !!(def && def.consumable);
+    },
+
+    // Points this roster entry is worth when spent, its own def's scale
+    // included.
+    fodderValue(uid) {
+      const e = state.roster[uid];
+      return e ? Progression.starValue(e.stars, this.defOf(uid)) : 0;
     },
     // How many of one character stand in the roster.
     countOf(heroId) {
@@ -784,7 +830,7 @@ const GameState = (() => {
       if (bank >= need) return true;
       for (const other of Object.keys(state.roster)) {
         if (!this.canSacrifice(other, uid)) continue;
-        bank += Progression.starValue(state.roster[other].stars);
+        bank += this.fodderValue(other);
         if (bank >= need) return true;
       }
       return false;
@@ -819,11 +865,15 @@ const GameState = (() => {
         out.push({
           uid, heroId: e.heroId, stars: e.stars, level: e.level,
           skill: e.heroId === target.heroId,
-          value: Progression.starValue(e.stars),
+          consumable: this.isConsumable(uid),
+          value: this.fodderValue(uid),
         });
       }
-      out.sort((a, b) => (b.skill - a.skill) || (a.stars - b.stars) ||
-        (a.level - b.level));
+      // Dumplings lead: they exist only to be eaten, so a list that
+      // buries them under a hundred heroes is hiding the answer.
+      // Then duplicates (a skill up on top), then cheapest first.
+      out.sort((a, b) => (b.consumable - a.consumable) || (b.skill - a.skill) ||
+        (a.stars - b.stars) || (a.level - b.level));
       return out;
     },
 
@@ -843,6 +893,8 @@ const GameState = (() => {
         const e = state.roster[uid];
         model.set(uid, { uid, heroId: e.heroId, stars: e.stars,
           level: e.level, xp: e.xp || 0, points: e.starPoints || 0,
+          value: this.fodderValue(uid),
+          consumable: this.isConsumable(uid),
           locked: !this.canSacrifice(uid) });
       }
       const invested = (h) => h.level * 1e6 + h.xp;
@@ -850,7 +902,8 @@ const GameState = (() => {
       for (let s = 1; s < target; s++) {
         const cost = Progression.starUpCost(s);
         for (;;) {
-          const pool = [...model.values()].filter((h) => h.stars === s);
+          const pool = [...model.values()]
+            .filter((h) => h.stars === s && !h.consumable);
           const recipient = pool
             .sort((a, b) => (b.locked - a.locked) || (invested(b) - invested(a)))[0];
           if (!recipient) break;
@@ -863,14 +916,19 @@ const GameState = (() => {
           const fodder = [];
           let have = bank;
           const shelf = [...model.values()]
-            .filter((h) => h !== recipient && !h.locked && h.stars <= s)
+            // Dumplings are exempt from the "no dearer than the
+            // recipient" rule: their rating is a label on a food item,
+            // not a claim about power, so a 5-star dumpling is not a
+            // 5-star hero being wasted.
+            .filter((h) => h !== recipient && !h.locked &&
+              (h.consumable || h.stars <= s))
             .sort((a, b) =>
               ((b.heroId === recipient.heroId) - (a.heroId === recipient.heroId)) ||
-              (a.stars - b.stars) || (invested(a) - invested(b)));
+              (a.value - b.value) || (invested(a) - invested(b)));
           for (const h of shelf) {
             if (have >= cost) break;
             fodder.push(h);
-            have += Progression.starValue(h.stars);
+            have += h.value;
           }
           if (have < cost) break;
           steps.push({ target: recipient.uid, fodder: fodder.map((h) => h.uid) });
@@ -918,6 +976,10 @@ const GameState = (() => {
     sacrifice(targetUid, fodderUids) {
       const target = state.roster[targetUid];
       if (!target || !fodderUids || !fodderUids.length) return null;
+      // A dumpling is fodder, never a recipient. Letting one be starred
+      // up would let a player pour a roster into a thing whose only
+      // purpose is to be poured somewhere else.
+      if (this.isConsumable(targetUid)) return null;
       const spend = fodderUids.filter((uid) => this.canSacrifice(uid, targetUid));
       if (!spend.length) return null;
 
@@ -939,7 +1001,7 @@ const GameState = (() => {
         // left to buy: points fed to a hero at the cap would sit in a
         // bar with nothing on the other side of it.
         if (target.stars < Progression.MAX_STARS) {
-          report.points += Progression.starValue(e.stars);
+          report.points += Progression.starValue(e.stars, this.defOf(uid));
         }
         delete state.roster[uid];
         report.spent++;
@@ -1027,6 +1089,11 @@ const GameState = (() => {
       return null;
     },
     setTeamSlot(slotIndex, heroId) {
+      // A dumpling has no skills, no element and no hex, and cannot
+      // fight. It is refused HERE rather than hidden from the roster,
+      // because the roster is where it lives and the formation is the
+      // one thing it cannot do.
+      if (this.isConsumable(heroId)) return false;
       // One copy of a CHARACTER on the field: remove the hero from any
       // slot it already occupies, and evict any OTHER copy of the same
       // character — two Tides never stand in one formation.
@@ -1744,16 +1811,20 @@ const GameState = (() => {
     // Lifetime total for a counter (0 if it has never been bumped).
     stat(counter) { return (state.stats && state.stats[counter]) || 0; },
 
+    // Boards that read the LIFETIME totals rather than the period
+    // counters: grinding done before a rung was ever visible still
+    // counts on these, and they never reset.
+    lifetimeBoard(type) { return type === 'journey' || type === 'kitchen'; },
+
     // Claim a completed quest's reward. Returns the reward or null.
-    // The Journey board reads the LIFETIME totals — grinding done before
-    // a rung was visible still counts — where the timed boards read the
-    // period counters that reset with them.
+    // The lifetime boards read the totals behind the counters; the timed
+    // boards read the period counters that reset with them.
     claimQuest(type, id) {
       const def = (Quests.DEFS[type] || []).find((d) => d.id === id);
       if (!def) return null;
       const q = this.questState(type);
       if (q.claimed[id]) return null;
-      const have = type === 'journey'
+      const have = this.lifetimeBoard(type)
         ? this.stat(def.counter) : (q.counters[def.counter] || 0);
       if (have < def.goal) return null;
       q.claimed[id] = true;
@@ -1767,7 +1838,7 @@ const GameState = (() => {
     // reward, so the screen can say what just landed in one line.
     claimAllQuests(type = null) {
       if (typeof Quests === 'undefined') return { claimed: 0, reward: {} };
-      const types = type ? [type] : ['daily', 'weekly', 'monthly', 'journey'];
+      const types = type ? [type] : ['daily', 'weekly', 'monthly', 'journey', 'kitchen'];
       const total = {};
       let claimed = 0;
       for (const t of types) {
@@ -1775,7 +1846,17 @@ const GameState = (() => {
           const got = this.claimQuest(t, def.id);
           if (!got) continue;
           claimed++;
-          for (const [k, v] of Object.entries(got)) total[k] = (total[k] || 0) + v;
+          for (const [k, v] of Object.entries(got)) {
+            // Every other reward is a scalar to be summed. Dumplings are
+            // {stars, n}, so they are tallied by star instead -- adding
+            // two of those objects together gives "[object Object]".
+            if (k === 'dumplings') {
+              const by = (total.dumplings ||= {});
+              by[v.stars] = (by[v.stars] || 0) + v.n;
+            } else {
+              total[k] = (total[k] || 0) + v;
+            }
+          }
         }
       }
       return { claimed, reward: total };
@@ -1785,10 +1866,10 @@ const GameState = (() => {
     claimableQuestCount() {
       if (typeof Quests === 'undefined') return 0;
       let n = 0;
-      for (const type of ['daily', 'weekly', 'monthly', 'journey']) {
+      for (const type of ['daily', 'weekly', 'monthly', 'journey', 'kitchen']) {
         const q = this.questState(type);
         for (const def of Quests.DEFS[type]) {
-          const have = type === 'journey'
+          const have = this.lifetimeBoard(type)
             ? this.stat(def.counter) : (q.counters[def.counter] || 0);
           if (!q.claimed[def.id] && have >= def.goal) n++;
         }

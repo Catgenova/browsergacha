@@ -194,7 +194,7 @@ class ImproveScreen {
     // is what the picks are WORTH and where that lands the hero.
     const bank = pr.starPoints || 0;
     const picking = picked.reduce(
-      (n, u) => n + Progression.starValue(GameState.progressOf(u).stars), 0);
+      (n, u) => n + GameState.fodderValue(u), 0);
     let toStars = pr.stars;
     let after = bank + picking;
     while (toStars < Progression.MAX_STARS &&
@@ -215,7 +215,10 @@ class ImproveScreen {
 
     const rowFor = (o) => {
       const on = this.chosen.has(o.uid);
-      const fodder = HEROES[o.heroId];
+      // Through defOf, not HEROES: a dumpling is a roster entry whose
+      // def lives in its own table, and indexing HEROES with its id
+      // hands back undefined and throws on the next line.
+      const fodder = GameState.defOf(o.uid);
       const info = Elements.info(fodder.element);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');

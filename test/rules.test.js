@@ -14210,4 +14210,123 @@ test('star points: the table, the rollover, and the cascade', () => {
     `a capped hero banked ${cappedPr.starPoints} points against nothing`);
 });
 
+// Dumplings: fodder with a face.
+//
+// A dumpling walks the roster without being a hero, which is a shape the
+// codebase had no precedent for -- summons are hero-shaped but never
+// owned, and everything else in the roster is a fighter. So the rules
+// that keep it out of the places it does not belong are pinned here.
+test('a dumpling is roster fodder and nothing else', () => {
+  const G = loadGame();
+  const { GameState, Progression, HEROES, DUMPLINGS } = G;
+
+  // It is NOT a hero, and that is the whole reason it can exist: the
+  // gacha, the compendium, the balance pass and every data test sweep
+  // HEROES, and a thing with no element, skills, passive or hex would
+  // need an exemption in each.
+  assert(!HEROES.dumpling, 'the dumpling leaked into HEROES');
+  assert(DUMPLINGS && DUMPLINGS.dumpling, 'there is no dumpling to test');
+
+  const got = GameState.addDumpling(3);
+  assert(got && got.stars === 3, `addDumpling returned ${JSON.stringify(got)}`);
+  const uid = got.uid;
+
+  // ...but defOf still resolves it, which is what lets it be listed,
+  // sorted, favourited and spent like anyone else.
+  assert(GameState.defOf(uid) === DUMPLINGS.dumpling, 'defOf lost the dumpling');
+  assert(GameState.isConsumable(uid), 'the dumpling does not read as consumable');
+  assert(GameState.dumplingCount() === 1, 'the count disagrees');
+
+  // Its own price ladder, not the factorials.
+  const WANT = [10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000];
+  for (let st = 1; st <= Progression.MAX_STARS; st++) {
+    assert(Progression.starValue(st, DUMPLINGS.dumpling) === WANT[st - 1],
+      `${st}* dumpling is worth ${Progression.starValue(st, DUMPLINGS.dumpling)}, ` +
+      `wanted ${WANT[st - 1]}`);
+  }
+  // A hero of the same rating is still priced off the factorials: the
+  // override is per-def, not a change to the table.
+  assert(Progression.starValue(3) === 6, 'the hero table moved');
+  assert(GameState.fodderValue(uid) === 100, `a 3* dumpling banked ${GameState.fodderValue(uid)}`);
+
+  // It cannot be placed on a formation.
+  assert(GameState.setTeamSlot(0, uid) === false, 'a dumpling was seated');
+  assert(GameState.teamSlotOf(uid) === null, 'a dumpling reached the board anyway');
+
+  // It cannot be a star-up TARGET -- feeding a roster into a thing whose
+  // only purpose is to be fed to something else is how a player loses
+  // everything at once.
+  //
+  // The fodder here is made SPENDABLE on purpose. Reaching for a starter
+  // instead let this assertion pass with the guard deleted: starters
+  // arrive favourited or fielded, canSacrifice refuses them, and
+  // sacrifice() returned null well before it ever asked what the target
+  // was. A guard that cannot be reached is a guard that is not tested.
+  const heroId = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === 1);
+  const spendable = GameState.addHero(heroId).uid;
+  if (GameState.isFavorite(spendable)) GameState.toggleFavorite(spendable);
+  assert(GameState.canSacrifice(spendable, uid),
+    'the fodder for this check is not actually spendable');
+  assert(GameState.sacrifice(uid, [spendable]) === null,
+    'a dumpling accepted a sacrifice');
+  assert(GameState.defOf(spendable), 'the refused sacrifice ate the hero anyway');
+
+  const heroUid = spendable;
+
+  // It IS offered as fodder, at the top of the list, and it pays.
+  const offered = GameState.sacrificeOptions(heroUid);
+  assert(offered.length && offered[0].uid === uid,
+    'the dumpling is not at the top of the sacrifice list');
+  assert(offered[0].value === 100, `offered at ${offered[0].value}`);
+  const bankBefore = GameState.progressOf(heroUid).starPoints || 0;
+  const report = GameState.sacrifice(heroUid, [uid]);
+  assert(report && report.points === 100, `paid ${report && report.points}`);
+  assert(!GameState.defOf(uid), 'the eaten dumpling is still in the roster');
+  const bankAfter = GameState.progressOf(heroUid).starPoints || 0;
+  assert(report.starred || bankAfter === bankBefore + 100,
+    `banked ${bankAfter}, wanted ${bankBefore + 100}`);
+});
+
+// The Kitchen: five hundred quests, all of them paying dumplings.
+test('the Kitchen board is 500 quests that all pay dumplings', () => {
+  const G = loadGame();
+  const { Quests, GameState, Progression } = G;
+  const board = Quests.DEFS.kitchen;
+  assert(board && board.length === 500,
+    `the Kitchen holds ${board ? board.length : 0} quests, wanted 500`);
+
+  const ids = new Set();
+  for (const q of board) {
+    assert(!ids.has(q.id), `duplicate Kitchen quest id ${q.id}`);
+    ids.add(q.id);
+    assert(q.reward && q.reward.dumplings, `${q.id} pays something else`);
+    const { stars, n } = q.reward.dumplings;
+    assert(stars >= 1 && stars <= Progression.MAX_STARS, `${q.id} pays a ${stars}* dumpling`);
+    assert(n >= 1, `${q.id} pays ${n} dumplings`);
+    assert(q.goal > 0 && Number.isFinite(q.goal), `${q.id} has goal ${q.goal}`);
+    assert(Quests.rewardLabel(q.reward) !== '', `${q.id} renders no reward`);
+  }
+  // Goals climb within a chain, so a later rung is always more work.
+  const chains = {};
+  for (const q of board) (chains[q.counter] ||= []).push(q);
+  for (const [counter, list] of Object.entries(chains)) {
+    for (let i = 1; i < list.length; i++) {
+      assert(list[i].goal > list[i - 1].goal,
+        `${counter} rung ${i + 1} (${list[i].goal}) does not exceed rung ${i}`);
+    }
+  }
+
+  // It reads LIFETIME totals, like the Journey: progress made before a
+  // rung was visible still counts.
+  assert(GameState.lifetimeBoard('kitchen'), 'the Kitchen resets like a daily');
+  const first = chains.wins[0];
+  GameState.questBump('wins', first.goal);
+  const before = GameState.dumplingCount();
+  const paid = GameState.claimQuest('kitchen', first.id);
+  assert(paid && paid.dumplings, `claiming paid ${JSON.stringify(paid)}`);
+  assert(GameState.dumplingCount() === before + first.reward.dumplings.n,
+    'the dumplings did not land in the roster');
+  assert(GameState.claimQuest('kitchen', first.id) === null, 'claimed twice');
+});
+
 report();

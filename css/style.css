@@ -3759,3 +3759,10 @@ svg.icon {
   color: #ffd76a;
 }
 .imp-opt.chosen .ros-worth { color: #8ee8ff; }
+
+/* A sub-tab rail with nothing to show: a dumpling has no skills, gear,
+   element or hex, so the rail goes inert rather than vanishing. */
+.ros-tab-inert {
+  opacity: 0.35;
+  pointer-events: none;
+}

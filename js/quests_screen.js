@@ -34,6 +34,7 @@ class QuestsScreen {
       ...this.guardedBoards('Login', () => this.loginBoard()),
       ...this.guardedBoards('Quests', () => this.questBoards()),
       ...this.guardedBoards('Journey', () => this.journeyBoard()),
+      ...this.guardedBoards('Kitchen', () => this.kitchenBoard()),
       ...this.guardedBoards('Achievements', () => this.achievementBoards()),
     ].map((b, i) => ({ ...b, i }));
     boards.sort((a, b) => ((b.claimable > 0) - (a.claimable > 0)) || (a.i - b.i));
@@ -314,9 +315,22 @@ class QuestsScreen {
   // rung of each chain is shown — the board stays fifteen rows tall no
   // matter how deep the ladders run. Progress reads the lifetime
   // totals, so play from before the board existed already counts.
+  // The Kitchen board. Identical in shape to the Journey -- lifetime
+  // counters, one visible rung per chain -- so it is the same renderer
+  // with a different table and a different title. What differs is the
+  // currency: every rung pays dumplings.
+  kitchenBoard() {
+    return this.chainBoard('kitchen', Quests.DEFS.kitchen, 'The Kitchen',
+      'pays in dumplings \u00b7 never resets');
+  }
+
   journeyBoard() {
-    const q = GameState.questState('journey');
-    const defs = Quests.DEFS.journey;
+    return this.chainBoard('journey', Quests.DEFS.journey, 'The Journey',
+      'never resets');
+  }
+
+  chainBoard(type, defs, title, subtitle) {
+    const q = GameState.questState(type);
     const clearedTotal = defs.reduce((n, d) => n + (q.claimed[d.id] ? 1 : 0), 0);
     const claimable = defs.reduce((n, d) =>
       n + (!q.claimed[d.id] && GameState.stat(d.counter) >= d.goal ? 1 : 0), 0);
@@ -342,18 +356,18 @@ class QuestsScreen {
             </div>
             <div class="quest-reward">${Quests.rewardLabel(def.reward)}</div>
             <button class="panel-btn quest-claim ${done ? 'gold' : ''}"
-              data-type="journey" data-id="${def.id}"
+              data-type="${type}" data-id="${def.id}"
               ${done ? '' : 'disabled'}>Claim</button>
           </div>`;
       }).join('');
     return [{ claimable, html: `
       <div class="quest-board">
         <div class="quest-board-header">
-          <h3>The Journey</h3>
+          <h3>${title}</h3>
           <span class="quest-reset">${claimable
-            ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}${clearedTotal.toLocaleString()} / ${defs.length.toLocaleString()} quests cleared · never resets</span>
+            ? `<span class="ach-claimable">${claimable} to claim</span> · ` : ''}${clearedTotal.toLocaleString()} / ${defs.length.toLocaleString()} quests cleared · ${subtitle}</span>
           ${claimable ? `<button class="panel-btn gold claim-all"
-            data-type="journey">Claim all (${claimable})</button>` : ''}
+            data-type="${type}">Claim all (${claimable})</button>` : ''}
         </div>
         ${rows}
       </div>` }];

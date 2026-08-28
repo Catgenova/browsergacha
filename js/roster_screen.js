@@ -209,14 +209,21 @@ class RosterScreen {
   // ---- right: the sub-tabs -------------------------------------------
 
   renderPanel() {
+    const inert = !!this.selected && GameState.isConsumable(this.selected);
     for (const tab of this.tabsEl.querySelectorAll('.ros-tab')) {
-      tab.classList.toggle('active', tab.dataset.panel === this.panel);
+      tab.classList.toggle('active', !inert && tab.dataset.panel === this.panel);
+      tab.classList.toggle('ros-tab-inert', inert);
     }
     if (!this.selected) {
       this.panelEl.innerHTML =
         '<div class="details-empty">Select a hero from the grid.</div>';
       return;
     }
+    // A dumpling has no skills, no gear, no element and no hex, so it
+    // gets one panel rather than five that would all say "none". The
+    // rail stays visible but goes inert, which reads as "not for this"
+    // instead of as a screen that lost its tabs.
+    if (GameState.isConsumable(this.selected)) return this.renderConsumable();
     if (this.panel === 'ascend') return this.renderAscend();
     if (this.panel === 'starup') return this.renderStarUp();
     if (this.panel === 'skill') return this.renderSkill();
@@ -297,6 +304,41 @@ class RosterScreen {
   // per rung, lit for the ones bought and dim for the ones ahead. That
   // dim half is the point: a skill readout that only lists what you have
   // cannot answer "is the next copy worth it".
+  // The dumpling dossier. One number matters -- what it is worth in the
+  // bank -- so that number is the panel, with the rest of the ladder
+  // beside it so a player can see what a bigger one would be worth.
+  renderConsumable() {
+    const uid = this.selected;
+    const def = GameState.defOf(uid);
+    const pr = GameState.progressOf(uid);
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    const worth = Progression.starValue(pr.stars, def);
+
+    const ladder = Array.from({ length: Progression.MAX_STARS }, (_, i) => {
+      const st = i + 1;
+      return `<div class="ros-rung${st === pr.stars ? ' earned' : ''}">
+        <span class="ros-rung-lv">${st}&#9733;</span>
+        <span class="ros-rung-text">${num(Progression.starValue(st, def))} points</span></div>`;
+    }).join('');
+
+    this.panelEl.innerHTML = `
+      <div class="ros-head">
+        <div class="detail-name rarity-1">${def.name}
+          <span class="detail-title">${def.title || ''}</span></div>
+        <div class="card-stars rarity-1">${Attune.starsHtml(pr.stars, 0, null)}</div>
+        <div class="detail-element">No element &middot; not a fighter</div>
+      </div>
+      <div class="ros-power">Worth <b>${num(worth)}</b> star-up points</div>
+      <div class="ros-skill-desc">A dumpling has no skills and cannot be placed on a
+        formation. It exists to be fed to a hero on the Star Up tab, where it is worth
+        far more than a hero of the same rating.</div>
+      <div class="detail-section">What a dumpling is worth</div>
+      <div class="ros-ladder">${ladder}</div>
+      <div class="ros-note">You hold ${GameState.dumplingCount()} dumpling${
+        GameState.dumplingCount() === 1 ? '' : 's'}. They take up roster room like
+        anyone else, so they are worth spending rather than hoarding.</div>`;
+  }
+
   // ---- Ascend -----------------------------------------------------------
   //
   // The second growth axis: elements won off the elemental bosses, spent
@@ -453,7 +495,10 @@ class RosterScreen {
 
     const rowFor = (o) => {
       const on = this.chosen.has(o.uid);
-      const fodder = HEROES[o.heroId];
+      // Through defOf, not HEROES: a dumpling is a roster entry whose
+      // def lives in its own table, and indexing HEROES with its id
+      // hands back undefined and throws on the next line.
+      const fodder = GameState.defOf(o.uid);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
       tags.push(`<span class="imp-tag imp-tag-dim">${o.stars}&#9733;</span>`);
@@ -554,7 +599,7 @@ class RosterScreen {
     const pr = GameState.progressOf(uid);
     const picked = [...this.chosen].filter((u) => GameState.defOf(u));
     const picking = picked.reduce(
-      (n, u) => n + Progression.starValue(GameState.progressOf(u).stars), 0);
+      (n, u) => n + GameState.fodderValue(u), 0);
     const bank = pr.starPoints || 0;
     let toStars = pr.stars;
     let after = bank + picking;

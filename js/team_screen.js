@@ -797,6 +797,16 @@ class TeamScreen {
 
     const uid = this.selection.heroId;   // a roster uid, not a character id
     const def = GameState.defOf(uid);
+    // A hero selected and then SPENT leaves a uid pointing at nothing.
+    // refresh() normally clears the selection first, but any caller that
+    // reaches this directly used to walk straight into `def.abilities`
+    // on a null.
+    if (!def) { this.selection = null; this.detailsEl.innerHTML =
+      '<div class="details-empty">That hero is gone.</div>'; return; }
+    // A dumpling has no passive, no hex and no gear, and this panel
+    // reads all three unguarded. It also cannot be placed, so the half
+    // of the panel that is about placement has nothing to say either.
+    if (def.consumable) { this.updateConsumableDetails(uid, def); return; }
     const slotIndex = GameState.teamSlotOf(uid);
     const placedSlot = slotIndex !== null ? this.slots[slotIndex] : null;
     const bonusLive = placedSlot && placedSlot.position === def.positional.position;
@@ -1001,6 +1011,22 @@ class TeamScreen {
         this.updateDetails();
       });
     });
+  }
+
+  // A dumpling's dossier on the Team screen: what it is, what it is
+  // worth, and the one thing a player standing on this screen needs
+  // told -- that it will not go on the board.
+  updateConsumableDetails(uid, def) {
+    const pr = GameState.progressOf(uid);
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    this.detailsEl.innerHTML = `
+      <div class="detail-name rarity-1">${def.name}
+        <span class="detail-title">${def.title || ''}</span></div>
+      <div class="card-stars rarity-1">${Attune.starsHtml(pr.stars, 0, null)}</div>
+      <div class="detail-stats">Worth ${num(Progression.starValue(pr.stars, def))}
+        star-up points</div>
+      <div class="detail-ability">A dumpling cannot be placed on a hex. Feed it to a
+        hero on the Roster screen's Star Up tab.</div>`;
   }
 
   // A stored hero's dossier: everything the roster view shows minus gear
