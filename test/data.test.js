@@ -1531,4 +1531,29 @@ test('passive cards quote the numbers their hooks actually carry', () => {
     `${problems.length} unquoted: ` + problems.slice(0, 5).join(' | '));
 });
 
+// The Roster screen's skill strip now carries the WHOLE kit -- three
+// actives, the passive, and the hex bonus -- so every one of those five
+// tiles needs something to draw. An ability without an icon falls back
+// to its slot number, which is fine; the other two have no fallback
+// worth having, so they are checked here rather than discovered as an
+// empty square in the strip.
+test('every hero kit has something to draw in all five strip tiles', () => {
+  const { HEROES } = g;
+  // The three hex icons Icons.svg can produce, keyed the way the screen
+  // builds the name: `hex-${positional.position}`.
+  const HEXES = new Set(['front', 'center', 'back']);
+  const problems = [];
+  for (const def of Object.values(HEROES)) {
+    if (!def.passive) problems.push(`${def.id}: no passive at all`);
+    else if (!def.passive.icon) problems.push(`${def.id}/${def.passive.name}: passive has no icon`);
+    if (!def.positional) problems.push(`${def.id}: no positional at all`);
+    else if (!HEXES.has(def.positional.position)) {
+      problems.push(`${def.id}: positional sits on '${def.positional.position}', ` +
+        'which has no hex icon');
+    }
+  }
+  assert(problems.length === 0,
+    `${problems.length} kit tiles would render blank: ` + problems.slice(0, 4).join(' | '));
+});
+
 report();

@@ -3641,6 +3641,29 @@ svg.icon {
 }
 .ros-skill-btn.maxed .ros-skill-lv { color: #ffd76a; }
 
+/* The passive and the hex bonus sit in the same strip as the actives, so
+   they need to read as the same KIND of thing while still being
+   obviously not levellable: same tile, cooler border, and a word in the
+   badge where an active carries its level. */
+.ros-skill-btn.ros-skill-passive { border-color: #4a4468; }
+.ros-skill-btn.ros-skill-passive:hover { border-color: #6a5f96; }
+.ros-skill-btn.ros-skill-passive.active { border-color: #ffd76a; }
+.ros-skill-btn.ros-skill-passive .ros-skill-lv {
+  right: 0;
+  left: 0;
+  text-align: center;
+  font-size: 7.5px;
+  letter-spacing: 0.5px;
+  color: #9a92b8;
+  border-radius: 0 0 3px 3px;
+}
+.ros-skill-btn.ros-skill-passive.active .ros-skill-lv { color: #ffd76a; }
+/* An inline SVG marker fills the tile the way the bitmap icons do. */
+.ros-skill-btn .icon { display: block; width: 100%; height: 100%; padding: 6px; }
+
+/* A hex bonus that is actually paying out right now. */
+.ros-note-live { color: #7ae87a; font-style: normal; }
+
 .ros-skill-name { font-size: 15px; font-weight: bold; color: #e8e4d8; }
 .ros-skill-meta { font-size: 11px; color: #9a92b8; margin-bottom: 4px; }
 .ros-skill-desc { margin-top: 6px; font-size: 12px; line-height: 1.5; }
