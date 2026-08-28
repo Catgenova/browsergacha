@@ -248,7 +248,7 @@ test('every sect holds one race, once each, with its number', () => {
     razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc'] },
     // The light brood. No 1-star and no 2-star: the light and dark
     // orders run four 3-stars, three 4-stars and two 5-stars instead.
-    sunbrood: { number: 11, race: 'avian', members: ['aurek'] },
+    sunbrood: { number: 11, race: 'avian', members: ['aurek', 'durn'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

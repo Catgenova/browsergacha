@@ -10505,6 +10505,96 @@ test("Nehru's kit: the gate, the reeling, and the far side of the field", () => 
   }
 });
 
+// The brood's shield, and a tank whose OUTPUT is healing. Four passives
+// on the roster answer being struck and not one of them turns it into a
+// mend, which is the gap he fills -- and it welds the sect's third
+// pillar to the one job that guarantees a steady supply of it.
+test("Durn: what the shield catches, the brood gets back", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const durn = roomy(place(battle, HEROES.durn, TEAM.PLAYER, 1), 5);
+    durn.dodgeChance = () => 0; durn.reflectChance = () => 0;
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    const mate = (frac, slot) => {
+      const u = roomy(place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, slot), 20);
+      u.hookSources = () => [];
+      u.hp = Math.round(u.maxHp * frac);
+      return u;
+    };
+    const hit = () => {
+      const before = durn.hp;
+      const real = Math.random;
+      Math.random = () => 0.99;
+      try { Abilities.strike(foe, durn, 4000, { dodge: false, reflect: false }); }
+      finally { Math.random = real; }
+      return before - durn.hp;
+    };
+
+    // The WORST-off ally is the one mended, not the nearest or the
+    // first in the list.
+    const bad = mate(0.2, 4);
+    const ok = mate(0.8, 5);
+    const badBefore = bad.hp, okBefore = ok.hp;
+    const landed = hit();
+    assert(landed > 0, 'the blow did not land');
+    assert(bad.hp > badBefore, 'the worst-off ally was not mended');
+    assert(ok.hp === okBefore,
+      `a healthier ally was mended ${ok.hp - okBefore} as well -- it should be one bird`);
+    assert(Math.abs((bad.hp - badBefore) - Math.round(landed * 0.25)) <= 1,
+      `the shield paid ${bad.hp - badBefore} off a ${landed} blow, wanted a quarter`);
+
+    // NEVER himself. A tank who mends his own hide off being hit is a
+    // self-sustain engine; this is a conversion the party spends.
+    //
+    // Measured on the LEDGER, not on his health. Comparing his HP
+    // before and after his own blow cannot see this: the mend happens
+    // inside the strike, so a self-heal nets straight out of the same
+    // subtraction and the assertion becomes a tautology that passes
+    // whatever the hook does. It did, and the sabotage proved it.
+    // Half, not a sliver: at 5% he simply DIES to the test's own blow,
+    // struck() never fires, and both the real hook and a sabotaged one
+    // read zero. A hero has to survive the hit to answer it.
+    Meter.resetSession();
+    durn.hp = Math.round(durn.maxHp * 0.5);    // hurt, and the worst off
+    bad.hp = bad.maxHp; ok.hp = ok.maxHp;      // and nobody else is hurt
+    hit();
+    assert(durn.alive, 'the fixture killed Durn before he could answer');
+    const anyMend = Meter.rows('healing', 'battle').total;
+    assert(anyMend === 0,
+      `the shield mended ${anyMend} with nobody hurt but Durn himself`);
+
+    // Nobody hurt is nobody to pay: no crash, no wasted heal.
+    assert(bad.hp === bad.maxHp && ok.hp === ok.maxHp,
+      'a full party was topped up past full');
+
+    // The credit is HIS, so the meter reads it as healing he did rather
+    // than losing it inside whoever was standing there.
+    Meter.resetSession();
+    durn.hp = durn.maxHp;
+    bad.hp = Math.round(bad.maxHp * 0.3);
+    hit();
+    const row = Meter.rows('healing', 'battle').list.find((r) => r.id === 'durn');
+    assert(row && row.value > 0, 'Durn was credited nothing for the healing he caused');
+  } finally { Battle.active = prev; }
+
+  // Both cooldowns are priced off HIS pool rather than growing it --
+  // the rule Aurek follows, for the reason the sect exists: light sells
+  // max HP at 2pc and 4pc, so the brood spends a pool instead of asking
+  // for a bigger one.
+  {
+    const hpPriced = HEROES.durn.abilities.filter((a) =>
+      (a.effects || []).some((e) => e.pct !== undefined &&
+        (e.type === 'healHpPct' || e.type === 'shield')));
+    assert(hpPriced.length === 2,
+      `${hpPriced.length} of Durn's skills are priced off his pool, wanted 2`);
+    assert(!(HEROES.durn.passive.hooks || {}).statMult,
+      'Durn is selling a stat his own element pack already sells');
+  }
+});
+
 // The brood's pack: tempo spent as SUSTAIN, which is the Razorwings'
 // conversion pointed the other way. The sect is one bird deep so the
 // tiers cannot be fielded yet -- what is tested is the hook logic

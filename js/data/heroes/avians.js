@@ -2606,4 +2606,116 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.strongman,
   },
+
+  // The brood's shield, and a tank whose output is HEALING. Four
+  // passives on the roster answer being struck -- Toll rings the bell,
+  // Carl grows on it, Slick oils whoever swung, Balmor banks it -- and
+  // not one of them turns it into a mend. Durn does: what the shield
+  // catches goes to whoever is worst off, which welds the sect's third
+  // pillar to the one job that guarantees a steady supply of it.
+  //
+  // His two cooldowns spend his POOL rather than growing it, the same
+  // rule Aurek follows and for the same reason: light already sells max
+  // HP at 2pc and 4pc, so the brood has to be a sect that turns a big
+  // pool into something, not one that asks for a bigger one. A tank has
+  // the deepest pool on the field, which makes him the natural place to
+  // spend it from.
+  durn: {
+    id: 'durn',
+    element: 'light',
+    name: 'Durn',
+    title: 'Shieldbearer of the Sunbrood',
+    rarity: 3,
+    // A shield-bearer's split: armour over bulk, where Balmor takes the
+    // bulk over the armour. Quick for a wall, and deliberately: 110
+    // becomes 121 under the brood's own 2pc, which is the first rung of
+    // Wingbeat Mend -- a Sunbrood built slower would hand the sect a
+    // tier that pays nothing.
+    stats: { hp: 1820, atk: 88, def: 168, speed: 110 },
+    tint: { body: '#e8e4d8', helm: '#e8c84a', weapon: '#c8a83a', shield: '#f0d878' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/Durnidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'durn_shield_hand', name: 'Shield Hand',
+        icon: 'assets/icons/fc819.png',
+        description: 'The boss of the shield, swung flat: 85% ATK to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.85 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'durn_reflect_the_sun', name: 'Reflect the Sun',
+        icon: 'assets/icons/fc866.png',
+        // Priced off HIS pool, which is the deepest on the field. A
+        // tank as the party's reserve rather than its wall.
+        description: "Turn the shield face-up and let it catch the light: every ally " +
+          "recovers 8% of DURN'S max HP.",
+        cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', pct: 0.08 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'durn_hold_the_line', name: 'Hold the Line',
+        icon: 'assets/icons/fc1272.png',
+        description: "Everyone behind the shield: every ally gains a ward worth 10% of " +
+          "Durn's max HP for 3 turns.",
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'shield', pct: 0.10, turns: 3 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'What the Shield Catches',
+      icon: 'assets/icons/fc1066.png',
+      // Never himself. He catches for other birds -- a tank who mends
+      // his own hide off being hit is a self-sustain engine, and this
+      // is meant to be a conversion the party spends rather than one he
+      // keeps. It is also why his hex points at the same ally: the
+      // wounded one is where everything he does goes.
+      description: 'What the shield catches, the brood gets back: every blow Durn takes ' +
+        'mends the most-wounded OTHER ally for 25% of it.',
+      hooks: {
+        onStruck(unit, { amount, battle } = {}) {
+          if (!unit.alive || !(amount > 0) || !battle) return null;
+          const hurt = battle.livingUnits(unit.team)
+            .filter((u) => u !== unit && u.hp < u.maxHp)
+            .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+          if (!hurt) return null;
+          const healed = hurt.heal(Math.round(amount * 0.25), unit);
+          if (healed <= 0) return null;
+          return { floats: [{ target: hurt, text: `+${healed}`, color: '#f0d878' }] };
+        },
+      },
+    },
+    // The last positional nobody had claimed, and it reads as though it
+    // were written for him: the most-wounded ally, mended off HIS pool,
+    // which is the same bird his passive is already looking at.
+    positional: POSITIONALS.rallying_banner,
+  },
 });
