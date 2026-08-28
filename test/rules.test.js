@@ -12063,4 +12063,142 @@ test('bank readout: what the bar shows is what the bank holds', () => {
   } finally { Battle.active = prev; }
 });
 
+// The sect's only UNCONDITIONAL dealer, which turned out to be the hole
+// once the other four were written: Aurek pays health, Aster has to be
+// left alone to ramp, Rizzo rolls for it, Orien is nothing without two
+// healers. Solari is the floor under the clauses, and her rider reads
+// an axis nothing on the roster has scaled off before -- the ENEMY's
+// blessings.
+test('Solari: the mirror is paid for what it is shown', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const solari = place(battle, HEROES.solari, TEAM.PLAYER, 0);
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+
+    assert(Math.abs(solari.damageDealtMult(foe) - 1) < 1e-9,
+      'a bare enemy already paid her something');
+
+    const bless = (n) => {
+      foe.statusEffects = [];
+      for (let i = 0; i < n; i++) {
+        foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 5 });
+      }
+      return solari.damageDealtMult(foe);
+    };
+    assert(Math.abs(bless(1) - 1.20) < 1e-9, `one blessing paid ${bless(1)}`);
+    assert(Math.abs(bless(2) - 1.40) < 1e-9, `two paid ${bless(2)}`);
+    assert(Math.abs(bless(3) - 1.60) < 1e-9, `three paid ${bless(3)}`);
+    // Capped at three: an enemy party stacking blessings on one body
+    // must not hand her a multiplier no card on the roster offers.
+    assert(Math.abs(bless(9) - 1.60) < 1e-9, `nine paid ${bless(9)}, wanted the cap`);
+
+    // Only blessings count -- not wards, not heals-over-time, not
+    // bubbles -- so what pays her and what her seven tears off are the
+    // same list.
+    foe.statusEffects = [];
+    foe.addStatusEffect({ kind: 'shield', amount: 500, turns: 3, source: foe });
+    foe.addStatusEffect({ kind: 'hot', amount: 50, turns: 3, source: foe });
+    foe.addStatusEffect({ kind: 'bubble', turns: 3, source: foe });
+    assert(Math.abs(solari.damageDealtMult(foe) - 1) < 1e-9,
+      'a ward or a heal-over-time was counted as a blessing');
+  } finally { Battle.active = prev; }
+});
+
+// The order IS the skill: she is paid for every blessing the target is
+// wearing and only THEN takes them off, so the fat buffed tank is both
+// the best target and the one who stops being a problem afterwards.
+test('Solari: Turn the Glass is paid first and strips second', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const solari = maxSkill(place(battle, HEROES.solari, TEAM.PLAYER, 0), 2);
+    const glass = solari.abilities.find((a) => a.def.id === 'solari_turn_the_glass');
+    assert(glass, 'Turn the Glass is missing');
+
+    const hit = (blessings) => {
+      const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 200);
+      foe.hookSources = () => [];
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      foe.debuffResistance = () => 0;
+      for (let i = 0; i < blessings; i++) {
+        foe.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.01, turns: 9 });
+      }
+      const before = foe.hp;
+      Math.random = () => 0.01;                 // gates open, no crit lottery
+      try { Abilities.execute(glass.def, solari, foe, battle); }
+      finally { Math.random = real; battle.units = battle.units.filter((u) => u !== foe); }
+      return { dealt: before - foe.hp, left: foe.statusEffects.length };
+    };
+
+    const bare = hit(0);
+    const laden = hit(3);
+    assert(bare.dealt > 0 && laden.dealt > 0, 'the glass landed nothing');
+    assert(laden.dealt > bare.dealt * 1.5,
+      `three blessings paid ${laden.dealt} against ${bare.dealt} bare — ` +
+      'she was billed after the strip, not before it');
+    assert(laden.left === 0, `${laden.left} blessings survived the glass`);
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// Her hex, on the same channel as Tumble's Chime Tax and paid out
+// differently: his strips buy turn meter, hers buy cooldown. It is the
+// filler's strip that makes it an engine rather than a thing that
+// happens twice a fight.
+test('Solari: Heliograph turns a torn blessing into a cooldown', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const hex = POSITIONALS.heliograph;
+    assert(HEROES.solari.positional === hex, 'Solari is not on her own hex');
+    assert(hex.position === POSITION.CENTER, 'the angle is held from the middle');
+
+    const solari = place(battle, HEROES.solari, TEAM.PLAYER, 0);
+    assert(solari.positionalActive(), 'slot 0 is not a center hex');
+    const foe = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 200);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.debuffResistance = () => 0;
+    for (let i = 0; i < 2; i++) {
+      foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.05, turns: 9 });
+    }
+
+    solari.abilities.forEach((a) => { a.cooldownRemaining = 4; });
+    const filler = solari.abilities.find((a) => a.def.id === 'solari_catch_the_light');
+    filler.cooldownRemaining = 0;               // the one she is actually casting
+    Math.random = () => 0.01;
+    Abilities.execute(filler.def, solari, foe, battle);
+    Math.random = real;
+
+    const cds = solari.abilities.map((a) => a.cooldownRemaining);
+    assert(cds[1] === 3 && cds[2] === 3,
+      `one torn blessing left her cooldowns at ${cds.join('/')}, wanted a turn off each`);
+
+    // No strip, no refund -- and asserted on what the hook RETURNS,
+    // because the arithmetic alone cannot see it: taking zero turns off
+    // a cooldown is indistinguishable from not running. What the guard
+    // actually prevents is the ↺ float, a piece of feedback telling the
+    // player something happened when nothing did.
+    foe.statusEffects = [];
+    solari.abilities.forEach((a) => { a.cooldownRemaining = 4; });
+    assert(hex.hooks.onStripBuff(solari, { count: 0 }) === null,
+      'the mirror announced a refund for tearing off nothing');
+    assert(hex.hooks.onStripBuff(solari, {}) === null,
+      'the mirror announced a refund with no strip reported at all');
+    assert(solari.abilities[1].cooldownRemaining === 4,
+      'a strip of nothing still moved a cooldown');
+    const paid = hex.hooks.onStripBuff(solari, { count: 2 });
+    assert(paid && paid.floats && paid.floats.length === 1,
+      'a real strip said nothing to the player');
+    assert(solari.abilities[1].cooldownRemaining === 2,
+      `two blessings took the cooldown to ${solari.abilities[1].cooldownRemaining}`);
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
 report();
