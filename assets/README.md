@@ -74,6 +74,42 @@ holds: { 6: 3, 9: 3 }, // frames 6 and 9 last 3 ticks each
 - `Knightbuff.png` — ✅ Crystal Resonance cast (17 frames)
 - `attack.png` — pending
 
+## Bird sects — one folder per SECT
+
+The avian sects break the one-folder-per-hero rule above: a whole sect
+shares a folder and each bird is one strip inside it.
+
+```
+assets/heroes/gulldigger/Hallowidle.png
+assets/heroes/phoenixcourt/flurryidle.png
+```
+
+Nine birds to a sect, built to a fixed star shape rather than to
+whatever rarities got written first — one 1★, two 2★, three 3★, two 4★
+and a single 5★ — and every member shares the sect's element. The
+Gulldiggers are water, the Phoenix Court fire.
+
+Nothing enforces the filename spelling; the def's `src` is the only
+source of truth, so the case just has to match whatever lands (both
+`Korvididle.png` and `flurryidle.png` exist today). What the engine does
+care about is the facing: art is expected to face **right**, and a bird
+drawn facing left is corrected with `sprite.faceLeft: true` in the def
+rather than by touching the upload.
+
+### Razorwings — the wind sect
+
+`assets/heroes/razorwings/` is open and empty, waiting on art. Wind, No.
+10 when it is registered (1–9 are spoken for, including the two closed
+orders whose numbers can never be reissued). Drop strips in as they are
+drawn — a bird gets wired up when its art lands, and the sect goes into
+`js/data/heroes/avians.js` and `RACES.SECTS` once it has members, since
+a standing order with nobody in it fails the data tests.
+
+Idle alone is enough to get a bird on the field: a hero with only
+`idle.png` plays it for everything, and the engine routes an ability
+that has no strip of its own through a fallback timer so the turn still
+resolves. Actions can follow later.
+
 ### Legacy single-sheet format
 
 One PNG per hero, one animation per row, frames left-to-right, fixed frame
