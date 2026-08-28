@@ -11624,7 +11624,9 @@ test("Aster: Reveille marks the line with the roster's own mark", () => {
       const mark = f.statusEffects.find(
         (fx) => fx.kind === 'debuff' && fx.stat === 'damageTaken' && fx.mult > 1);
       assert(mark, `${f.name} was not marked`);
-      assert(Math.abs(mark.mult - 1.20) < 1e-9, `marked for ${mark.mult}, wanted 1.20`);
+      // Maxed: 1.10 base plus two 5% debuffPower rungs.
+      assert(Math.abs(mark.mult - 1.20) < 1e-9,
+        `marked for ${mark.mult} at the skill cap, wanted 1.20`);
       assert(f.hp < f.maxHp, `${f.name} took no damage from the blast`);
     }
     // The mark is worth 20% to EVERYONE, not only to him -- that is the
@@ -11633,6 +11635,15 @@ test("Aster: Reveille marks the line with the roster's own mark", () => {
     ally.hookSources = () => [];
     assert(Math.abs(foes[0].damageTakenMult(ally) - 1.20) < 1e-9,
       `a teammate reads the mark as ${foes[0].damageTakenMult(ally)}, wanted 1.20`);
+
+    // And the BASE mark is 10%, not 20% -- the other half is laddered.
+    const base = reveille.def.effects.find((e) => e.stat === 'damageTaken');
+    assert(Math.abs(base.mult - 1.10) < 1e-9,
+      `the unlevelled mark is ${base.mult}, wanted 1.10`);
+    const rungs = (reveille.def.levelUps || [])
+      .reduce((n, r) => n + (r.debuffPower || 0), 0);
+    assert(Math.abs(rungs - 0.10) < 1e-9,
+      `the ladder buys ${rungs} of severity, wanted 0.10 to reach 1.20`);
 
     // And it is gated, at the 50% the card advertises.
     const gate = reveille.def.effects.find((e) => e.chance !== undefined);
