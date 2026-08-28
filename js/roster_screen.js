@@ -32,7 +32,8 @@ class RosterScreen {
     this.panel = 'info';     // which sub-tab is open
     this.skillIdx = 0;       // which skill the Skill panel is showing
     this.gearFocus = null;   // which gear slot the Gear panel expands
-    this.message = '';       // one-line result note for gear actions
+    this.chosen = new Set(); // roster uids marked as star-up fodder
+    this.message = '';       // one-line result note for panel actions
     this.cardCache = new Map();
 
     if (this.searchEl) this.searchEl.addEventListener('input', () => this.buildGrid());
@@ -51,6 +52,7 @@ class RosterScreen {
     this.selected = uid;
     this.skillIdx = 0;
     this.gearFocus = null;
+    this.chosen.clear();
     this.message = '';
   }
 
@@ -63,6 +65,11 @@ class RosterScreen {
     // A hero that was sacrificed, stored or otherwise left the roster
     // cannot stay selected.
     if (this.selected && !GameState.defOf(this.selected)) this.selected = null;
+    // Fodder that has already been spent (or otherwise left the roster)
+    // cannot stay ticked.
+    for (const uid of [...this.chosen]) {
+      if (!GameState.defOf(uid)) this.chosen.delete(uid);
+    }
     this.buildGrid();
     this.renderPanel();
   }
@@ -154,6 +161,7 @@ class RosterScreen {
         this.selected = uid;
         this.skillIdx = 0;
         this.gearFocus = null;
+        this.chosen.clear();
         this.message = '';
         this.buildGrid();
         this.renderPanel();
@@ -209,6 +217,8 @@ class RosterScreen {
         '<div class="details-empty">Select a hero from the grid.</div>';
       return;
     }
+    if (this.panel === 'ascend') return this.renderAscend();
+    if (this.panel === 'starup') return this.renderStarUp();
     if (this.panel === 'skill') return this.renderSkill();
     if (this.panel === 'gear') return this.renderGear();
     return this.renderInfo();
@@ -287,6 +297,226 @@ class RosterScreen {
   // per rung, lit for the ones bought and dim for the ones ahead. That
   // dim half is the point: a skill readout that only lists what you have
   // cannot answer "is the next copy worth it".
+  // ---- Ascend -----------------------------------------------------------
+  //
+  // The second growth axis: elements won off the elemental bosses, spent
+  // for +10% base stats a step. It is capped by the star rating rather
+  // than by the purse, which is the part players miss -- so the cap, the
+  // room left in it, and what the next step actually costs are all on
+  // the panel rather than inferred from a greyed-out button.
+  renderAscend() {
+    const uid = this.selected;
+    const def = GameState.defOf(uid);
+    const pr = GameState.progressOf(uid);
+    const info = Elements.info(def.element);
+    const have = pr.attune || 0;
+    const room = Math.min(Attune.MAX, pr.stars);
+    const next = GameState.nextAttunement(uid);
+    const purse = GameState.elementsOf(def.element);
+
+    // One pip per star, filled in the hero's own colour as far as they
+    // are ascended: the cap IS the star count, so drawing them together
+    // says why the room runs out without a sentence about it.
+    const pips = Array.from({ length: Math.max(1, pr.stars) }, (_, i) =>
+      `<span class="ros-pip" style="color:${
+        i < have && info ? info.color : '#4a4468'}">&#9733;</span>`).join('');
+
+    const held = Attune.SIZES.map((size) => {
+      const n = purse[size];
+      const short = next && next.size === size && n < next.n;
+      return `<div class="ros-purse${short ? ' ros-purse-short' : ''}">
+        <b>${n}</b><span>${Attune.SIZE_LABEL[size]}</span></div>`;
+    }).join('');
+
+    // What the step is worth, in the hero's actual numbers rather than as
+    // "+10%": the multiplier is on BASE stats, so the figure a player
+    // sees move is not the one the percentage names.
+    const base = Progression.scaledStats(def, pr.level, pr.stars);
+    const at = (n) => {
+      const m = Attune.statMult(n);
+      return { hp: Math.round(base.hp * m), atk: Math.round(base.atk * m),
+        def: Math.round(base.def * m) };
+    };
+    const now = at(have);
+    const then = at(have + 1);
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    const row = (label, a, b) =>
+      `<div class="imp-pv-row"><span class="imp-pv-k">${label}</span>` +
+      `<span class="imp-pv-now">${num(a)}</span>` +
+      `<span class="imp-pv-arrow">&rarr;</span>` +
+      `<span class="imp-pv-next up">${num(b)}</span></div>`;
+
+    let line, preview = '';
+    if (have >= Attune.MAX) {
+      line = `Fully ascended &mdash; +${Attune.MAX * 10}% base stats.`;
+    } else if (have >= room) {
+      line = `Ascended as far as ${pr.stars}&#9733; allows. ` +
+        'Star up to open the next step.';
+    } else if (next) {
+      line = `Next step costs <b>${next.n} ${Attune.SIZE_LABEL[next.size]}</b> ` +
+        `${info ? info.name : def.element} elements &mdash; you hold ${next.held}.`;
+      preview = `<div class="imp-preview${next.can ? ' armed' : ''}">
+        <div class="imp-pv-head">Ascension ${have} &rarr; ${have + 1}</div>
+        ${row('HP', now.hp, then.hp)}
+        ${row('ATK', now.atk, then.atk)}
+        ${row('DEF', now.def, then.def)}
+        <div class="imp-pv-note">Speed is left alone on purpose: a flat
+          percentage on it would reorder the whole turn economy.</div>
+      </div>`;
+    }
+
+    this.panelEl.innerHTML = `
+      ${this.header(uid)}
+      <div class="detail-section">Ascension
+        <span class="cd">${have} / ${room} &middot; +${have * 10}% base stats</span></div>
+      <div class="ros-pips">${pips}</div>
+      <div class="ros-skill-desc">${line}</div>
+      ${preview}
+      ${next ? `<button id="ros-ascend" class="panel-btn gold" ${next.can ? '' : 'disabled'}>
+        Ascend to ${have + 1}</button>` : ''}
+      ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
+      <div class="detail-section">${info ? info.name : def.element} elements held</div>
+      <div class="ros-purses">${held}</div>
+      <div class="ros-note">Elements drop from the ${
+        info ? info.name : def.element} elemental boss. A hero only ever
+        drinks its own element.</div>`;
+
+    const btn = document.getElementById('ros-ascend');
+    if (btn && !btn.disabled) {
+      btn.addEventListener('click', () => {
+        const r = GameState.attune(uid);
+        if (!r) return;
+        this.message = `${def.name} ascended to ${r.to} — +${r.to * 10}% base stats.`;
+        if (typeof Sound !== 'undefined') Sound.play('levelup');
+        this.refresh();
+      });
+    }
+  }
+
+  // ---- Star Up ----------------------------------------------------------
+  //
+  // Stars cost BODIES: as many heroes at the same rating as the rating
+  // itself. Sacrificing the same character also raises one of their
+  // skills, so a true duplicate is worth more than a stranger of the same
+  // rank -- which is why the candidate rows say which of the two things
+  // each one buys.
+  renderStarUp() {
+    const uid = this.selected;
+    const def = GameState.defOf(uid);
+    const pr = GameState.progressOf(uid);
+    const maxed = pr.stars >= Progression.MAX_STARS;
+    const need = Progression.starUpCost(pr.stars);
+    const options = GameState.sacrificeOptions(uid);
+    const picked = [...this.chosen];
+    const atRank = picked.filter((u) => {
+      const p = GameState.progressOf(u);
+      return p && p.stars === pr.stars;
+    }).length;
+    const skillPicks = picked.filter((u) => GameState.defIdOf(u) === def.id).length;
+    const willStar = !maxed && atRank >= need;
+
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    const pv = GameState.starUpPreview(uid);
+    const row = (label, a, b) => {
+      const up = b > a;
+      return `<div class="imp-pv-row"><span class="imp-pv-k">${label}</span>` +
+        `<span class="imp-pv-now">${num(a)}</span>` +
+        `<span class="imp-pv-arrow">&rarr;</span>` +
+        `<span class="imp-pv-next${up ? ' up' : ''}">${num(b)}</span></div>`;
+    };
+    const preview = pv ? `<div class="imp-preview${willStar ? ' armed' : ''}">
+      <div class="imp-pv-head">${pv.stars.now}&#9733; &rarr; ${pv.stars.next}&#9733;${
+        willStar ? '' : ' <span class="imp-note">(if you pick enough)</span>'}</div>
+      ${row('HP', pv.stats.hp.now, pv.stats.hp.next)}
+      ${row('ATK', pv.stats.atk.now, pv.stats.atk.next)}
+      ${row('DEF', pv.stats.def.now, pv.stats.def.next)}
+      ${row('SPD', pv.speed.now, pv.speed.next)}
+      ${row('Power', pv.power.now, pv.power.next)}
+      ${row('Level cap', pv.levelCap.now, pv.levelCap.next)}
+      <div class="imp-pv-note">Skill caps are set by the skill, not the
+        star, so they do not move. A star up also opens one more
+        ascension step.</div>
+    </div>` : '';
+
+    const rowFor = (o) => {
+      const on = this.chosen.has(o.uid);
+      const fodder = HEROES[o.heroId];
+      const tags = [];
+      if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
+      tags.push(`<span class="imp-tag${o.star ? '' : ' imp-tag-dim'}">${o.stars}&#9733;</span>`);
+      return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
+        <canvas class="imp-portrait" width="34" height="34"></canvas>
+        <div class="imp-row-text">
+          <div class="imp-row-name">${Elements.badge(fodder.element)} ${fodder.name}</div>
+          <div class="imp-row-sub">Lv ${o.level}</div>
+        </div>${tags.join('')}</div>`;
+    };
+
+    const costLine = maxed
+      ? 'Already at the star cap.'
+      : `${need} hero${need > 1 ? 'es' : ''} at ${pr.stars}&#9733; &mdash; ` +
+        `<b>${atRank}/${need}</b> chosen.`;
+
+    this.panelEl.innerHTML = `
+      ${this.header(uid)}
+      <div class="detail-section">Star up
+        <span class="cd">${pr.stars}&#9733; &middot; Lv cap ${
+          Progression.maxLevel(pr.stars)}</span></div>
+      <div class="ros-skill-desc">${costLine}</div>
+      ${preview}
+      <button id="ros-sac" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
+        ${picked.length
+          ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
+            (willStar ? ' and star up'
+              : maxed ? ''
+              : ` — no star up yet (${atRank}/${need})`)
+          : 'Choose sacrifices below'}
+      </button>
+      ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
+      <div class="ros-note">${skillPicks
+        ? `${skillPicks} cop${skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
+          `${skillPicks} random skill level${skillPicks > 1 ? 's' : ''}.`
+        : `Sacrificing another ${def.name} also raises a random skill.`}</div>
+      <div class="detail-section">Sacrifices${
+        options.length ? ` <span class="cd">${picked.length} chosen</span>` : ''}</div>
+      ${options.length
+        ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
+        : `<div class="ros-note">Nothing eligible: you need another ${def.name}
+           for a skill level, or a spare hero at ${pr.stars}&#9733; for a star
+           up. Favourited and fielded heroes are never offered.</div>`}`;
+
+    this.panelEl.querySelectorAll('.imp-opt').forEach((el) => {
+      Sprites.paintPortrait(el.querySelector('canvas'), GameState.defOf(el.dataset.uid));
+      el.addEventListener('click', () => {
+        const u = el.dataset.uid;
+        if (this.chosen.has(u)) this.chosen.delete(u);
+        else this.chosen.add(u);
+        this.message = '';
+        this.renderStarUp();
+      });
+    });
+
+    const go = document.getElementById('ros-sac');
+    if (go && !go.disabled) {
+      go.addEventListener('click', () => {
+        const report = GameState.sacrifice(uid, [...this.chosen]);
+        this.chosen.clear();
+        if (!report) { this.message = 'Nothing was spent.'; this.refresh(); return; }
+        const bits = [`Spent ${report.spent} hero${report.spent > 1 ? 'es' : ''}.`];
+        if (report.starred) bits.push(`${def.name} is now ${report.to}★!`);
+        if (report.skills.length) {
+          bits.push(`Skill up: ${report.skills.map((i) => def.abilities[i].name).join(', ')}.`);
+        }
+        if (report.gearFreed) {
+          bits.push(`${report.gearFreed} piece${report.gearFreed > 1 ? 's' : ''} of gear returned.`);
+        }
+        this.message = bits.join(' ');
+        if (typeof Sound !== 'undefined') Sound.play(report.starred ? 'levelup' : 'click');
+        this.refresh();
+      });
+    }
+  }
+
   // The whole kit, in strip order: the active skills, then the passive,
   // then the hex bonus. The last two used to be paragraphs at the bottom
   // of Info, which put the two halves of a hero's kit on two different

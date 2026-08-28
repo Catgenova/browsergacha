@@ -3696,3 +3696,30 @@ svg.icon {
   #ros-left, #ros-right { width: 100%; flex: 1 1 auto; }
   #ros-grid { max-height: 340px; }
 }
+
+/* ---- Roster: Ascend and Star Up ----
+   The preview table, candidate rows and tags are the Improve screen's
+   (.imp-*), reused rather than restyled: the two screens are showing the
+   same transaction and are about to become one, so a second look for it
+   would only be a second thing to keep in step. */
+.ros-pips { font-size: 15px; letter-spacing: 2px; margin: 2px 0 6px; }
+.ros-pip { text-shadow: 0 0 4px currentColor; }
+
+.ros-purses { display: flex; gap: 8px; }
+.ros-purse {
+  flex: 1 1 0;
+  padding: 6px 4px;
+  background: #14121a;
+  border: 1px solid #3a3450;
+  border-radius: 5px;
+  text-align: center;
+}
+.ros-purse b { display: block; font-size: 15px; color: #e8e4d8; }
+.ros-purse span { font-size: 10px; color: #9a92b8; }
+/* The size the next step needs, and you are short of it. */
+.ros-purse-short { border-color: #6b4a2e; }
+.ros-purse-short b { color: #ff9a5a; }
+
+/* The candidate list is the tall part of the Star Up panel; cap it so the
+   button and the forecast above never scroll off the top. */
+#ros-panel .imp-opts { max-height: 300px; overflow-y: auto; }
