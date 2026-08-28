@@ -113,6 +113,9 @@
   .ti { display: block; font-family: var(--body); font-size: 11.5px;
     color: var(--muted); font-weight: 400; line-height: 1.3; }
   .x { font-weight: 600; width: 1%; }
+  /* A lift within one standard error of nothing: shown, but not coloured
+     as a finding, because it is not one. */
+  tr.flat .x, tr.flat .key, tr.flat .dev { color: var(--muted); opacity: 0.65; }
   tr.over .x, tr.over .key { color: var(--over); }
   tr.under .x, tr.under .key { color: var(--under); }
   tr.over th .nm { color: var(--over); }
@@ -257,6 +260,8 @@
     </div>
   </section>
 
+  %%LIFT%%
+
   <section>
     <h2>Every hero, by bucket</h2>
     <h3>Six buckets: where the hero's hex wants it, crossed with what the kit is for</h3>
@@ -269,9 +274,10 @@
   </section>
 
   <footer class="foot">
-    Generated from the bench's own CSV &mdash; <code>node test/archetypes.js --sims 25 --csv</code>
-    piped through <code>tools/build_bench_report.py</code>. No figure on this page is
-    transcribed by hand; re-running both is the whole update path.<br>
+    Generated from the benches' own CSV &mdash; <code>node test/archetypes.js --sims 25 --csv</code>
+    and <code>node test/lift.js --csv 25 1600</code>, piped through
+    <code>tools/build_bench_report.py</code>. No figure on this page is transcribed by
+    hand; re-running them is the whole update path.<br>
     Play at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a>.
   </footer>
 </div>
