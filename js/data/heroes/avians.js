@@ -3650,4 +3650,130 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.the_high_nest,
   },
+
+  // The first Hollowbone, and the only hero in the game who brings
+  // bodies onto the board that were never on the roster.
+  //
+  // Everything about him points the same way and it is not the way a
+  // necromancer usually points. His basic swing is priced off how much
+  // of his OWN side is still standing -- every other crowd term in the
+  // engine counts the enemy, this one counts the people behind him --
+  // so he is weakest exactly when the fight has gone badly, and the way
+  // he answers that is to dig up more people to stand behind him. The
+  // summon is not a side plate. It is the fuel for slot one.
+  //
+  // See js/data/summons.js for the two bodies and why they are not in
+  // HEROES, and Abilities (raiseBody / the `summon` case) for the hex
+  // hunt, the corpse it consumes, and the branch that fires when the
+  // board is full.
+  necros: {
+    id: 'necros',
+    element: 'dark',
+    name: 'Necros',
+    title: 'Bonecaller of the Hollowbone',
+    rarity: 5,
+    // Read carefully: his ATK is not small. Both summons take their
+    // attack as a share of HIS, so a summoner with a support's statline
+    // raises two bodies that cannot hit anything, and the hero stops
+    // working at exactly the moment he is supposed to start.
+    stats: { hp: 1580, atk: 196, def: 116, speed: 124 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#8a5ac8', shield: '#6a4a9a' },
+    sprite: {
+      displayH: 100,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/necrosidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'necros_the_standing_count', name: 'The Standing Count',
+        icon: 'assets/icons/fc823.png',
+        // `perAlly` is a new term on the damage line and the only one on
+        // it that counts his own side. It counts BODIES, so a raised
+        // cassowary is one of them: his two summons are worth 30% of
+        // this swing on top of whatever they hit for themselves.
+        description: 'He counts the flock and charges for it: 45% ATK to one enemy, plus ' +
+          '15% for every living body on his own side — the raised included.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 0.45, perAlly: 0.15 }],
+        levelUps: [
+          { mult: 0.1 },
+          { perAlly: 0.05 },
+          { mult: 0.1 },
+          { perAlly: 0.05 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'necros_carrion_call', name: 'Second Legs',
+        icon: 'assets/icons/fc1141.png',
+        description: 'A bone cassowary gets up on the first free hex — an empty one, or ' +
+          "one with a body still on it. With the board full the power goes into the " +
+          "party's hardest hitter instead: +40% ATK and −30% DEF for 3 turns, and 30% " +
+          'of their health as the price.',
+        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'strike_purple',
+        effects: [{
+          type: 'summon', id: 'crossowary_undead',
+          // The heavy body: most of his pool, a little over half his
+          // swing, slower than he is.
+          share: { hp: 0.60, atk: 0.55, def: 0.60, speed: 0.90 },
+          fallback: { atk: 1.40, def: 0.70, turns: 3, hpCut: 0.30 },
+        }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'necros_the_long_bill', name: 'The Long Bill',
+        icon: 'assets/icons/fc1272.png',
+        description: 'A bone heron gets up on the first free hex — an empty one, or one ' +
+          "with a body still on it. With the board full the power goes into the party's " +
+          'hardest hitter instead: +40% ATK and −30% DEF for 3 turns, and 30% of their ' +
+          'health as the price.',
+        cooldown: 6, targeting: 'self', animation: 'idle', impact: 'strike_purple',
+        effects: [{
+          type: 'summon', id: 'heron_undead',
+          // The sharp body: thinner than the cassowary everywhere but
+          // the swing, and faster than Necros himself.
+          share: { hp: 0.40, atk: 0.70, def: 0.40, speed: 1.05 },
+          fallback: { atk: 1.40, def: 0.70, turns: 3, hpCut: 0.30 },
+        }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'What I Raise, I Keep',
+      icon: 'assets/icons/fc1066.png',
+      // The bodies move on HIS clock. Nothing else on the roster hands
+      // turn meter to a filtered set of units on the giver's own turn,
+      // and it is what separates a summoner from a hero who happens to
+      // leave things lying around: the cassowary is not a pet, it is a
+      // limb.
+      //
+      // Read off `raisedBy`, which raiseBody stamps on every body it
+      // stands up -- so it pays HIS dead and never somebody else's.
+      description: 'The raised move when he does: at the start of each of his turns, every ' +
+        'body Necros has stood up gains 20% turn meter.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const mine = battle.livingUnits(unit.team).filter((u) => u.raisedBy === unit);
+          if (!mine.length) return null;
+          for (const body of mine) {
+            body.turnMeter += CONFIG.TURN_METER_MAX * 0.20;
+          }
+          return {
+            label: 'What I Raise, I Keep',
+            message: `${unit.name} pulls on the strings — the raised stir.`,
+            floats: mine.map((u) => ({ target: u, text: '▲', color: '#b07ae8' })),
+          };
+        },
+      },
+    },
+    positional: POSITIONALS.gravecircle,
+  },
 });

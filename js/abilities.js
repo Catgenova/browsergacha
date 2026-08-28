@@ -473,6 +473,86 @@ const Abilities = (() => {
     return fx;
   }
 
+  // How much of the caster's own side is still on its feet, the caster
+  // included. Counts BODIES rather than heroes, so a raised summon is
+  // one of them -- which is the whole interlock on Necros: the thing he
+  // digs up makes the swing he was already making land harder.
+  function livingAllies(caster) {
+    const b = currentBattle ||
+      (typeof Battle !== 'undefined' ? Battle.active : null);
+    if (!b || typeof b.livingUnits !== 'function') return 1;
+    return b.livingUnits(caster.team).length;
+  }
+
+  // ---- Summoning -------------------------------------------------------
+  //
+  // A hex the raised body can stand on: one with nobody in it, or one
+  // holding a corpse. A corpse is CONSUMED -- pulled off the board and
+  // out of battle.units -- and that is a real cost rather than flavour,
+  // because a bird dragged apart for parts can no longer be raised by
+  // Nestora, revived by Emily or brought back by anything else.
+  //
+  // Searched front-first, because a raised body goes where the body
+  // was: in the way.
+  function freeHex(battle, team) {
+    const slots = battle.slotsFor ? battle.slotsFor(team) : [];
+    const order = [POSITION.FRONT, POSITION.CENTER, POSITION.BACK];
+    for (const want of order) {
+      for (const slot of slots) {
+        if (slot.position !== want) continue;
+        if (!slot.unit) return { slot, corpse: null };
+        if (!slot.unit.alive) return { slot, corpse: slot.unit };
+      }
+    }
+    return null;
+  }
+
+  // Build one, seat it, and hand back the body. Its statline is a SHARE
+  // of the summoner's rather than numbers of its own, so a summon is
+  // worth exactly as much as the bird that raised it and every point of
+  // gear and every star on the summoner is spent on it too.
+  function raiseBody(caster, def, share, battle) {
+    const spot = freeHex(battle, caster.team);
+    if (!spot) return null;
+    if (spot.corpse) {
+      battle.units = battle.units.filter((u) => u !== spot.corpse);
+      spot.corpse.slot = null;
+    }
+    spot.slot.unit = null;
+    const body = new Unit(def, caster.team, {
+      level: caster.level, stars: def.rarity || 2,
+    });
+    // The share, applied AFTER construction so the def's own ratios are
+    // only ever the shape of the thing and never its size.
+    // A `summonHpAdd` hook widens what comes up (Necros's Gravecircle).
+    let hpShare = share.hp || 0.5;
+    for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+      if (p.hooks && p.hooks.summonHpAdd) hpShare *= 1 + p.hooks.summonHpAdd;
+    }
+    body.maxHp = Math.max(1, Math.round(caster.maxHp * hpShare));
+    body.hp = body.maxHp;
+    body.baseAtk = Math.max(1, Math.round(caster.effectiveStat('atk') * (share.atk || 0.5)));
+    body.baseDef = Math.max(1, Math.round(caster.effectiveStat('def') * (share.def || 0.5)));
+    body.speed = Math.max(1, Math.round(caster.effectiveStat('speed') * (share.speed || 1)));
+    // Raised, not rested: it joins the order at the back of the queue
+    // rather than acting the moment it lands.
+    body.turnMeter = 0;
+    body.raisedBy = caster;
+    battle.placeUnit(body, spot.slot.index);
+    // A body that arrives mid-fight still needs something to draw. The
+    // sheet is already warm -- battle_screen preloads summon art up
+    // front whenever a summoner is fielded -- so this resolves on the
+    // spot rather than showing a placeholder for a frame. Guarded for
+    // the node suite, which has no sprite pipeline at all.
+    if (typeof Sprites !== 'undefined' && typeof AnimationPlayer !== 'undefined') {
+      Sprites.getSheet(def).then((sheet) => {
+        body.animator = new AnimationPlayer(sheet);
+        body.animator.play('idle');
+      }).catch(() => {});
+    }
+    return { body, consumed: spot.corpse };
+  }
+
   // Permanent growth (Nestora's nest). Written onto BASE attack rather
   // than handed out as a blessing, and that is the whole mechanic:
   //
@@ -541,7 +621,13 @@ const Abilities = (() => {
         const mult = effect.mult + rate +
           ((effect.perMirror || 0) + (lad.perMirror || 0)) * (caster.mirrors || 0) +
           ((effect.perDeath || 0) + (lad.perDeath || 0)) * bodies +
-          ((effect.perTarget || 0) + (lad.perTarget || 0)) * crowd;
+          ((effect.perTarget || 0) + (lad.perTarget || 0)) * crowd +
+          // perAlly: priced off how much of your OWN side is still
+          // standing (Necros). Every other crowd term on this line
+          // counts the enemy; this one counts the people behind you, and
+          // it shrinks as they fall -- which is what makes a summoner's
+          // basic attack care whether he has raised anything.
+          ((effect.perAlly || 0) + (lad.perAlly || 0)) * livingAllies(caster);
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -731,6 +817,50 @@ const Abilities = (() => {
         const gained = raiseAtk(target, effect.pct + (rLad.buffPower || 0), effect.cap);
         if (gained <= 0) return { kind: 'raise', target, amount: 0, full: true };
         return { kind: 'raise', target, amount: gained };
+      }
+      case 'summon': {
+        // Two branches, and the second one is the interesting half. With
+        // a hex free (empty, or holding a corpse) the body gets up. With
+        // the board full there is nowhere to put anything, so the power
+        // goes into a living bird instead: a hard attack buff, its guard
+        // opened, and 30% of the health it is standing on taken as the
+        // price. The magic gets out either way -- that is the hero.
+        const b = currentBattle ||
+          (typeof Battle !== 'undefined' ? Battle.active : null);
+        const def = typeof SUMMONS !== 'undefined' ? SUMMONS[effect.id] : null;
+        if (!b || !def) return null;
+        const raised = raiseBody(caster, def, effect.share || {}, b);
+        if (raised) {
+          return { kind: 'summon', target: raised.body, consumed: raised.consumed };
+        }
+        // Nowhere to stand, so the power goes into a living bird. The
+        // recipient is CHOSEN here rather than taken from the cast: the
+        // skill is `self`-targeted precisely so this branch can pick,
+        // because handing the auto-battler a skill that cuts 30% off
+        // whoever it fancies is how the most-wounded ally gets picked
+        // and killed by their own summoner. It goes to the hardest
+        // hitter who is not Necros -- an attack buff wants the biggest
+        // attack, and a support taking his own health for his own
+        // blessing is not the trade being offered.
+        const fb = effect.fallback || {};
+        const host = b.livingUnits(caster.team)
+          .filter((u) => u !== caster)
+          .sort((x, y) => y.effectiveStat('atk') - x.effectiveStat('atk'))[0];
+        if (!host) return { kind: 'possess', target: caster, cut: 0, none: true };
+        const cut = Math.max(0, Math.round(host.hp * (fb.hpCut || 0)));
+        host.addStatusEffect({ kind: 'buff', stat: 'atk',
+          mult: fb.atk || 1.4, turns: fb.turns || 3, source: caster });
+        host.addStatusEffect({ kind: 'debuff', stat: 'def',
+          mult: fb.def || 0.7, turns: fb.turns || 3, source: caster });
+        // No clamp, and none is needed: the price is a fraction of
+        // CURRENT health, so hp - round(hp * 0.3) leaves at least 70% of
+        // whatever was there and cannot reach zero from any starting
+        // value. A Math.max(1, ...) was written here first and could not
+        // be made to bite, which is the tell that it was decoration.
+        // (Aurek's floor is real because his cost is a fraction of MAX
+        // health, which a wounded bird can absolutely be killed by.)
+        host.hp -= cut;
+        return { kind: 'possess', target: host, cut, turns: fb.turns || 3 };
       }
       case 'cleanse': {
         // Strip debuffs (poisons included) from the target — all of
@@ -1862,5 +1992,5 @@ const Abilities = (() => {
   // damage meter all at once.
   return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
     sideOf, needsTarget, takeLands, drainMeter, rowFallback, raiseAtk,
-    GROUP_TARGETINGS };
+    freeHex, raiseBody, GROUP_TARGETINGS };
 })();

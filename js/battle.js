@@ -708,6 +708,22 @@ class Battle {
         } else {
           this.log(`${caster.name}'s bill is empty — nothing to give back.`, cls);
         }
+      } else if (res.kind === 'summon') {
+        this.addFloatingText(res.target, '\u2620', '#b07ae8');
+        this.log(res.consumed
+          ? `${caster.name} pulls ${res.consumed.name} apart and stands ` +
+            `${res.target.name} up in their place.`
+          : `${caster.name} raises ${res.target.name}.`, cls);
+      } else if (res.kind === 'possess' && res.none) {
+        this.log(`${caster.name} has nowhere to put it — the power goes to ground.`, cls);
+      } else if (res.kind === 'possess') {
+        // The full-board branch. Said out loud including the price,
+        // because a skill that quietly takes a third of an ally's health
+        // is a skill the player has to be able to see coming.
+        this.addFloatingText(res.target, `-${res.cut}`, '#b07ae8');
+        this.log(`No room to raise anything — ${caster.name} puts it into ` +
+          `${res.target.name} instead: their guard opens and ${res.cut} health ` +
+          `goes with it.`, cls);
       } else if (res.kind === 'raise') {
         // Permanent growth. Said out loud, because it leaves no status
         // icon behind -- it is written onto the bird's base attack, so

@@ -866,6 +866,15 @@ class BattleScreen {
           unit.syncMirrorSheet();
         }
       }),
+      // Summon art, loaded up front when anybody fielded can raise
+      // something. A body that arrives mid-fight has no time to wait on
+      // a fetch, and fetching on arrival meant the first cast of the
+      // fight drew a placeholder for a frame. Costs nothing when no
+      // summoner is on the field, and the sheets cache across battles.
+      ...(typeof SUMMONS === 'undefined' ? [] : Object.keys(SUMMONS)
+        .filter((id) => battle.units.some((u) => (u.def.abilities || []).some((a) =>
+          (a.effects || []).some((e) => e.type === 'summon' && e.id === id))))
+        .map(async (id) => { await Sprites.getSheet(SUMMONS[id]); })),
       // Impact/projectile effect sheets (null when art is absent);
       // cached across battles, so only the first fight pays at all.
       ...Object.keys(EFFECTS).map(async (id) => {
