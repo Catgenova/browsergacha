@@ -3884,4 +3884,109 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.long_peal,
   },
+
+  // The sect's wall, and a tank who WANTS to be cursed -- which in a
+  // game where the dark meta is affliction is the most useful thing a
+  // dark tank can be.
+  //
+  // Look at the art and the kit is already there: the pale cage over his
+  // back is not armour he was issued, it is other birds' bones grown
+  // over him. So his armour is other people's curses, his cooldown takes
+  // theirs onto himself, and his big swing is the cage thrown.
+  //
+  // Not Valere's trick, and the difference is the whole hero. Her
+  // transferDebuffs puts the party's afflictions on an ENEMY, which
+  // takes them out of the fight; Rend's `drawDebuffs` puts them on
+  // HIMSELF, which does not. That is a worse trade for everybody except
+  // the bird who is paid for holding them, and there is exactly one.
+  rend: {
+    id: 'rend',
+    element: 'dark',
+    name: 'Rend',
+    title: 'Cagebearer of the Hollowbone',
+    rarity: 3,
+    // Bulk over armour: the reduction he cares about is the one his
+    // passive prints, and a deep pool is what turns a percentage into a
+    // number. Slow, and the only Hollowbone who is -- the sect buys
+    // speed at 2pc and spends it on curse depth, and he is the one bird
+    // whose job does not involve landing any.
+    stats: { hp: 2050, atk: 96, def: 138, speed: 100 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#c8b898', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/rendidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'rend_bite_down', name: 'Bite Down',
+        icon: 'assets/icons/fc819.png',
+        description: 'Whatever is nearest, in the mouth: 55% of his DEF to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damageDef', mult: 0.55 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'rend_take_it_on', name: 'Take It On',
+        icon: 'assets/icons/fc1141.png',
+        // No contest roll on this one, and none should be: he is taking
+        // his own side's afflictions off his own side, and a bird
+        // volunteering to be poisoned does not get to resist itself.
+        description: 'He opens up and the party empties into him: every affliction on his ' +
+          'allies comes off them and goes onto Rend, keeping whatever it was worth and ' +
+          'whatever turns it had left.',
+        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'strike_purple',
+        effects: [{ type: 'drawDebuffs' }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'rend_cage', name: 'Cage',
+        icon: 'assets/icons/fc1272.png',
+        // The armour, thrown. `perDebuff` reads what the CASTER is
+        // carrying rather than the target -- every other conditional on
+        // the damage line asks what is wrong with the enemy.
+        description: 'He shakes the whole cage loose at once: 50% of his DEF to ALL ' +
+          'enemies, plus 20% for every affliction Rend is carrying.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damageDef', mult: 0.50, perDebuff: 0.20 }],
+        levelUps: [
+          { mult: 0.1 },
+          { perDebuff: 0.05 },
+          { mult: 0.1 },
+          { perDebuff: 0.05 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Grown Over',
+      icon: 'assets/icons/fc1066.png',
+      // Capped at five afflictions, which is where a curse stops being
+      // armour and starts being a hero who cannot be killed. It is also
+      // the only reduction on the roster the ENEMY controls: they can
+      // simply not curse him, and then he is a 3-star wall with a mouth.
+      description: 'The cage is other birds’ bones: Rend takes 5% less damage for every ' +
+        'affliction on him, up to 25%.',
+      hooks: {
+        damageTakenMult(unit) {
+          const worn = unit.statusEffects.filter(
+            (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+          return 1 - 0.05 * Math.min(5, worn);
+        },
+      },
+    },
+    positional: POSITIONALS.open_mouth,
+  },
 });

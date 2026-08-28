@@ -516,6 +516,21 @@ const POSITIONALS = (() => {
     hooks: { shieldPowerAdd: 0.30 },
   });
 
+  // Rend's hex: the bit is off and the mouth is open. Every affliction
+  // that lands anywhere on his side is COPIED onto him -- the original
+  // stays where it fell, so this rescues nobody; it just means the bird
+  // whose armour is other people's curses is never short of any.
+  //
+  // Deliberately not another cap-raiser. Aster's hex and Nestora's both
+  // lift a ceiling, and a third would be a habit rather than a design;
+  // this one changes what the hero is FED instead of what he can hold.
+  def('open_mouth', {
+    position: POSITION.FRONT,
+    name: 'Open Mouth',
+    description: 'Front hex: every affliction landing on his side is copied onto him too.',
+    hooks: { afflictionSink: true },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

@@ -12874,4 +12874,185 @@ test('Click: Last Bell raises the same body off a smaller bird', () => {
   } finally { Battle.active = prev; }
 });
 
+// A tank who WANTS to be cursed, which in a game where the dark meta is
+// affliction is the most useful thing a dark tank can be. His armour is
+// other people's curses, his cooldown takes theirs onto himself, and his
+// big swing is the cage thrown.
+test('Rend: the cage is other birds’ bones', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const rend = seatOn(battle, HEROES.rend, TEAM.PLAYER, 1);
+    rend.slot = battle.playerSlots[3];          // off his hex
+    const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+
+    const worn = (n) => {
+      rend.statusEffects = [];
+      for (let i = 0; i < n; i++) {
+        rend.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.95, turns: 9 });
+      }
+      return rend.damageTakenMult(foe);
+    };
+    assert(Math.abs(worn(0) - 1) < 1e-9, 'a clean bird already had armour');
+    assert(Math.abs(worn(1) - 0.95) < 1e-9, `one curse gave ${worn(1)}`);
+    assert(Math.abs(worn(3) - 0.85) < 1e-9, `three gave ${worn(3)}`);
+    assert(Math.abs(worn(5) - 0.75) < 1e-9, `five gave ${worn(5)}`);
+    // Capped, or a curse stops being armour and starts being a bird that
+    // cannot be killed.
+    assert(Math.abs(worn(20) - 0.75) < 1e-9, `twenty gave ${worn(20)}, wanted the cap`);
+
+    // Poisons count. A cage of stat cuts and not of poisons would read
+    // as a bug to anybody who has met the sect's own pack.
+    rend.statusEffects = [];
+    rend.addStatusEffect({ kind: 'dot', amount: 50, turns: 3 });
+    assert(Math.abs(rend.damageTakenMult(foe) - 0.95) < 1e-9,
+      'a poison was not part of the cage');
+  } finally { Battle.active = prev; }
+});
+
+// Not Valere's trick, and the difference is the whole hero: hers puts
+// the party's afflictions on an ENEMY, which takes them out of the
+// fight. His puts them on HIMSELF, which does not.
+test('Rend: Take It On empties the party into him', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const rend = seatOn(battle, HEROES.rend, TEAM.PLAYER, 1);
+    rend.slot = battle.playerSlots[3];
+    const mates = [2, 4].map((i) => {
+      const u = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, i);
+      u.hookSources = () => [];
+      return u;
+    });
+    const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+
+    mates[0].addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.70, turns: 4 });
+    mates[0].addStatusEffect({ kind: 'dot', amount: 90, turns: 3 });
+    mates[1].addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.75, turns: 2 });
+    // A blessing is not an affliction and must not move.
+    mates[1].addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 3 });
+
+    const take = rend.abilities.find((a) => a.def.id === 'rend_take_it_on');
+    assert(take, 'Take It On is missing');
+    assert(take.def.targeting === 'self', 'he is taking them onto himself, not casting out');
+    Abilities.execute(take.def, rend, rend, battle);
+
+    assert(rend.statusEffects.length === 3,
+      `he is wearing ${rend.statusEffects.length} of the party's three`);
+    assert(mates.every((m) => !m.statusEffects.some(
+      (fx) => fx.kind === 'debuff' || fx.kind === 'dot')), 'the party kept a curse');
+    assert(mates[1].statusEffects.some((fx) => fx.kind === 'buff'),
+      'a blessing was dragged off with the curses');
+    // Worth what they were worth, with the turns they had left.
+    const cut = rend.statusEffects.find((fx) => fx.stat === 'atk');
+    assert(cut && Math.abs(cut.mult - 0.70) < 1e-9 && cut.turns === 4,
+      'the affliction was not carried over intact');
+    // They stay on his SIDE — nothing was removed from the fight, which
+    // is exactly what separates this from Valere's.
+    assert(!foe.statusEffects.length, 'the party’s curses ended up on the enemy');
+  } finally { Battle.active = prev; }
+});
+
+// The armour, thrown. `perDebuff` reads what the CASTER is carrying,
+// where every other conditional on the damage line asks what is wrong
+// with the enemy.
+test('Rend: Cage is priced off what he is wearing', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const rend = seatOn(battle, HEROES.rend, TEAM.PLAYER, 1);
+    rend.slot = battle.playerSlots[3];
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    const cage = rend.abilities.find((a) => a.def.id === 'rend_cage');
+
+    const swing = () => {
+      const was = foe.hp;
+      Math.random = () => 0.99;
+      try { Abilities.execute(cage.def, rend, foe, battle); }
+      finally { Math.random = real; }
+      return was - foe.hp;
+    };
+    const bare = swing();
+    for (let i = 0; i < 3; i++) {
+      rend.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.95, turns: 9 });
+    }
+    const caged = swing();
+    // 50% base, +20% each: three afflictions is 110% against 50%.
+    assert(Math.abs(caged / bare - 2.2) < 0.05,
+      `three afflictions took ${bare} to ${caged}, wanted about 2.2x`);
+
+    // And it reads HIM, not the target. Curses on the enemy pay nothing.
+    rend.statusEffects = [];
+    for (let i = 0; i < 3; i++) {
+      foe.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.95, turns: 9 });
+    }
+    assert(Math.abs(swing() - bare) <= 2,
+      'the enemy’s own curses paid him — it is reading the wrong bird');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex feeds the passive without a cast. Deliberately not another
+// cap-raiser: two hexes on this roster already lift a ceiling, and a
+// third would be a habit rather than a design.
+test('Rend: Open Mouth drinks what lands on his side', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const hex = POSITIONALS.open_mouth;
+    assert(HEROES.rend.positional === hex, 'Rend is not on his own hex');
+    assert(hex.position === POSITION.FRONT, 'the mouth goes at the front');
+
+    const rend = seatOn(battle, HEROES.rend, TEAM.PLAYER, 1);
+    assert(rend.positionalActive(), 'slot 1 is not a front hex');
+    const mate = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+    mate.hookSources = () => [];
+    mate.debuffResistance = () => 0;
+    const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.70, turns: 3 }, foe, mate);
+    Math.random = real;
+
+    assert(mate.statusEffects.some((fx) => fx.kind === 'debuff'),
+      'the curse never landed on the ally');
+    assert(rend.statusEffects.some((fx) => fx.kind === 'debuff' && fx.stat === 'atk'),
+      'the mouth did not drink it');
+    // A copy, not a rescue: the original stays where it fell.
+    assert(mate.statusEffects.length === 1, 'the ally was let off');
+
+    // Poisons too. A mouth that drank stat cuts and not these would be
+    // inconsistent with his own passive and his own cooldown, both of
+    // which count a poison as a curse -- and in a dark meta a poison is
+    // most of what is being thrown. The first pass had exactly that
+    // hole and a browser probe found it.
+    rend.statusEffects = [];
+    mate.statusEffects = [];
+    Abilities.applyEffect({ type: 'dot', mult: 0.4, turns: 3 }, foe, mate);
+    assert(mate.statusEffects.some((fx) => fx.kind === 'dot'), 'the poison never landed');
+    assert(rend.statusEffects.some((fx) => fx.kind === 'dot'),
+      'the mouth drinks stat cuts but not poisons');
+
+    // Off the hex it drinks nothing.
+    rend.statusEffects = [];
+    mate.statusEffects = [];
+    rend.slot = battle.playerSlots[3];
+    assert(!rend.positionalActive(), 'the fixture left him on the hex');
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'debuff', stat: 'atk', mult: 0.70, turns: 3 }, foe, mate);
+    Math.random = real;
+    assert(!rend.statusEffects.length, 'he drank off his own hex');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
 report();
