@@ -13714,4 +13714,201 @@ test('Shrike: what goes on the thorn stays there', () => {
   } finally { Math.random = real; Battle.active = prev; }
 });
 
+// The seer, and Shrike's opposite number: Shrike is worth more the
+// closer a thing is to dead, Omen the longer it has been coming. What
+// he lays is a CLOCK, not a poison -- it does nothing at all while it
+// counts, and then it happens.
+test('Omen: an omen does nothing until it does', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const omen = seatOn(battle, HEROES.omen, TEAM.PLAYER, 4);
+    omen.slot = battle.playerSlots[0];          // off his hex: a 3-turn clock
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.debuffResistance = () => 0;
+
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'doom', mult: 1.60, turns: 3 }, omen, foe);
+    Math.random = real;
+    const clock = foe.statusEffects.find((fx) => fx.stat === 'doom');
+    assert(clock, 'nothing was read off him');
+    assert(clock.turns === 3, `the clock runs ${clock.turns} turns`);
+    // Pinned off the SKILL as well, not just the effect handed to
+    // applyEffect. Moving the card's own 3 to a 6 broke nothing until
+    // this was here -- the fixture was testing the engine and calling
+    // it a test of the hero.
+    const look = omen.abilities.find((a) => a.def.id === 'omen_the_long_look');
+    const laid = look.def.effects.find((e) => e.type === 'doom');
+    assert(laid.turns === 3 && Math.abs(laid.mult - 1.60) < 1e-9,
+      `The Long Look reads ${laid.mult} over ${laid.turns} turns`);
+    assert(Math.abs(clock.amount - Math.round(omen.effectiveStat('atk') * 1.60)) <= 1,
+      `the omen is worth ${clock.amount}`);
+
+    // Nothing at all while it counts. Every other affliction on the
+    // roster does SOMETHING each turn; this one is silence and then a
+    // number.
+    let hp = foe.hp;
+    foe.tickStatusEffects();
+    assert(foe.hp === hp && clock.turns === 2, 'the clock ticked damage as it counted');
+    foe.tickStatusEffects();
+    assert(foe.hp === hp && clock.turns === 1, 'the clock ticked damage as it counted');
+
+    // And then it happens. Waiting it out is not the answer it is to
+    // everything else.
+    foe.tickStatusEffects();
+    assert(!foe.statusEffects.some((fx) => fx.stat === 'doom'), 'the clock is still there');
+    assert(foe.hp < hp, 'the omen ran out and nothing came of it');
+
+    // It is thrown as an ordinary blow, so the DEF curve answers it --
+    // a prophecy is still a hit.
+    assert(hp - foe.hp < clock.amount,
+      'the omen landed unmitigated — it is meant to go through the curve');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// And it FILLS. Every blow the doomed bird takes from anybody adds a
+// share, so the omen is a record of the fight rather than a figure
+// fixed at cast, and the whole party is loading it.
+test('Omen: the whole party loads it', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const omen = seatOn(battle, HEROES.omen, TEAM.PLAYER, 4);
+    omen.slot = battle.playerSlots[0];
+    const mate = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    mate.hookSources = () => [];
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.debuffResistance = () => 0;
+
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'doom', mult: 1.60, turns: 5 }, omen, foe);
+    Math.random = real;
+    const clock = foe.statusEffects.find((fx) => fx.stat === 'doom');
+    const laid = clock.amount;
+    assert(clock.growth > 0, 'the omen was laid without its growth stamped on');
+
+    // Somebody ELSE hits the doomed bird.
+    Math.random = () => 0.99;
+    try { Abilities.strike(mate, foe, 1000, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(clock.amount > laid, 'an ally’s blow added nothing to what is coming');
+
+    // A blow on an undoomed bird costs nothing and changes nothing.
+    const spare = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 2), 400);
+    spare.hookSources = () => [];
+    spare.dodgeChance = () => 0; spare.reflectChance = () => 0;
+    const held = clock.amount;
+    Math.random = () => 0.99;
+    try { Abilities.strike(mate, spare, 1000, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(clock.amount === held, 'hitting somebody else fed the omen');
+
+    // The growth belongs to the PROPHECY, not the prophet: an omen he
+    // laid keeps filling after he is gone.
+    omen.hp = 0;
+    const before = clock.amount;
+    Math.random = () => 0.99;
+    try { Abilities.strike(mate, foe, 1000, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(clock.amount > before, 'the omen stopped filling when its reader died');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The payoff for a hero whose whole kit is waiting, and the reason the
+// clocks are worth laying on more than one bird.
+test('Omen: It Was Always Going To rings every clock at once', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const omen = maxSkill(seatOn(battle, HEROES.omen, TEAM.PLAYER, 4), 2);
+    omen.slot = battle.playerSlots[0];
+    const foes = [0, 1, 2].map((i) => {
+      const u = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, i), 400);
+      u.hookSources = () => [];
+      u.dodgeChance = () => 0; u.reflectChance = () => 0;
+      u.debuffResistance = () => 0;
+      return u;
+    });
+    Math.random = () => 0.01;
+    Abilities.applyEffect({ type: 'doom', mult: 1.60, turns: 9 }, omen, foes[0]);
+    Abilities.applyEffect({ type: 'doom', mult: 1.60, turns: 9 }, omen, foes[1]);
+    Math.random = real;
+    const before = foes.map((f) => f.hp);
+
+    const always = omen.abilities.find((a) => a.def.id === 'omen_it_was_always');
+    assert(always, 'It Was Always Going To is missing');
+    Math.random = () => 0.99;
+    Abilities.execute(always.def, omen, foes[0], battle);
+    Math.random = real;
+
+    // Both clocks are gone and both paid; the third bird took the sweep
+    // and nothing else.
+    assert(!foes[0].statusEffects.some((fx) => fx.stat === 'doom') &&
+      !foes[1].statusEffects.some((fx) => fx.stat === 'doom'), 'a clock survived');
+    const hit = foes.map((f, i) => before[i] - f.hp);
+    assert(hit[2] > 0, 'the sweep missed the undoomed bird');
+    assert(hit[0] > hit[2] * 1.5 && hit[1] > hit[2] * 1.5,
+      `doomed birds took ${hit[0]}/${hit[1]} against ${hit[2]} undoomed`);
+
+    // And never his own side's. An enemy signreader's omen sitting on
+    // one of your birds must not be rung by yours -- the guard reads as
+    // obvious and was completely untested until a sabotage removed it
+    // and nothing complained.
+    const mate = roomy(seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1), 400);
+    mate.hookSources = () => [];
+    mate.addStatusEffect({ kind: 'debuff', stat: 'doom', turns: 9,
+      amount: 5000, growth: 0, source: foes[0] });
+    const mateHp = mate.hp;
+    Math.random = () => 0.99;
+    Abilities.execute(always.def, omen, foes[0], battle);
+    Math.random = real;
+    assert(mate.hp === mateHp, 'he rang an omen sitting on his own side');
+    assert(mate.statusEffects.some((fx) => fx.stat === 'doom'),
+      'he cleared an omen sitting on his own side');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex buys the clock a turn, which is the one lever that makes an
+// omen worth MORE rather than sooner: another turn is another turn of
+// the party loading it.
+test('Omen: Further Ahead buys the clock a turn', () => {
+  const hex = POSITIONALS.further_ahead;
+  assert(HEROES.omen.positional === hex, 'Omen is not on his own hex');
+  assert(hex.position === POSITION.BACK, 'he sees further from the back');
+
+  const lay = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      const omen = seatOn(battle, HEROES.omen, TEAM.PLAYER, 4);
+      if (!onHex) omen.slot = battle.playerSlots[0];
+      assert(omen.positionalActive() === onHex, 'the fixture seated him wrong');
+      const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+      foe.hookSources = () => [];
+      foe.debuffResistance = () => 0;
+      Math.random = () => 0.01;
+      Abilities.applyEffect({ type: 'doom', mult: 1.60, turns: 3 }, omen, foe);
+      return foe.statusEffects.find((fx) => fx.stat === 'doom');
+    } finally { Math.random = real; Battle.active = prev; }
+  };
+  const off = lay(false);
+  const on = lay(true);
+  assert(off.turns === 3, `off the hex the clock runs ${off.turns}`);
+  assert(on.turns === 4, `on the hex the clock runs ${on.turns}`);
+  // The hex buys TIME, not size: what it is worth at cast is unchanged.
+  assert(on.amount === off.amount, 'the hex made the omen bigger as well as longer');
+});
+
 report();

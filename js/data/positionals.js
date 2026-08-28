@@ -587,6 +587,17 @@ const POSITIONALS = (() => {
     },
   });
 
+  // Omen's hex: from the back he can see further ahead. Buys the clock
+  // an extra turn, which is the one lever that makes an omen worth MORE
+  // rather than sooner -- every blow the party lands in that turn is
+  // another share on the pile.
+  def('further_ahead', {
+    position: POSITION.BACK,
+    name: 'Further Ahead',
+    description: 'Back hex: the omens he lays run 1 turn longer, and fill for that turn too.',
+    hooks: { doomExtraTurns: 1 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
