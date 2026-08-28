@@ -10549,9 +10549,15 @@ test('Sunbrood pack: speed spent as healing, and paid where it is needed', () =>
       const at = (spd) => { healer.speed = spd; return healer.healingBoost(null); };
       const base = at(100);
       assert(Math.abs(at(100) - base) < 1e-9, 'a 100-speed healer earned a rung');
-      assert(Math.abs(at(124) - base) < 1e-9, '24 points over bought a rung it had not earned');
-      assert(Math.abs(at(125) - base - 0.05) < 1e-9, `125 SPD paid ${at(125) - base}`);
-      assert(Math.abs(at(175) - base - 0.15) < 1e-9, `175 SPD paid ${at(175) - base}`);
+      assert(Math.abs(at(119) - base) < 1e-9, '19 points over bought a rung it had not earned');
+      assert(Math.abs(at(120) - base - 0.05) < 1e-9, `120 SPD paid ${at(120) - base}`);
+      assert(Math.abs(at(180) - base - 0.20) < 1e-9, `180 SPD paid ${at(180) - base}`);
+      // The rung is 20 and not Crosswind's 25 on purpose: light is a
+      // slow element and at 25 the first rung needed 125, which one
+      // light hero in ten could reach. If it ever goes back the tier
+      // is decoration again.
+      assert(Math.abs(at(124) - base - 0.05) < 1e-9,
+        `124 SPD paid ${at(124) - base} -- the rung has gone back to 25`);
       // Slower than 100 never runs backwards.
       assert(Math.abs(at(60) - base) < 1e-9, 'a slow healer was penalised');
       battle.units = battle.units.filter((u) => u !== healer);
