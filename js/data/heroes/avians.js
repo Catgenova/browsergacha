@@ -1760,4 +1760,96 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.far_gate,
   },
+
+  // The sect's sweeper, and the third different answer to the same
+  // question. Tervan spends a speed lead as armour blindness and Nehru
+  // manufactures the lead by slowing what he throws through a gate;
+  // Cirrus does not convert his tempo at all -- he takes theirs. A bar
+  // knocked backwards is a turn the enemy does not get and a Razorwing
+  // does, which is the only place in the sect that speed is answered
+  // with speed rather than with damage.
+  cirrus: {
+    id: 'cirrus',
+    element: 'wind',
+    name: 'Cirrus',
+    title: 'Stormwright of the Razorwings',
+    rarity: 4,
+    stats: { hp: 1180, atk: 205, def: 88, speed: 124 },
+    tint: { body: '#e8e4d8', helm: '#2f6f4a', weapon: '#5fd8c8', shield: '#c8a83a' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/cirrusidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'cirrus_whorl', name: 'Whorl',
+        icon: 'assets/icons/fc823.png',
+        description: 'A pocket of turning air, opened under one enemy: 110% ATK.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.10 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'cirrus_cross_vortex', name: 'Cross Vortex',
+        icon: 'assets/icons/fc1142.png',
+        description: 'Two fronts meeting over the whole field: 75% ATK to every enemy.',
+        cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'slash',
+        effects: [{ type: 'damage', mult: 0.75 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'cirrus_downdraught', name: 'Downdraught',
+        icon: 'assets/icons/fc1272.png',
+        description: 'The whole sky falls at once: 120% ATK to every enemy.',
+        cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.20 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Backdraft',
+      icon: 'assets/icons/fc1062.png',
+      // Deliberately NOT damageDealtMult. Overtake and Terminal
+      // Velocity both multiply into that channel already, and a third
+      // helping on the same axis -- however differently it reads on the
+      // card -- would take a fielded sect from 1.625 to over 2x against
+      // anything slow. The action bar is the one resource the sect
+      // cares about that none of its damage tiers touch.
+      //
+      // The chance gate is what keeps it honest on a sweep: Cross
+      // Vortex catches the whole enemy team, and a certainty here would
+      // knock every bar on the field backwards every fourth turn. The
+      // drain itself is contested and meterGuard-aware like any other,
+      // because it runs through drainMeter with everything else.
+      description: 'The air closes badly behind him: every hit has a 20% chance to knock ' +
+        "20% off the victim's action bar.",
+      hooks: { apDrainAdd: 0.20 },
+    },
+    // Hallow's hex, and it fits the second bird to wear it as well as
+    // the first: two of his three skills catch the whole field.
+    positional: POSITIONALS.stormglass,
+  },
 });
