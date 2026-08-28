@@ -301,7 +301,7 @@ test('every sect holds one race, once each, with its number', () => {
     razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc'] },
     // The light brood. No 1-star and no 2-star: the light and dark
     // orders run four 3-stars, three 4-stars and two 5-stars instead.
-    sunbrood: { number: 11, race: 'avian', members: ['aurek', 'durn', 'nemeris', 'aster', 'rizzo', 'mavros', 'orien', 'solari'] },
+    sunbrood: { number: 11, race: 'avian', members: ['aurek', 'durn', 'nemeris', 'aster', 'rizzo', 'mavros', 'orien', 'solari', 'nestora'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -1262,7 +1262,13 @@ test('every swept skill obeys the level-up rules', () => {
       if (lad.duration && !all.some((e) => TIMED.has(e.type))) {
         problems.push(`${where}: duration rungs but nothing timed to lengthen`);
       }
-      if (lad.buffPower && !all.some((e) => e.type === 'buff')) {
+      // `raise` counts: it is a permanent blessing written onto a base
+      // stat rather than into statusEffects, and Abilities reads
+      // `lad.buffPower` off it exactly as it does off an ordinary buff.
+      // The rule is "a rung must have something to act on", not "a rung
+      // must point at a status effect".
+      const BLESSING = new Set(['buff', 'raise']);
+      if (lad.buffPower && !all.some((e) => BLESSING.has(e.type))) {
         problems.push(`${where}: buffPower rungs but no buff`);
       }
       if (lad.debuffPower && !all.some((e) =>

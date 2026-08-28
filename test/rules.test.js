@@ -12201,4 +12201,106 @@ test('Solari: Heliograph turns a torn blessing into a cooldown', () => {
   } finally { Math.random = real; Battle.active = prev; }
 });
 
+// The ninth bird, and the sect's thesis written as one hero: the
+// Sunbrood does not win the first exchange, it wins the eighth. Her
+// growth goes onto BASE attack rather than into statusEffects, and
+// three things fall out of that which are the whole design.
+test('Nestora: what she raises cannot be taken', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nestora = place(battle, HEROES.nestora, TEAM.PLAYER, 4);
+    nestora.slot = battle.playerSlots[1];        // off her hex: the 30% cap
+    const bird = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    bird.hookSources = () => [];
+    const opened = bird.effectiveStat('atk');
+
+    // It climbs on her turns, 5% at a time, against the statline the
+    // bird walked in with rather than against itself.
+    nestora.startTurn(battle);
+    assert(Math.abs(bird.raisedAtk - 0.05) < 1e-9, `one turn raised ${bird.raisedAtk}`);
+    assert(bird.effectiveStat('atk') > opened, 'the growth did not reach the stat');
+    for (let i = 0; i < 20; i++) nestora.startTurn(battle);
+    assert(Math.abs(bird.raisedAtk - 0.30) < 1e-9,
+      `the nest raised ${bird.raisedAtk} off her hex, wanted a ceiling of 0.30`);
+    assert(Math.abs(bird.effectiveStat('atk') - Math.round(opened * 1.30)) <= 1,
+      `${opened} grew to ${bird.effectiveStat('atk')}, wanted 30% on`);
+
+    // It is not a status effect, so no strip on the roster can reach it.
+    assert(!bird.statusEffects.some((fx) => fx.kind === 'buff'),
+      'the growth was handed out as an ordinary blessing after all');
+    const solari = place(battle, HEROES.solari, TEAM.PLAYER, 0);
+    const grown = bird.effectiveStat('atk');
+    Abilities.applyEffect({ type: 'stripBuffs', count: 9 }, solari, bird);
+    assert(bird.effectiveStat('atk') === grown, 'a strip took what the nest raised');
+
+    // And death does not take it. Unit.revive wipes statusEffects, so a
+    // bird raised by an ordinary buffer comes back with nothing.
+    bird.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.5, turns: 5 });
+    const buffed = bird.effectiveStat('atk');
+    bird.hp = 0;
+    bird.revive(0.5, nestora);
+    assert(bird.alive, 'the fixture did not raise him');
+    assert(bird.effectiveStat('atk') < buffed, 'the ordinary blessing survived death');
+    assert(bird.effectiveStat('atk') === grown,
+      `he came back on ${bird.effectiveStat('atk')}, not the ${grown} she raised him to`);
+  } finally { Battle.active = prev; }
+});
+
+// Her filler concentrates on one bird what the passive spreads thin
+// across the whole brood — same verb, opposite distribution, and ONE
+// shared ceiling, so the player is choosing who the carry is rather
+// than whether to grow at all.
+test('Nestora: Feed the Nest spends from the same ceiling', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const nestora = place(battle, HEROES.nestora, TEAM.PLAYER, 4);
+    nestora.slot = battle.playerSlots[1];
+    const bird = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    bird.hookSources = () => [];
+    const feed = nestora.abilities.find((a) => a.def.id === 'nestora_feed_the_nest');
+    assert(feed, 'Feed the Nest is missing');
+
+    Abilities.execute(feed.def, nestora, bird, battle);
+    assert(Math.abs(bird.raisedAtk - 0.10) < 1e-9,
+      `a beakful was worth ${bird.raisedAtk}, wanted 0.10`);
+
+    // Two more fill it, and the fourth finds nothing left -- the skill
+    // and the passive are not two budgets.
+    Abilities.execute(feed.def, nestora, bird, battle);
+    Abilities.execute(feed.def, nestora, bird, battle);
+    assert(Math.abs(bird.raisedAtk - 0.30) < 1e-9, `three beakfuls made ${bird.raisedAtk}`);
+    const full = bird.effectiveStat('atk');
+    Abilities.execute(feed.def, nestora, bird, battle);
+    nestora.startTurn(battle);
+    assert(bird.effectiveStat('atk') === full,
+      'a full bird kept growing past the ceiling');
+  } finally { Battle.active = prev; }
+});
+
+// Her hex lifts the CEILING, not the rate. The rate is her turn coming
+// round, which the sect already buys with speed at 2pc, and paying for
+// that twice is the trap this whole roster is written to avoid.
+test('Nestora: The High Nest raises the ceiling to +50%', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const hex = POSITIONALS.the_high_nest;
+    assert(HEROES.nestora.positional === hex, 'Nestora is not on her own hex');
+    assert(hex.position === POSITION.BACK, 'the nest goes at the back');
+
+    const nestora = place(battle, HEROES.nestora, TEAM.PLAYER, 4);
+    assert(nestora.positionalActive(), 'slot 4 is not a back hex');
+    const bird = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 2);
+    bird.hookSources = () => [];
+    for (let i = 0; i < 30; i++) nestora.startTurn(battle);
+    assert(Math.abs(bird.raisedAtk - 0.50) < 1e-9,
+      `on the hex the nest reached ${bird.raisedAtk}, wanted 0.50`);
+  } finally { Battle.active = prev; }
+});
+
 report();

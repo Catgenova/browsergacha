@@ -708,6 +708,19 @@ class Battle {
         } else {
           this.log(`${caster.name}'s bill is empty — nothing to give back.`, cls);
         }
+      } else if (res.kind === 'raise') {
+        // Permanent growth. Said out loud, because it leaves no status
+        // icon behind -- it is written onto the bird's base attack, so
+        // the only places it shows are the ATK figure in the inspector
+        // and this line.
+        if (res.amount > 0) {
+          this.addFloatingText(res.target, `ATK +${Math.round(res.amount * 100)}%`, '#ffd76a');
+          this.log(`${caster.name} feeds ${res.target.name} — ` +
+            `+${Math.round(res.amount * 100)}% ATK for the rest of the fight.`, cls);
+        } else if (res.full) {
+          this.log(`${res.target.name} is fully grown — the nest has nothing left to add.`,
+            cls);
+        }
       } else if (res.kind === 'forge') {
         // Lucian's forge heat: permanent flat ATK off the burning field.
         if (res.amount > 0) {
