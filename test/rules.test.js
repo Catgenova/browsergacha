@@ -9613,6 +9613,152 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The Razorwings' pack. The sect is one bird deep, so the tiers cannot
+// be FIELDED yet -- 2/3/4 members is the threshold and there is one.
+// What can be tested is the part that breaks: the hook logic itself and
+// its passage through the engine, exercised by handing the tier's hooks
+// to a real unit exactly the way applyParty would. The fielded-count
+// wiring gets its own test when the sect has four birds in it.
+test('Razorwings pack: speed spent as damage, and a kill spent as meter', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.razorwings;
+  const tier = (n) => PACK.find((t) => t.count === n);
+  assert(tier(2) && tier(3) && tier(4),
+    `the pack has tiers ${PACK.map((t) => t.count).join('/')}, wanted 2/3/4`);
+
+  // Hooks are handed over by CONCAT, never pushed: `passives` comes off
+  // the hero def by reference, and pushing would write the party bonus
+  // into the definition for the rest of the process.
+  const wear = (unit, ...tiers) => {
+    unit.passives = (unit.passives || []).concat(tiers.map((t) => ({ hooks: t.hooks })));
+    return unit;
+  };
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const foe = (speed) => {
+      const f = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 4000);
+      f.dodgeChance = () => 0; f.reflectChance = () => 0;
+      f.hookSources = () => [];
+      f.speed = speed;
+      return f;
+    };
+
+    // ---- 2pc Overtake: binary, on the comparison alone ----
+    {
+      const bird = wear(place(battle, HEROES.tervan, TEAM.PLAYER, 1), tier(2));
+      const mine = bird.effectiveStat('speed');
+      // Read through damageDealtMult so the positional and everything
+      // else on him divides out: it is the RATIO that Overtake owns.
+      const slower = bird.damageDealtMult(foe(mine - 1), null);
+      const faster = bird.damageDealtMult(foe(mine + 1), null);
+      const level = bird.damageDealtMult(foe(mine), null);
+      assert(Math.abs(slower / faster - 1.25) < 1e-9,
+        `Overtake paid ${(slower / faster).toFixed(3)} against a slower body, wanted 1.25`);
+      // A single point either way flips it, and a DEAD HEAT pays nothing
+      // -- strictly faster, not "at least as fast". Without this the
+      // boundary is unpinned and could drift to >= without a test caring.
+      assert(Math.abs(level - faster) < 1e-9,
+        'Overtake paid out against an enemy of exactly equal speed');
+    }
+
+    // ---- 3pc Terminal Velocity: the SIZE of the gap, and its cap ----
+    {
+      const bird = wear(place(battle, HEROES.tervan, TEAM.PLAYER, 2), tier(3));
+      const mine = bird.effectiveStat('speed');
+      const base = bird.damageDealtMult(foe(mine), null);   // dead heat: nothing
+      const at = (gap) => bird.damageDealtMult(foe(mine - gap), null) / base;
+      assert(Math.abs(at(0) - 1) < 1e-9, 'a dead heat paid out');
+      assert(Math.abs(at(20) - 1.10) < 1e-9, `20 points paid ${at(20).toFixed(3)}, wanted 1.10`);
+      assert(Math.abs(at(60) - 1.30) < 1e-9, `60 points paid ${at(60).toFixed(3)}, wanted 1.30`);
+      // Capped, and the cap is what stops a speed-stacked party from
+      // scaling for ever against a slow boss.
+      assert(Math.abs(at(200) - 1.30) < 1e-9,
+        `a 200-point lead paid ${at(200).toFixed(3)} -- the +30% cap is not holding`);
+      // Never negative: being SLOWER than the target costs nothing.
+      const behind = bird.damageDealtMult(foe(mine + 60), null) / base;
+      assert(Math.abs(behind - 1) < 1e-9,
+        `being 60 points slower paid ${behind.toFixed(3)}, wanted 1`);
+    }
+
+    // ---- and the two of them together, because they MULTIPLY ----
+    {
+      const bird = wear(place(battle, HEROES.tervan, TEAM.PLAYER, 3), tier(2), tier(3));
+      const mine = bird.effectiveStat('speed');
+      const both = bird.damageDealtMult(foe(mine - 60), null) /
+                   bird.damageDealtMult(foe(mine), null);
+      // 1.25 x 1.30. Pinned deliberately: this is the sect's ceiling
+      // against something slow, and if it ever moves it should move on
+      // purpose rather than because a tier was edited in isolation.
+      assert(Math.abs(both - 1.625) < 1e-9,
+        `both tiers paid ${both.toFixed(4)} into a slow target, wanted 1.625`);
+      // And nothing at all against something faster, which is the price
+      // the sect pays for that ceiling.
+      const uphill = bird.damageDealtMult(foe(mine + 60), null) /
+                     bird.damageDealtMult(foe(mine), null);
+      assert(Math.abs(uphill - 1) < 1e-9,
+        `both tiers paid ${uphill.toFixed(3)} against a faster enemy, wanted nothing`);
+    }
+  } finally { Battle.active = prev; }
+
+  // ---- 4pc Rip Current: the killer, and only the killer ----
+  {
+    const battle2 = makeBattle();
+    const prev2 = Battle.active;
+    Battle.active = battle2;
+    try {
+      const killer = wear(place(battle2, HEROES.tervan, TEAM.PLAYER, 1), tier(4));
+      const mate = wear(place(battle2, HEROES.chirp, TEAM.PLAYER, 2), tier(4));
+      const mark = () => {
+        const f = place(battle2, DUMMIES.rat_archer, TEAM.ENEMY, 1);
+        f.hp = 1;
+        return f;
+      };
+      const want = CONFIG.TURN_METER_MAX * 0.25;
+
+      killer.turnMeter = 0; mate.turnMeter = 0;
+      mark().takeDamage(9e9, killer);
+      assert(Math.abs(killer.turnMeter - want) < 1e-6,
+        `the killer got ${killer.turnMeter} meter, wanted ${want}`);
+      // Their own tier, not the party's: a Razorwing standing next to a
+      // kill they did not land is paid nothing.
+      assert(mate.turnMeter === 0,
+        `a bystander was paid ${mate.turnMeter} for somebody else's kill`);
+
+      // A death nobody dealt -- a poison tick, a reflect, a hazard --
+      // pays nobody. takeDamage with no attacker is exactly that case.
+      killer.turnMeter = 0;
+      mark().takeDamage(9e9);
+      assert(killer.turnMeter === 0,
+        `a killerless death paid ${killer.turnMeter} meter`);
+
+      // And never for an ALLY falling.
+      killer.turnMeter = 0;
+      const friend = place(battle2, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+      friend.hp = 1;
+      friend.takeDamage(9e9, killer);
+      assert(killer.turnMeter === 0,
+        `a Razorwing was paid ${killer.turnMeter} for killing their own ally`);
+    } finally { Battle.active = prev2; }
+  }
+
+  // The house rule the pack was built to. Wind's element tiers already
+  // sell speed as more speed and more turns; every Razorwing tier has to
+  // read the GAP or the outcome instead, or the sect is just handing the
+  // party its own element bonus back a second time.
+  const windMods = RACES.ELEMENT_PARTY_BONUSES.wind
+    .flatMap((t) => Object.keys(t.mods || {}));
+  for (const t of PACK) {
+    for (const key of Object.keys(t.mods || {})) {
+      assert(!windMods.includes(key),
+        `Razorwings ${t.count}pc pays into '${key}', which a wind tier already sells`);
+      assert(key !== 'spdPct' && key !== 'spdFlat' && key !== 'extraTurn',
+        `Razorwings ${t.count}pc sells raw speed ('${key}') -- the sect spends it instead`);
+    }
+  }
+});
+
 // The first Razorwing. The sect's thesis is that speed is worth
 // something on the SWING, not only in the turn order -- so Windshear is
 // measured as damage against a slower body and an identical faster one.
@@ -9622,7 +9768,6 @@ test("Tervan's Windshear: armour blindness, but only against the slower", () => 
   Battle.active = battle;
   try {
     const t = place(battle, HEROES.tervan, TEAM.PLAYER, 1);
-    t.critChance = () => 0;
 
     // Two identical victims but for their speed: one Tervan outruns and
     // one he does not. Everything else is held equal so the only thing
@@ -9635,9 +9780,17 @@ test("Tervan's Windshear: armour blindness, but only against the slower", () => 
       f.speed = speed;
       return f;
     };
+    // Crits are rolled inside strike() against
+    // `caster.effectiveStat('critChance')` -- overriding the unit's
+    // critChance() METHOD does not touch it, which is how the first
+    // draft of this test turned into a coin flip that happened to land.
+    // Pin the roll instead: 0.99 fails every crit gate on the field.
     const hit = (f) => {
       const before = f.hp;
-      Abilities.execute(t.abilities[0].def, t, f, battle);
+      const real = Math.random;
+      Math.random = () => 0.99;
+      try { Abilities.execute(t.abilities[0].def, t, f, battle); }
+      finally { Math.random = real; }
       battle.units = battle.units.filter((u) => u !== f);
       return before - f.hp;
     };

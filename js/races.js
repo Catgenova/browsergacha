@@ -370,6 +370,74 @@ const RACES = (() => {
   // lean conditional and enabling rather than adding a third flat stat
   // lift on top of the two the party already holds.
   const SECT_PARTY_BONUSES = {
+    // The Razorwings SPEND speed; they do not sell more of it. The wind
+    // element pack a Razorwing party is always also wearing already
+    // banks speed as turns -- Following Wind, Crosswind, Second Gust --
+    // and a sect tier lands on top of an element tier, so a sect that
+    // sold speed again would only be handing the party its own bonus
+    // back. All three of these read the GAP between the swinger and
+    // whoever is in front of them, or what the swing did.
+    //
+    // Worth being plain about: the 2pc and the 3pc are the same
+    // condition on the same channel, and damageDealtMult hooks
+    // MULTIPLY. Fielding four Razorwings into something slower is
+    // 1.25 x 1.30 before Crosswind, and that is the deliberate shape of
+    // the sect rather than an accident -- it is also worth exactly
+    // nothing against anything faster, which is the price.
+    razorwings: [
+      {
+        count: 2, name: 'Overtake',
+        // Flat, and binary: you are either faster than the thing in
+        // front of you or you are not. The 3pc below is what makes the
+        // SIZE of the gap matter.
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.effectiveStat) return 1;
+            return unit.effectiveStat('speed') > target.effectiveStat('speed')
+              ? 1.25 : 1;
+          },
+        },
+        label: '+25% damage to any enemy slower than the attacker',
+      },
+      {
+        count: 3, name: 'Terminal Velocity',
+        // Continuous rather than stepped, unlike Crosswind's per-25
+        // rungs: this reads a DIFFERENCE, and a difference that only
+        // paid at 25-point boundaries would make a 24-point speed lead
+        // worth nothing at all. Capped at 30%, which is where a 60-point
+        // lead lands -- past that the sect is already winning the race
+        // by more than the fight can use.
+        hooks: {
+          damageDealtMult(unit, target) {
+            if (!target || !target.effectiveStat) return 1;
+            const gap = unit.effectiveStat('speed') - target.effectiveStat('speed');
+            if (gap <= 0) return 1;
+            return 1 + Math.min(0.30, gap * 0.005);
+          },
+        },
+        label: '+1% damage per 2 points of speed over the target, to +30%',
+      },
+      {
+        count: 4, name: 'Rip Current',
+        // The one tier that is not damage. A kill refills a quarter of
+        // the bar, so a Razorwing party that is actually closing bodies
+        // out runs away with the turn order -- and one that is only
+        // chipping gets nothing, which is the check on it.
+        //
+        // Paid to whoever LANDED the blow, not to the party: a poison
+        // tick or a reflect kills with no killer, and nobody should be
+        // paid for a death they did not deal.
+        hooks: {
+          onUnitDied(unit, { victim, killer } = {}) {
+            if (!unit.alive || !victim || killer !== unit) return null;
+            if (victim.team === unit.team) return null;
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.25;
+            return { floats: [{ target: unit, text: '\u25b2 25%', color: '#8ee8a8' }] };
+          },
+        },
+        label: 'a Razorwing who lands a kill gains 25% action bar',
+      },
+    ],
     phoenixcourt: [
       {
         count: 2, name: 'Catches Twice',

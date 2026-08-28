@@ -815,7 +815,15 @@ class Unit {
             for (const watcher of [this, ...b.livingUnits()]) {
               for (const p of (watcher.hookSources ? watcher.hookSources() : [])) {
                 const hook = p.hooks && p.hooks.onUnitDied;
-                if (hook) hook(watcher, { victim: this, battle: b });
+                // `killer` was in scope here all along and simply never
+                // handed over. Everything that read this hook before
+                // cared only about the corpse; a hook that pays the
+                // hero who LANDED the blow (the Razorwings' 4pc) needs
+                // to know whose blow it was. Null for a death nobody
+                // dealt -- a poison tick, a reflect, running out of HP
+                // to a hazard -- which is exactly when nobody should be
+                // paid for it.
+                if (hook) hook(watcher, { victim: this, killer: attacker, battle: b });
               }
             }
           } finally { Unit.deathRinging = false; }
