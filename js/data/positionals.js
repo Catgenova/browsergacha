@@ -459,6 +459,29 @@ const POSITIONALS = (() => {
     hooks: { defIgnoreAdd: 0.30 },
   });
 
+  // Solari's hex: from the middle she can hold the angle, and the light
+  // she takes off them comes back to her. Sibling to Tumble's Chime Tax
+  // -- the same `onStripBuff` channel, paid out differently: his strips
+  // buy turn meter, hers buy cooldown. Deliberately not another party
+  // buff, because that is Orien's whole job and a hex has no business
+  // doing a skill's work.
+  def('heliograph', {
+    position: POSITION.CENTER,
+    name: 'Heliograph',
+    description: 'Center hex: every buff she tears off refunds 1 turn on all her cooldowns.',
+    hooks: {
+      onStripBuff(unit, { count } = {}) {
+        if (!count || count <= 0) return null;
+        for (const a of (unit.abilities || [])) {
+          if (a.cooldownRemaining > 0) {
+            a.cooldownRemaining = Math.max(0, a.cooldownRemaining - count);
+          }
+        }
+        return { floats: [{ target: unit, text: '\u21ba', color: '#ffd76a' }] };
+      },
+    },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

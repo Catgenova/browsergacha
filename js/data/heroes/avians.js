@@ -3396,4 +3396,126 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.noon_angle,
   },
+
+  // The last 4-star, and the sect's only UNCONDITIONAL damage dealer --
+  // which turned out to be the hole once the other four were written.
+  // Aurek pays health for his, Aster has to be left alone to ramp into
+  // his, Rizzo's is a lottery ticket, and Orien's is nothing at all
+  // without two healers standing beside him. Every one of them is a
+  // clause. Solari is the floor underneath the clauses.
+  //
+  // Her rider reads the ENEMY's blessings, which is an axis nothing on
+  // the roster has ever scaled off -- and it is not what Asher does.
+  // He steals them to wear; she is paid for their being there at all,
+  // and then takes them off the board. A mirror does not want the light,
+  // it wants the angle.
+  solari: {
+    id: 'solari',
+    element: 'light',
+    name: 'Solari',
+    title: 'Glassbearer of the Sunbrood',
+    rarity: 4,
+    stats: { hp: 1320, atk: 235, def: 92, speed: 114 },
+    tint: { body: '#f0e4d0', helm: '#e88a3a', weapon: '#e8c84a', shield: '#f0d878' },
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/sunbrood/solariidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'solari_catch_the_light', name: 'Catch the Light',
+        icon: 'assets/icons/fc823.png',
+        // The strip is on her FILLER, not just her seven, and the roster
+        // is why: a plain 95%-ATK single-target cd0 is Rizzo's Loose
+        // exactly, and "no two abilities are mechanically identical"
+        // said so the moment it was written. It made the hero better.
+        // Chipping one blessing off every single turn is what makes the
+        // hex (a cooldown refund per strip) a live engine rather than a
+        // thing that happens twice a fight, and it puts the same verb in
+        // all three slots.
+        description: 'A held angle and a steady hand: 95% ATK to a single enemy, with a ' +
+          '50% chance to take one blessing off them.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.95 },
+          { type: 'stripBuffs', count: 1, chance: 0.5 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'solari_sunspot', name: 'Sunspot',
+        icon: 'assets/icons/fc1141.png',
+        // A ROW, chosen. The sect's four other dealers cover single
+        // targets, the back rank and the whole field; a rank the player
+        // picks was the shape left over, and it is the one that suits a
+        // hero standing in the middle with a line of sight to all of it.
+        description: 'She holds the disc still until the ground smokes: 105% ATK to the ' +
+          'chosen enemy and everyone in their row.',
+        cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.05 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'solari_turn_the_glass', name: 'Turn the Glass',
+        icon: 'assets/icons/fc1272.png',
+        // Damage FIRST, then the strip. The order is the skill: she is
+        // paid for every blessing the target is wearing and only then
+        // takes them off, so the fat buffed tank is both the best target
+        // and the one who stops being a problem afterwards.
+        description: 'Everything they were given, shown back to them: 180% ATK to one ' +
+          'enemy, then a 50% chance to tear away up to 3 of their blessings.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damage', mult: 1.80 },
+          { type: 'stripBuffs', count: 3, chance: 0.5 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'What the Mirror Shows',
+      icon: 'assets/icons/fc1066.png',
+      // Capped at three, which is where the arithmetic stops being a
+      // rider and starts being the whole hero: an enemy party stacking
+      // blessings on one body could otherwise hand her a multiplier no
+      // card on the roster offers.
+      //
+      // Wards, heals-over-time and bubbles are not blessings and do not
+      // count -- only `kind: 'buff'`, the same thing her seven tears
+      // off, so what pays her and what she takes are the same list.
+      description: 'A mirror gives back whatever it is shown: Solari deals 20% more ' +
+        'damage for every blessing on her target, up to 60%.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target || !target.statusEffects) return 1;
+          const blessings = target.statusEffects.filter((fx) => fx.kind === 'buff').length;
+          return 1 + 0.20 * Math.min(3, blessings);
+        },
+      },
+    },
+    positional: POSITIONALS.heliograph,
+  },
 });
