@@ -616,6 +616,25 @@ const Abilities = (() => {
     return { body, consumed: spot.corpse };
   }
 
+  // Corpses, as food (Carrion). A body still lying on the field is
+  // taken off it -- out of battle.units and off its hex -- and whoever
+  // ate it is mended for it.
+  //
+  // The same consumption raiseBody does, and it interacts with the rest
+  // of the sect rather than fighting it: Necros wants a hex with a body
+  // on it, and one Carrion has cleared is an EMPTY hex, which suits him
+  // just as well. What it does take away is the enemy's dead, and every
+  // revive on the roster with them.
+  function eatCorpse(eater, battle, pct) {
+    if (!battle || !Array.isArray(battle.units)) return null;
+    const body = battle.units.find((u) => u !== eater && !u.alive);
+    if (!body) return null;
+    battle.units = battle.units.filter((u) => u !== body);
+    if (body.slot) { body.slot.unit = null; body.slot = null; }
+    const mended = eater.heal(Math.round(eater.maxHp * pct), eater);
+    return { body, mended };
+  }
+
   // Permanent growth (Nestora's nest). Written onto BASE attack rather
   // than handed out as a blessing, and that is the whole mechanic:
   //
@@ -996,6 +1015,31 @@ const Abilities = (() => {
           for (const fx of omens) { total += Unit.fireDoom(foe, fx); rung++; }
         }
         return { kind: 'detonateDoom', target, count: rung, amount: total };
+      }
+      case 'eatCorpses': {
+        // Everything on the table at once. Priced per body, so it is
+        // worth nothing on an untouched field and a great deal on one
+        // that has gone badly -- which is the only kind of field a
+        // 5-star wall is still standing on.
+        const b = fieldFor(caster);
+        if (!b) return null;
+        // Bounded by a SNAPSHOT rather than by the loop noticing it has
+        // run out. `for(;;) { if (!eatCorpse()) break; }` reads fine and
+        // spins forever the moment eatCorpse stops removing what it
+        // returns -- a sabotage sweep hung the whole suite on exactly
+        // that, which is a better argument than any I could make for
+        // writing the bound where it can be seen.
+        const table = b.units.filter((u) => u !== caster && !u.alive);
+        let eaten = 0;
+        let mended = 0;
+        for (let i = 0; i < table.length; i++) {
+          const meal = eatCorpse(caster, b, effect.pct || 0.10);
+          if (!meal) break;
+          eaten++;
+          mended += meal.mended;
+          if (effect.max && eaten >= effect.max) break;
+        }
+        return { kind: 'eatCorpses', target: caster, count: eaten, amount: mended };
       }
       case 'cleanse': {
         // Strip debuffs (poisons included) from the target — all of
@@ -2224,5 +2268,5 @@ const Abilities = (() => {
   // damage meter all at once.
   return { execute, resolveTargets, damageFormula, strike, freeze, applyEffect,
     sideOf, needsTarget, takeLands, drainMeter, rowFallback, raiseAtk,
-    freeHex, raiseBody, GROUP_TARGETINGS };
+    freeHex, raiseBody, eatCorpse, GROUP_TARGETINGS };
 })();

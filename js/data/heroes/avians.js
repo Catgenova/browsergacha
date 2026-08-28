@@ -4612,4 +4612,136 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.further_ahead,
   },
+
+  // The ninth Hollowbone, the sect's second 5-star, and the order is
+  // closed.
+  //
+  // A carrion vulture does not hunt. It arrives where things have
+  // already died and it eats, and that is the whole hero: the Hollowbone
+  // make bodies faster than any sect on the roster -- Necros and Click
+  // raise things that die, Shrike leaves what he kills on a thorn,
+  // Malachar counts the pile -- and Carrion is the one who clears it.
+  //
+  // Not Rend's job and not Malachar's. Rend CONVERTS what is done to
+  // the party; Malachar COUNTS what the fight has cost, and never
+  // touches a body. Carrion takes the body off the board, which is a
+  // third thing entirely and the only one of the three the enemy feels:
+  // a corpse he has eaten cannot be revived by anybody, because it is
+  // not there any more.
+  //
+  // It also suits Necros rather than fighting him, which was not
+  // obvious until it was written down. He wants a hex with a body on
+  // it; one Carrion has cleared is an EMPTY hex, and an empty hex does
+  // just as well.
+  carrion: {
+    id: 'carrion',
+    element: 'dark',
+    name: 'Carrion',
+    title: 'Tablekeeper of the Hollowbone',
+    rarity: 5,
+    // The deepest pool in the sect and armour to match: every mend he
+    // gets is a share of that pool, so the bigger it is the more a
+    // corpse is worth to him.
+    stats: { hp: 2200, atk: 104, def: 152, speed: 96 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#c8b898', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 104,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/carrionidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'carrion_rip', name: 'Rip',
+        icon: 'assets/icons/fc819.png',
+        // 70% of DEF, which is the top of the band a wall's slot one
+        // sits in (Toll and Durn 0.50, Rend 0.55, Korvid and Mavros
+        // 0.65, Morrow and Talon 0.70) and where five stars belong.
+        description: 'He takes a piece off whatever is nearest: 70% of his DEF to one enemy.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damageDef', mult: 0.70 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'carrion_open_the_wings', name: 'Open the Wings',
+        icon: 'assets/icons/fc1141.png',
+        description: 'He spreads them and the light goes out: 45% of his DEF to ALL ' +
+          'enemies, with a 50% chance on each to swing 20% softer for 2 turns.',
+        cooldown: 5, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
+        effects: [
+          { type: 'damageDef', mult: 0.45 },
+          { type: 'debuff', stat: 'atk', mult: 0.80, turns: 2, chance: 0.5 },
+        ],
+        // Six rungs is the whole budget for a second slot, and the gate
+        // has to reach a certainty, so two of them are spoken for
+        // before anything else is.
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'carrion_the_whole_table', name: 'The Whole Table',
+        icon: 'assets/icons/fc1272.png',
+        // Worth nothing on an untouched field and a great deal on one
+        // that has gone badly, which is the only kind of field a 5-star
+        // wall is still standing on. No cap on the count: seven bodies
+        // is a fight already lost or already won.
+        description: 'Every body still lying there, at once: Carrion recovers 12% of his ' +
+          'max HP for each of them, and each is gone for good — nothing raises what ' +
+          'he has eaten.',
+        cooldown: 6, targeting: 'self', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'eatCorpses', pct: 0.12 }],
+        levelUps: [
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Nothing Goes to Waste',
+      icon: 'assets/icons/fc1066.png',
+      // One a turn, and the hex is the only thing that changes the rate.
+      // A tank who mends himself off the board's leavings rather than
+      // off a healer is the sect's answer to having no healer -- and
+      // it costs the enemy every revive they were holding.
+      description: 'He waits, and then he clears up: at the start of each of his turns ' +
+        'Carrion takes one body off the field — either side — and recovers 15% of ' +
+        'his max HP for it.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle) return null;
+          const meals = 1 + unit.hookSources().reduce(
+            (n, p) => n + ((p.hooks && p.hooks.extraMeals) || 0), 0);
+          const taken = [];
+          let mended = 0;
+          // Bounded by the meal count, which is what makes this safe:
+          // the passive can never spin however eatCorpse behaves.
+          for (let i = 0; i < meals; i++) {
+            const meal = Abilities.eatCorpse(unit, battle, 0.15);
+            if (!meal) break;
+            taken.push(meal.body.name);
+            mended += meal.mended;
+          }
+          if (!taken.length) return null;
+          return {
+            label: 'Nothing Goes to Waste',
+            message: `${unit.name} clears up after ${taken.join(' and ')}.`,
+            floats: [{ target: unit, text: `+${mended}`, color: '#8ae85a' }],
+          };
+        },
+      },
+    },
+    positional: POSITIONALS.first_at_the_table,
+  },
 });

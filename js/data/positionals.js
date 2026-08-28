@@ -598,6 +598,18 @@ const POSITIONALS = (() => {
     hooks: { doomExtraTurns: 1 },
   });
 
+  // Carrion's hex: standing where the bodies fall means never waiting
+  // for the next one. A RATE, not a ceiling -- three hexes on this
+  // roster already lift a cap and it had become a habit -- and the rate
+  // is the only thing that matters to a hero whose meals are handed out
+  // one per turn.
+  def('first_at_the_table', {
+    position: POSITION.FRONT,
+    name: 'First at the Table',
+    description: 'Front hex: he takes two bodies a turn instead of one.',
+    hooks: { extraMeals: 1 },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

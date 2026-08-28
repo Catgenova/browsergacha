@@ -31,7 +31,7 @@ const RACES = (() => {
     'tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral', 'balmor', 'brannoc',
     // Sunbrood, likewise.
     'aurek', 'durn', 'nemeris', 'aster', 'rizzo', 'mavros', 'orien', 'solari', 'nestora',
-    'necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen',
+    'necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen', 'carrion',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -194,7 +194,7 @@ const RACES = (() => {
     // back to demanding members.
     hollowbone: { id: 'hollowbone', name: 'Hollowbone', number: 12,
                  race: 'avian', shape: { 3: 4, 4: 3, 5: 2 },
-                 members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen'] },
+                 members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen', 'carrion'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
