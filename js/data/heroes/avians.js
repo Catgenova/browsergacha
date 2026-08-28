@@ -2133,4 +2133,116 @@ Object.assign(HEROES, {
     // and one that covers a swing.
     positional: POSITIONALS.slow_simmer,
   },
+
+  // The flight's apothecary, and the answer to a problem the Razorwings
+  // make for themselves. A sect built to take more turns than anybody
+  // else runs into its own COOLDOWNS more often than anybody else: the
+  // faster the flight flies, the more of its turns arrive with the good
+  // buttons still cooling. Mendral is the only bird who does anything
+  // about that, and the drip runs quicker here than it would in any
+  // slower order, because it is paid out on HIS turns and his come
+  // round often.
+  //
+  // Cooldowns are all but untouched elsewhere -- one skill on Evelune
+  // and a Nightflower tier, and nothing at all on the gear channel --
+  // so this is a whole axis the sect gets to own rather than a fourth
+  // reading of the speed comparison.
+  mendral: {
+    id: 'mendral',
+    element: 'wind',
+    name: 'Mendral',
+    title: 'Apothecary of the Razorwings',
+    rarity: 3,
+    stats: { hp: 1380, atk: 110, def: 104, speed: 122 },
+    tint: { body: '#e8b0c0', helm: '#2f6f4a', weapon: '#c8a83a', shield: '#e8e4d8' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/razorwings/Mendralidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'mendral_spoonfeed', name: 'Spoonfeed',
+        icon: 'assets/icons/fc866.png',
+        // Priced off the PATIENT rather than off him, which is what the
+        // bill is for: a big bird gets a big dose. It is also what keeps
+        // this from being Ilyra's Clear Sky with a longer neck -- hers
+        // is measured out of her own pool.
+        description: "A measured dose off the end of the bill: one ally recovers 14% of " +
+          'their OWN max HP.',
+        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', targetPct: 0.14 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+        ],
+      },
+      {
+        id: 'mendral_green_vial', name: 'Green Vial',
+        icon: 'assets/icons/fc1062.png',
+        // Deeper than Evelune's Play It Again and narrower: she hands
+        // the whole room one turn back, he hands one bird two.
+        description: 'Whatever is in the green one: one ally gets 2 turns back on every ' +
+          'cooldown they are sitting on.',
+        cooldown: 5, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'cooldownReduce', turns: 2 }],
+        levelUps: [
+          { refund: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'mendral_long_draught', name: 'Long Draught',
+        icon: 'assets/icons/fc1272.png',
+        description: 'Something for everyone, and it keeps working: every ally recovers ' +
+          "6% of Mendral's max HP a turn for 3 turns.",
+        cooldown: 7, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'hot', pct: 0.06, turns: 3 }],
+        levelUps: [
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { duration: 1 },
+          { heal: 0.02 },
+          { heal: 0.02 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'The Standing Dose',
+      icon: 'assets/icons/fc1066.png',
+      // Paid out on HIS turn, which is the sect link: a Razorwing party
+      // comes round often, so the drip is faster in this flight than it
+      // would be anywhere else. Longest cooldown first, so it always
+      // lands where the wait is worst rather than being spent on
+      // somebody a turn from ready anyway.
+      description: "Never without something in the bag: at the start of each of Mendral's " +
+        'turns, the ally sitting on the longest cooldown gets a turn of it back.',
+      hooks: {
+        onTurnStart(unit, battle) {
+          if (!battle || !unit.alive) return null;
+          let worst = null;
+          let ability = null;
+          for (const ally of battle.livingUnits(unit.team)) {
+            for (const a of (ally.abilities || [])) {
+              if (a.cooldownRemaining > 0 &&
+                  (!ability || a.cooldownRemaining > ability.cooldownRemaining)) {
+                ability = a; worst = ally;
+              }
+            }
+          }
+          if (!ability) return null;
+          ability.cooldownRemaining -= 1;
+          return { floats: [{ target: worst, text: '\u2696 -1 CD', color: '#8ee8a8' }] };
+        },
+      },
+    },
+    positional: POSITIONALS.field_medic,
+  },
 });

@@ -9632,6 +9632,79 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The flight's apothecary, and the answer to a problem the Razorwings
+// make for themselves: a sect built to take more turns than anybody
+// else runs into its own COOLDOWNS more often than anybody else.
+test("Mendral's Standing Dose: a turn back, where the wait is worst", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const mendral = place(battle, HEROES.mendral, TEAM.PLAYER, 0);
+    const a = place(battle, HEROES.cirrus, TEAM.PLAYER, 1);
+    const b = place(battle, HEROES.nehru, TEAM.PLAYER, 2);
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    for (const ab of foe.abilities || []) ab.cooldownRemaining = 6;
+
+    const cds = (u) => u.abilities.map((x) => x.cooldownRemaining);
+    const setCds = (u, ...v) => u.abilities.forEach((x, i) => { x.cooldownRemaining = v[i] || 0; });
+
+    // Longest first: the ally waiting worst is the one paid, not the
+    // nearest to ready and not simply the first in the list.
+    setCds(a, 1, 2, 5);
+    setCds(b, 1, 3, 2);
+    mendral.startTurn(battle);
+    assert(cds(a)[2] === 4, `the longest wait went ${cds(a)[2]}, wanted 4`);
+    assert(cds(b).join() === '1,3,2', `a shorter wait was paid instead: ${cds(b).join()}`);
+
+    // One turn, one ability -- not a turn off everything.
+    assert(cds(a).join() === '1,2,4', `the dose spread across the kit: ${cds(a).join()}`);
+
+    // It crosses to whichever ALLY is worst off, wherever they stand.
+    setCds(a, 1, 1, 1);
+    setCds(b, 9, 0, 0);
+    mendral.startTurn(battle);
+    assert(cds(b)[0] === 8, `the worst wait on another bird went ${cds(b)[0]}, wanted 8`);
+
+    // Never the enemy's, however long they are sitting there.
+    setCds(a, 0, 0, 0); setCds(b, 0, 0, 0);
+    mendral.startTurn(battle);
+    assert((foe.abilities || []).every((ab) => ab.cooldownRemaining === 6),
+      'Mendral handed the other side their skills back');
+
+    // Nothing to do is not a crash: a party with everything ready is
+    // the ordinary case for the first turn of a fight.
+    mendral.startTurn(battle);
+    assert(cds(a).join() === '0,0,0', 'a ready party had a cooldown driven negative');
+  } finally { Battle.active = prev; }
+
+  // Green Vial is the deep, narrow one: Evelune hands the whole room a
+  // turn back, Mendral hands one bird two.
+  {
+    const b2 = makeBattle();
+    const prev2 = Battle.active;
+    Battle.active = b2;
+    try {
+      const mendral = place(b2, HEROES.mendral, TEAM.PLAYER, 0);
+      const mate = place(b2, HEROES.nehru, TEAM.PLAYER, 1);
+      const other = place(b2, HEROES.cirrus, TEAM.PLAYER, 2);
+      mate.abilities.forEach((x) => { x.cooldownRemaining = 5; });
+      other.abilities.forEach((x) => { x.cooldownRemaining = 5; });
+      Abilities.execute(mendral.abilities[1].def, mendral, mate, b2);
+      assert(mate.abilities.every((x) => x.cooldownRemaining === 3),
+        `the vial moved them to ${mate.abilities.map((x) => x.cooldownRemaining).join()}`);
+      // One bird, not the room.
+      assert(other.abilities.every((x) => x.cooldownRemaining === 5),
+        'the vial spilled onto the whole party');
+      // A skill already ready is left alone rather than driven negative.
+      mate.abilities[0].cooldownRemaining = 0;
+      Abilities.execute(mendral.abilities[1].def, mendral, mate, b2);
+      assert(mate.abilities[0].cooldownRemaining === 0,
+        'a ready skill was driven below zero');
+    } finally { Battle.active = prev2; }
+  }
+});
+
 // The still thing in a sect that never stops. Her haze answers the one
 // thing that beats the whole order: every Razorwing tier is priced off
 // outrunning the other side, so the counter to all of it is a speed

@@ -44,6 +44,44 @@ test('every hero has the full contract', () => {
   }
 });
 
+// Every sprite strip a hero points at is a file that is actually there.
+//
+// Filenames are whatever the artist uploaded and the case is not
+// consistent -- Mendralidle.png next to kiriidle.png in the same folder
+// -- and a served page is case-sensitive where a local filesystem check
+// might not be. A wrong-case src does not throw: the hero silently
+// falls back to the generated placeholder and looks fine in a test,
+// which is exactly how one shipped before this check existed.
+test('every sprite strip points at a file that exists', () => {
+  const missing = [];
+  for (const h of heroes) {
+    const sp = h.sprite;
+    if (!sp) continue;
+    const srcs = [];
+    for (const strip of Object.values(sp.strips || {})) {
+      if (strip && strip.src) srcs.push(strip.src);
+    }
+    if (sp.src) srcs.push(sp.src); // legacy single-sheet defs
+    for (const src of srcs) {
+      // A src is a URL, so a filename with spaces in it arrives
+      // percent-encoded (Wren's 'wrenskill%202%203.png' is a real file
+      // called 'wrenskill 2 3.png'). Decode before touching the disk,
+      // or this check invents a bug the browser does not have.
+      const full = path.join(ROOT, decodeURIComponent(src));
+      if (!fs.existsSync(full)) { missing.push(`${h.id}: ${src}`); continue; }
+      // Case-exact, checked against the directory listing rather than
+      // by stat: on a case-insensitive filesystem existsSync says yes
+      // to a name the web server will say 404 to.
+      const dir = path.dirname(full);
+      const base = path.basename(full);
+      if (!fs.readdirSync(dir).includes(base)) {
+        missing.push(`${h.id}: ${src} (wrong case on disk)`);
+      }
+    }
+  }
+  assert(missing.length === 0, `sprite strips with no file:\n  ${missing.join('\n  ')}`);
+});
+
 test('hero object keys match their ids', () => {
   for (const [key, h] of Object.entries(HEROES)) {
     assert(key === h.id, `key ${key} holds id ${h.id}`);
@@ -207,7 +245,7 @@ test('every sect holds one race, once each, with its number', () => {
                 'stella', 'sarena', 'orri', 'chirp'] },
     // The wind bird sect, filling one bird at a time. The shape check
     // below is a CEILING, so it holds while the sect is part-built.
-    razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima'] },
+    razorwings: { number: 10, race: 'avian', members: ['tervan', 'nehru', 'cirrus', 'kiri', 'strix', 'calima', 'mendral'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
