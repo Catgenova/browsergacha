@@ -279,13 +279,7 @@ class RosterScreen {
         ${flat('RES', stats.resistance)}
         ${flat('DODGE', stats.dodge)}
       </div>
-      <div class="detail-section">Passive</div>
-      <div class="detail-ability">${def.passive.icon
-        ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''
-        }<b>${def.passive.name}</b><br>${def.passive.description}</div>
-      <div class="detail-section">Positional bonus</div>
-      <div class="detail-ability">${def.positional.name
-        ? `<b>${def.positional.name}</b><br>` : ''}${def.positional.description}</div>`;
+      <div class="ros-note">Skills, passive and hex bonus are on the Skill tab.</div>`;
   }
 
   // The skill panel: a strip of skill buttons carrying their own level
@@ -293,28 +287,69 @@ class RosterScreen {
   // per rung, lit for the ones bought and dim for the ones ahead. That
   // dim half is the point: a skill readout that only lists what you have
   // cannot answer "is the next copy worth it".
+  // The whole kit, in strip order: the active skills, then the passive,
+  // then the hex bonus. The last two used to be paragraphs at the bottom
+  // of Info, which put the two halves of a hero's kit on two different
+  // tabs -- and the half that never levels is exactly the half a player
+  // forgets they own.
+  kitEntries(uid) {
+    const def = GameState.defOf(uid);
+    const out = (def.abilities || []).map((a, i) => ({
+      kind: 'active', def: a, idx: i, name: a.name,
+      lv: GameState.skillLevel(uid, i), cap: Progression.skillCap(a, i),
+    }));
+    if (def.passive) out.push({ kind: 'passive', def: def.passive, name: def.passive.name });
+    if (def.positional) {
+      out.push({
+        kind: 'positional', def: def.positional,
+        name: def.positional.name || 'Hex bonus',
+        position: def.positional.position,
+      });
+    }
+    return out;
+  }
+
   renderSkill() {
     const uid = this.selected;
     const def = GameState.defOf(uid);
-    const abilities = def.abilities || [];
-    if (this.skillIdx >= abilities.length) this.skillIdx = 0;
+    const kit = this.kitEntries(uid);
+    if (this.skillIdx >= kit.length) this.skillIdx = 0;
 
-    const strip = abilities.map((a, i) => {
-      const lv = GameState.skillLevel(uid, i);
-      const cap = Progression.skillCap(a, i);
-      const icon = a.icon
-        ? `<img src="${Sprites.assetUrl(a.icon)}" alt="">`
-        : `<span class="ros-skill-glyph">${i + 1}</span>`;
-      return `<button class="ros-skill-btn${i === this.skillIdx ? ' active' : ''}${
-        lv >= cap ? ' maxed' : ''}" data-idx="${i}" title="${a.name}">
-        ${icon}<span class="ros-skill-lv">${lv}/${cap}</span></button>`;
+    const strip = kit.map((e, i) => {
+      // An active carries its level over its cap, the way the fight's own
+      // skill buttons do. The other two carry what they ARE, because
+      // neither has a number and both were previously unlabelled.
+      let icon, badge, cls = '';
+      if (e.kind === 'active') {
+        icon = e.def.icon ? `<img src="${Sprites.assetUrl(e.def.icon)}" alt="">`
+          : `<span class="ros-skill-glyph">${i + 1}</span>`;
+        badge = `${e.lv}/${e.cap}`;
+        if (e.lv >= e.cap) cls += ' maxed';
+      } else if (e.kind === 'passive') {
+        icon = e.def.icon ? `<img src="${Sprites.assetUrl(e.def.icon)}" alt="">`
+          : Icons.svg('passive');
+        badge = 'PASSIVE';
+        cls += ' ros-skill-passive';
+      } else {
+        icon = Icons.svg(`hex-${e.position}`);
+        badge = String(e.position || '').toUpperCase();
+        cls += ' ros-skill-passive';
+      }
+      return `<button class="ros-skill-btn${i === this.skillIdx ? ' active' : ''}${cls}"
+        data-idx="${i}" title="${e.name}">${icon}<span class="ros-skill-lv">${badge}</span></button>`;
     }).join('');
 
-    const a = abilities[this.skillIdx];
-    let body = '<div class="details-empty">This hero has no active skills.</div>';
-    if (a) {
-      const lv = GameState.skillLevel(uid, this.skillIdx);
-      const cap = Progression.skillCap(a, this.skillIdx);
+    const entry = kit[this.skillIdx];
+    let body = '<div class="details-empty">This hero has no kit to show.</div>';
+    if (entry && entry.kind !== 'active') {
+      body = this.staticEntryHtml(uid, entry);
+    } else if (entry) {
+      const a = entry.def;
+      // `entry.idx` and not `this.skillIdx`: the strip holds the passive
+      // and the hex bonus too now, so a strip position stops being an
+      // ability index the moment anything is inserted before the actives.
+      const lv = GameState.skillLevel(uid, entry.idx);
+      const cap = Progression.skillCap(a, entry.idx);
       const cdTurns = Progression.skillCooldown(a, lv);
       const rungs = (a.levelUps || []).slice(0, cap - 1);
       // Legacy skills carry no ladder at all -- they take the old
@@ -355,6 +390,36 @@ class RosterScreen {
         this.renderSkill();
       });
     }
+  }
+
+  // The two halves of a kit that never level. They have no ladder and no
+  // cooldown, so the panel says what they are and what they do -- and,
+  // for a hex bonus, whether it is actually paying out right now, which
+  // is the only thing about a positional a player ever gets wrong.
+  staticEntryHtml(uid, entry) {
+    const def = GameState.defOf(uid);
+    const isHex = entry.kind === 'positional';
+    let meta = 'Passive &middot; always on';
+    let note = 'Passives cannot be levelled — this is the whole of it.';
+    if (isHex) {
+      const slotIndex = GameState.teamSlotOf(uid);
+      const slot = slotIndex !== null && this.app.screens && this.app.screens.team
+        ? (this.app.screens.team.slots || [])[slotIndex] : null;
+      const live = slot && slot.position === entry.position;
+      const where = String(entry.position || '').toUpperCase();
+      meta = `Hex bonus &middot; pays out on a ${where} hex`;
+      note = slotIndex === null
+        ? 'Not fielded — place them on a ' + where.toLowerCase() +
+          ' hex on the Team screen for this to pay.'
+        : live
+          ? '★ Active — they are standing on a ' + where.toLowerCase() + ' hex.'
+          : 'Fielded, but not on a ' + where.toLowerCase() + ' hex, so this is paying nothing.';
+    }
+    return `
+      <div class="ros-skill-name">${entry.name}</div>
+      <div class="ros-skill-meta">${meta}</div>
+      <div class="ros-skill-desc">${entry.def.description}</div>
+      <div class="ros-note${isHex && /^★/.test(note) ? ' ros-note-live' : ''}">${note}</div>`;
   }
 
   renderGear() {

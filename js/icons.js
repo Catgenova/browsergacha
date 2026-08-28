@@ -52,6 +52,30 @@ const Icons = (() => {
     'el-dark': `<path d="M20 14.5A9 9 0 0 1 9.5 4 9 9 0 1 0 20 14.5z" fill="${PURPLE}"/>
       <circle cx="17" cy="6" r="1.2" fill="${PURPLE}" opacity="0.8"/>`,
 
+    // ---- Kit markers ----------------------------------------------------
+    // A hero's kit is three active skills, one passive and one positional
+    // bonus, and the last two never had a picture -- the passive borrowed
+    // an ability's art and the positional had nothing at all, which is
+    // why they lived in a paragraph instead of on the skill strip.
+    //
+    // The positional icons are the FORMATION, with the hexes that pay out
+    // filled in: the question a positional asks is "where do I have to
+    // stand", and a picture of the board answers it without reading a
+    // word. Enemy side is to the right, so front lights the right column
+    // exactly as the board does.
+    'hex-front': `<path d="M12.00 8.80 14.77 10.40 14.77 13.60 12.00 15.20 9.23 13.60 9.23 10.40z M9.23 4.00 12.00 5.60 12.00 8.80 9.23 10.40 6.46 8.80 6.46 5.60z M6.46 8.80 9.23 10.40 9.23 13.60 6.46 15.20 3.69 13.60 3.69 10.40z M9.23 13.60 12.00 15.20 12.00 18.40 9.23 20.00 6.46 18.40 6.46 15.20z" fill="none" stroke="${DIM}" stroke-width="1"/>
+      <path d="M17.54 8.80 20.31 10.40 20.31 13.60 17.54 15.20 14.77 13.60 14.77 10.40z M14.77 4.00 17.54 5.60 17.54 8.80 14.77 10.40 12.00 8.80 12.00 5.60z M14.77 13.60 17.54 15.20 17.54 18.40 14.77 20.00 12.00 18.40 12.00 15.20z" fill="${GOLD}" opacity="0.9"/>`,
+    'hex-center': `<path d="M17.54 8.80 20.31 10.40 20.31 13.60 17.54 15.20 14.77 13.60 14.77 10.40z M14.77 4.00 17.54 5.60 17.54 8.80 14.77 10.40 12.00 8.80 12.00 5.60z M14.77 13.60 17.54 15.20 17.54 18.40 14.77 20.00 12.00 18.40 12.00 15.20z M9.23 4.00 12.00 5.60 12.00 8.80 9.23 10.40 6.46 8.80 6.46 5.60z M6.46 8.80 9.23 10.40 9.23 13.60 6.46 15.20 3.69 13.60 3.69 10.40z M9.23 13.60 12.00 15.20 12.00 18.40 9.23 20.00 6.46 18.40 6.46 15.20z" fill="none" stroke="${DIM}" stroke-width="1"/>
+      <path d="M12.00 8.80 14.77 10.40 14.77 13.60 12.00 15.20 9.23 13.60 9.23 10.40z" fill="${GOLD}" opacity="0.9"/>`,
+    'hex-back': `<path d="M12.00 8.80 14.77 10.40 14.77 13.60 12.00 15.20 9.23 13.60 9.23 10.40z M17.54 8.80 20.31 10.40 20.31 13.60 17.54 15.20 14.77 13.60 14.77 10.40z M14.77 4.00 17.54 5.60 17.54 8.80 14.77 10.40 12.00 8.80 12.00 5.60z M14.77 13.60 17.54 15.20 17.54 18.40 14.77 20.00 12.00 18.40 12.00 15.20z" fill="none" stroke="${DIM}" stroke-width="1"/>
+      <path d="M9.23 4.00 12.00 5.60 12.00 8.80 9.23 10.40 6.46 8.80 6.46 5.60z M6.46 8.80 9.23 10.40 9.23 13.60 6.46 15.20 3.69 13.60 3.69 10.40z M9.23 13.60 12.00 15.20 12.00 18.40 9.23 20.00 6.46 18.40 6.46 15.20z" fill="${GOLD}" opacity="0.9"/>`,
+    // The passive marker: a closed circuit, always on. Deliberately not a
+    // star or a sparkle -- those read as "special" and this is the one
+    // part of a kit that never asks anything of the player.
+    passive: `<circle cx="12" cy="12" r="8.2" fill="none" stroke="${GOLD}" stroke-width="1.6" opacity="0.85"/>
+      <circle cx="12" cy="12" r="3.4" fill="${GOLD}"/>
+      <path d="M12 1.6v2.6M12 19.8v2.6M1.6 12h2.6M19.8 12h2.6" stroke="${GOLD}" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>`,
+
     // ---- UI verbs and places -------------------------------------------
     lock: `<rect x="5" y="10" width="14" height="11" rx="2.5" fill="${GOLD}"/>
       <path d="M8 10V7.5a4 4 0 0 1 8 0V10" fill="none" stroke="${GOLD}" stroke-width="2.6"/>
