@@ -309,7 +309,7 @@ test('every sect holds one race, once each, with its number', () => {
     // what the three tiers may not be was most of the design and it was
     // settled before the art arrived. Empty members is not defunct --
     // the flag below is what tells a closed order from an unfilled one.
-    hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar'] },
+    hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -902,10 +902,19 @@ test('ability descriptions quote the numbers the ability actually applies', () =
   for (const pool of pools) {
     for (const def of Object.values(pool)) {
       for (const ab of def.abilities || []) {
-        // Poison and healing both scale off a single figure that the
+        // Poison, healing and DAMAGE all scale off a single figure the
         // text repeats, so the two can be checked against each other.
+        //
+        // Damage was not in this list and should have been from the
+        // start: it is the number on nine skills in ten, and raising
+        // one of Shrike's from 115% to 140% left the card saying 115
+        // with nothing complaining. The audit existed because a DoT
+        // rescale once left 82 stale descriptions behind; a damage
+        // rescale would have left more.
+        const DAMAGE = new Set(['damage', 'damageDef', 'damageHp']);
         const eff = (ab.effects || []).find((e) => e.type === 'dot') ||
-          (ab.effects || []).find((e) => e.type === 'heal');
+          (ab.effects || []).find((e) => e.type === 'heal') ||
+          (ab.effects || []).find((e) => DAMAGE.has(e.type));
         if (!eff || !ab.description) continue;
         // A DoT ticks off the caster's ATK (pct) or, for burns, the
         // victim's max HP (targetHpPct) — the text quotes whichever.

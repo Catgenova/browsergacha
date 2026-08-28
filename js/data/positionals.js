@@ -565,6 +565,28 @@ const POSITIONALS = (() => {
     hooks: { lanternStart: 3 },
   });
 
+  // Shrike's hex: the thornbush is where the larder is, and what goes on
+  // a thorn does not come off it. Nothing else on the roster refuses a
+  // revive, and it is a real answer to the four things that hand them
+  // out -- Emily, Korvid, Malachar, Nestora -- rather than another
+  // percentage.
+  //
+  // Necros is untouched by it on purpose: he does not raise a corpse,
+  // he takes it apart for parts, and pulling a body off the board is
+  // not the same as putting it back on its feet.
+  def('thornbush', {
+    position: POSITION.BACK,
+    name: 'Thornbush',
+    description: 'Back hex: an enemy he kills can never be revived.',
+    hooks: {
+      onUnitDied(unit, { victim, killer } = {}) {
+        if (!victim || killer !== unit) return null;
+        victim.unraisable = true;
+        return { floats: [{ target: victim, text: '\u2020', color: '#c86ae8' }] };
+      },
+    },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',

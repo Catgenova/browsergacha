@@ -4376,4 +4376,139 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.struck_early,
   },
+
+  // The butcher bird. A shrike impales what it catches on a thorn and
+  // comes back to it later, and both halves of that are in the kit: he
+  // is paid for how far gone a thing already is, and what he kills does
+  // not get back up.
+  //
+  // He is the sect's finisher and everything else in it sets the table.
+  // Pox thins them, Crook takes their moves away, Rend holds the line,
+  // Necros and Click put bodies in front of him -- and none of the
+  // eight birds written before him closes anything out. Shrike does
+  // nothing else.
+  shrike: {
+    id: 'shrike',
+    element: 'dark',
+    name: 'Shrike',
+    title: 'Butcher of the Hollowbone',
+    rarity: 4,
+    // Fast and thin, which is the assassin's whole bargain: he needs to
+    // move before the thing he is finishing does, and he cannot afford
+    // to be looked at.
+    stats: { hp: 1240, atk: 246, def: 88, speed: 132 },
+    tint: { body: '#2a2438', helm: '#e8dcc0', weapon: '#c86ae8', shield: '#8a5ac8' },
+    sprite: {
+      displayH: 94,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/shrikeidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'shrike_hook', name: 'Hook',
+        icon: 'assets/icons/fc823.png',
+        // TWO talons, and two separate strikes rather than one bigger
+        // one. A plain 95% single-target cd0 is Rizzo's Loose exactly
+        // and the roster said so -- but the fix is better than the
+        // original was, because each talon is priced by his passive
+        // independently. The second one is worth more than the first
+        // for the simple reason that the first one just landed.
+        description: 'Both talons, one after the other: 50% ATK to a single enemy, twice.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 0.50 },
+          { type: 'damage', mult: 0.50 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'shrike_off_the_perch', name: 'Off the Perch',
+        icon: 'assets/icons/fc1141.png',
+        // Over the line, at the soft ones. Aster's Sound Off reaches the
+        // same rank at 60% off a cd0; this is a four and it costs one.
+        description: 'He goes over the line for the ones who cannot take it: 140% ATK to ' +
+          'the enemy BACK row.',
+        cooldown: 4, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
+        effects: [{ type: 'damage', mult: 1.40 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'shrike_the_larder', name: 'The Larder',
+        icon: 'assets/icons/fc1272.png',
+        // Reset-on-kill is a channel nothing else has, and it is
+        // deliberately gated behind an actual kill at a seven's
+        // multiplier: on a healthy target it is one big hit and a long
+        // wait, and it only chains when the board is already breaking.
+        description: 'What he catches, he keeps: 190% ATK to a single enemy — and if it ' +
+          'finishes them, the cooldown comes straight back.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.90, resetOnKill: true }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Butcher Bird',
+      icon: 'assets/icons/fc1066.png',
+      // The execute, as a ramp rather than a cliff. Every threshold
+      // version of this on the roster is a step -- below half, below a
+      // quarter -- and a step means a target at 51% is worth exactly
+      // what a target at 100% is. A ramp is worth reading the health
+      // bar for on every swing.
+      //
+      // SMOOTH, and that is the whole fix. It was written as steps --
+      // 10% for every full 20% of the target gone -- and instrumenting
+      // one real fight showed it firing exactly zero times: fifteen
+      // swings across four thousand ticks, every single one against a
+      // bird between 89% and 100% health, multiplier 1.00 throughout.
+      // A stepped execute needs the first step to be reachable, and a
+      // back-row dealer spreading swings across six enemies almost
+      // never gets anybody a fifth of the way down before the fight
+      // turns over.
+      //
+      // Raising the RATE on the steps changed the bench result by
+      // literally nothing -- the same figure to the digit -- which is
+      // what a multiplier that never fires looks like from outside.
+      //
+      // Linear, it pays a little on nearly every swing and a lot on the
+      // one that matters: half a point for every point of health gone.
+      // It also needs no cap. `gone` cannot exceed 1, so the ceiling is
+      // 50% and a corpse caught mid-sweep reads exactly that.
+      //
+      // Reads the TARGET, where deadeye and last_stand read the hero's
+      // own wounds.
+      description: 'He can see how far gone it is: Shrike deals up to 50% more damage the ' +
+        'further worn down his target is — half a point for every point of health ' +
+        'they have lost.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target || !(target.maxHp > 0)) return 1;
+          const gone = 1 - Math.max(0, target.hp) / target.maxHp;
+          return 1 + 0.50 * Math.min(1, gone);
+        },
+      },
+    },
+    positional: POSITIONALS.thornbush,
+  },
 });

@@ -13546,4 +13546,172 @@ test('Malachar: What It Kept gives back what the lantern took in', () => {
   } finally { Battle.active = prev; }
 });
 
+// The butcher bird. A shrike impales what it catches and comes back to
+// it later, and both halves are in the kit: he is paid for how far gone
+// a thing already is, and what he kills does not get back up.
+test('Shrike: he can see how far gone it is', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const shrike = seatOn(battle, HEROES.shrike, TEAM.PLAYER, 4);
+    shrike.slot = battle.playerSlots[0];        // off his hex
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 40);
+    foe.hookSources = () => [];
+
+    const at = (frac) => {
+      foe.hp = Math.round(foe.maxHp * frac);
+      return shrike.damageDealtMult(foe);
+    };
+    assert(Math.abs(at(1.00) - 1.00) < 1e-9, `a full bird paid ${at(1.00)}`);
+    // SMOOTH, and it has to be. Written as steps -- a rung per fifth of
+    // the target gone -- it fired exactly zero times in an instrumented
+    // fight: fifteen swings, every one against a bird between 89% and
+    // 100% health. A stepped execute needs its first step to be
+    // reachable, and a back-row dealer spreading swings across six
+    // enemies rarely gets anybody a fifth of the way down in time.
+    // Raising the rate on the steps changed the bench by literally
+    // nothing, which is what a multiplier that never fires looks like.
+    assert(Math.abs(at(0.90) - 1.05) < 1e-9, `10% gone paid ${at(0.90)}`);
+    assert(Math.abs(at(0.50) - 1.25) < 1e-9, `half gone paid ${at(0.50)}`);
+    assert(Math.abs(at(0.10) - 1.45) < 1e-9, `90% gone paid ${at(0.10)}`);
+    // Bounded without a cap: `gone` cannot exceed 1, so a corpse caught
+    // mid-sweep reads exactly the ceiling and never past it.
+    assert(Math.abs(at(0) - 1.50) < 1e-9, `a corpse paid ${at(0)}`);
+    assert(at(0.90) > at(0.99), 'the ramp is flat where it is meant to be smooth');
+
+    // It reads the TARGET, where deadeye and last_stand read the hero's
+    // own wounds.
+    foe.hp = foe.maxHp;
+    shrike.hp = 1;
+    assert(Math.abs(shrike.damageDealtMult(foe) - 1) < 1e-9,
+      'his own wounds paid him — it is reading the wrong bird');
+  } finally { Battle.active = prev; }
+});
+
+// His filler is two strikes rather than one, and the second is priced
+// by what the first did.
+test('Shrike: both talons, and the second is worth more', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const shrike = seatOn(battle, HEROES.shrike, TEAM.PLAYER, 4);
+    shrike.slot = battle.playerSlots[0];
+    const hook = shrike.abilities.find((a) => a.def.id === 'shrike_hook');
+    assert(hook, 'Hook is missing');
+    assert(hook.def.effects.filter((e) => e.type === 'damage').length === 2,
+      'the filler is one talon — it is meant to be two');
+
+    // A pool thin enough that the first talon moves him up a rung.
+    const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.maxHp = 600; foe.hp = 600;
+    const hits = [];
+    const realBook = foe.takeDamage.bind(foe);
+    foe.takeDamage = (amount, src) => { hits.push(amount); return realBook(amount, src); };
+    Math.random = () => 0.99;
+    Abilities.execute(hook.def, shrike, foe, battle);
+    Math.random = real;
+    assert(hits.length === 2, `${hits.length} talons landed`);
+    assert(hits[1] > hits[0],
+      `${hits[0]} then ${hits[1]} — the second talon was not priced by the first`);
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// Reset-on-kill is a channel nothing else has, and it is gated behind
+// an actual kill at a seven's multiplier: one big hit and a long wait
+// against anything healthy, and a chain only when the board is already
+// breaking.
+test('Shrike: The Larder hands its own cooldown back on a kill', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const shrike = seatOn(battle, HEROES.shrike, TEAM.PLAYER, 4);
+    shrike.slot = battle.playerSlots[0];
+    const larder = shrike.abilities.find((a) => a.def.id === 'shrike_the_larder');
+    assert(larder, 'The Larder is missing');
+
+    const strike = (frac) => {
+      const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+      foe.hookSources = () => [];
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      foe.maxHp *= 40; foe.hp = Math.round(foe.maxHp * frac);
+      larder.cooldownRemaining = 7;
+      Math.random = () => 0.99;
+      try { Abilities.execute(larder.def, shrike, foe, battle); }
+      finally {
+        Math.random = real;
+        battle.units = battle.units.filter((u) => u !== foe);
+        battle.enemySlots[1].unit = null;
+      }
+      return { cd: larder.cooldownRemaining, dead: !foe.alive };
+    };
+
+    const survived = strike(1);
+    assert(!survived.dead, 'the fixture killed a healthy bird');
+    assert(survived.cd === 7, `a survivor handed back ${7 - survived.cd} turns`);
+
+    const finished = strike(0.001);
+    assert(finished.dead, 'the fixture failed to finish a dying bird');
+    assert(finished.cd === 0, `a kill left ${finished.cd} turns on the clock`);
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His hex is the thorn, and nothing else on the roster refuses a
+// revive. It is a real answer to the four things that hand them out
+// rather than another percentage.
+test('Shrike: what goes on the thorn stays there', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const hex = POSITIONALS.thornbush;
+    assert(HEROES.shrike.positional === hex, 'Shrike is not on his own hex');
+    assert(hex.position === POSITION.BACK, 'the larder is at the back');
+
+    const shrike = seatOn(battle, HEROES.shrike, TEAM.PLAYER, 4);
+    assert(shrike.positionalActive(), 'slot 4 is not a back hex');
+    const mal = seatOn(battle, HEROES.malachar, TEAM.PLAYER, 5);
+    const kill = (u) => {
+      Math.random = () => 0.99;
+      try { Abilities.strike(shrike, u, u.maxHp * 50, { dodge: false, reflect: false }); }
+      finally { Math.random = real; }
+    };
+
+    // Killed by Shrike: impaled, and no revive on the roster lifts it.
+    const his = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+    his.hookSources = () => [];
+    his.dodgeChance = () => 0; his.reflectChance = () => 0;
+    kill(his);
+    assert(!his.alive && his.unraisable, 'the kill was not put on the thorn');
+    his.revive(0.5, mal);
+    assert(!his.alive, 'something on a thorn got back up');
+
+    // Killed by anybody else: an ordinary corpse.
+    const theirs = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    theirs.hookSources = () => [];
+    theirs.dodgeChance = () => 0; theirs.reflectChance = () => 0;
+    Math.random = () => 0.99;
+    try { Abilities.strike(mal, theirs, theirs.maxHp * 50, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    assert(!theirs.alive && !theirs.unraisable, 'somebody else’s kill was impaled');
+    theirs.revive(0.5, mal);
+    assert(theirs.alive, 'an ordinary corpse refused an ordinary revive');
+
+    // Off the hex he is just a bird with claws.
+    shrike.slot = battle.playerSlots[0];
+    const spare = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 2);
+    spare.hookSources = () => [];
+    spare.dodgeChance = () => 0; spare.reflectChance = () => 0;
+    kill(spare);
+    assert(!spare.unraisable, 'he impaled off his own hex');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
 report();
