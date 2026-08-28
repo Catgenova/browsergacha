@@ -56,7 +56,7 @@ const BOSSES = {
       {
         name: 'Enrage',
         icon: 'assets/icons/fc743.png',
-        description: 'Deals 30% extra damage while below half HP.',
+        description: '+30% damage dealt while below half HP.',
         hooks: {
           damageDealtMult(unit) {
             return unit.hp / unit.maxHp < 0.5 ? 1.3 : 1;
@@ -66,7 +66,7 @@ const BOSSES = {
       {
         name: 'Ancient Scales',
         icon: 'assets/icons/fc853.png',
-        description: 'Takes 50% less damage while below 30% HP.',
+        description: '-50% damage taken while below 30% HP.',
         hooks: {
           damageTakenMult(unit) {
             return unit.hp / unit.maxHp < 0.3 ? 0.5 : 1;
@@ -76,7 +76,7 @@ const BOSSES = {
       {
         name: 'Draconic Vigor',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 5% max HP at the start of each turn.',
+        description: 'Start of each turn: heals 5% of max HP.',
         hooks: {
           onTurnStart(unit) {
             const healed = unit.heal(Math.round(unit.maxHp * 0.05));
@@ -147,13 +147,13 @@ const BOSSES = {
       {
         name: 'Skitterguard',
         icon: 'assets/icons/fc882.png',
-        description: 'Has a 15% chance to dodge any attack.',
+        description: '+15% Dodge.',
         hooks: { dodgeAdd: 0.15 },
       },
       {
         name: 'Crown of Filth',
         icon: 'assets/icons/fc1050.png',
-        description: 'Deals 20% extra damage to debuffed enemies.',
+        description: '+20% damage to debuffed enemies.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.statusEffects &&
@@ -164,7 +164,7 @@ const BOSSES = {
       {
         name: 'Royal Haste',
         icon: 'assets/icons/fc885.png',
-        description: 'Has a 20% chance to take another turn after acting.',
+        description: '20% chance to act again after each turn.',
         hooks: { extraTurnAdd: 0.20 },
       },
     ],
@@ -222,7 +222,7 @@ const BOSSES = {
       {
         name: 'Carrion Gorge',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 5% max HP at the start of each turn.',
+        description: 'Start of each turn: heals 5% of max HP.',
         hooks: {
           onTurnStart(unit) {
             const healed = unit.heal(Math.round(unit.maxHp * 0.05));
@@ -238,7 +238,7 @@ const BOSSES = {
       {
         name: 'Bone Picker',
         icon: 'assets/icons/fc863.png',
-        description: 'Deals 30% extra damage to enemies below half HP.',
+        description: '+30% damage to enemies below half HP.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.alive && target.hp / target.maxHp < 0.5 ? 1.3 : 1;
@@ -248,7 +248,7 @@ const BOSSES = {
       {
         name: 'Storm Wings',
         icon: 'assets/icons/fc793.png',
-        description: 'Has a 20% chance to dodge any attack.',
+        description: '+20% Dodge.',
         hooks: { dodgeAdd: 0.20 },
       },
     ],
@@ -303,7 +303,7 @@ const BOSSES = {
       {
         name: 'Bull Rush',
         icon: 'assets/icons/fc1038.png',
-        description: 'Deals 25% extra damage to heroes at full HP.',
+        description: '+25% damage to enemies at full HP.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
@@ -313,7 +313,7 @@ const BOSSES = {
       {
         name: 'Labyrinth Walls',
         icon: 'assets/icons/fc853.png',
-        description: 'Takes 30% less damage while above 70% HP.',
+        description: '-30% damage taken while above 70% HP.',
         hooks: {
           damageTakenMult(unit) {
             return unit.hp / unit.maxHp > 0.7 ? 0.7 : 1;
@@ -323,7 +323,7 @@ const BOSSES = {
       {
         name: 'Undying Fury',
         icon: 'assets/icons/fc743.png',
-        description: 'Deals 40% extra damage while below half HP.',
+        description: '+40% damage dealt while below half HP.',
         hooks: {
           damageDealtMult(unit) {
             return unit.hp / unit.maxHp < 0.5 ? 1.4 : 1;
@@ -388,19 +388,19 @@ const BOSSES = {
       {
         name: "Empress's Blood",
         icon: 'assets/icons/fc856.png',
-        description: '+50% debuff resistance.',
+        description: '+50% Resistance.',
         hooks: { resistanceAdd: 0.50 },
       },
       {
         name: 'Lingering Venom',
         icon: 'assets/icons/fc1069.png',
-        description: '+75% DoT damage.',
+        description: 'DoTs this unit applies tick 75% harder.',
         hooks: { dotBoostAdd: 0.75 },
       },
       {
         name: 'Molt',
         icon: 'assets/icons/fc713.png',
-        description: 'Regenerates 4% max HP at the start of each turn.',
+        description: 'Start of each turn: heals 4% of max HP.',
         hooks: {
           onTurnStart(unit) {
             const healed = unit.heal(Math.round(unit.maxHp * 0.04));
@@ -471,7 +471,7 @@ const BOSSES = {
       {
         name: 'Alpha Predator',
         icon: 'assets/icons/fc863.png',
-        description: 'Deals 30% extra damage to slowed or stunned heroes.',
+        description: '+30% damage to slowed or stunned enemies.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.statusEffects.some((fx) =>
@@ -483,7 +483,7 @@ const BOSSES = {
       {
         name: 'Winter Coat',
         icon: 'assets/icons/fc856.png',
-        description: 'Takes 30% less damage while above half HP.',
+        description: '-30% damage taken while above half HP.',
         hooks: {
           damageTakenMult(unit) {
             return unit.hp / unit.maxHp > 0.5 ? 0.7 : 1;
@@ -493,7 +493,7 @@ const BOSSES = {
       {
         name: 'Endless Hunt',
         icon: 'assets/icons/fc882.png',
-        description: '15% chance to take another turn after acting.',
+        description: '15% chance to act again after each turn.',
         hooks: { extraTurnAdd: 0.15 },
       },
     ],
@@ -560,7 +560,7 @@ const BOSSES = {
       {
         name: "Sovereign's Bulk",
         icon: 'assets/icons/fc854.png',
-        description: 'Takes 20% less damage from all sources.',
+        description: '-20% damage taken.',
         hooks: {
           damageTakenMult() { return 0.8; },
         },
@@ -568,7 +568,7 @@ const BOSSES = {
       {
         name: 'Trample Momentum',
         icon: 'assets/icons/fc882.png',
-        description: '12% chance to take another turn after acting.',
+        description: '12% chance to act again after each turn.',
         hooks: { extraTurnAdd: 0.12 },
       },
     ],
@@ -628,7 +628,7 @@ const BOSSES = {
       {
         name: 'Old Blood',
         icon: 'assets/icons/fc1093.png',
-        description: 'Regenerates 6% max HP at the start of each turn.',
+        description: 'Start of each turn: heals 6% of max HP.',
         hooks: {
           onTurnStart(unit) {
             const healed = unit.heal(Math.round(unit.maxHp * 0.06));
@@ -644,13 +644,13 @@ const BOSSES = {
       {
         name: 'Guttural Vigor',
         icon: 'assets/icons/fc1003.png',
-        description: 'His healing is 30% stronger.',
+        description: '+30% healing done.',
         hooks: { healBoostAdd: 0.30 },
       },
       {
         name: 'Crushing Paws',
         icon: 'assets/icons/fc863.png',
-        description: 'Deals 25% extra damage to heroes at full HP.',
+        description: '+25% damage to enemies at full HP.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.alive && target.hp >= target.maxHp ? 1.25 : 1;
@@ -718,7 +718,7 @@ const BOSSES = {
       {
         name: 'Predator of Tempo',
         icon: 'assets/icons/fc863.png',
-        description: 'Deals 30% extra damage to heroes below half turn meter.',
+        description: '+30% damage to enemies below half turn meter.',
         hooks: {
           damageDealtMult(unit, target) {
             return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.5
@@ -729,13 +729,13 @@ const BOSSES = {
       {
         name: 'Feline Grace',
         icon: 'assets/icons/fc882.png',
-        description: '20% chance to dodge attacks.',
+        description: '+20% Dodge.',
         hooks: { dodgeAdd: 0.20 },
       },
       {
         name: 'Endless Prowl',
         icon: 'assets/icons/fc868.png',
-        description: 'Gains +10% SPD for 2 turns at the start of each turn (stacks).',
+        description: 'Start of each turn: +10% SPD for 2 turns, stacking.',
         hooks: {
           onTurnStart(unit) {
             unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.1, turns: 2 });

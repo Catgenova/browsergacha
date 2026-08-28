@@ -100,7 +100,8 @@ Object.assign(HEROES, {
       passive: {
         name: 'Crystal Aegis',
         icon: 'assets/icons/fc308.png',
-        description: 'Begins battle with 6 crystal mirrors. Every hit she takes shatters one mirror, reflecting 25% of the damage back at the attacker.',
+        description: 'Starts battle with 6 mirrors. When struck: shatters 1 mirror and reflects 25% of the ' +
+          'damage to the attacker.',
         hooks: {},
       },
       // The front-hex mirror reform lives here rather than in the
@@ -109,7 +110,7 @@ Object.assign(HEROES, {
         id: 'resonance',
         position: POSITION.FRONT,
         name: 'Resonance',
-        description: 'Front hex: reforms 1 crystal mirror at the start of her turn.',
+        description: 'Front hex: +1 mirror at the start of each turn.',
         hooks: {
           onTurnStart(unit) {
             const gained = unit.addMirrors(1);
@@ -221,7 +222,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Every Blow Answered',
       icon: 'assets/icons/fc308.png',
-      description: 'Each time Toll is struck and survives, the bell rings: 10% of his DEF to ALL enemies.',
+      description: 'When struck and surviving: 10% DEF damage to all enemies.',
       hooks: {
         onStruck(unit, { battle }) {
           const foes = battle.livingUnits(
@@ -251,7 +252,7 @@ Object.assign(HEROES, {
       id: 'tolling_ward',
       position: POSITION.FRONT,
       name: 'Tolling Ward',
-      description: 'Front hex: each time Toll is struck and survives, the whole party mends 5% of his DEF.',
+      description: 'Front hex: when struck and surviving, heals all allies 5% of caster DEF.',
       hooks: {
         onStruck(unit, { battle }) {
           const mend = Math.max(1, Math.round(unit.effectiveStat('def') * 0.05));
@@ -378,7 +379,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Vow of Reverence',
       icon: 'assets/icons/fc718.png',
-      description: 'Any ally restored to health is shielded: +12% DEF for 2 turns.',
+      description: 'When an ally is healed: +12% DEF for 2 turns. Does not stack.',
       hooks: {
         onAllyHealed(unit, healedUnit) {
           if (!healedUnit.alive) return null;
@@ -471,8 +472,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'Exalted Rebuke',
       icon: 'assets/icons/fc862.png',
-      description: 'Carrying 3 or more buffs at the start of his turn, the ' +
-        'herald rebukes the readiest enemy: -20% turn meter.',
+      description: 'Start of turn while holding 3 or more buffs: -20% turn meter to the enemy with the fullest ' +
+        'meter.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
@@ -576,8 +577,7 @@ Object.assign(HEROES, {
     passive: {
       name: "Confessor's Riposte",
       icon: 'assets/icons/fc882.png',
-      description: 'When Oak dodges an attack, he has a 50% chance to answer ' +
-        'with Confession on the spot.',
+      description: 'On a dodge: 50% chance to cast Confession on the attacker.',
       hooks: {
         onDodge(unit, { attacker, battle }) {
           if (Math.random() >= 0.5) return;
@@ -674,8 +674,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Stillness of the Marksman',
       icon: 'assets/icons/fc793.png',
-      description: 'While in Aiming Stance, Silas has a +25% chance to dodge ' +
-        'attacks — and the stance doubles the shot it feeds.',
+      description: 'While in Aiming Stance: +25% Dodge and +100% damage dealt.',
       hooks: {
         dodgeAdd(unit) {
           return unit.statusEffects.some((fx) => fx.stat === 'aiming') ? 0.25 : 0;
@@ -776,8 +775,7 @@ Object.assign(HEROES, {
     passive: {
       name: "Sigil's Judgment",
       icon: 'assets/icons/fc863.png',
-      description: 'Deals 25% extra damage to enemies below half turn meter — ' +
-        'the ones his sigils have already slowed.',
+      description: '+25% damage to enemies below half turn meter.',
       hooks: {
         damageDealtMult(unit, target) {
           return target && target.turnMeter < CONFIG.TURN_METER_MAX * 0.5
@@ -882,8 +880,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Wilting Garden',
       icon: 'assets/icons/fc1119.png',
-      description: 'Deals 10% extra damage per debuff on the target ' +
-        '(up to +60%) — flowers cut easiest once they droop.',
+      description: '+10% damage per debuff on the target, up to +60%.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
@@ -990,8 +987,7 @@ Object.assign(HEROES, {
     passive: {
       name: "The King's Winter",
       icon: 'assets/icons/fc1010.png',
-      description: 'Every hit he lands carries the cold: 5% chance to ' +
-        'freeze the victim solid for 2 turns.',
+      description: 'On dealing damage: 5% chance to freeze the target for 2 turns.',
       hooks: {
         onDealtDamage(unit, { target, battle }) {
           if (!target || !target.alive || target.team === unit.team) return;
@@ -1102,8 +1098,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'Two Masters',
       icon: 'assets/icons/fc1015.png',
-      description: 'The court gives and the court takes: beside Aniani he ' +
-        'swings +30% ATK harder; under Polarus he carries -30% DEF.',
+      description: 'Start of turn: +30% ATK for 1 turn while Aniani is in the party; -30% DEF for 1 turn while ' +
+        'Polarus is.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
@@ -1216,8 +1212,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Cold Arithmetic',
       icon: 'assets/icons/fc1015.png',
-      description: 'Every enemy frozen this fight — by anyone — adds a ' +
-        'permanent +10% ATK to her for the rest of it. The winter compounds.',
+      description: 'Whenever any enemy is frozen: permanent +10% ATK for the rest of the battle.',
       hooks: {
         onEnemyFrozen(unit) {
           // One tally effect, grown in place: +10% of base per freeze,
@@ -1325,8 +1320,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Frozen Quarry',
       icon: 'assets/icons/fc1010.png',
-      description: 'The moment an enemy freezes — by anyone\'s ice — she ' +
-        'looses Crystbarb at them, free.',
+      description: 'Whenever any enemy is frozen: casts Crystbarb at them for free.',
       hooks: {
         onEnemyFrozen(unit, target, caster, battle) {
           if (!battle || !target.alive) return;
@@ -1436,8 +1430,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'Nothing Is Wasted',
       icon: 'assets/icons/fc1015.png',
-      description: 'Healing past full does not spill on the ground: the ' +
-        'overflow strikes the healthiest enemy (by HP%) as damage.',
+      description: 'On overhealing: the overflow is dealt as damage to the enemy with the highest HP ' +
+        'percentage.',
       hooks: {
         onOverheal(unit, { overflow, battle }) {
           if (!battle || overflow <= 0) return;
@@ -1551,8 +1545,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Case-Hardened',
       icon: 'assets/icons/fc1101.png',
-      description: 'While carrying a DEF buff, his damage is increased ' +
-        '20% — a harder shell drills harder.',
+      description: 'While holding a DEF buff: +20% damage dealt.',
       hooks: {
         damageDealtMult(unit) {
           return unit.statusEffects.some(
@@ -1654,8 +1647,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Noblesse Oblige',
       icon: 'assets/icons/fc1092.png',
-      description: 'At the start of each of his turns, the ally furthest ' +
-        'from acting gains +10 turn meter. Rank has its duties.',
+      description: 'Start of each turn: +10% turn meter to the ally with the emptiest meter.',
       hooks: {
         onTurnStart(unit, battle) {
           if (!battle) return null;
@@ -1837,7 +1829,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Blade Dance',
       icon: 'assets/icons/fc731.png',
-      description: 'Gains +15% SPD and +5% crit chance for 1 turn at the start of each turn.',
+      description: 'Start of each turn: +15% SPD and +5% Crit Chance for 1 turn.',
       hooks: {
         onTurnStart(unit) {
           unit.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.15, turns: 1 });
@@ -1932,7 +1924,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Sympathetic Growth',
       icon: 'assets/icons/fc866.png',
-      description: 'Gains 5% action bar whenever an ally is healed.',
+      description: 'When an ally is healed: +5% turn meter.',
       hooks: {
         onAllyHealed(unit) {
           unit.turnMeter += CONFIG.TURN_METER_MAX * 0.05;
@@ -2035,7 +2027,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Vile Persistence',
       icon: 'assets/icons/fc1053.png',
-      description: 'Her debuffs last 1 extra turn.',
+      description: 'Debuffs this hero applies last 1 turn longer.',
       hooks: {
         debuffExtraTurns: 1,
       },
@@ -2129,7 +2121,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Serenity',
       icon: 'assets/icons/fc1091.png',
-      description: 'At the start of her turn, removes one debuff from the most afflicted ally.',
+      description: 'Start of each turn: removes 1 debuff from the most debuffed ally.',
       hooks: {
         onTurnStart(unit, battle) {
           const afflicted = battle.livingUnits(unit.team)
@@ -2231,7 +2223,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Riptide',
       icon: 'assets/icons/fc823.png',
-      description: 'Deals 25% extra damage to enemies holding front hexes.',
+      description: '+25% damage to front-row enemies.',
       hooks: {
         damageDealtMult(unit, target) {
           return target && target.slot && target.slot.position === POSITION.FRONT ? 1.25 : 1;
@@ -2334,7 +2326,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Light Kept In',
       icon: 'assets/icons/fc1040.png',
-      description: 'At the start of his turn, Javarious mends 5% of whatever shield is still standing.',
+      description: 'Start of each turn: heals 5% of the shield still standing.',
       hooks: {
         onTurnStart(unit) {
           const shield = unit.shieldTotal();
@@ -2356,7 +2348,7 @@ Object.assign(HEROES, {
       id: 'gathering_dawn',
       position: POSITION.FRONT,
       name: 'Gathering Dawn',
-      description: 'Front hex: every blow Javarious lands adds 10% of its damage to his shield.',
+      description: 'Front hex: on dealing damage, gains a shield worth 10% of it for 3 turns.',
       hooks: {
         onDealtDamage(unit, { amount }) {
           const gain = Math.round(amount * 0.10);
@@ -2460,8 +2452,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'By Firelight',
       icon: 'assets/icons/fc1055.png',
-      description: 'While at least one enemy burns, Lucian fights at ' +
-        '+30% ATK — he works best by the light of his own fires.',
+      description: 'Start of turn while any enemy is burning: +30% ATK for 1 turn.',
       hooks: {
         onTurnStart(unit, battle) {
           const b = battle ||
@@ -2574,8 +2565,7 @@ Object.assign(HEROES, {
     passive: {
       name: "Showman's Blood",
       icon: 'assets/icons/fc1056.png',
-      description: 'Deals up to 30% extra damage in proportion to his ' +
-        'missing health — the crowd loves a wounded showman.',
+      description: '+30% damage dealt at 0 HP, scaling down to +0% at full HP.',
       hooks: {
         damageDealtMult(unit) {
           return 1 + 0.30 * (1 - unit.hp / unit.maxHp);
@@ -2675,8 +2665,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'Iron Appetite',
       icon: 'assets/icons/fc1057.png',
-      description: 'Gains max HP equal to 10% of damage received, up to ' +
-        '+50% of his starting max HP — every beating makes him bigger.',
+      description: 'When struck: permanently gains max HP equal to 10% of the damage taken, up to +50% of ' +
+        'starting max HP.',
       hooks: {
         onStruck(unit, { amount }) {
           if (!amount || amount <= 0) return;
@@ -2790,8 +2780,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Moth to Flame',
       icon: 'assets/icons/fc1058.png',
-      description: 'Deals 15% extra damage to burning enemies — the ' +
-        'dance always returns to the fire.',
+      description: '+15% damage to burning enemies.',
       hooks: {
         damageDealtMult(unit, target) {
           return target && target.burning && target.burning() ? 1.15 : 1;
@@ -2891,8 +2880,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Backsplash',
       icon: 'assets/icons/fc1059.png',
-      description: 'Hit the barrel, wear the barrel: any enemy who ' +
-        'strikes Slick is Oilslicked for 2 turns.',
+      description: 'When struck: the attacker is Oilslicked for 2 turns.',
       hooks: {
         onStruck(unit, { attacker, battle }) {
           if (!attacker || !attacker.alive || attacker.team === unit.team) return;
@@ -3010,8 +2998,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Not a Scratch',
       icon: 'assets/icons/fc1060.png',
-      description: 'At full HP the triplets deal 30% extra damage — ' +
-        'untouched, they are unbearable.',
+      description: '+30% damage dealt while at full HP.',
       hooks: {
         damageDealtMult(unit) {
           return unit.hp >= unit.maxHp ? 1.30 : 1;
@@ -3118,8 +3105,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Used to the Heat',
       icon: 'assets/icons/fc1061.png',
-      description: 'Takes 15% less damage from burning enemies — she ' +
-        'dances over fire for a living.',
+      description: '-15% damage taken from burning enemies.',
       hooks: {
         damageTakenMult(unit, attacker) {
           return attacker && attacker.burning && attacker.burning() ? 0.85 : 1;
@@ -3219,8 +3205,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'Silent Alarm',
       icon: 'assets/icons/fc1062.png',
-      description: 'When an ally is struck by a burning enemy, Koe ' +
-        'answers at once — Something From Nothing, cast on them, free.',
+      description: 'When an ally is struck by a burning enemy: casts Something From Nothing on that ally for ' +
+        'free.',
       hooks: {
         onAllyStruck(unit, { ally, attacker, battle }) {
           if (!attacker || attacker.team === unit.team) return;
@@ -3337,9 +3323,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Read the Flames',
       icon: 'assets/icons/fc1063.png',
-      description: 'Every fire tells her something: each time an enemy ' +
-        'takes burn damage, the lowest-HP ally is healed for 5% of ' +
-        'their max HP.',
+      description: 'Whenever an enemy takes burn damage: heals the lowest-health ally 5% of their max HP.',
       hooks: {
         onEnemyBurnTick(unit, { battle }) {
           if (!unit.alive || !battle) return;
@@ -3449,8 +3433,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Permanent Ink',
       icon: 'assets/icons/fc1068.png',
-      description: 'What Artur has written stands: effects that would ' +
-        "drain his team's turn meters are refused while he lives.",
+      description: 'Allies cannot lose turn meter while this hero lives.',
       hooks: {
         // Presence hook: Abilities.meterGuarded() looks for it on any
         // living teammate before letting a drain through.
@@ -3556,8 +3539,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Chime Tax',
       icon: 'assets/icons/fc1160.png',
-      description: 'Every blessing Tumble tears away pays him 10 turn ' +
-        'meter — a busy front row spins him back around that much sooner.',
+      description: 'On stripping a buff: +10% turn meter per buff removed.',
       hooks: {
         onStripBuff(unit, { count }) {
           if (!count || count <= 0) return null;
@@ -3668,8 +3650,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Nothing Falls Far',
       icon: 'assets/icons/fc1180.png',
-      description: 'Healing past full is not spilled: the overflow settles ' +
-        'on that ally as a shield for 2 turns.',
+      description: 'On overhealing: the overflow becomes a shield on that ally for 2 turns.',
       hooks: {
         onOverheal(unit, { overflow, target }) {
           if (!target || overflow <= 0) return;
@@ -3770,8 +3751,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Bare Branches',
       icon: 'assets/icons/fc1200.png',
-      description: 'Deals 25% extra damage to enemies carrying no buffs — ' +
-        'what the wind has already stripped, it breaks.',
+      description: '+25% damage to enemies carrying no buffs.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
@@ -3877,9 +3857,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Kindly Hours',
       icon: 'assets/icons/fc1220.png',
-      description: 'Every debuff laid on her side hands Ilyra 10 turn ' +
-        'meter — the more the enemy curses her team, the sooner she is ' +
-        'up to undo it.',
+      description: 'Whenever an ally is debuffed: +10% turn meter.',
       hooks: {
         onAllyDebuffed(unit) {
           unit.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
@@ -3983,8 +3961,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Terminal Velocity',
       icon: 'assets/icons/fc1240.png',
-      description: 'Deals 20% more damage for every full 50 SPD she has — ' +
-        '+40% at 100, +60% at 150. Speed is her damage stat.',
+      description: '+20% damage dealt per full 50 SPD (+40% at 100, +60% at 150).',
       hooks: {
         damageDealtMult(unit) {
           // Read her speed AS FOUGHT: gear, her front hex and any ally's
@@ -4098,9 +4075,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Answering Bells',
       icon: 'assets/icons/fc1260.png',
-      description: 'Deals 20% extra damage for every buff the target is ' +
-        'carrying — the more their supports have given them, the louder ' +
-        'the bells answer.',
+      description: '+20% damage per buff on the target.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
@@ -4202,8 +4177,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'What Grows Back',
       icon: 'assets/icons/fc1286.png',
-      description: 'Nothing seeded is ever wasted: whenever a poisoned enemy ' +
-        'dies, Sable gains 15 AP.',
+      description: 'Whenever an enemy carrying a DoT dies: +15% turn meter.',
       hooks: {
         onUnitDied(unit, { victim }) {
           if (!victim || victim.team === unit.team) return null;
@@ -4304,9 +4278,8 @@ Object.assign(HEROES, {
     passive: {
       name: 'The Chord Carries',
       icon: 'assets/icons/fc1290.png',
-      description: 'A note struck on one string sounds the next: every buff ' +
-        'that lands on an ally has a 25% chance to also land on another ' +
-        'ally, with the time it had left.',
+      description: 'Whenever a buff lands on an ally: 25% chance to copy it onto another ally with the same ' +
+        'time left.',
       hooks: {
         onAllyBuffed(unit, { receiver, effect, battle }) {
           if (!battle || !effect || effect.kind !== 'buff') return null;
@@ -4420,8 +4393,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Pull It Taut',
       icon: 'assets/icons/fc1294.png',
-      description: 'Committed while the thread is tied: +15% ATK and +15% ' +
-        'DEF for as long as a Soul Bond of hers is still on something living.',
+      description: '+15% ATK and +15% DEF while one of this hero\'s Soul Bonds is on a living unit.',
       hooks: {
         statMult(unit, stat) {
           if (stat !== 'atk' && stat !== 'def') return 1;
@@ -4542,9 +4514,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Grave Soil',
       icon: 'assets/icons/fc1298.png',
-      description: 'The garden does not ask whose corpse it was: whenever ' +
-        'any unit on the field falls, friend or enemy, Morrow mends 10% of ' +
-        'his max HP.',
+      description: 'Whenever any unit on the field dies: heals 10% of max HP.',
       hooks: {
         onUnitDied(unit) {
           if (!unit.alive) return null;
@@ -4651,9 +4621,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Nothing Is Refused',
       icon: 'assets/icons/fc1302.png',
-      description: 'He cannot force the first flower on anyone — but a ' +
-        'debuff he lays on an enemy already carrying one can never be ' +
-        'resisted.',
+      description: 'Debuffs this hero applies cannot be resisted by an enemy that already carries one.',
       hooks: {
         noResistWhenAfflicted: true,
       },
@@ -4754,9 +4722,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'The Passing Bell',
       icon: 'assets/icons/fc1306.png',
-      description: 'A bell rung for a death is a bell she rings again ' +
-        'sooner: whenever an ally falls, every one of her cooldowns drops ' +
-        'by 1 turn.',
+      description: 'Whenever an ally dies: all ability cooldowns -1 turn.',
       hooks: {
         onUnitDied(unit, { victim }) {
           if (!unit.alive || !victim || victim === unit) return null;
@@ -4869,9 +4835,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Past Helping',
       icon: 'assets/icons/fc1310.png',
-      description: 'Deals 20% extra damage for each of his two locks the ' +
-        'target is under — 40% against an enemy who can be neither mended ' +
-        'nor blessed.',
+      description: '+20% damage per lock on the target (heal block, buff seal), up to +40%.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
@@ -4983,8 +4947,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Dust On The Wind',
       icon: 'assets/icons/fc1282.png',
-      description: 'Moth Dust deals double damage to Wind heroes — the ' +
-        'scales find nothing to cling to on anyone else.',
+      description: 'Moth Dust deals double damage to Wind enemies.',
       hooks: {
         damageDealtMult(unit, target, ability) {
           if (!ability || ability.id !== 'noctelle_moth_dust') return 1;
@@ -5088,8 +5051,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Borrowed Weather',
       icon: 'assets/icons/fc1281.png',
-      description: 'Deals 25% extra damage for every buff Asher himself is ' +
-        'carrying — his own, his supports\', and everything he has taken.',
+      description: '+25% damage per buff this hero is carrying.',
       hooks: {
         damageDealtMult(unit) {
           const worn = unit.statusEffects.filter((fx) => fx.kind === 'buff').length;
@@ -5201,9 +5163,7 @@ Object.assign(HEROES, {
     passive: {
       name: 'Out Of Place',
       icon: 'assets/icons/fc1280.png',
-      description: 'Deals 30% extra damage to enemies standing outside ' +
-        'their own positional hex — anyone the wind has moved, including ' +
-        'everyone she just moved herself.',
+      description: '+30% damage to enemies standing off their own positional hex.',
       hooks: {
         damageDealtMult(unit, target) {
           // Only a fighter who HAS a favoured hex can be out of it.

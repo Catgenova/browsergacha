@@ -19,7 +19,7 @@ const POSITIONALS = (() => {
   def('last_stand', {
     position: POSITION.FRONT,
     name: 'Last Stand',
-    description: 'Front hex: +35% ATK while below 40% HP. The closer to death, the harder the swing.',
+    description: 'Front hex: +35% damage dealt while below 40% HP.',
     hooks: {
       damageDealtMult: (u) => (u.hp / u.maxHp < 0.4 ? 1.35 : 1),
     },
@@ -28,7 +28,7 @@ const POSITIONALS = (() => {
   def('vanguard_press', {
     position: POSITION.FRONT,
     name: 'Vanguard Press',
-    description: 'Front hex: +25% damage to enemies in THEIR front row. Trades blows with whoever stands opposite.',
+    description: 'Front hex: +25% damage to front-row enemies.',
     hooks: {
       damageDealtMult: (u, t) =>
         (t && t.slot && (t.isBoss || t.slot.position === POSITION.FRONT) ? 1.25 : 1),
@@ -38,7 +38,7 @@ const POSITIONALS = (() => {
   def('rallying_banner', {
     position: POSITION.FRONT,
     name: 'Rallying Banner',
-    description: 'Front hex: at the start of each turn, the most-wounded ally recovers 4% of this hero\'s max HP.',
+    description: 'Front hex: start of each turn, heals the most-wounded ally 4% of caster max HP.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -60,7 +60,7 @@ const POSITIONALS = (() => {
   def('bloodied_fury', {
     position: POSITION.FRONT,
     name: 'Bloodied Fury',
-    description: 'Front hex: +8% Crit Chance for every 25% of max HP missing (up to +24%).',
+    description: 'Front hex: +8% Crit Chance per 25% of max HP missing, up to +24%.',
     hooks: {
       onTurnStart(unit) {
         const missing = 1 - unit.hp / unit.maxHp;
@@ -75,7 +75,7 @@ const POSITIONALS = (() => {
   def('iron_wake', {
     position: POSITION.FRONT,
     name: 'Iron Wake',
-    description: 'Front hex: digs in each turn, stacking +10% DEF for 2 turns as the fight drags on.',
+    description: 'Front hex: +10% DEF for 2 turns at the start of each turn, stacking.',
     hooks: {
       onTurnStart(unit) {
         unit.addStatusEffect({ kind: 'buff', stat: 'def', mult: 1.10, turns: 2 });
@@ -87,7 +87,7 @@ const POSITIONALS = (() => {
   def('dawn_piercer', {
     position: POSITION.BACK,
     name: 'Dawn Piercer',
-    description: 'Back hex: +20% damage to Dark-element enemies. The dark is where the bolt burns brightest.',
+    description: 'Back hex: +20% damage to Dark enemies.',
     hooks: {
       damageDealtMult: (u, t) => (t && t.element === 'dark' ? 1.20 : 1),
     },
@@ -96,14 +96,14 @@ const POSITIONALS = (() => {
   def('ghost_step', {
     position: POSITION.FRONT,
     name: 'Ghost Step',
-    description: 'Front hex: +15% chance to dodge. The line holds because he is never quite where the blow lands.',
+    description: 'Front hex: +15% Dodge.',
     hooks: { dodgeAdd: 0.15 },
   });
 
   def('reckless_charge', {
     position: POSITION.FRONT,
     name: 'Reckless Charge',
-    description: 'Front hex: deals 20% more damage, and takes 10% more. A blade with no guard.',
+    description: 'Front hex: +20% damage dealt and +10% damage taken.',
     hooks: {
       damageDealtMult: () => 1.20,
       damageTakenMult: () => 1.10,
@@ -115,7 +115,7 @@ const POSITIONALS = (() => {
   def('overwatch', {
     position: POSITION.BACK,
     name: 'Overwatch',
-    description: 'Back hex: +10% Crit Chance and +25% Crit Damage — patient shots land heavy.',
+    description: 'Back hex: +10% Crit Chance and +25% Crit Damage.',
     hooks: {
       onTurnStart(unit) {
         unit.addStatusEffect({ kind: 'buff', stat: 'critChance', add: 0.10, turns: 1 });
@@ -137,7 +137,7 @@ const POSITIONALS = (() => {
   def('far_gate', {
     position: POSITION.BACK,
     name: 'Far Gate',
-    description: 'Back hex: +25% damage to enemies standing on BACK hexes.',
+    description: 'Back hex: +25% damage to back-row enemies.',
     hooks: {
       // A boss occupies the whole formation and is never "in the back",
       // so it is excluded rather than counted both ways -- the same
@@ -151,7 +151,7 @@ const POSITIONALS = (() => {
   def('stormglass', {
     position: POSITION.BACK,
     name: 'Stormglass',
-    description: 'Back hex: +15% damage with skills that catch the whole enemy team.',
+    description: 'Back hex: +15% damage with all-enemy skills.',
     hooks: {
       // Reads the ABILITY rather than the target, so it pays once per
       // victim of a genuine team sweep and never on a single-target
@@ -167,7 +167,7 @@ const POSITIONALS = (() => {
   def('first_blood', {
     position: POSITION.FRONT,
     name: 'First Blood',
-    description: 'Front hex: +25% damage to enemies who have not been hurt yet.',
+    description: 'Front hex: +25% damage to enemies at full HP.',
     hooks: {
       damageDealtMult: (u, t) => (t && t.hp >= t.maxHp ? 1.25 : 1),
     },
@@ -177,7 +177,7 @@ const POSITIONALS = (() => {
   def('slow_simmer', {
     position: POSITION.CENTER,
     name: 'Slow Simmer',
-    description: 'Center hex: the wards this hero hands out last 1 turn longer.',
+    description: 'Center hex: shields this hero applies last 1 turn longer.',
     hooks: { shieldExtraTurns: 1 },
   });
 
@@ -185,7 +185,7 @@ const POSITIONALS = (() => {
   def('set_fast', {
     position: POSITION.FRONT,
     name: 'Set Fast',
-    description: 'Front hex: +20% DEF, and anyone who strikes him loses 10% of their action bar.',
+    description: 'Front hex: +20% DEF, and anyone who strikes this hero loses 10% turn meter.',
     hooks: {
       statMult: (u, stat) => (stat === 'def' ? 1.20 : 1),
       onStruck(unit, { attacker, battle }) {
@@ -207,7 +207,7 @@ const POSITIONALS = (() => {
   def('deep_pouch', {
     position: POSITION.FRONT,
     name: 'Deep Pouch',
-    description: 'Front hex: every mend this hero receives is 30% stronger.',
+    description: 'Front hex: +30% healing received.',
     // The receiving end of field_medic. Nothing on the roster read the
     // patient's side of a heal before this, which is why a tank who is
     // built to be healed had nowhere to put it.
@@ -219,7 +219,7 @@ const POSITIONALS = (() => {
   def('weather_eye', {
     position: POSITION.BACK,
     name: 'Weather Eye',
-    description: 'Back hex: the action bar this hero hands out is 25% larger.',
+    description: 'Back hex: +25% turn meter given to allies.',
     hooks: { meterGiftAdd: 0.25 },
   });
 
@@ -228,7 +228,7 @@ const POSITIONALS = (() => {
   def('chart_table', {
     position: POSITION.BACK,
     name: 'Chart Table',
-    description: 'Back hex: every blessing this hero hands out is 10 points stronger.',
+    description: 'Back hex: buffs this hero applies grant an extra +10%.',
     hooks: { buffPowerAdd: 0.10 },
   });
 
@@ -238,7 +238,7 @@ const POSITIONALS = (() => {
   def('phoenix_shield', {
     position: POSITION.FRONT,
     name: 'Phoenix Shield',
-    description: 'Front hex: +25% DEF, and burning enemies deal 20% less damage to him.',
+    description: 'Front hex: +25% DEF, and -20% damage taken from burning enemies.',
     hooks: {
       statMult: (u, stat) => (stat === 'def' ? 1.25 : 1),
       damageTakenMult: (u, attacker) =>
@@ -250,7 +250,7 @@ const POSITIONALS = (() => {
   def('censer_swing', {
     position: POSITION.CENTER,
     name: 'Censer Swing',
-    description: 'Center hex: the burns this hero sets tick 25% harder.',
+    description: 'Center hex: burns this hero sets tick 25% harder.',
     hooks: { dotBoostAdd: 0.25 },
   });
 
@@ -258,7 +258,7 @@ const POSITIONALS = (() => {
   def('hoverpoint', {
     position: POSITION.BACK,
     name: 'Hoverpoint',
-    description: 'Back hex: +20% Dodge, and +10% SPD. Nothing that small holds still.',
+    description: 'Back hex: +20% Dodge and +10% SPD.',
     hooks: {
       dodgeAdd: 0.20,
       statMult: (u, stat) => (stat === 'speed' ? 1.10 : 1),
@@ -269,14 +269,14 @@ const POSITIONALS = (() => {
   def('fanfare', {
     position: POSITION.BACK,
     name: 'Fanfare',
-    description: 'Back hex: this hero\'s blessings are worth 5% more for every burning enemy.',
+    description: 'Back hex: buffs this hero applies grant an extra +5% per burning enemy.',
     hooks: { perBurnAdd: 0.05 },
   });
 
   def('field_medic', {
     position: POSITION.BACK,
     name: 'Field Medic',
-    description: 'Back hex: every heal this hero casts is 25% stronger.',
+    description: 'Back hex: +25% healing done.',
     hooks: { healBoostAdd: 0.25 },
   });
 
@@ -284,14 +284,14 @@ const POSITIONALS = (() => {
   def('bough_bearer', {
     position: POSITION.BACK,
     name: 'Bough Bearer',
-    description: 'Back hex: +15% chance for a healing chain to swing on again.',
+    description: 'Back hex: +15% chance for a healing chain to repeat.',
     hooks: { chainChanceAdd: 0.15 },
   });
 
   def('windrunner', {
     position: POSITION.BACK,
     name: 'Windrunner',
-    description: 'Back hex: +12% SPD and +8% Dodge. Acts sooner, gets caught less.',
+    description: 'Back hex: +12% SPD and +8% Dodge.',
     stat: 'speed', mult: 1.12,
     hooks: { dodgeAdd: 0.08 },
   });
@@ -299,28 +299,28 @@ const POSITIONALS = (() => {
   def('shorthand', {
     position: POSITION.BACK,
     name: 'Shorthand',
-    description: 'Back hex: +15 SPD — the pen moves faster than the sword.',
+    description: 'Back hex: +15 SPD.',
     stat: 'speed', add: 15,
   });
 
   def('cruel_fortune', {
     position: POSITION.BACK,
     name: 'Cruel Fortune',
-    description: 'Back hex: each buff this hero strips has a 20% chance to be replaced with a 2-turn burn.',
+    description: 'Back hex: each buff this hero strips has a 20% chance to leave a 2-turn burn.',
     hooks: { stripBurnChance: 0.20 },
   });
 
   def('vanishing_act', {
     position: POSITION.BACK,
     name: 'Vanishing Act',
-    description: 'Back hex: +15% Dodge — you cannot hit what refuses to be seen.',
+    description: 'Back hex: +15% Dodge.',
     hooks: { dodgeAdd: 0.15 },
   });
 
   def('hexweaver', {
     position: POSITION.BACK,
     name: 'Hexweaver',
-    description: 'Back hex: +20% debuff Accuracy, and the debuffs this hero lands stick for 1 extra turn.',
+    description: 'Back hex: +20% Accuracy, and debuffs this hero applies last 1 turn longer.',
     hooks: { accuracyAdd: 0.20, debuffExtraTurns: 1 },
   });
 
@@ -329,7 +329,7 @@ const POSITIONALS = (() => {
   def('center_ring', {
     position: POSITION.CENTER,
     name: 'Center Ring',
-    description: 'Center hex: +20% debuff Accuracy — every eye on the middle of the ring.',
+    description: 'Center hex: +20% Accuracy.',
     hooks: { accuracyAdd: 0.20 },
   });
 
@@ -337,14 +337,14 @@ const POSITIONALS = (() => {
   def('eye_of_the_ring', {
     position: POSITION.CENTER,
     name: 'Eye of the Ring',
-    description: 'Center hex: +35% debuff Accuracy — nothing slips past the middle.',
+    description: 'Center hex: +35% Accuracy.',
     hooks: { accuracyAdd: 0.35 },
   });
 
   def('standard_bearer', {
     position: POSITION.CENTER,
     name: 'Standard Bearer',
-    description: 'Center hex: at the start of each turn, every ally gains +6% ATK for 1 turn.',
+    description: 'Center hex: start of each turn, all allies gain +6% ATK for 1 turn.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -363,7 +363,7 @@ const POSITIONALS = (() => {
   def('warding_circle', {
     position: POSITION.CENTER,
     name: 'Warding Circle',
-    description: 'Center hex: at the start of each turn, strips one debuff from a hobbled ally.',
+    description: 'Center hex: start of each turn, removes 1 debuff from one ally.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -395,7 +395,7 @@ const POSITIONALS = (() => {
   def('under_the_egg', {
     position: POSITION.CENTER,
     name: 'Under the Egg',
-    description: 'Center hex: at the start of each turn, the ally lowest on health gains +30% DEF for 1 turn.',
+    description: 'Center hex: start of each turn, the lowest-health ally gains +30% DEF for 1 turn.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -421,7 +421,7 @@ const POSITIONALS = (() => {
   def('carrying_distance', {
     position: POSITION.BACK,
     name: 'Carrying Distance',
-    description: 'Back hex: the Long Note carries to +70% instead of +50%.',
+    description: 'Back hex: Long Note stacks to +70% instead of +50%.',
     hooks: { longNoteCap: 7 },
   });
 
@@ -432,7 +432,7 @@ const POSITIONALS = (() => {
   def('called_shot', {
     position: POSITION.BACK,
     name: 'Called Shot',
-    description: 'Back hex: the split shaft carries at full strength instead of half.',
+    description: 'Back hex: the split shaft carries 100% of the hit instead of 50%.',
     hooks: { critCarry: 1 },
   });
 
@@ -444,7 +444,7 @@ const POSITIONALS = (() => {
   def('gatepost', {
     position: POSITION.FRONT,
     name: 'Gatepost',
-    description: 'Front hex: his crit shelter reaches the CENTER hexes as well as the back.',
+    description: 'Front hex: the crit shelter also covers center-row allies.',
     hooks: { critShelterWide: true },
   });
 
@@ -455,7 +455,7 @@ const POSITIONALS = (() => {
   def('noon_angle', {
     position: POSITION.BACK,
     name: 'Noon Angle',
-    description: 'Back hex: everything he throws slips past 30% of the target\'s DEF.',
+    description: 'Back hex: attacks ignore 30% of the target\'s DEF.',
     hooks: { defIgnoreAdd: 0.30 },
   });
 
@@ -468,7 +468,7 @@ const POSITIONALS = (() => {
   def('heliograph', {
     position: POSITION.CENTER,
     name: 'Heliograph',
-    description: 'Center hex: every buff she tears off refunds 1 turn on all her cooldowns.',
+    description: 'Center hex: each buff this hero strips takes 1 turn off all their cooldowns.',
     hooks: {
       onStripBuff(unit, { count } = {}) {
         if (!count || count <= 0) return null;
@@ -490,7 +490,7 @@ const POSITIONALS = (() => {
   def('the_high_nest', {
     position: POSITION.BACK,
     name: 'The High Nest',
-    description: 'Back hex: the brood can be raised to +50% ATK instead of +30%.',
+    description: 'Back hex: the ATK raise caps at +50% instead of +30%.',
     hooks: { raiseCap: 0.50 },
   });
 
@@ -501,7 +501,7 @@ const POSITIONALS = (() => {
   def('gravecircle', {
     position: POSITION.CENTER,
     name: 'Gravecircle',
-    description: 'Center hex: the bodies he raises come up with 25% more health.',
+    description: 'Center hex: raised bodies come up with 25% more health.',
     hooks: { summonHpAdd: 0.25 },
   });
 
@@ -512,7 +512,7 @@ const POSITIONALS = (() => {
   def('long_peal', {
     position: POSITION.CENTER,
     name: 'Long Peal',
-    description: 'Center hex: the wards she hands out are 30% larger.',
+    description: 'Center hex: shields this hero applies are 30% larger.',
     hooks: { shieldPowerAdd: 0.30 },
   });
 
@@ -527,7 +527,7 @@ const POSITIONALS = (() => {
   def('open_mouth', {
     position: POSITION.FRONT,
     name: 'Open Mouth',
-    description: 'Front hex: every affliction landing on his side is copied onto him too.',
+    description: 'Front hex: every debuff or DoT landing on an ally is copied onto this hero.',
     hooks: { afflictionSink: true },
   });
 
@@ -538,7 +538,7 @@ const POSITIONALS = (() => {
   def('fence', {
     position: POSITION.FRONT,
     name: 'Fence',
-    description: 'Front hex: the cooldowns he lifts are pushed 1 turn deeper.',
+    description: 'Front hex: cooldowns this hero pushes are pushed 1 turn deeper.',
     hooks: { cooldownPushAdd: 1 },
   });
 
@@ -550,7 +550,7 @@ const POSITIONALS = (() => {
   def('upwind', {
     position: POSITION.BACK,
     name: 'Upwind',
-    description: 'Back hex: his curses are 15% more likely to take a second enemy.',
+    description: 'Back hex: +15% chance for this hero\'s debuffs to spread to a second enemy.',
     hooks: { debuffSpread: 0.15 },
   });
 
@@ -561,7 +561,7 @@ const POSITIONALS = (() => {
   def('struck_early', {
     position: POSITION.BACK,
     name: 'Struck Early',
-    description: 'Back hex: the lantern opens every battle already holding 3.',
+    description: 'Back hex: the lantern starts each battle already counting 3 deaths.',
     hooks: { lanternStart: 3 },
   });
 
@@ -577,7 +577,7 @@ const POSITIONALS = (() => {
   def('thornbush', {
     position: POSITION.BACK,
     name: 'Thornbush',
-    description: 'Back hex: an enemy he kills can never be revived.',
+    description: 'Back hex: enemies this hero kills cannot be revived.',
     hooks: {
       onUnitDied(unit, { victim, killer } = {}) {
         if (!victim || killer !== unit) return null;
@@ -594,7 +594,7 @@ const POSITIONALS = (() => {
   def('further_ahead', {
     position: POSITION.BACK,
     name: 'Further Ahead',
-    description: 'Back hex: the omens he lays run 1 turn longer, and fill for that turn too.',
+    description: 'Back hex: dooms this hero lays run 1 turn longer and fill for that turn.',
     hooks: { doomExtraTurns: 1 },
   });
 
@@ -606,14 +606,14 @@ const POSITIONALS = (() => {
   def('first_at_the_table', {
     position: POSITION.FRONT,
     name: 'First at the Table',
-    description: 'Front hex: he takes two bodies a turn instead of one.',
+    description: 'Front hex: consumes 2 bodies a turn instead of 1.',
     hooks: { extraMeals: 1 },
   });
 
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
-    description: 'Center hex: +20% damage to enemies below half HP. Closes out wounded targets.',
+    description: 'Center hex: +20% damage to enemies below half HP.',
     hooks: {
       damageDealtMult: (u, t) => (t && t.hp / t.maxHp < 0.5 ? 1.20 : 1),
     },
@@ -622,14 +622,14 @@ const POSITIONALS = (() => {
   def('drain_the_line', {
     position: POSITION.CENTER,
     name: 'Drain the Line',
-    description: 'Center hex: 15% chance on any hit to knock 20% off the victim\'s action bar.',
+    description: 'Center hex: 15% chance on any hit to take 20% turn meter.',
     hooks: { apDrainAdd: 0.15 },
   });
 
   def('second_wind', {
     position: POSITION.BACK,
     name: 'Second Wind',
-    description: 'Back hex: below half HP, each of his turns starts the next fill with +20 turn meter.',
+    description: 'Back hex: below half HP, +20% turn meter after each of their turns.',
     hooks: {
       // Read by useAbility after the meter resets — the refund is a
       // head start on the next turn, exactly as the spec's "at the
@@ -641,21 +641,21 @@ const POSITIONALS = (() => {
   def('bedrock', {
     position: POSITION.FRONT,
     name: 'Bedrock',
-    description: 'Front hex: +25% DEF. Some things you build on.',
+    description: 'Front hex: +25% DEF.',
     stat: 'def', mult: 1.25,
   });
 
   def('spillway', {
     position: POSITION.BACK,
     name: 'Spillway',
-    description: 'Back hex: overheal damage is increased 25% — the channel runs deeper from the rear.',
+    description: 'Back hex: +25% overheal damage.',
     hooks: { overhealBoost: 0.25 },
   });
 
   def('limelight', {
     position: POSITION.FRONT,
     name: 'Limelight',
-    description: 'Front hex: takes 15% less damage from taunted enemies — they swing half-blinded by the spotlight.',
+    description: 'Front hex: -15% damage taken from taunted enemies.',
     hooks: {
       damageTakenMult(unit, attacker) {
         return attacker && attacker.statusEffects &&
@@ -667,21 +667,21 @@ const POSITIONALS = (() => {
   def('knifes_edge', {
     position: POSITION.FRONT,
     name: "Knife's Edge",
-    description: 'Front hex: +30% Crit Damage — the points go in first.',
+    description: 'Front hex: +30% Crit Damage.',
     stat: 'critDamage', add: 0.30,
   });
 
   def('strongman', {
     position: POSITION.FRONT,
     name: 'Strongman',
-    description: 'Front hex: +15% max HP — the whole show leans on him.',
+    description: 'Front hex: +15% max HP.',
     stat: 'hp', mult: 1.15,
   });
 
   def('hearthblood', {
     position: POSITION.FRONT,
     name: 'Hearthblood',
-    description: 'Front hex: regenerates 5% max HP at the start of his turn — the hearth keeps its keeper warm.',
+    description: 'Front hex: heals 5% of max HP at the start of each turn.',
     hooks: {
       onTurnStart(unit) {
         if (unit.hp >= unit.maxHp) return null;
@@ -702,31 +702,28 @@ const POSITIONALS = (() => {
   def('windbreak', {
     position: POSITION.FRONT,
     name: 'Windbreak',
-    description: 'Front hex: +20% max HP — she is the thing the wind breaks on.',
+    description: 'Front hex: +20% max HP.',
     stat: 'hp', mult: 1.20,
   });
 
   def('clapper', {
     position: POSITION.FRONT,
     name: 'Clapper',
-    description: 'Front hex: +30% accuracy — the striker inside the bell, ' +
-      'and it never misses the rim.',
+    description: 'Front hex: +30% Accuracy.',
     hooks: { accuracyAdd: 0.30 },
   });
 
   def('reach', {
     position: POSITION.FRONT,
     name: 'Reach',
-    description: 'Front hex: +40% accuracy — a glaive settles the argument ' +
-      'about who is close enough, and nothing he cuts off gets refused.',
+    description: 'Front hex: +40% Accuracy.',
     hooks: { accuracyAdd: 0.40 },
   });
 
   def('bell_tower', {
     position: POSITION.CENTER,
     name: 'Bell Tower',
-    description: 'Center hex: at the start of each of her turns every ally ' +
-      'recovers 5% of her max HP — the bell does not stop ringing.',
+    description: 'Center hex: start of each turn, heals all allies 5% of caster max HP.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -744,16 +741,14 @@ const POSITIONALS = (() => {
   def('long_stems', {
     position: POSITION.BACK,
     name: 'Long Stems',
-    description: 'Back hex: debuffs he inflicts last 1 turn longer — cut ' +
-      'long, they keep.',
+    description: 'Back hex: debuffs this hero applies last 1 turn longer.',
     hooks: { debuffExtraTurns: 1 },
   });
 
   def('mourners_row', {
     position: POSITION.FRONT,
     name: "Mourner's Row",
-    description: 'Front hex: allies on BACK hexes take 20% less damage — ' +
-      'he is standing between them and it.',
+    description: 'Front hex: back-row allies take 20% less damage.',
     hooks: {
       coverMult(unit, ally) {
         return ally.slot && ally.slot.position === POSITION.BACK ? 0.80 : 1;
@@ -764,81 +759,77 @@ const POSITIONALS = (() => {
   def('spool', {
     position: POSITION.FRONT,
     name: 'Spool',
-    description: 'Front hex: +30% DEF — the thread only holds if the anvil ' +
-      'holding it does.',
+    description: 'Front hex: +30% DEF.',
     stat: 'def', mult: 1.30,
   });
 
   def('first_chair', {
     position: POSITION.CENTER,
     name: 'First Chair',
-    description: 'Center hex: +25% SPD — from the middle of the ring the ' +
-      'whole formation plays to her time.',
+    description: 'Center hex: +25% SPD.',
     stat: 'speed', mult: 1.25,
   });
 
   def('deep_roots', {
     position: POSITION.BACK,
     name: 'Deep Roots',
-    description: 'Back hex: poisons he inflicts tick 30% harder — what is ' +
-      'planted from a distance has time to take hold.',
+    description: 'Back hex: DoTs this hero applies tick 30% harder.',
     hooks: { dotBoostAdd: 0.30 },
   });
 
   def('lamplight', {
     position: POSITION.BACK,
     name: 'Lamplight',
-    description: 'Back hex: the life she drains feeds her too — Silent Wing ' +
-      'mends her for the same amount it gives away.',
+    description: 'Back hex: Silent Wing also heals this hero for the amount it gives away.',
     hooks: { drainSelfShare: 1 },
   });
 
   def('chime_bar', {
     position: POSITION.CENTER,
     name: 'Chime Bar',
-    description: 'Center hex: +15% ATK — every bell on the bar rings at once.',
+    description: 'Center hex: +15% ATK.',
     stat: 'atk', mult: 1.15,
   });
 
   def('headwind', {
     position: POSITION.FRONT,
     name: 'Headwind',
-    description: 'Front hex: +10% SPD — she meets the charge already running.',
+    description: 'Front hex: +10% SPD.',
     stat: 'speed', mult: 1.10,
   });
 
   def('still_air', {
     position: POSITION.BACK,
     name: 'Still Air',
-    description: 'Back hex: +30% Resistance — debuffs, strips and drains all break on her.',
+    description: 'Back hex: +30% Resistance.',
     hooks: { resistanceAdd: 0.30 },
   });
 
   def('weathervane', {
     position: POSITION.BACK,
     name: 'Weathervane',
-    description: 'Back hex: +20% debuff Accuracy — he reads the wind before he swings.',
+    description: 'Back hex: +20% Accuracy.',
     hooks: { accuracyAdd: 0.20 },
   });
 
   def('pyre_sight', {
     position: POSITION.BACK,
     name: 'Pyre Sight',
-    description: 'Back hex: +30% accuracy — the fire lights every mark.',
+    description: 'Back hex: +30% Accuracy.',
     hooks: { accuracyAdd: 0.30 },
   });
 
   def('giantslayer', {
     position: POSITION.BACK,
     name: 'Giantslayer',
-    description: "Back hex: attacks add 2% of the target's max HP to the damage. The bigger they are.",
+    description: 'Back hex: attacks add 2% of the target\'s max HP to their damage.',
     hooks: { targetHpBonus: 0.02 },
   });
 
   def('cold_forge', {
     position: POSITION.BACK,
     name: 'Cold Forge',
-    description: 'Back hex: +15% ATK and +10% DEF — the craft is better done unhurried.',
+    description: 'Back hex: +15% ATK and +10% DEF.',
     hooks: {
       onTurnStart(unit) {
         unit.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.15, turns: 1 });
@@ -851,7 +842,7 @@ const POSITIONALS = (() => {
   def('undermine', {
     position: POSITION.CENTER,
     name: 'Undermine',
-    description: 'Center hex: at the start of each turn, digs the ground from under a random enemy — -30% DEF for 2 turns.',
+    description: 'Center hex: start of each turn, -30% DEF for 2 turns to a random enemy.',
     hooks: {
       onTurnStart(unit, battle) {
         if (!battle) return null;
@@ -871,7 +862,7 @@ const POSITIONALS = (() => {
   def('frost_throne', {
     position: POSITION.CENTER,
     name: 'Frost Throne',
-    description: 'Center hex: freezing an enemy refunds 1 turn of cooldown on every ability.',
+    description: 'Center hex: when an enemy freezes, all ability cooldowns -1 turn.',
     hooks: {
       // Fired from Abilities.freeze for every enemy actually frozen, by
       // any source — the bolt, the Crystalline counter, the passive.
