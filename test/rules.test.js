@@ -8119,14 +8119,30 @@ test('the skill readout states the numbers the fight actually uses', () => {
     const u = place(battle, def, TEAM.PLAYER, 1);
     u.abilities[idx].level = skillLevel;
     u.critChance = () => 0;               // no dice in the reading
+    // Two kinds of passive make a skill land bigger than its own card
+    // claims, and neither is the card being wrong.
+    //
     // A passive that makes DoTs bite the instant they land (Flurry)
     // puts burn damage into the same moment as the strike, so the HP
     // that leaves is the damage line PLUS a tick whose own ladder the
-    // damage line never claimed. Suppressed rather than skipped, so
-    // the damage line is still measured for her -- assigned, not
-    // spliced, because `passives` comes off the def by reference.
-    u.passives = (u.passives || []).filter(
-      (pv) => !(pv.hooks && pv.hooks.dotBitesOnApply));
+    // damage line never claimed.
+    //
+    // A buffPowerAdd hook written as a FUNCTION (Kiri's hover) reads
+    // the RECEIVER, so what the blessing is worth depends on who is
+    // standing there -- a number the readout cannot print at all,
+    // because at display time there is no receiver. The numeric form
+    // is left alone: that one is the same for everybody and the
+    // readout can and should account for it.
+    //
+    // Suppressed rather than skipped, so both heroes' skills are still
+    // measured -- assigned, not spliced, because `passives` comes off
+    // the def by reference.
+    u.passives = (u.passives || []).filter((pv) => {
+      const h = pv.hooks || {};
+      if (h.dotBitesOnApply) return false;
+      if (typeof h.buffPowerAdd === 'function') return false;
+      return true;
+    });
     const foe = roomy(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1), 200);
     foe.dodgeChance = () => 0;
     foe.reflectChance = () => 0;
@@ -9610,6 +9626,99 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
       `three Gulldiggers reached ${reachOf(3)} — the centre is not theirs yet`);
     assert(reachOf(4) === 'center,front',
       `four Gulldiggers reached ${reachOf(4)}, wanted the centre folded in`);
+  }
+});
+
+// The sect's blesser. Everything else in the Razorwings turns speed
+// into damage on the swing; Kiri turns it into ATK before the swing,
+// which is the only place in the sect where being fast is worth
+// something to somebody ELSE.
+test("Kiri's Hover: a blessing worth what the wing receiving it is", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const kiri = place(battle, HEROES.kiri, TEAM.PLAYER, 0);
+    // Read off the RECEIVER, never off her: a mate at a given speed has
+    // to read the same whatever Kiri herself is doing.
+    const mate = (speed) => {
+      const u = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 4);
+      u.hookSources = () => [];
+      u.speed = speed;
+      return u;
+    };
+    const blessed = (u) => {
+      Abilities.execute(kiri.abilities[0].def, kiri, u, battle);
+      const fx = u.statusEffects.find((f) => f.kind === 'buff' && f.stat === 'atk');
+      u.statusEffects = [];
+      battle.units = battle.units.filter((x) => x !== u);
+      return fx ? fx.mult : 0;
+    };
+
+    // Base blessing is 1.15. Every 10 SPD over 100 deepens it 5%, and
+    // the deepening moves the multiplier AWAY from neutral, so the
+    // expected figure is 1.15 + the rungs rather than a percentage of it.
+    const slow = blessed(mate(100));
+    assert(Math.abs(slow - 1.15) < 1e-9,
+      `a 100-speed wing was blessed at ${slow}, wanted the flat 1.15`);
+    assert(Math.abs(blessed(mate(130)) - 1.30) < 1e-9,
+      `a 130-speed wing was blessed at ${blessed(mate(130))}, wanted 1.15 + 3 rungs`);
+    // Stepped, not continuous: 9 points over is not yet a rung.
+    assert(Math.abs(blessed(mate(109)) - 1.15) < 1e-9,
+      'nine points over 100 bought a rung it had not earned');
+    // Capped at five rungs however fast the wing is.
+    assert(Math.abs(blessed(mate(400)) - 1.40) < 1e-9,
+      `a 400-speed wing was blessed at ${blessed(mate(400))}, wanted the +25% cap`);
+    // Slower than 100 costs nothing -- it never runs backwards.
+    assert(Math.abs(blessed(mate(60)) - 1.15) < 1e-9,
+      'a slow wing was blessed for LESS than the printed figure');
+
+    // Her own speed is not part of it. She is the fastest support in
+    // the game and it must not inflate what she hands out.
+    const fast = blessed(mate(120));
+    kiri.speed = 40;
+    assert(Math.abs(blessed(mate(120)) - fast) < 1e-9,
+      "Kiri's own speed changed what her blessing was worth");
+  } finally { Battle.active = prev; }
+
+  // Four birds: the LAST tier can be fielded. Rip Current pays the
+  // Razorwing who lands a kill, and this is the first time the count
+  // has been high enough to prove it through applyParty rather than by
+  // handing the hook over directly.
+  {
+    const b4 = makeBattle();
+    const birds = ['tervan', 'nehru', 'cirrus', 'kiri'].map((id, i) => {
+      const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: 3 });
+      u.slot = b4.playerSlots[i];
+      b4.units.push(u);
+      return u;
+    });
+    RACES.applyParty(birds);
+    const killer = birds[0];
+    const bystander = birds[1];
+    killer.turnMeter = 0; bystander.turnMeter = 0;
+    const doomed = new Unit(DUMMIES.rat_archer, TEAM.ENEMY, { level: 30, stars: 3 });
+    doomed.slot = b4.enemySlots[0];
+    b4.units.push(doomed);
+    doomed.hp = 1;
+    const prev4 = Battle.active;
+    Battle.active = b4;
+    try { doomed.takeDamage(9e9, killer); } finally { Battle.active = prev4; }
+    assert(Math.abs(killer.turnMeter - CONFIG.TURN_METER_MAX * 0.25) < 1e-6,
+      `four fielded birds paid the killer ${killer.turnMeter}, wanted a quarter bar`);
+    assert(bystander.turnMeter === 0,
+      `a bystander was paid ${bystander.turnMeter} for somebody else's kill`);
+
+    // All three tiers standing at once, which is the whole pack: the
+    // damage ceiling and the meter payout are not alternatives.
+    const foe = new Unit(DUMMIES.rat_knight, TEAM.ENEMY, { level: 30, stars: 3 });
+    foe.slot = b4.enemySlots[1];
+    const mine = killer.effectiveStat('speed');
+    foe.speed = mine;
+    const level = killer.damageDealtMult(foe, null);
+    foe.speed = mine - 60;
+    assert(Math.abs(killer.damageDealtMult(foe, null) / level - 1.625) < 1e-9,
+      'the damage tiers stopped paying once the fourth bird landed');
   }
 });
 

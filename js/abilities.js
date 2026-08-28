@@ -848,7 +848,14 @@ const Abilities = (() => {
         let deepen = ladder.buffPower || 0;
         if (effect.type === 'buff') {
           for (const p of (caster.hookSources ? caster.hookSources() : [])) {
-            if (p.hooks && p.hooks.buffPowerAdd) deepen += p.hooks.buffPowerAdd;
+            const add = p.hooks && p.hooks.buffPowerAdd;
+            if (!add) continue;
+            // A number for a blessing that is worth the same to
+            // everybody (Polo's chart table); a FUNCTION for one that
+            // reads WHO IS RECEIVING it (Kiri's hover is worth more to
+            // a fast wing). The same two shapes defIgnoreAdd takes, for
+            // the same reason.
+            deepen += typeof add === 'function' ? (add(caster, target) || 0) : add;
           }
           // perBurn: the Phoenix Court's blessing is worth more for
           // every fire already lit on the other side.
