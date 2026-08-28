@@ -13055,4 +13055,182 @@ test('Rend: Open Mouth drinks what lands on his side', () => {
   } finally { Math.random = real; Battle.active = prev; }
 });
 
+// The sect's first damage, and a thief rather than a duellist. Enemy
+// COOLDOWNS are an axis nothing on the roster had ever touched: allies
+// get their skills back early -- Evelune, Mendral, Solari's hex -- and
+// until Crook nobody took an enemy's away.
+test('Crook: Pick a Pocket takes the next move off them', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const crook = maxSkill(seatOn(battle, HEROES.crook, TEAM.PLAYER, 1), 2);
+    crook.slot = battle.playerSlots[3];         // off his hex: the bare push
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.debuffResistance = () => 0;
+    const pocket = crook.abilities.find((a) => a.def.id === 'crook_pick_a_pocket');
+    assert(pocket, 'Pick a Pocket is missing');
+
+    // Everything ready, including a fresh enemy's whole kit.
+    foe.abilities.forEach((a) => { a.cooldownRemaining = 0; });
+    Math.random = () => 0.01;
+    Abilities.execute(pocket.def, crook, foe, battle);
+    Math.random = real;
+
+    const laddered = foe.abilities.filter((a) => a.def.cooldown > 0);
+    assert(laddered.length > 0, 'the fixture enemy has no cooldowns to take');
+    for (const a of laddered) {
+      assert(a.cooldownRemaining > 0,
+        `${a.def.name} was left ready — a fresh enemy is the one worth robbing`);
+    }
+
+    // Never shelved for longer than a fresh cast would take, and driven
+    // from a kit that is ALREADY at its ceiling -- the first draft
+    // pushed a ready enemy and never made the clamp bind at all, so it
+    // proved nothing.
+    laddered.forEach((a) => { a.cooldownRemaining = a.def.cooldown; });
+    Math.random = () => 0.01;
+    Abilities.execute(pocket.def, crook, foe, battle);
+    Math.random = real;
+    for (const a of laddered) {
+      assert(a.cooldownRemaining === a.def.cooldown,
+        `${a.def.name} went to ${a.cooldownRemaining} past its own ${a.def.cooldown}`);
+    }
+    // A slot-one filler is never taken: a skill on a zero cooldown is
+    // never "away", and shelving it would be shelving the enemy's only
+    // guaranteed move.
+    const filler = foe.abilities.find((a) => a.def.cooldown === 0);
+    assert(filler && filler.cooldownRemaining === 0, 'the enemy’s filler was taken');
+
+    // Gated at the roster-standard 50%, and it contests like any taking.
+    // Rolled on an UNLEVELLED Crook: the ladder buys the gate to a
+    // certainty by design, so a maxed skill cannot demonstrate a refusal
+    // — the first draft of this assertion tried and was right to fail.
+    const gate = pocket.def.effects.find((e) => e.type === 'cooldownPush');
+    assert(Math.abs(gate.chance - 0.5) < 1e-9, 'the theft is not on a 50% gate');
+    const green = seatOn(battle, HEROES.crook, TEAM.PLAYER, 2);
+    green.slot = battle.playerSlots[4];
+    foe.abilities.forEach((a) => { a.cooldownRemaining = 0; });
+    Math.random = () => 0.99;
+    Abilities.execute(pocket.def, green, foe, battle);
+    Math.random = real;
+    assert(laddered.every((a) => a.cooldownRemaining === 0),
+      'the gate opened on a roll that should have refused it');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// The filler steals too, and that is a bench finding rather than a
+// flourish: without it he measured +330 +/- 646 on a paired asymmetric
+// run against +4431 for Aurek on the same fixture. His passive charges
+// for skills the enemy has SPENT, and a theft once every seven turns
+// almost never leaves any spent. The condition was the problem, not the
+// rate -- so the condition is pinned.
+test('Crook: the filler steals, which is what makes the passive live', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  const real = Math.random;
+  try {
+    const crook = seatOn(battle, HEROES.crook, TEAM.PLAYER, 1);
+    crook.slot = battle.playerSlots[3];
+    const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+    foe.hookSources = () => [];
+    foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+    foe.debuffResistance = () => 0;
+
+    const clout = crook.abilities.find((a) => a.def.id === 'crook_clout');
+    assert(clout, 'Clout is missing');
+    assert(clout.def.cooldown === 0, 'the thief has to be pressing this every turn');
+    const push = clout.def.effects.find((e) => e.type === 'cooldownPush');
+    assert(push, 'the button he presses every turn does not steal');
+    assert(Math.abs(push.chance - 0.5) < 1e-9, 'the filler theft is not on a 50% gate');
+    assert(push.turns === 1, `the filler takes ${push.turns} turns — it is meant to be small`);
+
+    foe.abilities.forEach((a) => { a.cooldownRemaining = 0; });
+    Math.random = () => 0.01;
+    Abilities.execute(clout.def, crook, foe, battle);
+    Math.random = real;
+    assert(foe.abilities.some((a) => a.def.cooldown > 0 && a.cooldownRemaining === 1),
+      'a swing left the whole kit ready');
+    // Which is exactly what the passive then charges for.
+    assert(crook.damageDealtMult(foe) > 1,
+      'the state his own filler creates pays him nothing');
+  } finally { Math.random = real; Battle.active = prev; }
+});
+
+// His passive reads the state his own kit creates, so it is one idea
+// twice: rob the pockets, then bill them for being empty.
+test('Crook: Light Fingers charges for what they have spent', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const crook = seatOn(battle, HEROES.crook, TEAM.PLAYER, 1);
+    const foe = seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+
+    const laddered = foe.abilities.filter((a) => a.def.cooldown > 0);
+    foe.abilities.forEach((a) => { a.cooldownRemaining = 0; });
+    assert(Math.abs(crook.damageDealtMult(foe) - 1) < 1e-9,
+      'a fully loaded enemy already paid him');
+
+    laddered[0].cooldownRemaining = 3;
+    assert(Math.abs(crook.damageDealtMult(foe) - 1.12) < 1e-9,
+      `one spent skill paid ${crook.damageDealtMult(foe)}`);
+    laddered.forEach((a) => { a.cooldownRemaining = 3; });
+    assert(Math.abs(crook.damageDealtMult(foe) - (1 + 0.12 * laddered.length)) < 1e-9,
+      `a spent kit paid ${crook.damageDealtMult(foe)}`);
+
+    // Fillers are skipped here too, or he would be paid for a skill
+    // that is never away.
+    const filler = foe.abilities.find((a) => a.def.cooldown === 0);
+    const held = crook.damageDealtMult(foe);
+    if (filler) {
+      filler.cooldownRemaining = 3;
+      assert(Math.abs(crook.damageDealtMult(foe) - held) < 1e-9,
+        'a zero-cooldown filler was counted as spent');
+    }
+  } finally { Battle.active = prev; }
+});
+
+// His hex deepens the theft rather than widening it: how MUCH of a move
+// he takes is the mechanic, and a hex that robbed more birds for less
+// would be a different hero.
+test('Crook: Fence pushes a turn deeper', () => {
+  const hex = POSITIONALS.fence;
+  assert(HEROES.crook.positional === hex, 'Crook is not on his own hex');
+  assert(hex.position === POSITION.FRONT, 'the pockets are at the front');
+
+  const rob = (onHex) => {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    const real = Math.random;
+    try {
+      const crook = seatOn(battle, HEROES.crook, TEAM.PLAYER, 1);
+      if (!onHex) crook.slot = battle.playerSlots[3];
+      assert(crook.positionalActive() === onHex, 'the fixture seated him wrong');
+      const foe = roomy(seatOn(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 400);
+      foe.hookSources = () => [];
+      foe.dodgeChance = () => 0; foe.reflectChance = () => 0;
+      foe.debuffResistance = () => 0;
+      // A deep cooldown, so the per-skill cap cannot mask the difference.
+      const deep = foe.abilities.filter((a) => a.def.cooldown > 0)
+        .sort((a, b) => b.def.cooldown - a.def.cooldown)[0];
+      foe.abilities.forEach((a) => { a.cooldownRemaining = 0; });
+      const pocket = crook.abilities.find((a) => a.def.id === 'crook_pick_a_pocket');
+      Math.random = () => 0.01;
+      Abilities.execute(pocket.def, crook, foe, battle);
+      return deep.cooldownRemaining;
+    } finally { Math.random = real; Battle.active = prev; }
+  };
+  const off = rob(false);
+  const on = rob(true);
+  assert(off === 2, `the bare theft took ${off} turns, wanted 2`);
+  assert(on === 3, `the fence took ${on} turns, wanted 3`);
+});
+
 report();

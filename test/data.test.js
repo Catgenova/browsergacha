@@ -309,7 +309,7 @@ test('every sect holds one race, once each, with its number', () => {
     // what the three tiers may not be was most of the design and it was
     // settled before the art arrived. Empty members is not defunct --
     // the flag below is what tells a closed order from an unfilled one.
-    hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend'] },
+    hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend', 'crook'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -1320,8 +1320,13 @@ test('every swept skill obeys the level-up rules', () => {
       if (lad.meter && !all.some((e) => e.type === 'turnMeter')) {
         problems.push(`${where}: meter rungs but nothing that moves a meter`);
       }
-      if (lad.refund && !all.some((e) => e.type === 'cooldownReduce')) {
-        problems.push(`${where}: refund rungs but no cooldowns handed back`);
+      // `cooldownPush` counts: it is the hostile mirror of
+      // cooldownReduce and reads `lad.refund` off the same rung to
+      // deepen the theft. The rule is "a rung must have something to act
+      // on", not "a rung must point at a friendly effect".
+      const COOLDOWN_MOVERS = new Set(['cooldownReduce', 'cooldownPush']);
+      if (lad.refund && !all.some((e) => COOLDOWN_MOVERS.has(e.type))) {
+        problems.push(`${where}: refund rungs but no cooldowns moved`);
       }
       // A chain rung lives on the ABILITY, not an effect: it widens the
       // odds the cast re-fires itself.

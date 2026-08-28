@@ -724,6 +724,14 @@ class Battle {
         this.log(`No room to raise anything — ${caster.name} puts it into ` +
           `${res.target.name} instead: their guard opens and ${res.cut} health ` +
           `goes with it.`, cls);
+      } else if (res.kind === 'cooldownPush') {
+        if (res.moved > 0) {
+          this.addFloatingText(res.target, `\u23f3 +${res.turns}`, '#b07ae8');
+          this.log(`${caster.name} lifts ${res.target.name}'s next move — ` +
+            `${res.moved} turn${res.moved > 1 ? 's' : ''} of it, gone.`, cls);
+        } else if (res.rolled || res.resisted) {
+          this.log(`${res.target.name} keeps hold of their kit.`, cls);
+        }
       } else if (res.kind === 'drawDebuffs') {
         if (res.count > 0) {
           this.addFloatingText(res.target, `\u2620 ${res.count}`, '#b07ae8');

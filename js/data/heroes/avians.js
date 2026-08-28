@@ -3989,4 +3989,133 @@ Object.assign(HEROES, {
     },
     positional: POSITIONALS.open_mouth,
   },
+
+  // The sect's first damage, and a thief rather than a duellist. He is
+  // carrying a pack of somebody else's bones, a club and a pot lid, and
+  // what he does with them is take your next move off you.
+  //
+  // Enemy COOLDOWNS are an axis nothing on the roster has ever touched.
+  // Allies get their skills back early -- Evelune, Mendral, Solari's hex
+  // -- and until Crook nobody took an enemy's away. It is not an action
+  // bar drain wearing a different coat either, and the difference is
+  // worth being precise about: a drain moves WHEN you act, this moves
+  // WHAT you can do when you get there. Against a healer holding a
+  // resurrection those are not the same problem at all.
+  //
+  // His passive then reads the state his own seven creates, so the kit
+  // is one idea twice: rob the pockets, then bill them for being empty.
+  crook: {
+    id: 'crook',
+    element: 'dark',
+    name: 'Crook',
+    title: 'Bonepicker of the Hollowbone',
+    rarity: 3,
+    // A front-row dealer's split, and thin: he is standing in the line
+    // because that is where the pockets are, not because he can hold it.
+    stats: { hp: 1340, atk: 214, def: 94, speed: 116 },
+    tint: { body: '#2a2438', helm: '#8a5ac8', weapon: '#8a7a5a', shield: '#6a5a48' },
+    sprite: {
+      displayH: 92,
+      strips: {
+        idle: { src: 'assets/heroes/hollowbone/crookidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
+    abilities: [
+      {
+        id: 'crook_clout', name: 'Clout',
+        icon: 'assets/icons/fc823.png',
+        // The filler steals, and the bench is the reason. Written
+        // without it he measured +330 +/- 646 on a paired asymmetric
+        // run -- statistically nothing -- against +4431 for Aurek and
+        // +5853 for Rizzo on the same fixture, and the party actually
+        // stood FEWER birds with him in it. Raising the passive's rate
+        // from 12% to 20% moved it to +413, which is still nothing:
+        // the payout was never the problem. The CONDITION was. His
+        // passive charges for skills the enemy has spent, and a theft
+        // that happens once every seven turns almost never leaves any
+        // spent. Moving a small one onto the button he presses every
+        // turn took him to +2222 +/- 653, and 20% on top of that added
+        // a further nothing, so the rate stayed where it was.
+        description: 'The club, swung flat: 100% ATK to one enemy, and a 50% chance to ' +
+          'push one of their cooldowns back a turn.',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
+        effects: [
+          { type: 'damage', mult: 1.00 },
+          { type: 'cooldownPush', turns: 1, chance: 0.5 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+        ],
+      },
+      {
+        id: 'crook_pot_lid', name: 'Pot Lid',
+        icon: 'assets/icons/fc1141.png',
+        description: 'He takes the shield off his back and puts it through the line: 110% ' +
+          'ATK to the enemy FRONT row.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'idle', impact: 'slam',
+        effects: [{ type: 'damage', mult: 1.10 }],
+        levelUps: [
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { mult: 0.1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+      {
+        id: 'crook_pick_a_pocket', name: 'Pick a Pocket',
+        icon: 'assets/icons/fc1272.png',
+        // A READY skill is pushed too, which matters: without it the
+        // effect does nothing at all to a fresh enemy, and a fresh enemy
+        // is exactly the one worth using it on. Capped against each
+        // skill's own cooldown, so nothing is ever shelved for longer
+        // than a fresh cast of it would take.
+        description: 'Straight into the pack: 140% ATK to one enemy, and a 50% chance to ' +
+          'push every one of their cooldowns back 2 turns — the ones they had ready ' +
+          'included.',
+        cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
+        effects: [
+          { type: 'damage', mult: 1.40 },
+          { type: 'cooldownPush', turns: 2, chance: 0.5 },
+        ],
+        levelUps: [
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { mult: 0.1 },
+          { debuffChance: 0.25 },
+          { refund: 1 },
+          { cooldown: -1 },
+          { cooldown: -1 },
+        ],
+      },
+    ],
+    passive: {
+      name: 'Light Fingers',
+      icon: 'assets/icons/fc1066.png',
+      // Reads the enemy's COOLDOWNS, which nothing else does. It pays
+      // against anybody who has just spent a skill, so it is never dead
+      // -- and his own seven is the biggest single thing that can
+      // trigger it, which is what welds the kit together.
+      //
+      // Slot-one fillers are skipped, exactly as they are by the push:
+      // a skill on a zero cooldown is never "away", so counting it would
+      // pay him for nothing.
+      description: 'He charges for what you have already spent: Crook deals 12% more ' +
+        'damage for every skill the target has on cooldown.',
+      hooks: {
+        damageDealtMult(unit, target) {
+          if (!target || !Array.isArray(target.abilities)) return 1;
+          const away = target.abilities.filter((a) =>
+            a.cooldownRemaining > 0 && a.def && a.def.cooldown > 0).length;
+          return 1 + 0.12 * away;
+        },
+      },
+    },
+    positional: POSITIONALS.fence,
+  },
 });

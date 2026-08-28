@@ -1419,6 +1419,47 @@ const Abilities = (() => {
         }
         return { kind: 'cooldownReduce', target, turns: by, moved };
       }
+      case 'cooldownPush': {
+        // The hostile mirror of cooldownReduce, and an axis nothing on
+        // the roster has ever touched: allies get their skills back
+        // early, and until Crook nobody took an enemy's away. It is not
+        // an action-bar drain wearing a different coat -- a drain moves
+        // WHEN you act, this moves WHAT you can do when you get there.
+        //
+        // Gated at the roster-standard 50% every taking is held to, and
+        // contested afterwards like any other: pushing a skill out of
+        // somebody's reach is done TO them.
+        const pushLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (pushLad.debuffChance || 0))) {
+          return { kind: 'cooldownPush', target, turns: 0, rolled: true };
+        }
+        if (!takeLands(caster, target)) {
+          return { kind: 'cooldownPush', target, turns: 0, resisted: true };
+        }
+        let by = (effect.turns || 1) + (pushLad.refund || 0);
+        for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+          if (p.hooks && p.hooks.cooldownPushAdd) by += p.hooks.cooldownPushAdd;
+        }
+        // A skill that is READY is pushed too -- otherwise the effect
+        // does nothing at all against a fresh enemy, which is exactly
+        // the enemy worth using it on. Capped against the skill's own
+        // cooldown so it can never be shelved for longer than a fresh
+        // cast of it would take.
+        //
+        // The cap is also what leaves a slot-one filler alone: its own
+        // cooldown is zero, so min(0, anything) is zero and it is never
+        // taken. An explicit `if (cap <= 0) continue` was written here
+        // first and could not be made to bite, which is the tell.
+        let moved = 0;
+        for (const a of (target.abilities || [])) {
+          const cap = (a.def && a.def.cooldown) || 0;
+          const was = a.cooldownRemaining;
+          a.cooldownRemaining = Math.min(cap, was + by);
+          moved += a.cooldownRemaining - was;
+        }
+        return { kind: 'cooldownPush', target, turns: by, moved };
+      }
       case 'extendBuffs': {
         // Hold the note: every blessing the target is wearing runs
         // longer. Buffs only -- a debuff is somebody else's chord --
