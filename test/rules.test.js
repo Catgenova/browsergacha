@@ -12009,4 +12009,58 @@ test('Orien: Noon Angle finds the gap', () => {
   assert(on > off, `the angle carried ${on} against ${off} off it`);
 });
 
+// The bank readout. Both banks were invisible until now -- the only
+// feedback was a floating number as they filled -- so a player could
+// not tell mid-fight whether the button was worth nine hundred or
+// nothing. bankState is what the renderer draws; it has to agree with
+// what the fill hook actually did.
+test('bank readout: what the bar shows is what the bank holds', () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    // A hero with no bank shows no bar at all.
+    const plain = place(battle, HEROES.aster, TEAM.PLAYER, 4);
+    assert(plain.bankState() === null, 'a hero with no bank offered a readout');
+
+    // Balmor's bill, filled by taking a blow.
+    const balmor = roomy(place(battle, HEROES.balmor, TEAM.PLAYER, 1), 5);
+    balmor.dodgeChance = () => 0; balmor.reflectChance = () => 0;
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+    foe.hookSources = () => [];
+    assert(balmor.bankState().held === 0, 'the bill did not open empty');
+    assert(balmor.bankState().frac === 0, 'an empty bill drew a filled bar');
+
+    const real = Math.random;
+    Math.random = () => 0.99;
+    try { Abilities.strike(foe, balmor, 400, { dodge: false, reflect: false }); }
+    finally { Math.random = real; }
+    let st = balmor.bankState();
+    assert(st.held > 0 && st.held === balmor.pouch,
+      `the bar shows ${st.held} and the bill holds ${balmor.pouch}`);
+    assert(st.label === 'BILL', `the bar is labelled ${st.label}`);
+
+    // The ceiling the bar draws against is the descriptor's, and the
+    // hook fills to exactly that -- one number, not two copies.
+    balmor.pouch = balmor.maxHp;                 // overfull by any measure
+    st = balmor.bankState();
+    assert(st.frac === 1, `an overfull bill drew ${st.frac} of a bar`);
+    assert(Math.abs(st.cap - balmor.maxHp * 0.125) < 1e-6,
+      'the bar is drawn against a different ceiling than the card names');
+
+    // And the fill hook takes its ceiling from the same descriptor.
+    balmor.pouch = 0;
+    Math.random = () => 0.99;
+    try {
+      for (let i = 0; i < 40; i++) {
+        balmor.hp = balmor.maxHp;
+        Abilities.strike(foe, balmor, 4000, { dodge: false, reflect: false });
+      }
+    } finally { Math.random = real; }
+    assert(Math.abs(balmor.pouch - balmor.maxHp * 0.125) < 1,
+      `the hook filled to ${Math.round(balmor.pouch)}, the bar caps at ` +
+      `${Math.round(balmor.maxHp * 0.125)}`);
+  } finally { Battle.active = prev; }
+});
+
 report();

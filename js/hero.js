@@ -719,6 +719,38 @@ class Unit {
     };
   }
 
+  // ---- Banks -------------------------------------------------------------
+
+  // Some heroes carry a per-battle bank: Balmor keeps the blows he takes
+  // in his bill, Orien keeps the healing the party wastes in his orb.
+  // Both are filled by a passive, emptied by a `spendPouch` skill, and
+  // both used to be completely invisible -- the only feedback was a
+  // floating number as they filled, so a player mid-fight could not tell
+  // whether the button was worth nine hundred or nothing.
+  //
+  // The passive declares one `bank` descriptor and everything else reads
+  // it: the renderer draws the meter, the fill hook takes its ceiling
+  // from it, and a data test holds the card's wording to the same
+  // number. One place to change, three things that cannot drift.
+  //
+  //   { prop, capPct, label, color }
+  //
+  // `prop` is the property on the unit; the ceiling is capPct of max HP.
+  static bankOf(unit) {
+    for (const p of (unit.passives || [])) if (p.bank) return p.bank;
+    return null;
+  }
+
+  // What a bank is holding right now, as { held, cap, frac, ...descriptor }.
+  // Null when the hero has no bank at all.
+  bankState() {
+    const bank = Unit.bankOf(this);
+    if (!bank) return null;
+    const cap = this.maxHp * bank.capPct;
+    const held = Math.max(0, Math.min(cap, this[bank.prop] || 0));
+    return { ...bank, held, cap, frac: cap > 0 ? held / cap : 0 };
+  }
+
   // ---- Health ------------------------------------------------------------
 
   // Returns the damage actually dealt. `attacker` (when known) is who

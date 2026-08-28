@@ -197,6 +197,59 @@ test('passives never gate on the hero own hex (that is the positional layer)', (
   assert(offenders.length === 0, offenders.join(', '));
 });
 
+// A per-battle bank (Balmor's bill, Orien's orb) has three places its
+// ceiling can be written: the descriptor the renderer draws from, the
+// hook that fills it, and the card the player reads. They used to be
+// two independent copies and a card that mentioned no number at all.
+// The descriptor is the source now, and this holds the other two to it.
+test('every bank has a descriptor, and its card says what it holds', () => {
+  const { HEROES } = g;
+  const problems = [];
+  // A word for each fraction the cards are allowed to say it in. A bank
+  // is a fraction of max HP, and "an eighth" has to be as checkable as
+  // "15%" or the prose quietly drifts off the number.
+  const WORDS = { 0.125: ['an eighth', '12.5%'], 0.15: ['15%'], 0.20: ['a fifth', '20%'],
+    0.25: ['a quarter', '25%'] };
+  for (const h of Object.values(HEROES)) {
+    const spends = (h.abilities || []).filter((a) =>
+      (a.effects || []).some((e) => e.type === 'spendPouch'));
+    const bank = [h.passive, ...(h.passives || [])].filter(Boolean)
+      .map((p) => p.bank).find(Boolean);
+    if (!spends.length && !bank) continue;
+    if (spends.length && !bank) {
+      problems.push(`${h.id}: spends a bank with no descriptor to draw`);
+      continue;
+    }
+    if (!spends.length) {
+      problems.push(`${h.id}: banks something nothing ever spends`);
+      continue;
+    }
+    // The spend has to empty the property the descriptor names.
+    for (const a of spends) {
+      const e = a.effects.find((x) => x.type === 'spendPouch');
+      const store = e.store || 'pouch';
+      if (store !== bank.prop) {
+        problems.push(`${h.id}/${a.id}: empties '${store}', the bank is '${bank.prop}'`);
+      }
+    }
+    // And the card has to name the ceiling. A bank is invisible before a
+    // fight starts, so the description is the only place a player can
+    // learn what pressing the button is worth.
+    const words = WORDS[bank.capPct];
+    if (!words) {
+      problems.push(`${h.id}: a ${bank.capPct} cap with no wording recorded for it`);
+      continue;
+    }
+    for (const a of spends) {
+      const text = a.description || '';
+      if (!words.some((wd) => text.includes(wd))) {
+        problems.push(`${h.id}/${a.id}: the card never says ${words[0]}`);
+      }
+    }
+  }
+  assert(problems.length === 0, problems.join('\n  '));
+});
+
 test('every positional archetype is used by someone', () => {
   // "Someone" includes the test-only enemy bodies in test/dummies.js:
   // they are fielded by the rules tests exactly as a hero is, so an

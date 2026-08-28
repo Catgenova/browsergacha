@@ -2337,8 +2337,13 @@ Object.assign(HEROES, {
       {
         id: 'balmor_tip_the_bill', name: 'Tip the Bill',
         icon: 'assets/icons/fc1272.png',
-        description: 'Upend the whole bill over one enemy: everything Balmor has been ' +
-          'given so far, given back as a single blow.',
+        // Same rule as Orien's orb, for the same reason: a bank is only
+        // as legible as its card. The readout under the health bar shows
+        // how full the bill is DURING a fight; this has to say what the
+        // bill is and what fills it before one starts.
+        description: 'Upend the whole bill over one enemy: every blow Balmor has taken so ' +
+          'far, handed back as one. The bill holds up to an eighth of his max HP — ' +
+          'and an empty bill hands back nothing.',
         cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [{ type: 'spendPouch' }],
         levelUps: [
@@ -2370,10 +2375,15 @@ Object.assign(HEROES, {
       // of the curve.
       description: 'Nothing is wasted on a pelican: Balmor keeps every blow he takes in ' +
         'his bill, up to an eighth of his max HP.',
+      // What the renderer draws under his health bar, and the single
+      // place the ceiling is written. The hook below reads it rather
+      // than carrying its own copy, so the bar, the cap and the card can
+      // never quietly disagree.
+      bank: { prop: 'pouch', capPct: 0.125, label: 'BILL', color: '#e8c84a' },
       hooks: {
         onStruck(unit, { amount } = {}) {
           if (!unit.alive || !(amount > 0)) return null;
-          const cap = unit.maxHp * 0.125;
+          const cap = unit.maxHp * Unit.bankOf(unit).capPct;
           const before = unit.pouch || 0;
           if (before >= cap) return null;
           unit.pouch = Math.min(cap, before + amount);
@@ -3370,10 +3380,11 @@ Object.assign(HEROES, {
       description: 'Nothing the brood spills is wasted on Orien: every point of healing ' +
         'that lands on an ally already full is caught in the orb, up to 15% ' +
         'of his max HP.',
+      bank: { prop: 'orb', capPct: 0.15, label: 'ORB', color: '#ffd76a' },
       hooks: {
         onAllyOverheal(unit, { overflow } = {}) {
           if (!unit.alive || !(overflow > 0)) return null;
-          const cap = unit.maxHp * 0.15;
+          const cap = unit.maxHp * Unit.bankOf(unit).capPct;
           const before = unit.orb || 0;
           if (before >= cap) return null;
           unit.orb = Math.min(cap, before + overflow);

@@ -310,6 +310,11 @@ class UI {
     const side = unit.team === TEAM.PLAYER ? 'Your side' : 'Enemy';
     const hpPct = Math.max(0, Math.round((unit.hp / unit.maxHp) * 100));
     const shield = unit.shieldTotal ? unit.shieldTotal() : 0;
+    // A per-battle bank (Balmor's bill, Orien's orb). The field draws
+    // the bar; this is the only place the exact figure is printed, and
+    // it needs to be, because the skill that spends it is worth whatever
+    // happens to be in there and nothing else.
+    const bank = unit.bankState ? unit.bankState() : null;
 
     // Statuses, with the turns left and the hand behind them — the
     // nameplate icons say WHAT is on; this says how long and from whom.
@@ -348,6 +353,11 @@ class UI {
         <div class="insp-hp-bar"><div class="insp-hp-fill" style="width:${hpPct}%"></div></div>
         <span>${n(unit.hp)} / ${n(unit.maxHp)} HP${shield ? ` (+${n(shield)} shield)` : ''}</span>
       </div>
+      ${bank ? `<div class="insp-bank">
+        <div class="insp-bank-bar"><div class="insp-bank-fill"
+          style="width:${Math.round(bank.frac * 100)}%;background:${bank.color}"></div></div>
+        <span>${bank.label} ${n(bank.held)} / ${n(bank.cap)}</span>
+      </div>` : ''}
       <div class="insp-stats">
         ATK ${n(unit.effectiveStat('atk'))} · DEF ${n(unit.effectiveStat('def'))} ·
         SPD ${n(unit.effectiveStat('speed'))}

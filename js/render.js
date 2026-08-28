@@ -611,6 +611,39 @@ class Renderer {
       ctx.fillRect(x - w / 2, tmTop, w * overflow, tmH);
     }
 
+    // Bank meter: a third bar under the turn meter, drawn only for the
+    // heroes who carry a per-battle bank (Balmor's bill, Orien's orb)
+    // and only once there is something in it. Both are spent by a single
+    // button whose whole worth is what the bank happens to be holding,
+    // and until this bar there was no way to read that mid-fight -- the
+    // only feedback was a floating number at the moment it filled.
+    //
+    // Deliberately thin and unlabelled below full size: it is a second
+    // resource on two heroes out of forty, and it must not read as part
+    // of everyone else's furniture.
+    const bank = unit.bankState && unit.bankState();
+    if (bank && bank.held > 0) {
+      const bkTop = tmTop + tmH + 2;
+      const bkH = Math.max(2, tmH - 1);
+      ctx.fillStyle = '#0e0c14';
+      ctx.fillRect(x - w / 2 - 1, bkTop - 1, w + 2, bkH + 2);
+      ctx.fillStyle = '#3a3450';
+      ctx.fillRect(x - w / 2, bkTop, w, bkH);
+      ctx.fillStyle = bank.color || '#ffd76a';
+      ctx.fillRect(x - w / 2, bkTop, w * bank.frac, bkH);
+      // No figure on the field, and two attempts is how that was
+      // settled. Under the bar runs through the next rank's name plate
+      // ("ORB 903" straight across Aster's label); beside it runs into
+      // the neighbouring plate, because a formation is packed on both
+      // axes and a nameplate has no spare room in either direction.
+      //
+      // The bar alone answers the question the player is actually
+      // asking, which is "is it worth pressing yet" -- a fraction, not a
+      // figure, and the figure would not predict the damage anyway with
+      // the DEF curve in the way. The exact number lives in the unit
+      // inspector, where there is room to print it.
+    }
+
     // Name (shadowed for readability over bright field art)
     ctx.save();
     ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
