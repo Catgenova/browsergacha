@@ -14076,4 +14076,32 @@ test('Carrion: The Whole Table clears everything there is', () => {
   } finally { Battle.active = prev; }
 });
 
+// Auto-equip resolves a ROSTER UID, not a character id.
+//
+// It used to read `HEROES[heroId]` with a uid in hand, which finds
+// nothing, so the guard below it returned 0 for every hero on the
+// roster: the button reported "already wearing the best available" over
+// eight empty slots, and had done since the roster became a list of
+// instances. Nothing caught it because nothing asked auto-equip to
+// actually move a piece.
+test('auto-equip fills empty slots for a hero held by uid', () => {
+  const before = GameState.ownedHeroIds();
+  const uid = before[0];
+  assert(uid !== undefined, 'the starting roster is empty');
+  // A piece for every slot, none of them worn.
+  const sets = Object.keys(Gear.SETS);
+  for (let i = 0; i < Gear.SLOTS.length * 3; i++) {
+    GameState.addGear(Gear.drop(sets[i % sets.length], 5));
+  }
+  const emptyBefore = Gear.SLOTS
+    .filter((s) => !GameState.equipmentOf(uid)[s]).length;
+  assert(emptyBefore === Gear.SLOTS.length,
+    `hero started with ${Gear.SLOTS.length - emptyBefore} pieces on`);
+  const changed = GameState.autoEquip(uid);
+  assert(changed > 0, 'auto-equip moved nothing with a full inventory to pick from');
+  const wornAfter = Gear.SLOTS.filter((s) => GameState.equipmentOf(uid)[s]).length;
+  assert(wornAfter === changed,
+    `reported ${changed} slots upgraded but ${wornAfter} are worn`);
+});
+
 report();

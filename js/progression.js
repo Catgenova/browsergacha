@@ -159,12 +159,12 @@ const Progression = (() => {
   // What the earned rungs have actually bought, for the roster and
   // Improve readouts. A laddered skill lists its deltas; a legacy one
   // keeps the old blanket "+N% power" line.
-  function skillBonusText(abilityDef, level) {
-    if (!abilityDef || !abilityDef.levelUps) {
-      const bonus = Math.round((skillPower(level) - 1) * 100);
-      return bonus > 0 ? `+${bonus}% power` : '';
-    }
-    const l = skillLadder(abilityDef, level);
+  // One bag of rung deltas, rendered as human labels. Shared by the
+  // whole-ladder readout below and by the per-rung readout the Roster
+  // screen's skill panel prints beside each level ("Lv.2 +5% power"),
+  // so the two can never drift into describing the same rung
+  // differently.
+  function deltaBits(abilityDef, l) {
     const bits = [];
     // Flat and per-mirror rungs are listed apart on purpose. Summing
     // them reads as one number that is true at no mirror count: +50 flat
@@ -196,7 +196,29 @@ const Progression = (() => {
     if (l.per) bits.push(`+${l.per} ATK each`);
     if (l.duration) bits.push(`+${l.duration} turn${l.duration === 1 ? '' : 's'}`);
     if (l.cooldown) bits.push(`${l.cooldown} CD`);
-    return bits.join(' · ');
+    return bits;
+  }
+
+  function skillBonusText(abilityDef, level) {
+    if (!abilityDef || !abilityDef.levelUps) {
+      const bonus = Math.round((skillPower(level) - 1) * 100);
+      return bonus > 0 ? `+${bonus}% power` : '';
+    }
+    return deltaBits(abilityDef, skillLadder(abilityDef, level)).join(' \u00b7 ');
+  }
+
+  // What ONE rung buys, for a ladder printed a line at a time. `i` is
+  // the rung index, so rung 0 is the step from level 1 to level 2 --
+  // the same indexing skillLadder walks.
+  function rungText(abilityDef, i) {
+    const rungs = (abilityDef && abilityDef.levelUps) || [];
+    if (!rungs[i]) return '';
+    const bits = deltaBits(abilityDef, rungs[i]);
+    // A rung with no recognised key still happened, and saying nothing
+    // reads as a level that bought nothing. Name the keys instead: an
+    // unrendered rung should look like a gap in this table, not like a
+    // gap in the skill.
+    return bits.length ? bits.join(' \u00b7 ') : Object.keys(rungs[i]).join(', ');
   }
 
   // What a skill's numbers ACTUALLY are at `level`, resolved.
@@ -445,6 +467,6 @@ const Progression = (() => {
     BOSS_MAX_STAGE, bossLevel, bossScaledStats, power,
     MAX_SKILL_LEVEL, skillPower,
     SKILL_RUNGS, skillRungs, maxSkillLevel, skillCap, skillLadder,
-    skillBonusText, skillCooldown, skillFacts, factText, factWas, skillFactsHtml,
+    skillBonusText, rungText, skillCooldown, skillFacts, factText, factWas, skillFactsHtml,
   };
 })();
