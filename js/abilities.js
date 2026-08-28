@@ -174,12 +174,34 @@ const Abilities = (() => {
       target.effectiveStat('def') * (1 - Math.min(0.9, pen)));
     let crit = false;
     if (opts.crit) {
-      // critAdd: a per-hit crit-chance rider (Samuels's knives), on top
-      // of whatever the caster's own chance already is.
-      const chance = Math.min(1,
-        caster.effectiveStat('critChance') + (opts.critAdd || 0));
-      crit = Math.random() < chance;
-      if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
+      // Crit shelter (Mavros): a blow can be refused its crit outright.
+      // Read on the VICTIM's own hooks AND on every living ally, the way
+      // cover is -- an armoured bird shelters somebody else by standing
+      // where he stands, so the hook decides for itself who it covers.
+      //
+      // It short-circuits the roll rather than rolling and discarding:
+      // a shelter that consumed randomness would quietly shift every
+      // later roll in the fight.
+      let proof = false;
+      const field = (typeof Battle !== 'undefined' && Battle.active) || null;
+      const guards = field && Array.isArray(field.units) &&
+        field.units.includes(target)
+        ? [target, ...field.livingUnits(target.team)] : [target];
+      for (const g of guards) {
+        for (const p of (g.hookSources ? g.hookSources() : [])) {
+          const hook = p.hooks && p.hooks.critProof;
+          if (hook && hook(g, target)) { proof = true; break; }
+        }
+        if (proof) break;
+      }
+      if (!proof) {
+        // critAdd: a per-hit crit-chance rider (Samuels's knives), on top
+        // of whatever the caster's own chance already is.
+        const chance = Math.min(1,
+          caster.effectiveStat('critChance') + (opts.critAdd || 0));
+        crit = Math.random() < chance;
+        if (crit) dmg = Math.round(dmg * caster.effectiveStat('critDamage'));
+      }
     }
     if (dodged) {
       // Credit the dodger with the hit that never landed, then let

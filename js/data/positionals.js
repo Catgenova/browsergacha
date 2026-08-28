@@ -436,6 +436,18 @@ const POSITIONALS = (() => {
     hooks: { critCarry: 1 },
   });
 
+  // Mavros's hex: standing at the gate he can put the casque over one
+  // more rank. Widens WHO the shelter covers rather than what it stops,
+  // which is the only lever a hero whose passive is already binary has
+  // -- and the rank it adds is the centre, where the brood keeps its
+  // healer.
+  def('gatepost', {
+    position: POSITION.FRONT,
+    name: 'Gatepost',
+    description: 'Front hex: his crit shelter reaches the CENTER hexes as well as the back.',
+    hooks: { critShelterWide: true },
+  });
+
   def('press_the_flank', {
     position: POSITION.CENTER,
     name: 'Press the Flank',
