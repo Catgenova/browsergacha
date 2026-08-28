@@ -11489,4 +11489,56 @@ test('Nemeris: The Long Morning strips and mends in one cast', () => {
   } finally { Battle.active = prev; }
 });
 
+// His cd5, and the reason it is a speed buff rather than a third mend.
+// Wingbeat Mend prices every heal off the caster's speed AT THE MOMENT
+// IT LANDS, so a party-wide lift to the brood's first pillar is a
+// party-wide lift to its third -- the sect's arithmetic closing on
+// itself, with no code behind it. Pinned because the skill is arbitrary
+// if this does not hold.
+test('Nemeris: Up With the Sun buys the brood a Wingbeat rung', () => {
+  const battle = new Battle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const units = [];
+    ['nemeris', 'durn', 'aurek'].forEach((id, i) => {
+      const u = new Unit(HEROES[id], TEAM.PLAYER, { level: 30, stars: 5 });
+      battle.placeUnit(u, i);
+      units.push(u);
+    });
+    RACES.applyParty(units);
+    const [nem, durn] = units;
+
+    // 2pc buys the speed, 3pc converts it. Both are live at three.
+    const before = { nem: nem.healingBoost(nem), durn: durn.healingBoost(durn) };
+    const spdBefore = { nem: nem.effectiveStat('speed'), durn: durn.effectiveStat('speed') };
+
+    const sun = nem.abilities.find((a) => a.def.id === 'nemeris_up_with_the_sun');
+    assert(sun, 'Up With the Sun is missing');
+    assert(sun.def.targeting === 'all-allies', 'the sunrise did not reach the whole brood');
+    // Cast ONCE: an all-allies skill fans out on its own, and calling
+    // it per target stacked three sunrises on the caster.
+    Abilities.execute(sun.def, nem, durn, battle);
+
+    for (const u of units) {
+      const fx = u.statusEffects.filter(
+        (x) => x.kind === 'buff' && x.stat === 'speed' && x.mult > 1);
+      assert(fx.length === 1, `${u.name} caught ${fx.length} sunrises`);
+      assert(fx[0].turns === 4, `the window is ${fx[0].turns} turns, not 4`);
+    }
+    assert(nem.effectiveStat('speed') > spdBefore.nem, 'Nemeris did not speed up');
+
+    // The claim itself: a rung each, not just a faster bird.
+    assert(nem.healingBoost(nem) - before.nem > 0.049,
+      `Nemeris gained ${(nem.healingBoost(nem) - before.nem).toFixed(3)} healing, ` +
+      'expected at least one 5% Wingbeat rung');
+    assert(durn.healingBoost(durn) - before.durn > 0.049,
+      `Durn gained ${(durn.healingBoost(durn) - before.durn).toFixed(3)} healing, ` +
+      'expected at least one 5% Wingbeat rung');
+
+    // And it is a buff, not a mend: nobody was healed by the sunrise.
+    assert(durn.hp === durn.maxHp, 'Up With the Sun mended somebody');
+  } finally { Battle.active = prev; }
+});
+
 report();
