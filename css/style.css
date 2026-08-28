@@ -8,23 +8,28 @@ body {
   background: #14121a;
   color: #e8e4d8;
   font-family: 'Courier New', monospace;
-  display: flex;
-  justify-content: center;
-  align-items: safe center;
-  padding: 12px 0;
+  /* A plain block, not a centering flex row. The shell used to be a
+     fixed 960px column that this centered and fitToScreen zoomed to
+     taste, which on any normal monitor left the game as a narrow strip
+     with dead ground either side: at 1920x1080 the height was what
+     bound the zoom, so the column came out barely 1000px wide inside a
+     1920px window. The shell is fluid now and simply takes the window. */
+  display: block;
+  padding: 12px;
   min-height: 100vh;
   overflow: auto;
 }
 
 #game-root {
   position: relative;
-  width: 960px;
-  /* The body is a flex container, so without this a narrow window would
-     compress the layout itself (squeezing flexible panels like the hero
-     details aside into a sliver) on top of the fit-to-screen scaling.
-     Keep the layout at its design width; scaling alone handles small
-     windows. */
-  flex-shrink: 0;
+  /* Fluid: the layout is the window, less the body padding. */
+  width: 100%;
+  /* 960 remains the DESIGN width -- the width every panel's proportions
+     were drawn against -- and it is still the floor. Below it the
+     panels would start squeezing into slivers, so the box holds at 960
+     and fitToScreen shrinks the whole thing instead, exactly as before.
+     Above it there is nothing to scale: the box simply gets wider and
+     the screens inside spread into it. */
   min-width: 960px;
   /* Anchor scaling to the top so tall pages (big rosters) grow downward
      and scroll, instead of shrinking into a centered sliver. */
@@ -1074,10 +1079,16 @@ body {
   color: #9a92b8;
 }
 
+/* Wraps rather than overflows. The filters, the sort box and the bulk
+   controls together want more than the design width, so on a window at
+   or near the 960 floor the auto-salvage picker used to hang off the
+   right edge of the panel. Wrapping was a mobile-only rule; there is no
+   reason it should not be the rule everywhere. */
 #bs-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 10px;
 }
@@ -1103,6 +1114,7 @@ body {
 #bs-bulk {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -1257,18 +1269,35 @@ body {
 }
 
 /* ==== Summon screen ==== */
+/* Three columns: the odds, what you are holding, and the buttons. The
+   header used to be one centred stack, which on a full-window shell
+   read as a thin ribbon of text down the middle of two thousand pixels.
+   auto-fit rather than a fixed three, so the columns fold to two and
+   then to one as the window narrows without needing a breakpoint of
+   their own. */
 #summon-header {
-  padding: 14px 16px;
+  padding: 16px 20px;
   background: #1c1926;
   border: 2px solid #3a3450;
   border-radius: 6px;
-  text-align: center;
+  display: grid;
+  /* min() on the floor, or the track cannot shrink below it and the
+     grid overflows a phone instead of folding to one column. */
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 14px 32px;
+  align-items: start;
 }
+
+.summon-col { min-width: 0; }
+/* The buttons want to sit at the right-hand end of the row rather than
+   float in the middle of their own column. */
+.summon-col-act { justify-self: end; width: 100%; max-width: 420px; }
 
 #summon-header h2 {
   font-size: 18px;
   letter-spacing: 2px;
   color: #ffd76a;
+  margin-bottom: 6px;
 }
 
 .summon-rates {
@@ -1292,11 +1321,13 @@ body {
 #summon-roster-space.roster-low { color: #e8c84a; }
 #summon-roster-space.roster-full { color: #ff7a6a; font-weight: bold; }
 
+/* Two columns of three: six buttons in one row needed 1000px of window
+   and left the pairs (x1 next to x10) reading as one long undifferentiated
+   strip. Paired up they read as three offers. */
 #summon-actions {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
 }
 
 #summon-error {
@@ -1312,8 +1343,13 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
+  /* Reserved so the page does not jump as the cards flip in -- but only
+     once there ARE cards. Empty, it used to hold open 190px of nothing
+     between the header and the banners, which on a full-window layout
+     is a visible hole rather than a small gap. */
   min-height: 190px;
 }
+#summon-results:empty { min-height: 0; margin-top: 0; }
 
 .summon-card {
   width: 116px;
@@ -2772,8 +2808,22 @@ svg.icon {
    stacks one panel per running banner (banners can overlap, one per
    scroll kind). Classes, not ids — the battle end-of-fight banner owns
    the #banner-title/#banner-actions names. */
+/* Side by side when the window can hold them, stacked when it cannot.
+   Banners can overlap (one per scroll kind), and two full-width panels
+   stacked vertically pushed the second below the fold on every monitor.
+   934 rather than a smaller floor because that is the narrowest panel
+   that still seats a ten-hero sect in one rank: ten 84px tiles and nine
+   6px gaps is 894, plus the panel's own 40 of padding. Pairing the
+   banners up any earlier buys a second column at the cost of breaking
+   both hero strips, and a broken strip is the more visible loss. (The
+   floor cannot be met by letting the tiles shrink instead: auto-fit
+   counts tracks against the MAX of its minmax, so a strip that cannot
+   seat ten at full size drops to eight at full size rather than fitting
+   ten at reduced size.) */
 #banner-block {
-  display: flex; flex-direction: column; gap: 14px; margin: 18px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(934px, 100%), 1fr));
+  gap: 14px; margin: 18px 0 0;
 }
 .banner-panel {
   padding: 16px 18px 18px;
@@ -2785,10 +2835,24 @@ svg.icon {
   font-size: 16px; font-weight: 700; letter-spacing: 1px; color: #ffd76a;
 }
 .banner-panel-sub { font-size: 12px; color: #c8b88a; margin-top: 3px; }
+/* A whole sect on one line. This was a wrapping flex row of rigid 84px
+   tiles, so a ten-hero sect in a panel that could seat nine left the
+   tenth stranded alone underneath -- and flex is no help, because it
+   wraps BEFORE it shrinks, so giving the tiles a shrink range changed
+   nothing. Grid tracks do shrink: auto-fit seats as many as the strip
+   can take and hands each one anything from 64px to its full 84px.
+   Paired with the two-column threshold on #banner-block below -- which
+   is set so a panel is never narrower than ten tiles need -- a sect
+   reads as a single rank at every desktop width. */
 .banner-featured {
-  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-  margin: 12px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 84px));
+  justify-content: center;
+  gap: 6px; margin: 12px 0;
 }
+.banner-hero { width: auto; min-width: 0; }
+/* The blurb is prose: it reads badly set across a whole half-window. */
+.banner-panel-sub { max-width: 62ch; margin-left: auto; margin-right: auto; }
 .banner-hero { width: 84px; position: relative; }
 /* A featured hero already claimed by the banner's pity: still shown,
    crossed off, out of the pity pool. */
@@ -2811,8 +2875,11 @@ svg.icon {
   display: flex; align-items: center; gap: 8px; margin: 8px 0 2px;
 }
 #comp-wishlist-note { font-size: 11px; color: #c8b88a; }
+/* Fluid up to its design size, so a shrunk tile does not spill its own
+   portrait over the edge. */
 .banner-hero canvas {
-  width: 72px; height: 72px; display: block; margin: 0 auto;
+  width: 100%; max-width: 72px; aspect-ratio: 1; height: auto;
+  display: block; margin: 0 auto;
   border: 1px solid rgba(240, 193, 75, 0.4); border-radius: 8px;
   background: #1a1626;
 }
