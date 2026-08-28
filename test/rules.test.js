@@ -14351,4 +14351,103 @@ test('the Kitchen board is 500 quests that all pay dumplings', () => {
   assert(GameState.claimQuest('kitchen', first.id) === null, 'claimed twice');
 });
 
+// The dumpling picker: the smallest set that finishes the bar.
+test('planDumplingFill takes the least it can, and everything when that is not enough', () => {
+  const G = loadGame();
+  const { GameState, Progression, HEROES } = G;
+
+  const fresh = (rarity) => {
+    const id = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === rarity &&
+      !['light', 'dark'].includes(HEROES[k].element));
+    const uid = GameState.addHero(id).uid;
+    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
+    return uid;
+  };
+  const dump = (st) => GameState.addDumpling(st).uid;
+  const worth = (plan) => plan.uids.reduce((n, u) => n + GameState.fodderValue(u), 0);
+
+  // A 3-star bar wants 24. Twenty-four 1-star dumplings (10 each) are in
+  // hand, and three of them cover it -- the picker must not tick all 24.
+  const target = fresh(3);
+  assert(Progression.starUpCost(GameState.progressOf(target).stars) === 24,
+    'the 3-star bar is not 24 points');
+  for (let i = 0; i < 24; i++) dump(1);
+  let plan = GameState.planDumplingFill(target);
+  assert(plan.uids.length === 3, `took ${plan.uids.length} dumplings, wanted 3`);
+  assert(plan.points === 30 && worth(plan) === 30, `worth ${plan.points}`);
+  assert(plan.short === 0, `reported ${plan.short} short`);
+
+  // THE PRUNE. One 1-star and one 4-star against the same 24-point bar:
+  // greedy-ascending takes the 10, is still short, takes the 500, and has
+  // spent both where the 500 alone would have done. Only the 4-star
+  // should survive.
+  const second = fresh(3);
+  const solo = loadGame();
+  const S = solo.GameState;
+  const id3 = Object.keys(solo.HEROES).find((k) => (solo.HEROES[k].rarity || 1) === 3 &&
+    !['light', 'dark'].includes(solo.HEROES[k].element));
+  const t2 = S.addHero(id3).uid;
+  if (S.isFavorite(t2)) S.toggleFavorite(t2);
+  const small = S.addDumpling(1).uid;
+  const big = S.addDumpling(4).uid;
+  const p2 = S.planDumplingFill(t2);
+  assert(p2.uids.length === 1 && p2.uids[0] === big,
+    `the prune kept ${p2.uids.length} picks: ${JSON.stringify(p2.uids)}`);
+  assert(!p2.uids.includes(small), 'the redundant 1-star survived the prune');
+  assert(p2.short === 0, 'a 500-point dumpling did not cover a 24-point bar');
+
+  // SMALLEST FIRST, and this is the case that says so. A 24-point bar
+  // with three 1-stars (30 between them) and one 5-star (1,000) in hand:
+  // both policies "work", and largest-first spends a thousand points on
+  // a bar that thirty covers. Overflow rolls over so nothing is
+  // destroyed -- but it is not handed back either, and a convenience
+  // button must not make that call for the player.
+  const cheap = loadGame();
+  const C = cheap.GameState;
+  const idc = Object.keys(cheap.HEROES).find((k) => (cheap.HEROES[k].rarity || 1) === 3 &&
+    !['light', 'dark'].includes(cheap.HEROES[k].element));
+  const tc = C.addHero(idc).uid;
+  if (C.isFavorite(tc)) C.toggleFavorite(tc);
+  for (let i = 0; i < 3; i++) C.addDumpling(1);
+  C.addDumpling(5);
+  const pc = C.planDumplingFill(tc);
+  assert(pc.points === 30,
+    `spent ${pc.points} on a 24-point bar that three 1-stars cover for 30`);
+  assert(pc.uids.length === 3, `took ${pc.uids.length} picks, wanted the three cheap ones`);
+  assert(pc.uids.every((u) => C.progressOf(u).stars === 1),
+    'the 5-star dumpling was spent when 1-stars would have done');
+
+  // Not enough: every dumpling in hand is taken and the shortfall named.
+  const third = loadGame();
+  const T = third.GameState;
+  const id4 = Object.keys(third.HEROES).find((k) => (third.HEROES[k].rarity || 1) === 4 &&
+    !['light', 'dark'].includes(third.HEROES[k].element));
+  const t3 = T.addHero(id4).uid;
+  if (T.isFavorite(t3)) T.toggleFavorite(t3);
+  T.addDumpling(1); T.addDumpling(1);        // 20 against a 120-point bar
+  const p3 = T.planDumplingFill(t3);
+  assert(p3.uids.length === 2, `took ${p3.uids.length} of the two available`);
+  assert(p3.points === 20 && p3.short === 100,
+    `${p3.points} points, ${p3.short} short -- wanted 20 and 100`);
+
+  // It accounts for what is ALREADY ticked rather than re-picking from
+  // scratch: two 1-stars in hand plus a 3-star, with the 1-stars already
+  // chosen, needs only the 3-star on top.
+  T.addDumpling(3);
+  const held = T.sacrificeOptions(t3).filter((o) => o.consumable && o.stars === 1)
+    .map((o) => o.uid);
+  assert(held.length === 2, 'the two 1-star dumplings went missing');
+  const p4 = T.planDumplingFill(t3, held);
+  assert(p4.need === 100, `with 20 already ticked the bar wants ${p4.need}, not 100`);
+  assert(p4.uids.length === 1 && p4.points === 100,
+    `topped up with ${p4.uids.length} picks worth ${p4.points}`);
+
+  // Nothing to do when the picks already cover it.
+  const all = T.sacrificeOptions(t3).filter((o) => o.consumable).map((o) => o.uid);
+  const p5 = T.planDumplingFill(t3, all);
+  assert(p5.uids.length === 0 && p5.need <= 0,
+    `still picked ${p5.uids.length} with the bar covered`);
+  assert(second, 'unused target');
+});
+
 report();

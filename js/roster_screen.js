@@ -529,6 +529,11 @@ class RosterScreen {
             (willStar ? ` — ${pr.stars}★ to ${toStars}★` : maxed ? '' : ` — +${num(picking)}`)
           : 'Choose sacrifices below'}
       </button>
+      ${!maxed && options.some((o) => o.consumable && !this.chosen.has(o.uid))
+        ? `<button id="ros-eat" class="panel-btn"
+            title="Tick the smallest set of dumplings that fills the bar. If they
+all together are not enough, every one of them is picked.">🥟 Fill with dumplings</button>`
+        : ''}
       ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
       <div class="ros-note ros-skill-note">${skillPicks
         ? `${skillPicks} cop${skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
@@ -562,6 +567,9 @@ class RosterScreen {
     // listener on it and did nothing when pressed. A disabled button
     // does not fire clicks, so the guard bought nothing and cost the
     // whole interaction.
+    const eat = document.getElementById('ros-eat');
+    if (eat) eat.addEventListener('click', () => this.fillWithDumplings(uid));
+
     const go = document.getElementById('ros-sac');
     if (go) {
       go.addEventListener('click', () => {
@@ -586,6 +594,28 @@ class RosterScreen {
         this.refresh();
       });
     }
+  }
+
+  // Tick the smallest set of dumplings that finishes the bar, or every
+  // one of them when they do not add up to it. The choosing itself is
+  // GameState.planDumplingFill -- it is the part with a subtle rule in
+  // it (see there), so it lives where a test can reach it.
+  fillWithDumplings(uid) {
+    const plan = GameState.planDumplingFill(uid, [...this.chosen]);
+    for (const u of plan.uids) this.chosen.add(u);
+    const n = plan.uids.length;
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    this.message = plan.need <= 0
+      ? 'The bar is already covered by what is picked.'
+      : n === 0
+        ? 'No dumplings to spend.'
+        : plan.short === 0
+          ? `Picked ${n} dumpling${n === 1 ? '' : 's'} for ${num(plan.points)} points.`
+          // "...or all of them if not enough": every dumpling in hand
+          // goes in, and the note says how far short that leaves the bar.
+          : `Picked all ${n} dumpling${n === 1 ? '' : 's'} for ${num(plan.points)} ` +
+            `points — still ${num(plan.short)} short.`;
+    this.renderStarUp();
   }
 
   // Where the current picks land: the same cascade sacrifice() runs,

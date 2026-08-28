@@ -906,6 +906,50 @@ const GameState = (() => {
       return out;
     },
 
+    // Pick the smallest set of dumplings that finishes `targetUid`'s star
+    // bar, ignoring anything in `already` (the fodder the player has
+    // ticked by hand). Returns { uids, points, need, short }.
+    //
+    // Smallest FIRST, not largest: overflow rolls into the next rating so
+    // a big dumpling is never wasted, but it is not returned either, and
+    // spending a 4-star on a bar a 1-star would have finished is a choice
+    // for the player rather than a convenience button.
+    //
+    // Greedy-ascending alone over-picks, though. Needing 24 with a 1-star
+    // (10) and a 4-star (500) in hand it takes the 10, is still short,
+    // takes the 500, and has now spent both where the 500 alone would
+    // have done. So the greedy pass is followed by a prune from the
+    // dearest down, dropping anything the rest already covers.
+    planDumplingFill(targetUid, already = []) {
+      const e = state.roster[targetUid];
+      if (!e) return { uids: [], points: 0, need: 0, short: 0 };
+      const skip = new Set(already);
+      const picked = already.reduce((n, u) => n + this.fodderValue(u), 0);
+      const need = Progression.starUpCost(e.stars) - (e.starPoints || 0) - picked;
+      const spare = this.sacrificeOptions(targetUid)
+        .filter((o) => o.consumable && !skip.has(o.uid))
+        .sort((a, b) => a.value - b.value);
+      if (need <= 0) return { uids: [], points: 0, need: 0, short: 0 };
+
+      const take = [];
+      let have = 0;
+      for (const o of spare) {
+        if (have >= need) break;
+        take.push(o);
+        have += o.value;
+      }
+      // `take` is ascending, so walking it backwards drops the dearest
+      // redundant pick first.
+      for (let i = take.length - 1; i >= 0; i--) {
+        if (have - take[i].value >= need) {
+          have -= take[i].value;
+          take.splice(i, 1);
+        }
+      }
+      return { uids: take.map((o) => o.uid), points: have, need,
+        short: Math.max(0, need - have) };
+    },
+
     // One-click shelf clearing: churn spare 1-star and 2-star heroes into
     // 3-star heroes. The plan is computed first so the button can say
     // what it will cost before anything dies; execution replays the plan
