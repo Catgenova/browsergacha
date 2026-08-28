@@ -2745,6 +2745,13 @@ Object.assign(HEROES, {
   // FRACTION however deep the pool gets -- it just means nothing the
   // element gives is wasted on him.
   //
+  // Only two of his three skills are mends, though, and the middle one
+  // is where the sect's arithmetic actually closes: a party-wide speed
+  // buff IS a party-wide healing buff, because Wingbeat Mend prices
+  // every mend off the caster's speed at the moment it lands. He does
+  // not need a third heal. He needs everybody faster while the other
+  // two are on cooldown.
+  //
   // 128 speed is not decoration. Under the brood's own 2pc it becomes
   // 140.8, which is exactly the second rung of Wingbeat Mend: the sect
   // proving its own thesis on the hero it was built around. +10% (2pc)
@@ -2786,22 +2793,30 @@ Object.assign(HEROES, {
         ],
       },
       {
-        id: 'nemeris_the_whole_brood', name: 'The Whole Brood',
+        id: 'nemeris_up_with_the_sun', name: 'Up With the Sun',
         icon: 'assets/icons/fc1073.png',
-        // Deliberately NOT Durn's Reflect the Sun with a bigger number.
-        // His is a flat figure off one pool, so it is worth most to the
-        // smallest bird on the field; this one is proportional, so the
-        // tank gets a tank's share. Fielded together they cover opposite
-        // ends of the same team.
-        description: 'He tends every one of them at once: ALL allies recover 12% of ' +
-          'their OWN max HP.',
+        // The cash-out, and it is a speed buff rather than a third mend
+        // for one reason: Wingbeat Mend reads effectiveStat('speed')
+        // every time anybody casts, so a party-wide lift to the brood's
+        // FIRST pillar is a party-wide lift to its third. Nemeris at 141
+        // goes to 169 -- two rungs to three -- and Durn at 121 goes to
+        // 145, one rung to two. It is the only speed buff in the game
+        // that is also a healing buff, and it does not need a line of
+        // code to be one.
+        //
+        // Shaped away from Tumble's Quickstep on purpose (cd4, +30%, two
+        // turns): smaller number, twice the window. A burst of speed is
+        // worth a burst of turns; a long one is worth every mend cast
+        // inside it, which is what this hero is for.
+        description: 'The brood is awake before the light is: ALL allies gain +20% Speed ' +
+          'for 4 turns.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'healHpPct', targetPct: 0.12 }],
+        effects: [{ type: 'buff', stat: 'speed', mult: 1.20, turns: 4 }],
         levelUps: [
-          { heal: 0.02 },
-          { heal: 0.02 },
-          { heal: 0.02 },
-          { heal: 0.02 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { duration: 1 },
+          { buffPower: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
