@@ -3723,3 +3723,39 @@ svg.icon {
 /* The candidate list is the tall part of the Star Up panel; cap it so the
    button and the forecast above never scroll off the top. */
 #ros-panel .imp-opts { max-height: 300px; overflow-y: auto; }
+
+/* ---- Star-up bank bar ----
+   Two segments: what is banked already, and what the picks below would
+   add on top. Watching the second segment reach the end IS the
+   interaction, so the two are different colours rather than one total. */
+.ros-starbar {
+  position: relative;
+  display: flex;
+  height: 14px;
+  margin: 6px 0 4px;
+  background: #14121a;
+  border: 1px solid #3a3450;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.ros-starbar-have { background: linear-gradient(#ffd76a, #c8a83a); }
+.ros-starbar-add { background: linear-gradient(#8ee8ff, #4a9fd8); }
+
+.ros-starbar-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  color: #e8e4d8;
+}
+.ros-starbar-line i { color: #8ee8ff; font-style: normal; }
+
+/* What one candidate is worth, in the same points as the bar. */
+.ros-worth {
+  min-width: 42px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffd76a;
+}
+.imp-opt.chosen .ros-worth { color: #8ee8ff; }

@@ -405,17 +405,30 @@ class RosterScreen {
     const def = GameState.defOf(uid);
     const pr = GameState.progressOf(uid);
     const maxed = pr.stars >= Progression.MAX_STARS;
+    const bank = pr.starPoints || 0;
     const need = Progression.starUpCost(pr.stars);
     const options = GameState.sacrificeOptions(uid);
-    const picked = [...this.chosen];
-    const atRank = picked.filter((u) => {
-      const p = GameState.progressOf(u);
-      return p && p.stars === pr.stars;
-    }).length;
-    const skillPicks = picked.filter((u) => GameState.defIdOf(u) === def.id).length;
-    const willStar = !maxed && atRank >= need;
+    const { picked, picking, skillPicks, toStars, after, willStar } =
+      this.starUpTotals(uid);
 
     const num = (v) => Math.round(v || 0).toLocaleString();
+    // Two-tone bar: what is banked already, and what the current picks
+    // would add on top of it. Seeing the second segment reach the end is
+    // the whole interaction.
+    const pctOf = (v) => (need > 0 ? Math.min(100, (v / need) * 100) : 100);
+    const barHtml = maxed ? '' : `
+      <div class="ros-starbar">
+        <div class="ros-starbar-have" style="width:${pctOf(bank).toFixed(1)}%"></div>
+        <div class="ros-starbar-add" style="width:${
+          Math.max(0, pctOf(bank + picking) - pctOf(bank)).toFixed(1)}%"></div>
+      </div>
+      <div class="ros-starbar-line">
+        <span>${num(bank)}${picking ? ` <i>+${num(picking)}</i>` : ''} / ${num(need)}</span>
+        <span class="cd">${willStar
+          ? `reaches ${toStars}&#9733;${after ? ` with ${num(after)} carried over` : ''}`
+          : `${num(Math.max(0, need - bank - picking))} more for ${pr.stars + 1}&#9733;`}</span>
+      </div>`;
+
     const pv = GameState.starUpPreview(uid);
     const row = (label, a, b) => {
       const up = b > a;
@@ -426,7 +439,7 @@ class RosterScreen {
     };
     const preview = pv ? `<div class="imp-preview${willStar ? ' armed' : ''}">
       <div class="imp-pv-head">${pv.stars.now}&#9733; &rarr; ${pv.stars.next}&#9733;${
-        willStar ? '' : ' <span class="imp-note">(if you pick enough)</span>'}</div>
+        willStar ? '' : ' <span class="imp-note">(when the bar fills)</span>'}</div>
       ${row('HP', pv.stats.hp.now, pv.stats.hp.next)}
       ${row('ATK', pv.stats.atk.now, pv.stats.atk.next)}
       ${row('DEF', pv.stats.def.now, pv.stats.def.next)}
@@ -443,7 +456,8 @@ class RosterScreen {
       const fodder = HEROES[o.heroId];
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
-      tags.push(`<span class="imp-tag${o.star ? '' : ' imp-tag-dim'}">${o.stars}&#9733;</span>`);
+      tags.push(`<span class="imp-tag imp-tag-dim">${o.stars}&#9733;</span>`);
+      tags.push(`<span class="ros-worth">+${num(o.value)}</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
         <canvas class="imp-portrait" width="34" height="34"></canvas>
         <div class="imp-row-text">
@@ -452,38 +466,33 @@ class RosterScreen {
         </div>${tags.join('')}</div>`;
     };
 
-    const costLine = maxed
-      ? 'Already at the star cap.'
-      : `${need} hero${need > 1 ? 'es' : ''} at ${pr.stars}&#9733; &mdash; ` +
-        `<b>${atRank}/${need}</b> chosen.`;
-
     this.panelEl.innerHTML = `
       ${this.header(uid)}
       <div class="detail-section">Star up
         <span class="cd">${pr.stars}&#9733; &middot; Lv cap ${
           Progression.maxLevel(pr.stars)}</span></div>
-      <div class="ros-skill-desc">${costLine}</div>
+      ${maxed
+        ? '<div class="ros-skill-desc">Already at the star cap. Sacrifices here ' +
+          'only buy skill levels now.</div>'
+        : barHtml}
       ${preview}
       <button id="ros-sac" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
         ${picked.length
           ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
-            (willStar ? ' and star up'
-              : maxed ? ''
-              : ` — no star up yet (${atRank}/${need})`)
+            (willStar ? ` — ${pr.stars}★ to ${toStars}★` : maxed ? '' : ` — +${num(picking)}`)
           : 'Choose sacrifices below'}
       </button>
       ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
-      <div class="ros-note">${skillPicks
+      <div class="ros-note ros-skill-note">${skillPicks
         ? `${skillPicks} cop${skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
           `${skillPicks} random skill level${skillPicks > 1 ? 's' : ''}.`
         : `Sacrificing another ${def.name} also raises a random skill.`}</div>
       <div class="detail-section">Sacrifices${
-        options.length ? ` <span class="cd">${picked.length} chosen</span>` : ''}</div>
+        options.length ? ` <span class="cd ros-chosen-count">${picked.length} chosen</span>` : ''}</div>
       ${options.length
         ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
-        : `<div class="ros-note">Nothing eligible: you need another ${def.name}
-           for a skill level, or a spare hero at ${pr.stars}&#9733; for a star
-           up. Favourited and fielded heroes are never offered.</div>`}`;
+        : `<div class="ros-note">Nothing to spend: every other hero you own is
+           favourited or fielded, and those are never offered.</div>`}`;
 
     this.panelEl.querySelectorAll('.imp-opt').forEach((el) => {
       Sprites.paintPortrait(el.querySelector('canvas'), GameState.defOf(el.dataset.uid));
@@ -492,18 +501,33 @@ class RosterScreen {
         if (this.chosen.has(u)) this.chosen.delete(u);
         else this.chosen.add(u);
         this.message = '';
-        this.renderStarUp();
+        // Only the parts that moved. Re-rendering the whole panel would
+        // rebuild -- and repaint the portrait of -- every candidate row
+        // on every tick, and the list is the whole roster now.
+        el.classList.toggle('chosen', this.chosen.has(u));
+        this.refreshStarUpTotals(uid);
       });
     });
 
+    // Wired unconditionally. It was wired only when it was already
+    // enabled, which is never on the first render -- nothing is picked
+    // yet -- so the button that refreshStarUpTotals then ENABLED had no
+    // listener on it and did nothing when pressed. A disabled button
+    // does not fire clicks, so the guard bought nothing and cost the
+    // whole interaction.
     const go = document.getElementById('ros-sac');
-    if (go && !go.disabled) {
+    if (go) {
       go.addEventListener('click', () => {
+        if (go.disabled || !this.chosen.size) return;
         const report = GameState.sacrifice(uid, [...this.chosen]);
         this.chosen.clear();
         if (!report) { this.message = 'Nothing was spent.'; this.refresh(); return; }
-        const bits = [`Spent ${report.spent} hero${report.spent > 1 ? 'es' : ''}.`];
-        if (report.starred) bits.push(`${def.name} is now ${report.to}★!`);
+        const bits = [`Spent ${report.spent} hero${report.spent > 1 ? 'es' : ''}` +
+          (report.points ? ` for ${num(report.points)} points.` : '.')];
+        if (report.starred) {
+          bits.push(`${def.name} is now ${report.to}★!` +
+            (report.from < report.to - 1 ? ` (up ${report.to - report.from} ratings)` : ''));
+        }
         if (report.skills.length) {
           bits.push(`Skill up: ${report.skills.map((i) => def.abilities[i].name).join(', ')}.`);
         }
@@ -514,6 +538,92 @@ class RosterScreen {
         if (typeof Sound !== 'undefined') Sound.play(report.starred ? 'levelup' : 'click');
         this.refresh();
       });
+    }
+  }
+
+  // Where the current picks land: the same cascade sacrifice() runs,
+  // played forward without spending anything. A player choosing fodder is
+  // asking "is this enough yet", and once one bar can overflow into the
+  // next that answer is a moving target rather than a subtraction.
+  //
+  // Split out because the full render and the in-place update below both
+  // need it, and two copies of a cascade is two chances to disagree with
+  // the transaction it is predicting.
+  starUpTotals(uid) {
+    const def = GameState.defOf(uid);
+    const pr = GameState.progressOf(uid);
+    const picked = [...this.chosen].filter((u) => GameState.defOf(u));
+    const picking = picked.reduce(
+      (n, u) => n + Progression.starValue(GameState.progressOf(u).stars), 0);
+    const bank = pr.starPoints || 0;
+    let toStars = pr.stars;
+    let after = bank + picking;
+    while (toStars < Progression.MAX_STARS &&
+           after >= Progression.starUpCost(toStars)) {
+      after -= Progression.starUpCost(toStars);
+      toStars++;
+    }
+    return {
+      picked, picking, bank, toStars, after,
+      willStar: toStars > pr.stars,
+      skillPicks: picked.filter((u) => GameState.defIdOf(u) === def.id).length,
+    };
+  }
+
+  // The bar, the forecast and the button, updated in place while the
+  // candidate list below them is left alone. A full re-render would
+  // rebuild -- and repaint the portrait of -- every candidate row on
+  // every tick, and that list is the whole roster now.
+  refreshStarUpTotals(uid) {
+    const pr = GameState.progressOf(uid);
+    const def = GameState.defOf(uid);
+    if (!pr || !def) return;
+    const t = this.starUpTotals(uid);
+    const need = Progression.starUpCost(pr.stars);
+    const maxed = pr.stars >= Progression.MAX_STARS;
+    const num = (v) => Math.round(v || 0).toLocaleString();
+    const pctOf = (v) => (need > 0 ? Math.min(100, (v / need) * 100) : 100);
+    const q = (sel) => this.panelEl.querySelector(sel);
+
+    const add = q('.ros-starbar-add');
+    if (add) {
+      add.style.width =
+        `${Math.max(0, pctOf(t.bank + t.picking) - pctOf(t.bank)).toFixed(1)}%`;
+    }
+    const line = q('.ros-starbar-line');
+    if (line) {
+      line.innerHTML =
+        `<span>${num(t.bank)}${t.picking ? ` <i>+${num(t.picking)}</i>` : ''} / ${
+          num(need)}</span>` +
+        `<span class="cd">${t.willStar
+          ? `reaches ${t.toStars}&#9733;${
+            t.after ? ` with ${num(t.after)} carried over` : ''}`
+          : `${num(Math.max(0, need - t.bank - t.picking))} more for ${
+            pr.stars + 1}&#9733;`}</span>`;
+    }
+    const preview = q('.imp-preview');
+    if (preview) {
+      preview.classList.toggle('armed', t.willStar);
+      const head = preview.querySelector('.imp-pv-head .imp-note');
+      if (head) head.classList.toggle('hidden', t.willStar);
+    }
+    const count = q('.ros-chosen-count');
+    if (count) count.textContent = `${t.picked.length} chosen`;
+    const note = q('.ros-skill-note');
+    if (note) {
+      note.innerHTML = t.skillPicks
+        ? `${t.skillPicks} cop${t.skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
+          `${t.skillPicks} random skill level${t.skillPicks > 1 ? 's' : ''}.`
+        : `Sacrificing another ${def.name} also raises a random skill.`;
+    }
+    const go = document.getElementById('ros-sac');
+    if (go) {
+      go.disabled = t.picked.length === 0;
+      go.textContent = t.picked.length
+        ? `Sacrifice ${t.picked.length} hero${t.picked.length > 1 ? 'es' : ''}` +
+          (t.willStar ? ` — ${pr.stars}\u2605 to ${t.toStars}\u2605`
+            : maxed ? '' : ` — +${num(t.picking)}`)
+        : 'Choose sacrifices below';
     }
   }
 

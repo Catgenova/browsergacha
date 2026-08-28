@@ -306,6 +306,7 @@ const GameState = (() => {
       level: 1, xp: 0,
       stars: def ? def.rarity : 1,
       attune: 0,     // elemental attunements, capped by the star rating
+      starPoints: 0, // banked toward the next star (see Progression.STAR_POINTS)
       equipment: {}, // slot -> gear uid
       skills: {},    // ability index -> skill level (absent = 1)
       favorite: false, // pinned to the top of the roster
@@ -461,6 +462,10 @@ const GameState = (() => {
       if (!entry.skills) entry.skills = {};
       if (entry.favorite === undefined) entry.favorite = false;
       if (entry.attune === undefined) entry.attune = 0;
+      // A save from before star points existed starts the bar empty. It
+      // is not back-paid: the heroes those saves already spent bought a
+      // star under the old rule and got it.
+      if (entry.starPoints === undefined) entry.starPoints = 0;
     }
     if (!loaded.storage) loaded.storage = {};
     // Collection registry invariant: anything currently held has, by
@@ -717,6 +722,7 @@ const GameState = (() => {
       return e
         ? { heroId: e.heroId, level: e.level, xp: e.xp, stars: e.stars,
             attune: e.attune || 0, blessing: e.blessing || null,
+            starPoints: e.starPoints || 0,
             skills: { ...(e.skills || {}) } }
         : null;
     },
@@ -743,11 +749,15 @@ const GameState = (() => {
 
     // ---- Improvement: heroes are the currency ----
     //
-    // Star up by sacrificing heroes at the SAME star rating, as many as
-    // the rating itself: a 3-star hero costs three 3-star heroes to
-    // reach 4. Sacrificing the same CHARACTER additionally raises one of
-    // their skills, so a true duplicate is worth more than a stranger of
-    // the same rank.
+    // Star up by BANKING points. Every hero spent is worth
+    // Progression.starValue(its stars), every rating costs
+    // Progression.starUpCost(current) to reach, and the bar fills a
+    // little at a time -- so anything can be fed to anything and nothing
+    // is ever one body short forever. Overflow rolls into the next bar,
+    // and a single generous sacrifice can carry a hero up several
+    // ratings at once. Sacrificing the same CHARACTER additionally
+    // raises one of their skills, so a true duplicate is still worth
+    // more than a stranger.
 
     starUpCost(uid) {
       const e = state.roster[uid];
@@ -769,12 +779,13 @@ const GameState = (() => {
     starUpAffordable(uid) {
       const e = state.roster[uid];
       if (!this.starUpReady(uid)) return false;
+      let bank = e.starPoints || 0;
       const need = Progression.starUpCost(e.stars);
-      let found = 0;
+      if (bank >= need) return true;
       for (const other of Object.keys(state.roster)) {
-        if (state.roster[other].stars !== e.stars) continue;
         if (!this.canSacrifice(other, uid)) continue;
-        if (++found >= need) return true;
+        bank += Progression.starValue(state.roster[other].stars);
+        if (bank >= need) return true;
       }
       return false;
     },
@@ -789,11 +800,15 @@ const GameState = (() => {
       return this.teamSlotOf(uid) === null;
     },
 
-    // What is offered when improving `targetUid`: heroes that would
-    // actually contribute -- the same character (skill up) or heroes at
-    // the target's CURRENT star rating (star-up fodder). Level never
-    // matters. Anything that can do neither is left off the list
-    // entirely rather than shown greyed out.
+    // What is offered when improving `targetUid`: everything that can be
+    // spent, because under the points rule everything CONTRIBUTES. The
+    // old list showed only same-rank heroes and true duplicates, which
+    // was right when a 1-star could do nothing for a 3-star and is a lie
+    // now that it is worth a point.
+    //
+    // Cheapest first, duplicates ahead of strangers: the order a player
+    // wants is "clear the junk, and take the skill up while you are
+    // here". Level breaks the tie so the least-invested copy goes first.
     sacrificeOptions(targetUid) {
       const target = state.roster[targetUid];
       if (!target) return [];
@@ -801,13 +816,14 @@ const GameState = (() => {
       for (const uid of Object.keys(state.roster)) {
         if (!this.canSacrifice(uid, targetUid)) continue;
         const e = state.roster[uid];
-        const skill = e.heroId === target.heroId;
-        const star = e.stars === target.stars;
-        if (!skill && !star) continue;
-        out.push({ uid, heroId: e.heroId, stars: e.stars, level: e.level, skill, star });
+        out.push({
+          uid, heroId: e.heroId, stars: e.stars, level: e.level,
+          skill: e.heroId === target.heroId,
+          value: Progression.starValue(e.stars),
+        });
       }
-      out.sort((a, b) => (b.skill - a.skill) || (b.star - a.star) ||
-        (b.stars - a.stars) || (b.level - a.level));
+      out.sort((a, b) => (b.skill - a.skill) || (a.stars - b.stars) ||
+        (a.level - b.level));
       return out;
     },
 
@@ -826,7 +842,8 @@ const GameState = (() => {
       for (const uid of Object.keys(state.roster)) {
         const e = state.roster[uid];
         model.set(uid, { uid, heroId: e.heroId, stars: e.stars,
-          level: e.level, xp: e.xp || 0, locked: !this.canSacrifice(uid) });
+          level: e.level, xp: e.xp || 0, points: e.starPoints || 0,
+          locked: !this.canSacrifice(uid) });
       }
       const invested = (h) => h.level * 1e6 + h.xp;
       const steps = [];
@@ -837,15 +854,30 @@ const GameState = (() => {
           const recipient = pool
             .sort((a, b) => (b.locked - a.locked) || (invested(b) - invested(a)))[0];
           if (!recipient) break;
-          const fodder = pool
-            .filter((h) => h !== recipient && !h.locked)
+          // Fodder is drawn from the whole model now, not just the
+          // recipient's own rank -- points are points. It is capped at
+          // heroes NO DEARER than the recipient, though: spending a
+          // 4-star to push a 3-star to 4 destroys more than it makes,
+          // and an automated button must never do that on its own.
+          const bank = recipient.points || 0;
+          const fodder = [];
+          let have = bank;
+          const shelf = [...model.values()]
+            .filter((h) => h !== recipient && !h.locked && h.stars <= s)
             .sort((a, b) =>
               ((b.heroId === recipient.heroId) - (a.heroId === recipient.heroId)) ||
-              (invested(a) - invested(b)))
-            .slice(0, cost);
-          if (fodder.length < cost) break;
+              (a.stars - b.stars) || (invested(a) - invested(b)));
+          for (const h of shelf) {
+            if (have >= cost) break;
+            fodder.push(h);
+            have += Progression.starValue(h.stars);
+          }
+          if (have < cost) break;
           steps.push({ target: recipient.uid, fodder: fodder.map((h) => h.uid) });
+          // Mirror what sacrifice() will do, so the next pass over this
+          // rank plans against the state it is actually going to find.
           recipient.stars += 1;
+          recipient.points = have - cost;
           for (const h of fodder) model.delete(h.uid);
         }
       }
@@ -889,11 +921,7 @@ const GameState = (() => {
       const spend = fodderUids.filter((uid) => this.canSacrifice(uid, targetUid));
       if (!spend.length) return null;
 
-      const need = Progression.starUpCost(target.stars);
-      const atRank = spend.filter((uid) => state.roster[uid].stars === target.stars);
-      const willStar = this.starUpReady(targetUid) && atRank.length >= need;
-
-      const report = { spent: 0, skills: [], starred: false,
+      const report = { spent: 0, skills: [], starred: false, points: 0,
         from: target.stars, to: target.stars, gearFreed: 0 };
       for (const uid of spend) {
         const e = state.roster[uid];
@@ -907,11 +935,23 @@ const GameState = (() => {
           const idx = this.raiseRandomSkill(targetUid);
           if (idx !== null) report.skills.push(idx);
         }
+        // Banked BEFORE the entry goes, and only while there is a rating
+        // left to buy: points fed to a hero at the cap would sit in a
+        // bar with nothing on the other side of it.
+        if (target.stars < Progression.MAX_STARS) {
+          report.points += Progression.starValue(e.stars);
+        }
         delete state.roster[uid];
         report.spent++;
         this.questBumpQuiet('sacrifices');
       }
-      if (willStar) {
+      target.starPoints = (target.starPoints || 0) + report.points;
+      // Cascade: a bank big enough for several ratings buys several. The
+      // remainder rolls forward every time, so nothing paid is lost --
+      // that rollover is the whole point of a bar over a shopping list.
+      while (target.stars < Progression.MAX_STARS &&
+             target.starPoints >= Progression.starUpCost(target.stars)) {
+        target.starPoints -= Progression.starUpCost(target.stars);
         // The level survives: a star up lifts the ceiling rather than
         // sending the hero back to the bottom of it.
         target.stars++;
@@ -919,6 +959,8 @@ const GameState = (() => {
         report.to = target.stars;
         this.questBumpQuiet('starUps');
       }
+      // At the cap there is no next bar to hold anything.
+      if (target.stars >= Progression.MAX_STARS) target.starPoints = 0;
       save();
       return report;
     },
