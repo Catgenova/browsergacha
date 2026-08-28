@@ -9613,6 +9613,86 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
   }
 });
 
+// The first Razorwing. The sect's thesis is that speed is worth
+// something on the SWING, not only in the turn order -- so Windshear is
+// measured as damage against a slower body and an identical faster one.
+test("Tervan's Windshear: armour blindness, but only against the slower", () => {
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const t = place(battle, HEROES.tervan, TEAM.PLAYER, 1);
+    t.critChance = () => 0;
+
+    // Two identical victims but for their speed: one Tervan outruns and
+    // one he does not. Everything else is held equal so the only thing
+    // the numbers can be reading is the comparison.
+    const mark = (speed) => {
+      const f = roomy(place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1), 4000);
+      f.dodgeChance = () => 0; f.reflectChance = () => 0;
+      f.hookSources = () => [];
+      f.baseDef = 600;
+      f.speed = speed;
+      return f;
+    };
+    const hit = (f) => {
+      const before = f.hp;
+      Abilities.execute(t.abilities[0].def, t, f, battle);
+      battle.units = battle.units.filter((u) => u !== f);
+      return before - f.hp;
+    };
+    const mine = t.effectiveStat('speed');
+    const slower = hit(mark(mine - 20));
+    const faster = hit(mark(mine + 20));
+    assert(slower > faster,
+      `Windshear paid nothing: ${slower} into a slower bird, ${faster} into a faster one`);
+
+    // At the printed size. The blindness is a cut to the DEF the CURVE
+    // sees, not a percentage added to the damage, so the expected pair
+    // comes back through the same formula. His outgoing multiplier is
+    // read off the unit rather than assumed: he stands on a front hex,
+    // where Reckless Charge is worth another 20%, and hard-coding the
+    // swing would be pinning his positional here by accident.
+    const probe = mark(mine - 20);
+    const raw = t.effectiveStat('atk') * 1.05 *
+      g.Elements.mult('wind', DUMMIES.rat_knight.element) *
+      t.damageDealtMult(probe, null);
+    battle.units = battle.units.filter((u) => u !== probe);
+    const want = Math.round(Abilities.damageFormula(raw, 600 * (1 - 0.15)));
+    assert(Math.abs(slower - want) <= 2,
+      `a blind hit read ${slower}, wanted ~${want} (15% off 600 DEF)`);
+    const plain = Math.round(Abilities.damageFormula(raw, 600));
+    assert(Math.abs(faster - plain) <= 2,
+      `a sighted hit read ${faster}, wanted ~${plain} (full 600 DEF)`);
+
+    // It is his, not the ability's: another bird throwing at the same
+    // slow victim gets nothing for it.
+    const other = place(battle, HEROES.chirp, TEAM.PLAYER, 2);
+    const slow = mark(mine - 20);
+    let leaked = 0;
+    for (const p of other.hookSources()) {
+      if (p.hooks && p.hooks.defIgnoreAdd) leaked++;
+    }
+    assert(leaked === 0, "Windshear leaked onto a bird who does not carry it");
+    battle.units = battle.units.filter((u) => u !== slow && u !== other);
+  } finally { Battle.active = prev; }
+
+  // And the design constraint that put it on this channel at all. Wind's
+  // own 3pc (Crosswind) already pays damageDealtMult off the same stat,
+  // so a Razorwing whose speed ALSO fed that channel would be selling
+  // the party bonus back to the party a second time. Armour blindness is
+  // a different channel on purpose, and this is what says so.
+  const hooks = HEROES.tervan.passive.hooks || {};
+  assert(hooks.defIgnoreAdd, 'Tervan lost his armour-blindness');
+  assert(!hooks.damageDealtMult,
+    'Tervan is paying into damageDealtMult, the channel Crosswind already owns');
+  const wind3 = RACES.ELEMENT_PARTY_BONUSES.wind.find((tier) => tier.count === 3);
+  assert(wind3 && wind3.mods && wind3.mods.damageDealtMult !== undefined ||
+    (wind3 && wind3.hooks && wind3.hooks.damageDealtMult) ||
+    (wind3 && wind3.modsFor),
+    'wind 3pc no longer reads as a damage-per-speed tier — recheck the overlap');
+});
+
 // The last sect. The Phoenix Court light the fires that the Firetroupe's
 // oil doubles, and their pack is about making those fires LAST: longer
 // by rekindling, harder per tick, and a turn longer again on top.

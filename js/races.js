@@ -27,6 +27,8 @@ const RACES = (() => {
     'hallow', 'ike', 'jack', 'phil', 'peck', 'talon', 'bo', 'wanda', 'polo',
     'korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
     'stella', 'sarena', 'orri', 'chirp',
+    // Razorwings, filling one bird at a time.
+    'tervan',
   ]);
 
   // The humans are named individuals rather than "<race> <role>", so
@@ -150,6 +152,12 @@ const RACES = (() => {
     // Declared rather than inherited, so a sect that ever wants a
     // different shape says so out loud instead of failing a test
     // written around the first one.
+    // The third bird sect and the first wind one: hunters who fight at
+    // the speed they fly. Filling one bird at a time, to the same
+    // 1/2/3/2/1 shape the other two hold.
+    razorwings: { id: 'razorwings', name: 'Razorwings', number: 10,
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
+                 members: ['tervan'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
