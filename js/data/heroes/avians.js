@@ -2946,20 +2946,25 @@ Object.assign(HEROES, {
         // one is the point: a debuff nobody can read at a glance is a
         // debuff that may as well not be on the field.
         description: 'The note the whole field hears: 110% ATK to ALL enemies, and a 50% ' +
-          'chance on each to take 20% more damage from everyone for 2 turns.',
+          'chance on each to take 10% more damage from everyone for 2 turns.',
         cooldown: 7, targeting: 'all-enemies', animation: 'idle', impact: 'slam',
         effects: [
           { type: 'damage', mult: 1.10 },
-          { type: 'debuff', stat: 'damageTaken', mult: 1.20, turns: 2, chance: 0.5 },
+          { type: 'debuff', stat: 'damageTaken', mult: 1.10, turns: 2, chance: 0.5 },
         ],
         // No `duration` rung: it lengthens buffs only (see Abilities,
-        // case 'debuff'), so one here would have bought nothing.
+        // case 'debuff'), so one here would have bought nothing. The mark
+        // deepens instead -- `debuffPower` moves a debuff away from
+        // neutral, so two rungs of 5% take 1.10 to 1.20 at the cap.
+        // Seven rungs is the whole budget for a third slot, and the mark
+        // now takes four of them -- which is the right split for a skill
+        // whose job is what it leaves behind rather than what it hits for.
         levelUps: [
           { mult: 0.1 },
           { debuffChance: 0.25 },
-          { mult: 0.1 },
+          { debuffPower: 0.05 },
           { debuffChance: 0.25 },
-          { mult: 0.1 },
+          { debuffPower: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
