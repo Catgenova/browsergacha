@@ -3072,10 +3072,14 @@ Object.assign(HEROES, {
         // capped at 1 in strike), which makes his seven the one shot
         // that is GUARANTEED to split. The kit interlocks: the passive
         // needs a crit and this one buys it outright.
-        description: 'He has been holding this one since the light came up: 240% ATK to a ' +
+        // 140%, not 240%. A guaranteed crit is already worth x1.5 on the
+        // swing AND a guaranteed split, so pricing it like an ordinary
+        // seven paid for the certainty twice -- and it is a 3-star, on a
+        // shelf that does not need another big opening number.
+        description: 'He has been holding this one since the light came up: 140% ATK to a ' +
           'single enemy, and it always crits.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
-        effects: [{ type: 'damage', mult: 2.40, critAdd: 1 }],
+        effects: [{ type: 'damage', mult: 1.40, critAdd: 1 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
