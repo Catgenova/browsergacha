@@ -13441,6 +13441,37 @@ test('Malachar: the glass keeps what the fight takes', () => {
     const wick = mal.abilities.find((a) => a.def.id === 'malachar_wickwork');
     const gift = wick.def.effects.find((e) => e.type === 'buff');
     assert(gift.stat === 'speed', `Wickwork gives ${gift.stat}, wanted speed`);
+
+    // It mends as well, because the sect has nothing else that does --
+    // Click's wards are health that never left, not health coming back.
+    // Priced off HIS pool, and the lantern deliberately does NOT deepen
+    // it: buffPowerAdd reads blessings only, and a mend growing on the
+    // same count would walk straight around the cap.
+    const mend = wick.def.effects.find((e) => e.type === 'healHpPct');
+    assert(mend && Math.abs(mend.pct - 0.08) < 1e-9,
+      'the filler does not mend, or not off his own pool');
+    {
+      const hurt = seatOn(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 3);
+      hurt.hookSources = () => [];
+      const dose = (bodies) => {
+        battle.deaths = bodies;
+        hurt.hp = 1;
+        // Cleared each time: blessings stack as separate effects, so a
+        // leftover from the previous cast is what `find` returns and the
+        // second reading is the first one over again.
+        hurt.statusEffects = [];
+        Abilities.execute(wick.def, mal, hurt, battle);
+        return hurt.hp - 1;
+      };
+      const empty = dose(0);
+      assert(Math.abs(empty - Math.round(mal.maxHp * 0.08)) <= 1,
+        `mended ${empty}, wanted 8% of ${mal.maxHp}`);
+      assert(dose(8) === empty, 'a full lantern deepened the mend as well');
+      // The blessing beside it still scales, so the two halves of one
+      // skill are genuinely on different rules.
+      assert(hurt.statusEffects.find((fx) => fx.stat === 'speed').mult > 1.15,
+        'the blessing stopped scaling when the mend was added');
+    }
     const glass = mal.abilities.find((a) => a.def.id === 'malachar_hold_it_up');
     assert(glass.def.effects.filter((e) => e.type === 'buff').length === 2,
       'Hold It Up hands out one stat — it is meant to be two, and not Orien’s');

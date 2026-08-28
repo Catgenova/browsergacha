@@ -4283,15 +4283,31 @@ Object.assign(HEROES, {
         // Kiri's Pinwheel exactly. Speed is also the better gift here --
         // the sect's 2pc buys it and Rigor turns it into curse depth, so
         // a wing he hurries is a wing whose hexes bite harder.
-        description: 'He turns the wick up under one of them: an ally gains +15% Speed ' +
-          'for 3 turns.',
+        //
+        // And a mend, because the sect has none. Eight birds in, the
+        // only thing keeping anybody alive in the Hollowbone is Click's
+        // wards, and a ward is health that never left rather than health
+        // coming back. Priced off HIS pool at a small figure -- this is
+        // a top-up on a filler, not a healer's cast, and the sect is not
+        // supposed to get one.
+        //
+        // The lantern does NOT deepen it. `buffPowerAdd` reads
+        // blessings and nothing else, which is the right scope: the cap
+        // is what stops a party eight bodies down handing out absurd
+        // numbers, and a mend that grew on the same count would walk
+        // straight around it.
+        description: 'He turns the wick up under one of them: an ally recovers 8% of ' +
+          'Malachar’s max HP and gains +15% Speed for 3 turns.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'buff', stat: 'speed', mult: 1.15, turns: 3 }],
+        effects: [
+          { type: 'healHpPct', pct: 0.08 },
+          { type: 'buff', stat: 'speed', mult: 1.15, turns: 3 },
+        ],
         levelUps: [
+          { heal: 0.02 },
           { buffPower: 0.05 },
           { duration: 1 },
-          { buffPower: 0.05 },
-          { buffPower: 0.05 },
+          { heal: 0.02 },
           { buffPower: 0.05 },
         ],
       },
