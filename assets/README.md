@@ -96,19 +96,47 @@ care about is the facing: art is expected to face **right**, and a bird
 drawn facing left is corrected with `sprite.faceLeft: true` in the def
 rather than by touching the upload.
 
-### Razorwings — the wind sect
+### Razorwings — the wind sect ✅
 
-`assets/heroes/razorwings/` is open and empty, waiting on art. Wind, No.
-10 when it is registered (1–9 are spoken for, including the two closed
-orders whose numbers can never be reissued). Drop strips in as they are
-drawn — a bird gets wired up when its art lands, and the sect goes into
-`js/data/heroes/avians.js` and `RACES.SECTS` once it has members, since
-a standing order with nobody in it fails the data tests.
+`assets/heroes/razorwings/` is full: nine birds, No. 10, wind, built to
+the 1/2/3/2/1 shape. Tervan, Kiri, Strix, Calima, Mendral, Balmor,
+Brannoc, Cirrus, Nehru.
 
-Idle alone is enough to get a bird on the field: a hero with only
-`idle.png` plays it for everything, and the engine routes an ability
-that has no strip of its own through a fallback timer so the turn still
-resolves. Actions can follow later.
+### Sunbrood — open
+
+`assets/heroes/sunbrood/` is open and empty, waiting on art. **No. 11**
+when it is registered: 1 through 10 are spoken for, including
+Shadowflower and the Hedge, whose numbers are spent and can never be
+reissued.
+
+Nothing is assumed in code and nothing should be — the sect goes into
+`js/data/heroes/` and `RACES.SECTS` with its first member, since a
+standing order with nobody in it fails the data tests. But for what it
+is worth, the roster has an obvious hole shaped like this one. The
+three bird sects so far are Gulldigger (water), Phoenix Court (fire)
+and Razorwings (wind), which leaves light and dark unspoken for; and
+light is the thinnest element in the game at nine heroes, every one of
+them a Herald of Reverence, against 18 or 19 apiece for water, wind and
+fire. A light brood would square that in one go.
+
+Tell me the element and the roster when the art lands and I will build
+to whatever it actually is.
+
+### Getting a bird on the field
+
+Idle alone is enough: a hero with only `idle.png` plays it for
+everything, and the engine routes an ability that has no strip of its
+own through a fallback timer so the turn still resolves. Actions can
+follow later.
+
+Two things that have bitten before, both now caught by tests. Filenames
+are case-sensitive when served, and the case in this folder is not
+consistent (`Mendralidle.png` sits beside `kiriidle.png`) — a def
+pointing at the wrong case does not throw, it silently falls back to
+the generated placeholder and looks fine everywhere but the browser.
+And art is expected to face **right**; a bird drawn facing left is
+corrected with `sprite.faceLeft: true` in the def rather than by
+touching the upload.
 
 ### Legacy single-sheet format
 
