@@ -26,6 +26,7 @@
       <nav id="nav-tabs">
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
+        <button class="nav-tab" data-screen="roster">Roster</button>
         <button class="nav-tab" data-screen="improve">Improve</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="shop">Shop</button>
@@ -123,6 +124,43 @@
         </div>
         <div id="roster-msg" class="hidden"></div>
         <div id="roster-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= Roster screen =================
+         The hero dossier: every hero you own in one dense grid on the
+         left, and everything there is to do with the selected one on
+         the right, behind a rail of sub-tabs. No formation here -- the
+         Team screen owns where a hero STANDS; this screen owns what a
+         hero IS. Several existing panels are being folded in behind
+         that rail, so the tab list is data-driven rather than
+         hardcoded into the layout. -->
+    <section id="screen-roster" class="screen hidden">
+      <div id="ros-body">
+        <div id="ros-left">
+          <div id="ros-top">
+            <span id="ros-count" title="Heroes owned, against your roster capacity"></span>
+            <input id="ros-search" type="search" placeholder="Search name or element…">
+            <select id="ros-sort" title="Order the grid">
+              <option value="power">Power</option>
+              <option value="level">Level</option>
+              <option value="stars">Stars</option>
+              <option value="rarity">Rarity</option>
+              <option value="name">Name</option>
+              <option value="element">Element</option>
+            </select>
+          </div>
+          <div id="ros-grid"></div>
+          <div id="ros-empty" class="details-empty hidden">No heroes match.</div>
+        </div>
+        <div id="ros-right">
+          <nav id="ros-tabs" aria-label="Hero panels">
+            <button class="ros-tab active" data-panel="info">Info</button>
+            <button class="ros-tab" data-panel="skill">Skill</button>
+            <button class="ros-tab" data-panel="gear">Gear</button>
+          </nav>
+          <div id="ros-panel"></div>
+        </div>
       </div>
     </section>
 
@@ -391,6 +429,7 @@
   <script src="js/battle_select.js?v=__BUILD__"></script>
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
+  <script src="js/roster_screen.js?v=__BUILD__"></script>
   <script src="js/improve_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
   <script src="js/quests_screen.js?v=__BUILD__"></script>

@@ -1546,7 +1546,13 @@ const GameState = (() => {
     // pieces where they are. Returns how many slots changed.
     autoEquip(heroId) {
       const entry = state.roster[heroId];
-      const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
+      // `heroId` is a roster UID, not a character id. Indexing HEROES
+      // with it found nothing, so this returned 0 for every hero and
+      // auto-equip has been a silent no-op since the roster became a
+      // list of instances -- the button reported "already wearing the
+      // best available" over eight empty slots. Resolve it the way the
+      // rest of the file does.
+      const def = this.defOf(heroId);
       if (!entry || !def || this.heroGearLocked(heroId)) return 0;
       const base = Progression.scaledStats(def, entry.level, entry.stars);
       const free = this.unequippedGear();
