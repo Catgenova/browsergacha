@@ -310,10 +310,10 @@ test('every sect holds one race, once each, with its number', () => {
     // settled before the art arrived. Empty members is not defunct --
     // the flag below is what tells a closed order from an unfilled one.
     hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen', 'carrion'] },
-    // FOUNDING: numbered, packed and waiting on art, the same state
-    // Hollowbone held before Necros landed. The cats fill it one at a
-    // time; the flag comes off with the first one.
-    stillwater: { number: 13, race: 'cat', founding: true, members: [] },
+    // The cats, standing: nine at once rather than one at a time, since
+    // the whole sheet landed together.
+    stillwater: { number: 13, race: 'cat',
+      members: ['tip', 'brock', 'friday', 'tiny', 'orr', 'princess', 'sands', 'donut', 'tub'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
