@@ -1321,6 +1321,15 @@ body {
   color: #9a92b8;
 }
 
+/* The dumpling half of the common scroll: a continuation of the line
+   above it rather than a fourth scroll, so it indents and loses the
+   gap. */
+.summon-rates-sub {
+  margin-top: 0;
+  padding-left: 12px;
+  color: #7f7898;
+}
+
 #pity-counter {
   margin-top: 2px;
   font-size: 11px;
