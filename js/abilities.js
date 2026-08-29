@@ -139,7 +139,7 @@ const Abilities = (() => {
     // front-row ally, a quarter softer for the stance. DoT ticks pass
     // redirect: false — a poison already in you cannot be bodyguarded.
     if (opts.redirect !== false && caster.team !== target.team &&
-        target.slot && target.slot.position === POSITION.FRONT &&
+        target.onHex(POSITION.FRONT) &&
         !target.statusEffects.some((fx) => fx.stat === 'blocker')) {
       const b = typeof Battle !== 'undefined' ? Battle.active : null;
       const guard = b && b.livingUnits(target.team).find((u) =>
@@ -734,8 +734,10 @@ const Abilities = (() => {
         // Conditional on where the TARGET stands (Sawyer hunts the
         // center hex). Position is a battle-grid fact, so this only
         // fires in real formations — bench duels have no hexes.
-        if (effect.bonusPosition && target.slot &&
-            target.slot.position === effect.bonusPosition.position) {
+        // A boss stands on every hex, so a bonus keyed to one is
+        // always live against it (onHex).
+        if (effect.bonusPosition &&
+            target.onHex(effect.bonusPosition.position)) {
           raw *= effect.bonusPosition.mult;
         }
         // Flat riders scaled off the TARGET's max HP (Ari): from the
@@ -794,7 +796,7 @@ const Abilities = (() => {
         // Heal scaled off the CASTER's max HP; optional bigger cut for
         // front-row targets. `targetPct` scales off the TARGET's pool
         // instead (Koe's mime remedy fits whoever receives it).
-        const front = target.slot && target.slot.position === POSITION.FRONT;
+        const front = target.onHex(POSITION.FRONT);
         // Heal rungs add points to the percentage. HP-priced numbers
         // move in fives, not tens: a percentage of a health pool is a
         // far larger figure than a percentage of an attack stat.
@@ -1914,7 +1916,7 @@ const Abilities = (() => {
   // so it satisfies the first row it is checked against.
   function collapseRow(pool, order) {
     for (const position of order) {
-      const row = pool.filter((u) => u.isBoss || u.slot.position === position);
+      const row = pool.filter((u) => u.onHex(position));
       if (row.length > 0) return row;
     }
     return [];
@@ -1927,7 +1929,7 @@ const Abilities = (() => {
     const sweep = ROW_SWEEPS[ability.targeting];
     if (!sweep) return null;
     const pool = sweepPool(sweep, caster, battle);
-    const holds = (p) => pool.some((u) => u.isBoss || u.slot.position === p);
+    const holds = (p) => pool.some((u) => u.onHex(p));
     if (holds(sweep.order[0])) return null;
     const landed = sweep.order.find(holds);
     return landed ? { side: sweep.side, aimed: sweep.order[0], landed } : null;
@@ -1947,7 +1949,7 @@ const Abilities = (() => {
         // A boss spans every row, so it is always included.
         if (!chosenTarget) return [];
         return battle.livingUnits(caster.enemyTeam())
-          .filter((u) => u.isBoss || Math.abs(u.slot.y - chosenTarget.slot.y) < 2);
+          .filter((u) => u.sharesRowWith(chosenTarget));
       case 'front-allies':
       case 'back-enemies': {
         // Every living unit standing in the named hex row -- and, when
@@ -1979,9 +1981,8 @@ const Abilities = (() => {
         // keystone together (Bit's breakthrough). A boss spans every
         // hex; an empty front still catches one random enemy.
         const pool = battle.livingUnits(caster.enemyTeam());
-        const wall = pool.filter((u) => u.isBoss ||
-          u.slot.position === POSITION.FRONT ||
-          u.slot.position === POSITION.CENTER);
+        const wall = pool.filter((u) =>
+          u.onHex(POSITION.FRONT) || u.onHex(POSITION.CENTER));
         if (wall.length > 0) return wall;
         return pool.length > 0
           ? [pool[Math.floor(Math.random() * pool.length)]] : [];
@@ -2007,9 +2008,8 @@ const Abilities = (() => {
         // passes them by). A boss spans every hex, so it always counts;
         // if only the centre is standing, the sweep still finds it.
         const pool = battle.livingUnits(caster.enemyTeam());
-        const flanks = pool.filter((u) => u.isBoss ||
-          u.slot.position === POSITION.FRONT ||
-          u.slot.position === POSITION.BACK);
+        const flanks = pool.filter((u) =>
+          u.onHex(POSITION.FRONT) || u.onHex(POSITION.BACK));
         return flanks.length > 0 ? flanks : pool;
       }
       case 'front-enemies': {
@@ -2024,8 +2024,7 @@ const Abilities = (() => {
         const reach = (caster.hookSources ? caster.hookSources() : [])
           .some((p) => p.hooks && p.hooks.reachesCenter);
         const front = pool.filter(
-          (u) => u.isBoss || u.slot.position === POSITION.FRONT ||
-            (reach && u.slot.position === POSITION.CENTER));
+          (u) => u.onHex(POSITION.FRONT) || (reach && u.onHex(POSITION.CENTER)));
         if (front.length > 0) return front;
         return pool.length > 0
           ? [pool[Math.floor(Math.random() * pool.length)]]

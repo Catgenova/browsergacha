@@ -2635,7 +2635,16 @@ test('the collection is forever: NEW! and the compendium track characters ever h
 
   // Spend every copy of A as star-up fodder for B: gone from the
   // roster, but not from history.
+  //
+  // Unfavourited first, and that is not tidying. addHero rolls a
+  // blessing, a blessed copy arrives favourited, and a favourite is
+  // never offered as fodder -- so roughly one run in twenty spent one
+  // copy instead of two and failed here for a reason that had nothing
+  // to do with the collection registry.
   const target = G.addHero(b.id).uid;
+  for (const uid of [first.uid, second.uid]) {
+    if (G.isFavorite(uid)) G.toggleFavorite(uid);
+  }
   const r = G.sacrifice(target, [first.uid, second.uid]);
   assert(r && r.spent === 2, `fodder did not burn: ${JSON.stringify(r)}`);
   assert(G.countOf(a.id) === 0, 'copies of A survived the sacrifice');
@@ -9688,10 +9697,19 @@ test('Gulldigger sect pack: a storm, a boarding party, and a longer reach', () =
       // widens the sweep without relabelling the field.
       assert(Math.abs(onCentre - onBack) < 1e-9,
         `a centre hex paid ${onCentre}, the same as a front rank`);
-      // A BOSS has no hex, so it is not a front rank.
-      const boss = { statusEffects: [], slot: null };
-      assert(Math.abs(caster.damageDealtMult(boss, null) - onBack) < 1e-9,
-        'a boss was billed as a front rank');
+      // A BOSS spans every hex, the front one included, so it DOES pay.
+      // This asserted the opposite for a while, off a stub with a null
+      // slot: the boarding party read `target.slot.position` directly
+      // and so quietly excluded the one enemy a player most wanted the
+      // bonus against. A real Unit, not a stub -- the rule lives in
+      // Unit.onHex now and a stub would not exercise it.
+      const bossDef = Object.values(BOSSES)[0];
+      const bossUnit = new Unit(bossDef, TEAM.ENEMY, { level: 30, stars: 5 });
+      assert(bossUnit.isBoss, 'the fixture is not a boss');
+      assert(bossUnit.onHex(POSITION.FRONT) && bossUnit.onHex(POSITION.BACK) &&
+        bossUnit.onHex(POSITION.CENTER), 'a boss does not span every hex');
+      assert(Math.abs(caster.damageDealtMult(bossUnit, null) - onFront) < 1e-9,
+        'a boss was not billed as a front rank');
     } finally { Battle.active = prev; }
   }
 
@@ -14843,6 +14861,129 @@ test('banner countdown: h:mm:ss, with days only while there are days', () => {
     'a closed banner reported time left');
 });
 
+test('a boss stands on every hex, for damage and for bonuses alike', () => {
+  // The rule: a boss is one body across the whole formation, not a unit
+  // standing on one hex of it. So every hex sweep catches it, and every
+  // bonus keyed to a hex row is live against it.
+  //
+  // It used to be half-true. The TARGET SCOPES had it, written as an
+  // inline `u.isBoss ||` at each scope that happened to think of one --
+  // and the hex-keyed EFFECTS did not, because they read
+  // `target.slot.position` directly. A boss was on every hex for the
+  // purpose of being hit and on none of them for the purpose of a
+  // front-row damage bonus. Unit.onHex is the single predicate now.
+  //
+  // The boss is placed on EACH position in turn, and ordinary foes are
+  // put on the other two rows every time. Both halves of that matter,
+  // and the first draft of this test had neither: with the boss alone
+  // on a centre hex, `front-enemies` caught it through its empty-row
+  // fallback ("if nobody holds the front, take one at random") rather
+  // than through the rule, and deleting the rule outright still passed.
+  const POSITIONS = [POSITION.FRONT, POSITION.CENTER, POSITION.BACK];
+  const bossDef = Object.values(BOSSES)[0];
 
+  for (const bossAt of POSITIONS) {
+    const battle = makeBattle();
+    const prev = Battle.active;
+    Battle.active = battle;
+    try {
+      const boss = new Unit(bossDef, TEAM.ENEMY, { level: 40, stars: 5 });
+      battle.placeUnit(boss,
+        battle.enemySlots.findIndex((s) => s.position === bossAt));
+      // A live body on each of the OTHER rows, so no sweep is ever
+      // rescued by its own "nobody is standing there" fallback.
+      const others = [];
+      for (const p of POSITIONS.filter((p) => p !== bossAt)) {
+        others.push(place(battle, DUMMIES.rat_brawler, TEAM.ENEMY,
+          battle.enemySlots.findIndex((s) => s.position === p)));
+      }
+      const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+
+      // The predicate itself: every hex, including the two it is not
+      // physically standing on.
+      for (const p of POSITIONS) {
+        assert(boss.onHex(p), `a boss on ${bossAt} does not hold the ${p} hex`);
+      }
+      // ...and an ordinary unit still holds exactly one.
+      const held = POSITIONS.filter((p) => others[0].onHex(p));
+      assert(held.length === 1, `an ordinary foe holds ${held.length} hexes`);
+
+      // Every hex-scoped sweep finds it, whichever row it names.
+      for (const targeting of ['front-enemies', 'front-and-center-enemies',
+        'flank-enemies', 'back-enemies']) {
+        const caught = Abilities.resolveTargets({ targeting }, hero, null, battle);
+        assert(caught.includes(boss),
+          `${targeting} missed a boss standing on ${bossAt}`);
+      }
+
+      // The y-banded row sweep too, anchored on a foe the boss does NOT
+      // share a pixel row with -- anchoring on the boss itself, or on a
+      // body beside it, would prove nothing.
+      const offRow = others.find((u) => Math.abs(u.slot.y - boss.slot.y) >= 2);
+      assert(offRow, `no foe stands off the boss's row with it on ${bossAt}`);
+      const row = Abilities.resolveTargets(
+        { targeting: 'enemy-row' }, hero, offRow, battle);
+      assert(row.includes(boss),
+        `the row sweep anchored off-row missed a boss on ${bossAt}`);
+      assert(boss.sharesRowWith(offRow) && offRow.sharesRowWith(boss),
+        'a boss does not share a row with a unit on another row');
+      // The control: two ordinary units on different rows do not.
+      const pair = others.filter((u) => Math.abs(u.slot.y - offRow.slot.y) >= 2);
+      if (pair.length) {
+        assert(!pair[0].sharesRowWith(offRow),
+          'two ordinary units on different rows shared one');
+      }
+    } finally { Battle.active = prev; }
+  }
+});
+
+test('a hex-keyed BONUS is live against a boss, not just a hex sweep', () => {
+  // The half of the rule that was missing. These read the target's slot
+  // directly, so the one enemy on the field was the one enemy they
+  // never fired on.
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const bossDef = Object.values(BOSSES)[0];
+    const boss = new Unit(bossDef, TEAM.ENEMY, { level: 40, stars: 5 });
+    battle.placeUnit(boss, 0);
+    const backSlot = battle.enemySlots.findIndex((s) => s.position === POSITION.BACK);
+    const backFoe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, backSlot);
+    const caster = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    // No crits: every number below is a comparison between two hits, and
+    // a 15% chance of one of them landing 1.5x turns an exact assertion
+    // into a coin flip that passes most of the time.
+    caster.baseCritChance = 0;
+
+    // `bonusPosition`: a damage rider that only fires on a named hex.
+    // Measured off HP, which is the only honest reading -- the rider is
+    // applied inside the damage formula, not reported beside it.
+    const hit = (victim, position) => {
+      const def = { name: 'probe', targeting: 'enemy', effects: [
+        { type: 'damage', mult: 1, ...(position ? { bonusPosition: { position, mult: 3 } } : {}) }] };
+      victim.hp = victim.maxHp;
+      Abilities.execute(def, caster, victim, battle);
+      return victim.maxHp - victim.hp;
+    };
+    // The control first: a back-hex foe earns the rider on BACK and on
+    // nothing else. Without this, a rider that fired unconditionally
+    // would satisfy every boss assertion below.
+    const plainFoe = hit(backFoe, null);
+    assert(plainFoe > 0, 'the probe did no damage at all');
+    assert(hit(backFoe, POSITION.BACK) > plainFoe * 2,
+      'the control did not earn the rider on the hex it holds');
+    assert(Math.abs(hit(backFoe, POSITION.FRONT) - plainFoe) < 2,
+      'the control earned a rider for a hex it does not hold');
+
+    // And the boss earns it on every hex there is.
+    const plainBoss = hit(boss, null);
+    assert(plainBoss > 0, 'the probe did no damage to the boss');
+    for (const position of [POSITION.FRONT, POSITION.CENTER, POSITION.BACK]) {
+      assert(hit(boss, position) > plainBoss * 2,
+        `the ${position} rider did not fire against a boss`);
+    }
+  } finally { Battle.active = prev; }
+});
 
 report();

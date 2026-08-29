@@ -48,8 +48,7 @@ const AI = (() => {
   function reachable(list) {
     const taunts = taunting(list);
     if (taunts.length) return taunts;
-    const front = list.filter((u) => u.isBoss ||
-      (u.slot && u.slot.position === POSITION.FRONT));
+    const front = list.filter((u) => u.onHex(POSITION.FRONT));
     if (front.length === 0) return list;
     // With a line still standing, the back rank is mostly shielded —
     // but never completely: a determined attacker can still get through.
@@ -81,8 +80,11 @@ const AI = (() => {
       name: 'Stooper',
       pick: (c) => c.slice().sort(longestCd)[0],
       focus: (e) => {
-        const back = e.filter((u) => !u.isBoss && u.slot &&
-          u.slot.position === POSITION.BACK);
+        // A boss spans every hex, the back one included, so it IS a
+        // back-rank target here. This used to exclude bosses outright,
+        // which made the one enemy on the field the one enemy a Stooper
+        // would not go looking for.
+        const back = e.filter((u) => u.onHex(POSITION.BACK));
         return softest(back.length ? back : e);
       },
     },
@@ -96,8 +98,7 @@ const AI = (() => {
         return (heavy.length ? heavy : c).slice().sort(longestCd)[0];
       },
       focus: (e) => {
-        const front = e.filter((u) => u.isBoss || (u.slot &&
-          u.slot.position === POSITION.FRONT));
+        const front = e.filter((u) => u.onHex(POSITION.FRONT));
         const pool = front.length ? front : e;
         return pool.slice().sort((a, b) => b.maxHp - a.maxHp)[0];
       },
@@ -178,7 +179,7 @@ const AI = (() => {
   const isHealer = (u) => (u.abilities || []).some((a) =>
     a.def.effects.some((x) => x.type === 'heal' || x.type === 'healHpPct' ||
       x.type === 'hot' || x.type === 'revive'));
-  const inFront = (u) => u.isBoss || (u.slot && u.slot.position === POSITION.FRONT);
+  const inFront = (u) => u.onHex(POSITION.FRONT);
 
   const FOCUS = {
     lowest: (e) => e.slice().sort(byHp)[0],
