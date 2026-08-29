@@ -132,6 +132,7 @@ class BattleScreen {
       });
     });
     this.meterTimer = 0;
+    this.inspectTimer = 0;
 
     // Retreat: abandon the fight. Forfeiting a long battle by mis-click
     // would be miserable, so the first press arms it and the second
@@ -1167,6 +1168,13 @@ class BattleScreen {
     if (this.app.active === this) {
       this.meterTimer -= dt;
       if (this.meterTimer <= 0) { this.meterTimer = 0.25; this.drawMeter(); }
+      // The open unit inspector, on a faster clock than the meter: it is
+      // reporting HP and status turns against a health bar the field is
+      // redrawing every frame, so a quarter-second lag between the two
+      // reads as the panel being wrong. The refresh is a no-op unless
+      // something in the sheet actually changed.
+      this.inspectTimer -= dt;
+      if (this.inspectTimer <= 0) { this.inspectTimer = 0.1; this.ui.refreshInspect(); }
     }
     // Between-battle chain pause, on the simulation clock.
     if (this.chainCountdown !== null && this.chainCountdown !== undefined) {

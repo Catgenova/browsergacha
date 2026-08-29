@@ -42,6 +42,9 @@ class UI {
     // Unit inspector: the sheet behind any fighter on the field.
     this.inspectEl = document.getElementById('inspect-panel');
     this.inspected = null;
+    // The markup last written into the panel, so a refresh that would
+    // change nothing can be skipped.
+    this.inspectCache = null;
     const inspectClose = document.getElementById('inspect-close');
     if (inspectClose) {
       inspectClose.addEventListener('click', () => this.showInspect(null));
@@ -283,11 +286,18 @@ class UI {
   // The full sheet for one fighter: what it is, what it is carrying
   // right now (with turns left and who put it there), and its kit with
   // live cooldowns. Passing null closes the panel.
+  //
+  // Opening it renders once; refreshInspect() below keeps it current for
+  // as long as it is open. It used to only render once, which made the
+  // panel a snapshot of the instant it was clicked -- HP, statuses and
+  // cooldowns all frozen while the fight it was describing carried on
+  // behind it.
   showInspect(unit) {
     this.inspected = unit && unit.alive !== undefined ? unit : null;
     if (!this.inspectEl) return;
     if (!this.inspected) {
       this.inspectEl.classList.add('hidden');
+      this.inspectCache = null;
       return;
     }
     // Stand on the far side of whoever is being read: your side holds
@@ -298,8 +308,39 @@ class UI {
     this.inspectEl.classList.toggle('on-right', !onLeft);
     document.getElementById('inspect-title').textContent =
       `${unit.name}${unit.level ? ` · Lv ${unit.level}` : ''}`;
-    document.getElementById('inspect-body').innerHTML = this.inspectHtml(unit);
+    this.inspectCache = this.inspectHtml(unit);
+    document.getElementById('inspect-body').innerHTML = this.inspectCache;
     this.inspectEl.classList.remove('hidden');
+  }
+
+  // Re-render the open inspector against the unit as it is NOW. Driven
+  // from BattleScreen.update on its own small clock, the same way the
+  // damage meter is.
+  //
+  // Two things this has to be careful about. The panel scrolls (a full
+  // kit runs past its max-height), so a rebuild would throw the reader
+  // back to the top mid-read -- the scroll offset is carried across.
+  // And the rebuild is skipped entirely when the markup has not changed,
+  // which is most ticks for most units: it costs one string compare and
+  // it keeps text selection alive while nothing is happening.
+  refreshInspect() {
+    const unit = this.inspected;
+    if (!unit || !this.inspectEl || this.inspectEl.classList.contains('hidden')) return;
+    // A fighter from a battle that has been torn down is not on the
+    // field any more, and its numbers stopped meaning anything. Close
+    // rather than show a sheet for someone who is not there. Dead units
+    // stay in `units`, so this does not fire on a death -- watching one
+    // go down is exactly what a live panel is for.
+    if (this.battle && !this.battle.units.includes(unit)) {
+      this.showInspect(null);
+      return;
+    }
+    const html = this.inspectHtml(unit);
+    if (html === this.inspectCache) return;
+    this.inspectCache = html;
+    const top = this.inspectEl.scrollTop;
+    document.getElementById('inspect-body').innerHTML = html;
+    this.inspectEl.scrollTop = top;
   }
 
   inspectHtml(unit) {
