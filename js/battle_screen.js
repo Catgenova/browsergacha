@@ -763,9 +763,10 @@ class BattleScreen {
       if (isBossFloor) {
         const keys = Object.keys(BOSSES);
         const def = BOSSES[keys[Tower.bossIndex(floor, keys.length)]];
-        this.rewardXp = Progression.enemyXp(level) * 6;
-        this.rewardWhetstones = 10 + level * 2;
-        this.rewardArcana = 3 + Math.ceil(floor / 10);
+        // Every payout rides the floor's own strain -- see js/tower.js.
+        this.rewardXp = Tower.payout(Progression.enemyXp(level) * 6, floor);
+        this.rewardWhetstones = Tower.payout(10 + level * 2, floor);
+        this.rewardArcana = Tower.payout(3 + Math.ceil(floor / 10), floor);
         battle.placeUnit(
           new Unit(def, TEAM.ENEMY, { level, stars: def.rarity, statScale }), 0);
         bgPin = def.background || null;
@@ -791,8 +792,9 @@ class BattleScreen {
           battle.placeUnit(new Unit(def, TEAM.ENEMY,
             { level: lv, stars: def.rarity, statScale }), slotIndex);
         }
-        this.rewardWhetstones = 3 + Math.round(totalLevels * 0.8);
-        this.rewardArcana = 1 + Math.floor(totalLevels / 15);
+        this.rewardXp = Tower.payout(this.rewardXp, floor);
+        this.rewardWhetstones = Tower.payout(3 + Math.round(totalLevels * 0.8), floor);
+        this.rewardArcana = Tower.payout(1 + Math.floor(totalLevels / 15), floor);
         this.introLog = `Tower floor ${floor} — enemies at Lv ~${level}` +
           `${Tower.floorNote(floor)}.`;
       }
@@ -993,29 +995,30 @@ class BattleScreen {
           GameState.recordTowerClear(floor);
           sub.unshift(`Tower floor ${floor} cleared!`);
           // Guaranteed scroll ladder: a Common every floor, a Rare
-          // every 5th, a Temporal (Dark/Light) every 50th.
-          GameState.addScrolls('common', 1);
-          sub.push('Floor reward: a Common Summon Scroll 📜');
-          if (floor % 5 === 0) {
-            GameState.addScrolls('rare', 1);
-            sub.push('Floor reward: a RARE Summon Scroll! ✨');
-          }
-          if (floor % 50 === 0) {
-            GameState.addScrolls('temporal', 1);
-            sub.push('Floor reward: a TEMPORAL Scroll! 🌀');
-          }
+          // every 5th, a Temporal (Dark/Light) every 50th -- each in
+          // the quantity the floor's strain has earned, so a floor five
+          // times harder hands over five scrolls rather than one.
+          const scrolls = (kind, label, icon) => {
+            const n = Tower.payout(1, floor);
+            GameState.addScrolls(kind, n);
+            sub.push(`Floor reward: ${n > 1 ? `${n.toLocaleString()} ` : 'a '}` +
+              `${label}${n > 1 ? 's' : ''}! ${icon}`);
+          };
+          scrolls('common', 'Common Summon Scroll', '📜');
+          if (floor % 5 === 0) scrolls('rare', 'RARE Summon Scroll', '✨');
+          if (floor % 50 === 0) scrolls('temporal', 'TEMPORAL Scroll', '🌀');
           if (floor % 10 === 0) {
             // Boss floors pay Diamonds, in growing steps of fifty.
-            const diamonds = 50 * (floor / 10);
+            const diamonds = Tower.payout(50 * (floor / 10), floor);
             GameState.addDiamonds(diamonds);
-            sub.push(`Floor reward: ${diamonds} 💎 Diamonds!`);
+            sub.push(`Floor reward: ${diamonds.toLocaleString()} 💎 Diamonds!`);
           }
           if (floor % 20 === 0) {
             // Every 20th floor used to pay Skill Tomes. Skills are bought
             // with heroes now, so the milestone pays arcana instead.
-            const arcana = 100 * (floor / 20);
+            const arcana = Tower.payout(100 * (floor / 20), floor);
             GameState.addArcana(arcana);
-            sub.push(`Floor reward: ${arcana} Arcana! ✦`);
+            sub.push(`Floor reward: ${arcana.toLocaleString()} Arcana! ✦`);
           }
         }
         if (this.campaignFight) {

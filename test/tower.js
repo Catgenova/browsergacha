@@ -104,6 +104,7 @@ console.log(`curve: linear to floor ${Tower.ANCHOR}, then ` +
 console.log('floor'.padStart(6), 'power'.padStart(10),
   PROFILES.map((p) => p.name.split(/\s+/)[0].padStart(13)).join(''));
 
+const rewards = [];
 for (const f of FLOORS) {
   const cells = PROFILES.map((prof) => {
     let win = 0, wipe = 0;
@@ -118,6 +119,18 @@ for (const f of FLOORS) {
   const p = Tower.power(f);
   const shown = p >= 1000 ? `${Math.round(p)}x` : `${p.toFixed(1)}x`;
   console.log(String(f).padStart(6), shown.padStart(10), cells.join(''));
+  rewards.push([f, Tower.reward(f)]);
+}
+
+// What the floor pays, on the same curve it charges. A wave floor's
+// whetstones and the milestone scroll count, so the reward side can be
+// read next to the difficulty side rather than taken on trust.
+console.log('\nwhat a floor pays (wave whetstones / scrolls per milestone):');
+for (const [f, k] of rewards) {
+  const base = 3 + Math.round(7 * Tower.level(f) * 0.8);
+  console.log(`  floor ${String(f).padStart(4)}  strain x${k.toFixed(2).padStart(7)}` +
+    `  whetstones ${String(base).padStart(6)} -> ${String(Tower.payout(base, f)).padStart(7)}` +
+    `  scrolls ${Tower.payout(1, f)}`);
 }
 
 // The property the whole rewrite exists for, printed so it can be read
