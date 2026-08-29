@@ -44,6 +44,10 @@ class RosterScreen {
     //
     // It lives beside the grid rather than in the Star Up panel because
     // it is a whole-roster action and that panel is about one hero.
+    // Dumplings picked for the current star up, by rating: { '8': 2 }.
+    // Separate from `chosen` because they have no uid to hold -- they
+    // are inventory, counted, not roster entries.
+    this.chosenBag = {};
     this.autoBtns = [...document.querySelectorAll('.ros-auto-btn')];
     this.autoArmed = null;
     this.autoMsg = '';
@@ -84,6 +88,7 @@ class RosterScreen {
     this.skillIdx = 0;
     this.gearFocus = null;
     this.chosen.clear();
+    this.chosenBag = {};
     this.message = '';
   }
 
@@ -217,6 +222,7 @@ class RosterScreen {
         this.skillIdx = 0;
         this.gearFocus = null;
         this.chosen.clear();
+        this.chosenBag = {};
         this.message = '';
         this.buildGrid();
         this.renderPanel();
@@ -264,21 +270,18 @@ class RosterScreen {
   // ---- right: the sub-tabs -------------------------------------------
 
   renderPanel() {
-    const inert = !!this.selected && GameState.isConsumable(this.selected);
     for (const tab of this.tabsEl.querySelectorAll('.ros-tab')) {
-      tab.classList.toggle('active', !inert && tab.dataset.panel === this.panel);
-      tab.classList.toggle('ros-tab-inert', inert);
+      tab.classList.toggle('active', tab.dataset.panel === this.panel);
     }
     if (!this.selected) {
       this.panelEl.innerHTML =
         '<div class="details-empty">Select a hero from the grid.</div>';
       return;
     }
-    // A dumpling has no skills, no gear, no element and no hex, so it
-    // gets one panel rather than five that would all say "none". The
-    // rail stays visible but goes inert, which reads as "not for this"
-    // instead of as a screen that lost its tabs.
-    if (GameState.isConsumable(this.selected)) return this.renderConsumable();
+    // There is no consumable branch here any more. A dumpling used to be
+    // a roster entry and needed a dossier of its own -- five panels that
+    // would all have said "none" -- and it is inventory now, so the grid
+    // holds nothing but characters and every one of them has all five.
     if (this.panel === 'ascend') return this.renderAscend();
     if (this.panel === 'starup') return this.renderStarUp();
     if (this.panel === 'skill') return this.renderSkill();
@@ -359,43 +362,6 @@ class RosterScreen {
   // per rung, lit for the ones bought and dim for the ones ahead. That
   // dim half is the point: a skill readout that only lists what you have
   // cannot answer "is the next copy worth it".
-  // The dumpling dossier. One number matters -- what it is worth in the
-  // bank -- so that number is the panel, with the rest of the ladder
-  // beside it so a player can see what a bigger one would be worth.
-  renderConsumable() {
-    const uid = this.selected;
-    const def = GameState.defOf(uid);
-    const pr = GameState.progressOf(uid);
-    const num = (v) => Math.round(v || 0).toLocaleString();
-    const worth = Progression.starValue(pr.stars, def);
-
-    const ladder = Array.from({ length: Progression.MAX_STARS }, (_, i) => {
-      const st = i + 1;
-      return `<div class="ros-rung${st === pr.stars ? ' earned' : ''}">
-        <span class="ros-rung-lv">${st}&#9733;</span>
-        <span class="ros-rung-text">${num(Progression.starValue(st, def))} points</span></div>`;
-    }).join('');
-
-    this.panelEl.innerHTML = `
-      <div class="ros-head">
-        <div class="detail-name rarity-1">${def.name}
-          <span class="detail-title">${def.title || ''}</span></div>
-        <div class="card-stars rarity-1">${Attune.starsHtml(pr.stars, 0, null)}</div>
-        <div class="detail-element">No element &middot; not a fighter</div>
-      </div>
-      <div class="ros-power">Worth <b>${num(worth)}</b> star-up points</div>
-      <div class="ros-skill-desc">A dumpling has no skills and cannot be placed on a
-        formation. It exists to be fed to a hero on the Star Up tab, where it is worth
-        far more than a hero of the same rating.</div>
-      <div class="detail-section">What a dumpling is worth</div>
-      <div class="ros-ladder">${ladder}</div>
-      <div class="ros-note">You hold ${GameState.dumplingCount()} dumpling${
-        GameState.dumplingCount() === 1 ? '' : 's'}, vault included. They take up
-        roster room like anyone else, so they are worth spending rather than
-        hoarding — and one in storage cannot be fed to anybody until it is
-        withdrawn.</div>`;
-  }
-
   // ---- Ascend -----------------------------------------------------------
   //
   // The second growth axis: elements won off the elemental bosses, spent
@@ -507,8 +473,8 @@ class RosterScreen {
     const bank = pr.starPoints || 0;
     const need = Progression.starUpCost(pr.stars);
     const options = GameState.sacrificeOptions(uid);
-    const { picked, picking, skillPicks, toStars, after, willStar } =
-      this.starUpTotals(uid);
+    const { picked, picking, skillPicks, toStars, after, willStar,
+      eatingN, any } = this.starUpTotals(uid);
 
     const num = (v) => Math.round(v || 0).toLocaleString();
     // Two-tone bar: what is banked already, and what the current picks
@@ -552,16 +518,9 @@ class RosterScreen {
 
     const rowFor = (o) => {
       const on = this.chosen.has(o.uid);
-      // Through defOf, not HEROES: a dumpling is a roster entry whose
-      // def lives in its own table, and indexing HEROES with its id
-      // hands back undefined and throws on the next line.
       const fodder = GameState.defOf(o.uid);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
-      // Consumables can be spent straight out of the vault (see
-      // GameState.canSacrifice), so the row has to say when one is
-      // coming from there rather than off the roster.
-      if (o.stored) tags.push('<span class="imp-tag imp-tag-vault">VAULT</span>');
       tags.push(`<span class="imp-tag imp-tag-dim">${o.stars}&#9733;</span>`);
       tags.push(`<span class="ros-worth">+${num(o.value)}</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
@@ -571,6 +530,34 @@ class RosterScreen {
           <div class="imp-row-sub">Lv ${o.level}</div>
         </div>${tags.join('')}</div>`;
     };
+
+    // The dumpling shelf. Dumplings are inventory, not roster entries,
+    // so they are not rows in the candidate list -- they are a counted
+    // stock with a stepper apiece. One line per rating actually held.
+    const bag = GameState.dumplingBag();
+    const dumplingHtml = Object.keys(bag).length === 0 ? '' : `
+      <div class="detail-section">Dumplings
+        <span class="cd">${GameState.dumplingCount().toLocaleString()} in hand &middot;
+          ${num(GameState.dumplingPoints())} points</span></div>
+      <div class="ros-dumplings">
+        ${Object.keys(bag).map(Number).sort((a, b) => b - a).map((st) => {
+          const have = bag[st];
+          const take = this.chosenBag[st] || 0;
+          return `<div class="ros-dump-row${take ? ' chosen' : ''}" data-stars="${st}">
+            <span class="ros-dump-face">&#129375;</span>
+            <div class="imp-row-text">
+              <div class="imp-row-name">${st}&#9733; Dumpling</div>
+              <div class="imp-row-sub">${num(GameState.dumplingValue(st))} points each
+                &middot; ${have} in hand</div>
+            </div>
+            <button class="ros-dump-step" data-stars="${st}" data-step="-1"
+              ${take ? '' : 'disabled'} title="Spend one fewer">&minus;</button>
+            <span class="ros-dump-n">${take} / ${have}</span>
+            <button class="ros-dump-step" data-stars="${st}" data-step="1"
+              ${take < have ? '' : 'disabled'} title="Spend one more">+</button>
+          </div>`;
+        }).join('')}
+      </div>`;
 
     this.panelEl.innerHTML = `
       ${this.header(uid)}
@@ -582,27 +569,30 @@ class RosterScreen {
           'only buy skill levels now.</div>'
         : barHtml}
       ${preview}
-      <button id="ros-sac" class="panel-btn gold" ${picked.length ? '' : 'disabled'}>
-        ${picked.length
-          ? `Sacrifice ${picked.length} hero${picked.length > 1 ? 'es' : ''}` +
+      <button id="ros-sac" class="panel-btn gold" ${any ? '' : 'disabled'}>
+        ${any
+          ? `Spend ${[
+              picked.length ? `${picked.length} hero${picked.length > 1 ? 'es' : ''}` : '',
+              eatingN ? `${eatingN} dumpling${eatingN > 1 ? 's' : ''}` : '',
+            ].filter(Boolean).join(' and ')}` +
             (willStar ? ` — ${pr.stars}★ to ${toStars}★` : maxed ? '' : ` — +${num(picking)}`)
-          : 'Choose sacrifices below'}
+          : 'Choose what to spend below'}
       </button>
       <div class="ros-autopick">
         ${[1, 2, 3].map((st) => {
-          const n = options.filter((o) => !o.consumable && o.stars <= st &&
+          const n = options.filter((o) => o.stars <= st &&
             !this.chosen.has(o.uid)).length;
           return `<button class="panel-btn ros-sweep" data-max="${st}" ${n ? '' : 'disabled'}
             title="Tick every spendable hero at ${st}&#9733; or below. Dumplings are
 left alone -- they have their own button.">&le;${st}&#9733;${
             n ? ` <i>(${n})</i>` : ''}</button>`;
         }).join('')}
-        ${options.some((o) => o.consumable && !this.chosen.has(o.uid))
+        ${GameState.dumplingCount()
           ? `<button id="ros-eat" class="panel-btn"
-              title="Tick the smallest set of dumplings that fills the bar. If they
-all together are not enough, every one of them is picked.">🥟 Fill</button>`
+              title="Take the smallest set of dumplings that fills the bar. If they
+all together are not enough, every one of them is taken.">&#129375; Fill</button>`
           : ''}
-        ${picked.length ? `<button id="ros-clear" class="panel-btn danger"
+        ${any ? `<button id="ros-clear" class="panel-btn danger"
           title="Untick everything">Clear</button>` : ''}
       </div>
       ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
@@ -610,11 +600,12 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
         ? `${skillPicks} cop${skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
           `${skillPicks} random skill level${skillPicks > 1 ? 's' : ''}.`
         : `Sacrificing another ${def.name} also raises a random skill.`}</div>
-      <div class="detail-section">Sacrifices${
+      ${dumplingHtml}
+      <div class="detail-section">Heroes${
         options.length ? ` <span class="cd ros-chosen-count">${picked.length} chosen</span>` : ''}</div>
       ${options.length
         ? `<div class="imp-opts">${options.map(rowFor).join('')}</div>`
-        : `<div class="ros-note">Nothing to spend: every other hero you own is
+        : `<div class="ros-note">No heroes to spend: every other hero you own is
            favourited or fielded, and those are never offered.</div>`}`;
 
     this.panelEl.querySelectorAll('.imp-opt').forEach((el) => {
@@ -656,10 +647,28 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
       });
     }
 
+    // The dumpling steppers. A full re-render is fine here: the shelf is
+    // a handful of rows with no portraits to repaint, unlike the hero
+    // list below it.
+    for (const btn of this.panelEl.querySelectorAll('.ros-dump-step')) {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        const st = btn.dataset.stars;
+        const step = Number(btn.dataset.step);
+        const have = GameState.dumplingsAt(st);
+        const next = Math.max(0, Math.min(have, (this.chosenBag[st] || 0) + step));
+        if (next) this.chosenBag[st] = next;
+        else delete this.chosenBag[st];
+        this.message = '';
+        this.renderStarUp();
+      });
+    }
+
     const clear = document.getElementById('ros-clear');
     if (clear) {
       clear.addEventListener('click', () => {
         this.chosen.clear();
+        this.chosenBag = {};
         this.message = '';
         this.renderStarUp();
       });
@@ -668,11 +677,17 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
     const go = document.getElementById('ros-sac');
     if (go) {
       go.addEventListener('click', () => {
-        if (go.disabled || !this.chosen.size) return;
-        const report = GameState.sacrifice(uid, [...this.chosen]);
+        if (go.disabled) return;
+        const report = GameState.sacrifice(uid, [...this.chosen], this.chosenBag);
         this.chosen.clear();
+        this.chosenBag = {};
         if (!report) { this.message = 'Nothing was spent.'; this.refresh(); return; }
-        const bits = [`Spent ${report.spent} hero${report.spent > 1 ? 'es' : ''}` +
+        const what = [
+          report.spent ? `${report.spent} hero${report.spent > 1 ? 'es' : ''}` : '',
+          report.dumplings
+            ? `${report.dumplings} dumpling${report.dumplings > 1 ? 's' : ''}` : '',
+        ].filter(Boolean).join(' and ');
+        const bits = [`Spent ${what}` +
           (report.points ? ` for ${num(report.points)} points.` : '.')];
         if (report.starred) {
           bits.push(`${def.name} is now ${report.to}★!` +
@@ -697,8 +712,8 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
   // it (see there), so it lives where a test can reach it.
   fillWithDumplings(uid) {
     const plan = GameState.planDumplingFill(uid, [...this.chosen]);
-    for (const u of plan.uids) this.chosen.add(u);
-    const n = plan.uids.length;
+    this.chosenBag = { ...plan.bag };
+    const n = plan.n;
     const num = (v) => Math.round(v || 0).toLocaleString();
     this.message = plan.need <= 0
       ? 'The bar is already covered by what is picked.'
@@ -725,8 +740,13 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
     const def = GameState.defOf(uid);
     const pr = GameState.progressOf(uid);
     const picked = [...this.chosen].filter((u) => GameState.defOf(u));
+    // Two kinds of pick, and they add up into the same bar: roster
+    // heroes by uid, and dumplings by rating out of the inventory bag.
+    const eating = GameState.dumplingCount() ? { ...this.chosenBag } : {};
+    const eatingN = Object.values(eating).reduce((n, c) => n + c, 0);
     const picking = picked.reduce(
-      (n, u) => n + GameState.fodderValue(u), 0);
+      (n, u) => n + GameState.fodderValue(u), 0) +
+      GameState.dumplingPoints(eating);
     const bank = pr.starPoints || 0;
     let toStars = pr.stars;
     let after = bank + picking;
@@ -736,7 +756,8 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
       toStars++;
     }
     return {
-      picked, picking, bank, toStars, after,
+      picked, picking, bank, toStars, after, eating, eatingN,
+      any: picked.length + eatingN,
       willStar: toStars > pr.stars,
       skillPicks: picked.filter((u) => GameState.defIdOf(u) === def.id).length,
     };

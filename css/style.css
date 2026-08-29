@@ -3202,10 +3202,44 @@ svg.icon {
   white-space: nowrap;
 }
 .imp-tag-skill { background: #3a2f18; color: #ffd76a; }
-/* A consumable being spent out of storage rather than off the roster.
-   Blue rather than gold: it is a note about where the thing is, not a
-   bonus like SKILL UP. */
-.imp-tag-vault { background: #1e2b3a; color: #8ecbff; }
+
+/* The dumpling shelf on the Star Up panel. Dumplings are inventory
+   rather than roster entries, so they are not rows in the candidate
+   list -- they are a counted stock, one line per rating held, each with
+   a stepper for how many of it to eat. */
+.ros-dumplings { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.ros-dump-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid #2e2a3d;
+  border-radius: 6px;
+  background: #1a1726;
+}
+.ros-dump-row.chosen { border-color: #ffd76a; background: #241f16; }
+.ros-dump-face { font-size: 20px; line-height: 1; }
+.ros-dump-n {
+  min-width: 46px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: #ffd76a;
+}
+.ros-dump-step {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid #3a3550;
+  border-radius: 5px;
+  background: #241f33;
+  color: #e8e4f4;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ros-dump-step:hover:not(:disabled) { border-color: #ffd76a; color: #ffd76a; }
+.ros-dump-step:disabled { opacity: 0.35; cursor: default; }
 
 @media (max-width: 899px) {
   html.is-mobile #imp-body { flex-direction: column; }

@@ -355,9 +355,10 @@ class TeamScreen {
     const query = this.rosterSearch.value.trim().toLowerCase();
     const uids = GameState.storedHeroIds()
       .map((uid) => ({ uid, e: GameState.storedEntry(uid) }))
-      // Through defById, not HEROES: a dumpling that overflowed into the
-      // vault lives here too, and filtering on HEROES made it invisible
-      // and unreachable rather than merely odd-looking.
+      // Through defById rather than HEROES. Nothing but heroes reaches
+      // the vault now -- dumplings are inventory -- but a save that has
+      // not been migrated yet is still a save, and defById is the one
+      // lookup that resolves whatever it finds.
       .filter((r) => r.e && GameState.defById(r.e.heroId))
       .map((r) => ({ ...r, def: GameState.defById(r.e.heroId) }))
       .filter((r) => !query || r.def.name.toLowerCase().includes(query) ||
@@ -806,10 +807,6 @@ class TeamScreen {
     // on a null.
     if (!def) { this.selection = null; this.detailsEl.innerHTML =
       '<div class="details-empty">That hero is gone.</div>'; return; }
-    // A dumpling has no passive, no hex and no gear, and this panel
-    // reads all three unguarded. It also cannot be placed, so the half
-    // of the panel that is about placement has nothing to say either.
-    if (def.consumable) { this.updateConsumableDetails(uid, def); return; }
     const slotIndex = GameState.teamSlotOf(uid);
     const placedSlot = slotIndex !== null ? this.slots[slotIndex] : null;
     const bonusLive = placedSlot && placedSlot.position === def.positional.position;
@@ -1017,22 +1014,6 @@ class TeamScreen {
     });
   }
 
-  // A dumpling's dossier on the Team screen: what it is, what it is
-  // worth, and the one thing a player standing on this screen needs
-  // told -- that it will not go on the board.
-  updateConsumableDetails(uid, def) {
-    const pr = GameState.progressOf(uid);
-    const num = (v) => Math.round(v || 0).toLocaleString();
-    this.detailsEl.innerHTML = `
-      <div class="detail-name rarity-1">${def.name}
-        <span class="detail-title">${def.title || ''}</span></div>
-      <div class="card-stars rarity-1">${Attune.starsHtml(pr.stars, 0, null)}</div>
-      <div class="detail-stats">Worth ${num(Progression.starValue(pr.stars, def))}
-        star-up points</div>
-      <div class="detail-ability">A dumpling cannot be placed on a hex. Feed it to a
-        hero on the Roster screen's Star Up tab.</div>`;
-  }
-
   // A stored hero's dossier: everything the roster view shows minus gear
   // (the vault strips it), with the one action that applies here —
   // withdrawing — in place of the roster's buttons.
@@ -1041,10 +1022,6 @@ class TeamScreen {
     const e = GameState.storedEntry(uid);
     const def = e && GameState.defById(e.heroId);
     if (!def) { this.selection = null; this.updateDetails(); return; }
-    // A dumpling can overflow into the vault, and this panel reads a
-    // passive, a hex and a skill list that it does not have. It gets the
-    // consumable dossier plus the one action the vault offers.
-    if (def.consumable) { this.storedConsumableDetails(uid, def, e); return; }
 
     const stats = Progression.scaledStats(def, e.level, e.stars);
     const cap = Progression.maxLevel(e.stars);
@@ -1116,33 +1093,6 @@ class TeamScreen {
 
   // ---- Canvas rendering --------------------------------------------------
 
-  // A stored dumpling: what it is worth, and the button that brings it
-  // back. It cannot be spent while it is in the vault, which is the one
-  // thing a player looking at it here needs told.
-  storedConsumableDetails(uid, def, e) {
-    const num = (v) => Math.round(v || 0).toLocaleString();
-    const full = GameState.rosterFull();
-    this.detailsEl.innerHTML = `
-      <div class="detail-name rarity-1">${def.name}
-        <span class="detail-title">${def.title || ''}</span></div>
-      <div class="card-stars rarity-1">${Attune.starsHtml(e.stars, 0, null)}</div>
-      <div class="detail-stats">Worth ${num(Progression.starValue(e.stars, def))}
-        star-up points</div>
-      <div class="detail-ability">In storage. Withdraw it to the roster before it can
-        be fed to a hero.</div>
-      <button id="withdraw-btn" class="panel-btn" ${full ? 'disabled' : ''}
-        title="${full ? 'The roster is full.' : 'Return this dumpling to the roster'}">
-        Withdraw</button>`;
-    const btn = document.getElementById('withdraw-btn');
-    if (btn && !btn.disabled) {
-      btn.addEventListener('click', () => {
-        const res = GameState.withdraw(uid);
-        this.rosterMsg = res ? `${def.name} returned to the roster.` : 'Could not withdraw.';
-        if (res) this.selection = { heroId: uid, from: 'roster' };
-        this.refresh();
-      });
-    }
-  }
 
   update(dt) {
     for (const player of this.animators.values()) player.update(dt);
