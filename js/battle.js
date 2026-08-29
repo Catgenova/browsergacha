@@ -665,7 +665,16 @@ class Battle {
           this.log(`${res.target.name}'s action bar surges by ${Math.round(res.amount * 100)}%.`, cls);
         } else {
           this.addFloatingText(res.target, 'METER ▼', '#d78aff');
-          this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+          // Undertow: say where it went. A bar that vanishes and a bar
+          // that changes hands are different events, and the second one
+          // is the whole point of the tier.
+          if (res.siphoned > 0 && res.siphonedBy) {
+            this.addFloatingText(res.siphonedBy, 'METER ▲', '#8ecbff');
+            this.log(`${res.target.name}'s action bar is cut by ` +
+              `${Math.round(-res.amount * 100)}% — ${res.siphonedBy.name} takes it.`, cls);
+          } else {
+            this.log(`${res.target.name}'s action bar is cut by ${Math.round(-res.amount * 100)}%.`, cls);
+          }
         }
       } else if (res.kind === 'taunt') {
         this.addFloatingText(res.target, '⚑ TAUNT', '#ffd76a', true);

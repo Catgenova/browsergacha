@@ -310,6 +310,10 @@ test('every sect holds one race, once each, with its number', () => {
     // settled before the art arrived. Empty members is not defunct --
     // the flag below is what tells a closed order from an unfilled one.
     hollowbone: { number: 12, race: 'avian', members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen', 'carrion'] },
+    // FOUNDING: numbered, packed and waiting on art, the same state
+    // Hollowbone held before Necros landed. The cats fill it one at a
+    // time; the flag comes off with the first one.
+    stillwater: { number: 13, race: 'cat', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -363,10 +367,13 @@ test('every sect holds one race, once each, with its number', () => {
 
   // liveSects() is what anything offering sects as a CHOICE should ask
   // for -- a filter, a banner schedule, a list of where heroes come
-  // from. It must not include a closed order.
+  // from. It must not include a closed order, and it must not include a
+  // FOUNDING one either: a sect with nobody in it is not somewhere a
+  // hero can come from, and all three of those callers want the same
+  // answer for the same reason.
   const live = RACES.liveSects().map((s) => s.id).sort();
   const wantLive = Object.entries(expected)
-    .filter(([, w]) => !w.defunct).map(([id]) => id).sort();
+    .filter(([, w]) => !w.defunct && !w.founding).map(([id]) => id).sort();
   assert(live.join() === wantLive.join(),
     `liveSects() is ${live.join(', ')}`);
 

@@ -15185,4 +15185,102 @@ test('an elite node is led by the rarest body its tier can field', () => {
   }
 });
 
+test('Stillwater sect pack: take the turn, keep it, and never lose one', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.stillwater;
+  assert(PACK && PACK.length === 3, 'the Stillwater pack is not three tiers');
+  assert(PACK.map((t) => t.count).join() === '2,3,4', 'the tiers are not 2/3/4');
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const cat = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
+    const wear = (unit, ...counts) => {
+      unit.passives = PACK.filter((t) => counts.includes(t.count))
+        .map((t) => ({ name: t.name, description: t.label, hooks: t.hooks }));
+    };
+    const full = CONFIG.TURN_METER_MAX;
+
+    // ---- 2pc Cold Current: the CHANCE is ours, the amount is the
+    // engine's. A drain on attack takes a flat 20%, so the label has to
+    // say 20 whatever we set here.
+    wear(cat, 2);
+    assert(Math.abs(cat.apDrainChance() - 0.15) < 1e-9,
+      `Cold Current grants ${cat.apDrainChance()} drain chance`);
+    const twoPc = PACK.find((t) => t.count === 2);
+    assert(/15% chance/.test(twoPc.label) && /20%/.test(twoPc.label),
+      `the 2pc label reads "${twoPc.label}"`);
+
+    // ---- 3pc Undertow: what comes off the victim lands on the taker.
+    wear(cat, 3);
+    foe.turnMeter = full * 0.9;
+    cat.turnMeter = 0;
+    cat.gearAccuracy = 10;                 // the drain must land to be read
+    const r = Abilities.drainMeter(cat, foe, 0.20);
+    assert(r && !r.resisted && !r.guarded, `the drain came back ${JSON.stringify(r)}`);
+    const took = full * 0.9 - foe.turnMeter;
+    assert(Math.abs(took - full * 0.20) < 1, `took ${took} instead of 20% of the bar`);
+    assert(Math.abs(cat.turnMeter - took) < 1,
+      `Undertow handed over ${cat.turnMeter} of ${took}`);
+    assert(Math.abs(r.siphoned - 0.20) < 1e-9, `the result reports ${r.siphoned}`);
+    assert(r.siphonedBy === cat, 'the result does not name the taker');
+
+    // Without the tier, the same drain goes nowhere.
+    wear(cat, 2);
+    foe.turnMeter = full * 0.9;
+    cat.turnMeter = 0;
+    Abilities.drainMeter(cat, foe, 0.20);
+    assert(cat.turnMeter === 0, `a cat with no Undertow still gained ${cat.turnMeter}`);
+
+    // A drain the victim REFUSES pays nothing. This is what stops the
+    // tier being free income against a team that answered it.
+    wear(cat, 3);
+    cat.turnMeter = 0;
+    foe.turnMeter = full * 0.9;
+    foe.passives = [{ name: 'guard', hooks: { meterGuard: true } }];
+    const blocked = Abilities.drainMeter(cat, foe, 0.20);
+    assert(blocked.guarded, 'a guarded drain did not report itself guarded');
+    assert(foe.turnMeter === full * 0.9, 'a guarded drain still moved the bar');
+    assert(cat.turnMeter === 0, `Undertow siphoned ${cat.turnMeter} off a refused drain`);
+    foe.passives = [];
+
+    // ---- 4pc Still Water: a presence hook, so ONE cat covers the party.
+    wear(cat, 4);
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    mate.passives = [];
+    mate.turnMeter = full * 0.8;
+    const onMate = Abilities.drainMeter(foe, mate, 0.20);
+    assert(onMate.guarded, 'Still Water did not cover an ally');
+    assert(mate.turnMeter === full * 0.8, "an ally's bar moved through the guard");
+
+    // ---- And the two ends cancel: cat against cat, nothing moves.
+    const rival = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 1);
+    wear(rival, 2, 3, 4);
+    cat.turnMeter = full * 0.5;
+    rival.turnMeter = full * 0.5;
+    const mirrorA = Abilities.drainMeter(cat, rival, 0.20);
+    const mirrorB = Abilities.drainMeter(rival, cat, 0.20);
+    assert(mirrorA.guarded && mirrorB.guarded, 'two Stillwater parties still drained');
+    assert(cat.turnMeter === full * 0.5 && rival.turnMeter === full * 0.5,
+      'a bar moved in a mirror match');
+  } finally { Battle.active = prev; }
+});
+
+test('Stillwater is founded, numbered and packed, with nobody in it yet', () => {
+  const sect = RACES.SECTS.stillwater;
+  assert(sect, 'Stillwater is not declared');
+  assert(sect.number === 13, `Stillwater is No. ${sect.number}`);
+  assert(sect.founding && sect.members.length === 0,
+    'Stillwater is not in the founding state');
+  // A declared shape that adds to nine, so the first cat cannot land at
+  // a rarity the sect has no room for.
+  const total = Object.values(sect.shape).reduce((a, c) => a + c, 0);
+  assert(total === 9, `the Stillwater shape adds to ${total}`);
+  // The pack exists ahead of the roster on purpose -- it is the frame
+  // the nine kits get written into.
+  assert((RACES.SECT_PARTY_BONUSES.stillwater || []).length === 3,
+    'a founding sect with no pack is just an empty name');
+});
+
 report();

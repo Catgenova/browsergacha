@@ -195,6 +195,26 @@ const RACES = (() => {
     hollowbone: { id: 'hollowbone', name: 'Hollowbone', number: 12,
                  race: 'avian', shape: { 3: 4, 4: 3, 5: 2 },
                  members: ['necros', 'click', 'rend', 'crook', 'pox', 'malachar', 'shrike', 'omen', 'carrion'] },
+    // The cat sect, and the first one built on the ACTION BAR rather
+    // than on damage, healing or hexes. Water by element, which puts it
+    // beside Cryst without treading on it: Cryst is armour and freeze,
+    // Stillwater is turn economy.
+    //
+    // The pack is written before a single cat, on the Hollowbone
+    // precedent -- founded, numbered, packed, waiting on art. Knowing
+    // what the three tiers ARE is most of the design of the nine heroes
+    // that have to fill them, so it is settled first rather than fitted
+    // around whoever gets written earliest.
+    //
+    // The shape is the bird spread, 1/2/3/2/1, because water carries
+    // every rarity band (the light and dark orders run 4/3/2 only
+    // because their elements have no 1- or 2-star shelf). It is a
+    // ceiling on an empty roster today, so it costs one line to change
+    // right up until the first cat lands.
+    stillwater: { id: 'stillwater', name: 'Stillwater', number: 13,
+                 race: 'cat', founding: true,
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
+                 members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -850,6 +870,54 @@ const RACES = (() => {
         label: '+30% damage to enemies below 25% HP',
       },
     ],
+    // Stillwater: take the turn, keep the turn, and never lose one.
+    //
+    // The three tiers are one machine rather than three bonuses. Cold
+    // Current MAKES the drains, Undertow turns them from denial into
+    // income, and Still Water means the same trick cannot be played
+    // back. A party that reaches four cats is the only party in the game
+    // whose action bars cannot be touched.
+    stillwater: [
+      {
+        count: 2, name: 'Cold Current',
+        // apDrainChance is read in Abilities.execute against every
+        // target a cast actually damaged, so this scales with the width
+        // of the swing: a sweep over seven bodies rolls seven times.
+        //
+        // The AMOUNT is the engine's, not ours -- a drain on attack
+        // takes a flat 20% of the bar (abilities.js), and the tier buys
+        // the CHANCE. The label says 20 because that is what happens.
+        hooks: { apDrainAdd: 0.15 },
+        label: 'landed hits have a 15% chance to cut 20% off the ' +
+          "victim's action bar",
+      },
+      {
+        count: 3, name: 'Undertow',
+        // The share is 1: everything taken changes hands. Read inside
+        // Abilities.drainMeter, so it covers every drain in the game and
+        // not just the one Cold Current above supplies -- a cat with a
+        // drain in its own kit feeds this too.
+        //
+        // Nothing is siphoned off a guarded, resisted or missed drain,
+        // which is what keeps this from being free income against a team
+        // that answered it.
+        hooks: { meterSiphon: 1 },
+        label: 'action bar taken from an enemy is handed to whoever took it',
+      },
+      {
+        count: 4, name: 'Still Water',
+        // A PRESENCE hook: Abilities.meterGuarded scans living allies
+        // for it, so one cat standing covers the whole party -- and it
+        // is checked before the resistance contest, so it is a refusal
+        // rather than a saving throw.
+        //
+        // Deliberately the mirror of the 2pc. The sect that takes turns
+        // is the sect that cannot have its own taken, and against
+        // another Stillwater party both halves cancel exactly.
+        hooks: { meterGuard: true },
+        label: 'the party\'s action bars cannot be pushed backwards',
+      },
+    ],
     cryst: [
       {
         count: 2, name: 'Cold Iron Court',
@@ -1065,8 +1133,18 @@ const RACES = (() => {
   // a filter, a banner schedule, a roster of who is out there -- wants
   // this rather than SECTS, or it offers a closed order as somewhere a
   // hero could come from.
+  // The orders that are STANDING: neither buried nor still being
+  // founded. This is what anything offering sects as a choice asks for
+  // -- a filter, a banner schedule, a list of where heroes come from --
+  // and all three of those want the same answer for the same reason: a
+  // sect with nobody in it is not somewhere a hero can come from.
+  //
+  // It excluded only the defunct until the Stillwater cats were founded
+  // ahead of their art, which would have put an empty name in every one
+  // of those lists. The banner wheel already refused a founding sect on
+  // its own; this is the same rule, kept once.
   function liveSects() {
-    return Object.values(SECTS).filter((s) => !s.defunct);
+    return Object.values(SECTS).filter((s) => !s.defunct && !s.founding);
   }
 
   function sectOf(defOrId) {
