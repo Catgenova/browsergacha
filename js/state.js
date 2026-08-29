@@ -1743,7 +1743,7 @@ const GameState = (() => {
       save();
       return true;
     },
-    // What a star up actually BUYS, for the Improve screen to show
+    // What a star up actually BUYS, for the Star Up panel to show
     // before it eats bodies. A star up is irreversible and costs up to
     // nine heroes, so "spend 9 to reach 10 stars" is not enough to
     // decide on -- you want to see the numbers move.

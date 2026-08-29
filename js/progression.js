@@ -193,7 +193,7 @@ const Progression = (() => {
   }
 
   // What the earned rungs have actually bought, for the roster and
-  // Improve readouts. A laddered skill lists its deltas; a legacy one
+  // Star Up readouts. A laddered skill lists its deltas; a legacy one
   // keeps the old blanket "+N% power" line.
   // One bag of rung deltas, rendered as human labels. Shared by the
   // whole-ladder readout below and by the per-rung readout the Roster

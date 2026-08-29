@@ -219,7 +219,7 @@ class SummonScreen {
       this.errorEl.textContent =
         `Roster AND vault are full (${GameState.rosterCount()}/${results.max} + ` +
         `${GameState.storageCount()}/${GameState.MAX_STORAGE}) \u2014 room for ` +
-        `${results.space}. Spend heroes in Improve to make space.`;
+        `${results.space}. Spend heroes on the Roster's Star Up tab to make space.`;
       return;
     }
     // Some or all of this pull may have landed in the vault instead.

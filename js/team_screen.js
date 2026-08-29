@@ -817,7 +817,8 @@ class TeamScreen {
     // Abilities with skill levels. A reworked skill spends each level on
     // an explicit rung -- power, cooldown, debuff chance, duration (see
     // docs/skill-level-process.md); the rest still take the old blanket
-    // +10%. Raised only by sacrificing another copy, over in Improve.
+    // +10%. Raised only by sacrificing another copy, on the Roster
+    // screen's Star Up tab.
     const abilitiesHtml = def.abilities.map((a, i) => {
       const icon = a.icon
         ? `<img class="detail-icon" src="${Sprites.assetUrl(a.icon)}" alt="">`
@@ -944,7 +945,7 @@ class TeamScreen {
       ${this.gearMsg ? `<div class="gear-auto-msg">${this.gearMsg}</div>` : ''}
       ${gearDetailHtml}
       ${setBonusHtml}
-      <div class="detail-section">Abilities <span class="cd">(raised in Improve)</span></div>
+      <div class="detail-section">Abilities <span class="cd">(raised on the Roster)</span></div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
       <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
@@ -1081,7 +1082,7 @@ class TeamScreen {
       <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
       ${this.fullStatsHtml(stats)}
       <div class="detail-stats">🏛 In storage — out of play, holding no gear.</div>
-      <div class="detail-section">Abilities <span class="cd">(raised in Improve)</span></div>
+      <div class="detail-section">Abilities <span class="cd">(raised on the Roster)</span></div>
       ${abilitiesHtml}
       <div class="detail-section">Passive</div>
       <div class="detail-ability">${def.passive.icon ? `<img class="detail-icon" src="${Sprites.assetUrl(def.passive.icon)}" alt="">` : ''}<b>${def.passive.name}</b><br>${def.passive.description}</div>
