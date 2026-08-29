@@ -721,6 +721,7 @@ const RACES = (() => {
             const ring = b ? b.livingUnits(unit.team) : [unit];
             for (const ally of ring) {
               ally.turnMeter += CONFIG.TURN_METER_MAX * 0.10 * count;
+              ally.bookAp(unit, CONFIG.TURN_METER_MAX * 0.10 * count);
             }
             return null; // the strip line already says what happened
           },
