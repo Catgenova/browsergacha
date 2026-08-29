@@ -298,6 +298,26 @@ const GameState = (() => {
   const RARE_PACK_COST = 1000;
   const RARE_PACK_COUNT = 10;
   const TEMPORAL_COST = 500;
+  // The dumpling counter. Only the middle of the ladder is for sale: a
+  // 1-star is what a lucky battle drop pays and is not worth a
+  // transaction, and 9- and 10-stars are the top of the Kitchen board,
+  // which should not be purchasable.
+  //
+  // The two ends are fixed (200 for a 4-star, 10,000 for an 8-star); the
+  // three between them are chosen so POINTS PER DIAMOND never goes
+  // backwards, because a player who buys up a rung should never get less
+  // for their money:
+  //
+  //   4*     500 pts /    200 = 2.50
+  //   5*   1,000 pts /    400 = 2.50
+  //   6*   5,000 pts /  1,600 = 3.13
+  //   7*  10,000 pts /  3,000 = 3.33
+  //   8*  50,000 pts / 10,000 = 5.00
+  //
+  // It is not a smooth curve because the dumpling ladder it prices is
+  // not one either -- the point values alternate x5 and x2 -- so the
+  // rule held here is monotonicity rather than a constant rate.
+  const DUMPLING_PRICES = { 4: 200, 5: 400, 6: 1600, 7: 3000, 8: 10000 };
 
   function freshEntry(heroId) {
     const def = typeof HEROES !== 'undefined' ? HEROES[heroId] : null;
@@ -1303,6 +1323,27 @@ const GameState = (() => {
       if (!this.spendDiamonds(TEMPORAL_COST)) return null;
       this.addScrolls('temporal', 1);
       return 1;
+    },
+    DUMPLING_PRICES,
+    dumplingPrice(stars) { return DUMPLING_PRICES[stars] || null; },
+    // Buy one dumpling off the shop counter. Returns the grant receipt
+    // (with `stored` when the roster was full and it went to the vault),
+    // or null.
+    buyDumpling(stars) {
+      const price = this.dumplingPrice(stars);
+      if (!price) return null;
+      // Room is checked BEFORE the diamonds are taken. addDumpling
+      // refuses when the roster and vault are both full, and a purchase
+      // that charged for a dumpling it then could not hand over would be
+      // the worst bug on this screen.
+      if (!this.intakeShelf()) return { error: 'no-room' };
+      if (!this.spendDiamonds(price)) return null;
+      const got = this.addDumpling(stars);
+      if (!got) {                      // belt and braces; should not happen
+        this.addDiamonds(price);
+        return { error: 'no-room' };
+      }
+      return got;
     },
     get whetstones() { return state.whetstones; },
     // ---- Login bonuses ----
