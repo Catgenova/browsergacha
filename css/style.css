@@ -135,6 +135,17 @@ body {
 .rarity-4 { color: #d78aff; }
 .rarity-5 { color: #ffd76a; }
 
+/* The banner countdown: a monospace clock so the digits do not jitter
+   as they tick. It sits directly under the banner's window line, which
+   names the day it ends; this names the second. */
+.banner-clock {
+  margin: 2px 0 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: #ffd76a;
+  letter-spacing: 0.5px;
+}
+
 /* ==== Quests screen ==== */
 /* Notification dots. #campaign-badge rides the Battle tab's Campaign
    button rather than a nav tab of its own -- the campaign has no tab

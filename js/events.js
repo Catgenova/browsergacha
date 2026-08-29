@@ -69,6 +69,19 @@ const Events = (() => {
   // so the weeks the first three sects already hold do not move under
   // anyone mid-rotation -- the wheel simply runs five long instead of
   // three.
+  //
+  // The same gap had opened again behind them: the Razorwings, the
+  // Sunbrood and the Hollowbone were all finished, nine heroes apiece,
+  // and none of the three had a week. EVERY STANDING SECT RIDES THE
+  // WHEEL -- rules.test.js asserts it from RACES.SECTS rather than from
+  // a list here, so the next order to be finished cannot be forgotten
+  // the way these were. A sect's element decides which wheel it rides,
+  // and that is not a choice: wind Razorwings can only be drawn by the
+  // Rare scroll, and the light Sunbrood and dark Hollowbone only by the
+  // Temporal.
+  //
+  // Appended again, for the same reason as last time. The Rare wheel
+  // now runs six and the Temporal four.
   const BANNER_EPOCH = new Date(2026, 7, 24); // a Monday
   const BANNER_WEEK_MS = 7 * 24 * 3600 * 1000;
   const BANNER_MULT = 2;
@@ -79,10 +92,13 @@ const Events = (() => {
       { id: 'whisperchime_rateup', name: 'The Whisperchime', sect: 'whisperchime' },
       { id: 'gulldigger_rateup', name: 'The Gulldiggers', sect: 'gulldigger' },
       { id: 'phoenixcourt_rateup', name: 'The Phoenix Court', sect: 'phoenixcourt' },
+      { id: 'razorwings_rateup', name: 'The Razorwings', sect: 'razorwings' },
     ],
     temporal: [
       { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence' },
       { id: 'nightflower_rateup', name: 'The Nightflowers', sect: 'nightflower' },
+      { id: 'sunbrood_rateup', name: 'The Sunbrood', sect: 'sunbrood' },
+      { id: 'hollowbone_rateup', name: 'The Hollowbone', sect: 'hollowbone' },
     ],
   };
   const BANNER_SCROLLS = Object.keys(BANNER_CYCLES);
@@ -127,6 +143,33 @@ const Events = (() => {
       label: `${bannerNoun(entry)} heroes ` +
         `at ${BANNER_MULT}× draw weight within their star band — through ` +
         `${MONTHS[last.getMonth()]} ${last.getDate()}.` };
+  }
+
+  // ---- Banner countdown ----
+  //
+  // The label names the Sunday a banner runs through, which answers
+  // "roughly when" and not "how long have I got". On the last evening
+  // of a week those are very different questions, and the one a player
+  // is actually asking is the second.
+
+  // Milliseconds until `banner` closes. Never negative: a banner read
+  // after its own window has passed is finished, not overdue.
+  function bannerTimeLeft(banner, date = new Date()) {
+    return banner && banner.until ? Math.max(0, banner.until - date) : 0;
+  }
+
+  // h:mm:ss, with a day count in front while more than a day is left.
+  // A banner runs a full week, so without the day the hours would climb
+  // past 167 and stop being readable at a glance; with it the clock
+  // never shows a field wider than two digits.
+  function countdown(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const pad = (n) => String(n).padStart(2, '0');
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor(total / 3600) % 24;
+    const mins = Math.floor(total / 60) % 60;
+    const secs = total % 60;
+    return `${days > 0 ? `${days}d ` : ''}${pad(hours)}:${pad(mins)}:${pad(secs)}`;
   }
 
   // Every banner in its window right now — one per scroll.
@@ -239,6 +282,7 @@ const Events = (() => {
   return { DAY_ELEMENT, ALL_ELEMENTS, DROP_MULT,
     isWeekend, boostedElements, elementBoost, scheduleLabel,
     SUMMON_BANNERS, BANNER_CYCLES, bannerWeek, bannerFor, activeBanners, currentBanner, bannerWeight, bannerLabel,
+    bannerTimeLeft, countdown,
     WORLD_RIFT, WORLD_RIFT_MILESTONES,
     worldRiftWeek, worldRiftWeekKey, worldRiftElement,
     LOGIN_WEEK, LOGIN_CAL_WEEKDAY, calendarDayReward, LOGIN_MONTH_MILESTONES };
