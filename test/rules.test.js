@@ -6,7 +6,8 @@
 const { loadGame, test, assert, report } = require('./harness');
 const g = loadGame();
 const { HEROES, BOSSES, Abilities, Unit, Gear, AI, Meter, POSITION, TEAM, Hex, CONFIG,
-  Battle, GameState, RACES, DUMMIES, Progression, POSITIONALS, SUMMONS } = g;
+  Battle, GameState, RACES, DUMMIES, Progression, POSITIONALS, SUMMONS,
+  Tower, ENEMIES } = g;
 
 // The bottom of the roster. It used to be 1-star -- the generated
 // cohorts filled that shelf -- and is 3-star now that only authored
@@ -14605,6 +14606,110 @@ test('planStarSweep takes the shelf and leaves the dumplings', () => {
   assert(!guarded.uids.includes(ones[0]), 'the sweep ate a favourite');
   assert(!guarded.uids.includes(ones[1]), 'the sweep ate a fielded hero');
   assert(guarded.uids.length === want - 2, `guarded sweep took ${guarded.uids.length}`);
+});
+
+// ---- The Endless Tower's difficulty curve ----------------------------
+//
+// The bug these guard against: enemy power used to be LINEAR in the
+// floor, so the step from one floor to the next shrank towards nothing
+// -- 4.3% at floor 10, 0.4% at floor 222, 0.1% at floor 800 -- while a
+// player's power grows in multiplicative chunks. See js/tower.js.
+
+test('tower: every floor above the anchor is the same step harder', () => {
+  const step = (f) => Tower.power(f + 1) / Tower.power(f);
+  const at200 = step(200);
+  for (const f of [150, 300, 500, 1000, 2000]) {
+    const d = Math.abs(step(f) - at200);
+    assert(d < 1e-9, `step at floor ${f} is ${step(f)}, not ${at200}`);
+  }
+  // And that step is a real one, not the dribble the linear curve
+  // decayed into. 1% compounding doubles the tower every ~70 floors.
+  assert(at200 > 1.005, `step is only ${((at200 - 1) * 100).toFixed(2)}%`);
+});
+
+test('tower: floors up to the anchor are untouched', () => {
+  for (const f of [1, 10, 50, 99, Tower.ANCHOR]) {
+    assert(Tower.correction(f) === 1,
+      `floor ${f} correction is ${Tower.correction(f)}, not 1`);
+    const s = Tower.statScale(f);
+    assert(s.hp === 1 && s.atk === 1 && s.def === 1,
+      `floor ${f} scales ${JSON.stringify(s)}`);
+  }
+  // Continuous across the graft: no cliff at the anchor.
+  const jump = Tower.power(Tower.ANCHOR + 1) / Tower.power(Tower.ANCHOR);
+  assert(jump > 1 && jump < 1.02, `anchor jump is ${jump}`);
+});
+
+test('tower: power only ever climbs, and stays a finite number', () => {
+  let prev = 0;
+  for (let f = 1; f <= 3000; f += 7) {
+    const p = Tower.power(f);
+    assert(Number.isFinite(p), `floor ${f} power is ${p}`);
+    assert(p >= prev, `floor ${f} power ${p} fell below ${prev}`);
+    prev = p;
+  }
+  // Past the guard rail it flattens rather than overflowing, and the
+  // stats it produces are still safe integers.
+  assert(Tower.power(100000) === Tower.MAX_POWER, 'no ceiling at floor 100000');
+  const def = Object.values(ENEMIES)[0];
+  const u = new Unit(def, TEAM.ENEMY, { level: Tower.level(100000), stars: 3,
+    statScale: Tower.statScale(100000) });
+  assert(Number.isSafeInteger(u.maxHp), `deep-floor HP is ${u.maxHp}`);
+  assert(Number.isSafeInteger(u.baseAtk), `deep-floor ATK is ${u.baseAtk}`);
+});
+
+test('tower: the curve rides HP and ATK, never DEF', () => {
+  // DEF sits on a saturating mitigation curve (300 / (def + 300)), so
+  // compounding it buys near-immunity and produces a fight neither side
+  // can finish. It stays on the level curve on purpose.
+  const deep = Tower.statScale(600);
+  assert(deep.def === 1, `deep floors scale DEF by ${deep.def}`);
+  assert(deep.hp > 20 && deep.atk > 20, `deep floors barely scale: ${deep.hp}`);
+  const def = Object.values(ENEMIES)[0];
+  const lvl = Tower.level(600);
+  const plain = new Unit(def, TEAM.ENEMY, { level: lvl, stars: 3 });
+  const scaled = new Unit(def, TEAM.ENEMY, { level: lvl, stars: 3,
+    statScale: deep });
+  assert(scaled.baseDef === plain.baseDef,
+    `DEF moved: ${plain.baseDef} -> ${scaled.baseDef}`);
+  assert(scaled.maxHp > plain.maxHp * 20, 'HP did not compound');
+});
+
+test('statScale still accepts a bare number (the campaign passes one)', () => {
+  const def = Object.values(ENEMIES)[0];
+  const one = new Unit(def, TEAM.ENEMY, { level: 40, stars: 3 });
+  const two = new Unit(def, TEAM.ENEMY, { level: 40, stars: 3, statScale: 2 });
+  assert(two.maxHp === Math.round(one.maxHp * 2) ||
+         Math.abs(two.maxHp - one.maxHp * 2) <= 2, `hp ${one.maxHp} -> ${two.maxHp}`);
+  assert(Math.abs(two.baseDef - one.baseDef * 2) <= 2,
+    `a bare statScale stopped scaling DEF: ${one.baseDef} -> ${two.baseDef}`);
+});
+
+test('tower: a floor that runs out of turns is a LOSS', () => {
+  // Without this an auto-climb that reaches a floor it can neither kill
+  // nor die to never stops.
+  const battle = new Battle();
+  battle.autoMode = true;   // nobody is here to press buttons
+  battle.turnLimit = 2;     // short enough that nothing dies first
+  battle.turnLimitWinner = TEAM.ENEMY;
+  const ally = new Unit(Object.values(HEROES)[0], TEAM.PLAYER, { level: 50, stars: 5 });
+  const foe = new Unit(Object.values(ENEMIES)[0], TEAM.ENEMY, { level: 50, stars: 5 });
+  battle.placeUnit(ally, 0);
+  battle.placeUnit(foe, 0);
+  let winner = null;
+  battle.onBattleEnd = (w) => { winner = w; };
+  for (let i = 0; i < 4000 && winner === null; i++) battle.update(0.05);
+  assert(winner === TEAM.ENEMY, `clock handed the floor to ${winner}`);
+  assert(Tower.TURN_LIMIT > 674,
+    `deadline ${Tower.TURN_LIMIT} would steal benched clears that took 674 turns`);
+});
+
+test('tower: boss floors are every tenth, and the bosses cycle', () => {
+  for (const f of [10, 20, 500]) assert(Tower.isBossFloor(f), `floor ${f} has no boss`);
+  for (const f of [1, 5, 9, 11, 15, 199]) assert(!Tower.isBossFloor(f), `floor ${f} grew a boss`);
+  assert(Tower.bossIndex(10, 5) === 0, 'the first boss floor is not the first boss');
+  assert(Tower.bossIndex(60, 5) === 0, 'the boss list does not cycle');
+  assert(Tower.bossIndex(30, 5) === 2, 'boss cadence drifted');
 });
 
 report();

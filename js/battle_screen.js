@@ -746,25 +746,31 @@ class BattleScreen {
       bgPin = def.background || null;
       this.introLog = `${def.dungeonName}, floor ${stage}: the ${def.name} awaits! (Lv ${level})`;
     } else if (mode === 'tower') {
-      // Endless Tower: always fight the floor above your best. Enemy
-      // levels climb ~1.5 per floor forever; every 10th floor a random
-      // boss guards the way (extrapolating past its Lv 100 anchors).
+      // Endless Tower: always fight the floor above your best. The
+      // floor's whole shape -- level, boss cadence and the geometric
+      // stat curve above floor 100 -- comes from js/tower.js, so the
+      // bench in test/tower.js measures the same fight a player gets.
       this.bossFight = null;
       this.campaignFight = null;
       this.attuneFight = null;
       const floor = GameState.towerBest + 1;
-      const level = Math.max(2, Math.ceil(floor * 1.5));
-      const isBossFloor = floor % 10 === 0;
+      const spec = Tower.floorSpec(floor);
+      const { level, statScale, isBossFloor } = spec;
       this.towerFight = { floor, isBossFloor };
+      // The deadline, and a loss if it runs out -- see js/tower.js.
+      battle.turnLimit = spec.turnLimit;
+      battle.turnLimitWinner = TEAM.ENEMY;
       if (isBossFloor) {
         const keys = Object.keys(BOSSES);
-        const def = BOSSES[keys[(floor / 10 - 1) % keys.length]];
+        const def = BOSSES[keys[Tower.bossIndex(floor, keys.length)]];
         this.rewardXp = Progression.enemyXp(level) * 6;
         this.rewardWhetstones = 10 + level * 2;
         this.rewardArcana = 3 + Math.ceil(floor / 10);
-        battle.placeUnit(new Unit(def, TEAM.ENEMY, { level, stars: def.rarity }), 0);
+        battle.placeUnit(
+          new Unit(def, TEAM.ENEMY, { level, stars: def.rarity, statScale }), 0);
         bgPin = def.background || null;
-        this.introLog = `Tower floor ${floor}: the ${def.name} bars the way! (Lv ${level})`;
+        this.introLog = `Tower floor ${floor}: the ${def.name} bars the ` +
+          `way! (Lv ${level}${Tower.floorNote(floor)})`;
       } else {
         // Wave floors rotate through the enemy races (and their homes).
         const raceLocs = Object.keys(LOCATION_ENEMIES).map(Number);
@@ -782,11 +788,13 @@ class BattleScreen {
           const lv = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
           totalLevels += lv;
           this.rewardXp += Progression.enemyXp(lv);
-          battle.placeUnit(new Unit(def, TEAM.ENEMY, { level: lv, stars: def.rarity }), slotIndex);
+          battle.placeUnit(new Unit(def, TEAM.ENEMY,
+            { level: lv, stars: def.rarity, statScale }), slotIndex);
         }
         this.rewardWhetstones = 3 + Math.round(totalLevels * 0.8);
         this.rewardArcana = 1 + Math.floor(totalLevels / 15);
-        this.introLog = `Tower floor ${floor} — enemies at Lv ~${level}.`;
+        this.introLog = `Tower floor ${floor} — enemies at Lv ~${level}` +
+          `${Tower.floorNote(floor)}.`;
       }
     } else if (mode === 'worldrift') {
       // The World Rift: a weekly damage race. This week's elemental

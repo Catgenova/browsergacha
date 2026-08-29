@@ -25,7 +25,7 @@ const FILES = [
   'js/data/summons.js', 'js/data/dumplings.js',
   'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
-  'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
+  'js/gacha.js', 'js/ai.js', 'js/waves.js', 'js/tower.js', 'js/campaign.js', 'js/achievements.js', 'js/battle.js',
 ];
 
 // `opts.save` pre-seeds localStorage before any game file runs, which is
@@ -91,7 +91,7 @@ function loadGame(opts = {}) {
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES', 'Tags',
     'LOCATION_ENEMIES', 'POSITIONALS', 'SUMMONS', 'DUMPLINGS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState', 'Events',
-    'Waves', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
+    'Waves', 'Tower', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
     'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit', 'Blessing',
     'DUMMIES'];
   vm.runInContext(
