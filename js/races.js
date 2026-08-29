@@ -353,7 +353,7 @@ const RACES = (() => {
         // formation rotate) turns it on and off honestly.
         hooks: {
           damageTakenMult(unit) {
-            return unit.slot && unit.slot.position === POSITION.FRONT ? 0.80 : 1;
+            return unit.onHex(POSITION.FRONT) ? 0.80 : 1;
           },
         },
         label: 'front-hex heroes take 20% less damage',
@@ -649,12 +649,13 @@ const RACES = (() => {
       },
       {
         count: 3, name: 'Gaff and Haul',
-        // Where a boarding party actually lands. Bosses have no hex, so
-        // they are not a front rank and do not pay.
+        // Where a boarding party actually lands. A boss spans every hex,
+        // the front one included, so it DOES pay -- this read
+        // `target.slot.position` and so quietly excluded the one enemy
+        // a player most wanted the bonus against.
         hooks: {
           damageDealtMult(unit, target) {
-            return target && target.slot &&
-              target.slot.position === POSITION.FRONT ? 1.20 : 1;
+            return target && target.onHex(POSITION.FRONT) ? 1.20 : 1;
           },
         },
         label: '+20% damage to enemies on a front hex',

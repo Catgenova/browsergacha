@@ -184,12 +184,41 @@ class Unit {
     return this.team === TEAM.PLAYER ? TEAM.ENEMY : TEAM.PLAYER;
   }
 
+  // ---- Hex occupancy -----------------------------------------------------
+  //
+  // A BOSS FILLS THE WHOLE FORMATION. It is one body across all seven
+  // hexes rather than a unit standing on one of them, so it answers yes
+  // to every hex question there is: a sweep aimed at any row catches it,
+  // a bonus keyed to a row is live against it, and its own positional --
+  // if it ever has one -- is always on.
+  //
+  // That rule used to be written as an inline `u.isBoss ||` at each of
+  // the target scopes that happened to think of it, which is why half
+  // the hex-keyed EFFECTS did not have it: a boss was on every hex for
+  // the purpose of being hit and on none of them for the purpose of a
+  // front-row damage bonus. It is one predicate now, and everything that
+  // asks "is this unit on a <position> hex" asks here.
+  onHex(position) {
+    if (this.isBoss) return true;
+    return !!this.slot && this.slot.position === position;
+  }
+
+  // The same question for the y-banded sweeps, which cut across the
+  // flower by pixel row rather than by named position. A boss spans
+  // every row, so it shares one with anybody.
+  sharesRowWith(other) {
+    if (this.isBoss || (other && other.isBoss)) return true;
+    return !!(this.slot && other && other.slot &&
+      Math.abs(this.slot.y - other.slot.y) < 2);
+  }
+
   // ---- Stats -------------------------------------------------------------
 
-  // Positional bonus applies only when placed in the matching position.
+  // Positional bonus applies only when placed in the matching position
+  // -- or always, for a boss, which stands on every hex there is.
   positionalActive() {
     if (!this.positional) return false;
-    if (this.slot && this.slot.position === this.positional.position) return true;
+    if (this.onHex(this.positional.position)) return true;
     // A chart says you are where you need to be. Polo's map hands the
     // whole crew their hex bonus wherever they happen to be standing;
     // it is read HERE because every positional in the game already

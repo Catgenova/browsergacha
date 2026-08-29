@@ -56,9 +56,10 @@ class Battle {
     if (slot.unit) throw new Error(`Slot ${slotIndex} on ${unit.team} side is occupied`);
     slot.unit = unit;
     unit.slot = slot;
-    // Max-HP positional bonuses apply once, at placement.
+    // Max-HP positional bonuses apply once, at placement. Through
+    // onHex, so a boss -- which stands on every hex -- always earns it.
     if (unit.positional && unit.positional.stat === 'hp' &&
-        slot.position === unit.positional.position) {
+        unit.onHex(unit.positional.position)) {
       unit.maxHp = Math.round(unit.maxHp * unit.positional.mult);
       unit.hp = unit.maxHp;
     }
@@ -479,7 +480,7 @@ class Battle {
     const dir = Math.sign(target.slot.x - caster.slot.x) || 1;
     const rowY = target.slot.y;
     const row = this.livingUnits(caster.enemyTeam())
-      .filter((u) => Math.abs(u.slot.y - rowY) < 2);
+      .filter((u) => u.sharesRowWith(target));
     // End just past the farthest enemy in the row (in the travel direction).
     const farX = row.length
       ? Math.max(...row.map((u) => u.slot.x * dir)) * dir
