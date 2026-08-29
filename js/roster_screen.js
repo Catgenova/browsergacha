@@ -529,11 +529,23 @@ class RosterScreen {
             (willStar ? ` — ${pr.stars}★ to ${toStars}★` : maxed ? '' : ` — +${num(picking)}`)
           : 'Choose sacrifices below'}
       </button>
-      ${!maxed && options.some((o) => o.consumable && !this.chosen.has(o.uid))
-        ? `<button id="ros-eat" class="panel-btn"
-            title="Tick the smallest set of dumplings that fills the bar. If they
-all together are not enough, every one of them is picked.">🥟 Fill with dumplings</button>`
-        : ''}
+      <div class="ros-autopick">
+        ${[1, 2, 3].map((st) => {
+          const n = options.filter((o) => !o.consumable && o.stars <= st &&
+            !this.chosen.has(o.uid)).length;
+          return `<button class="panel-btn ros-sweep" data-max="${st}" ${n ? '' : 'disabled'}
+            title="Tick every spendable hero at ${st}&#9733; or below. Dumplings are
+left alone -- they have their own button.">&le;${st}&#9733;${
+            n ? ` <i>(${n})</i>` : ''}</button>`;
+        }).join('')}
+        ${options.some((o) => o.consumable && !this.chosen.has(o.uid))
+          ? `<button id="ros-eat" class="panel-btn"
+              title="Tick the smallest set of dumplings that fills the bar. If they
+all together are not enough, every one of them is picked.">🥟 Fill</button>`
+          : ''}
+        ${picked.length ? `<button id="ros-clear" class="panel-btn danger"
+          title="Untick everything">Clear</button>` : ''}
+      </div>
       ${this.message ? `<div class="gear-auto-msg">${this.message}</div>` : ''}
       <div class="ros-note ros-skill-note">${skillPicks
         ? `${skillPicks} cop${skillPicks > 1 ? 'ies' : 'y'} of ${def.name} chosen — ` +
@@ -569,6 +581,30 @@ all together are not enough, every one of them is picked.">🥟 Fill with dumpli
     // whole interaction.
     const eat = document.getElementById('ros-eat');
     if (eat) eat.addEventListener('click', () => this.fillWithDumplings(uid));
+
+    for (const btn of this.panelEl.querySelectorAll('.ros-sweep')) {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        const max = Number(btn.dataset.max);
+        const plan = GameState.planStarSweep(uid, max, [...this.chosen]);
+        for (const u of plan.uids) this.chosen.add(u);
+        const n = plan.uids.length;
+        this.message = n
+          ? `Picked ${n} hero${n === 1 ? '' : 'es'} at ${max}★ and under ` +
+            `— ${Math.round(plan.points).toLocaleString()} points.`
+          : `Nothing spendable at ${max}★ or below.`;
+        this.renderStarUp();
+      });
+    }
+
+    const clear = document.getElementById('ros-clear');
+    if (clear) {
+      clear.addEventListener('click', () => {
+        this.chosen.clear();
+        this.message = '';
+        this.renderStarUp();
+      });
+    }
 
     const go = document.getElementById('ros-sac');
     if (go) {
