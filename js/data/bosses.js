@@ -156,8 +156,10 @@ const BOSSES = {
         description: '+20% damage to debuffed enemies.',
         hooks: {
           damageDealtMult(unit, target) {
-            return target && target.statusEffects &&
-              target.statusEffects.some((fx) => fx.kind === 'debuff') ? 1.2 : 1;
+            // A dot is a debuff, so a poisoned hero is a debuffed one.
+            // This read `kind === 'debuff'` alone, which let a party
+            // running poisons walk past a rider its own card names.
+            return Unit.isDebuffed(target) ? 1.2 : 1;
           },
         },
       },

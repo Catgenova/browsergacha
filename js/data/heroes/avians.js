@@ -3854,8 +3854,7 @@ Object.assign(HEROES, {
       description: '-5% damage taken per debuff or DoT on this hero, up to -25%.',
       hooks: {
         damageTakenMult(unit) {
-          const worn = unit.statusEffects.filter(
-            (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+          const worn = Unit.debuffsOn(unit);
           return 1 - 0.05 * Math.min(5, worn);
         },
       },

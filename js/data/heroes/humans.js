@@ -884,8 +884,7 @@ Object.assign(HEROES, {
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
-          const hexes = target.statusEffects.filter(
-            (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+          const hexes = Unit.debuffsOn(target);
           // Six, not three: the card has always read "up to +60%" and
           // the cap has always been three, which paid +30%. The card is
           // the promise, so the code moved.
@@ -2124,13 +2123,19 @@ Object.assign(HEROES, {
       description: 'Start of each turn: removes 1 debuff from the most debuffed ally.',
       hooks: {
         onTurnStart(unit, battle) {
+          // A dot is a debuff, so a poison counts toward "most debuffed"
+          // and can be the thing lifted. This counted stat cuts only,
+          // which left the one cleanse in the game that could not lift a
+          // poison -- every other cleanse already treated dots as
+          // hostile, so it was inconsistent with the rest of the engine
+          // as well as with its own card.
           const afflicted = battle.livingUnits(unit.team)
-            .map((u) => ({ u, n: u.statusEffects.filter((fx) => fx.kind === 'debuff').length }))
+            .map((u) => ({ u, n: Unit.debuffsOn(u) }))
             .filter((e) => e.n > 0)
             .sort((a, b) => b.n - a.n);
           if (afflicted.length === 0) return null;
           const target = afflicted[0].u;
-          const idx = target.statusEffects.findIndex((fx) => fx.kind === 'debuff');
+          const idx = target.statusEffects.findIndex(Unit.isDebuff);
           target.statusEffects.splice(idx, 1);
           return {
             label: 'Serenity',

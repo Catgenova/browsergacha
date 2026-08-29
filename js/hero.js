@@ -184,6 +184,46 @@ class Unit {
     return this.team === TEAM.PLAYER ? TEAM.ENEMY : TEAM.PLAYER;
   }
 
+  // ---- Debuffs -----------------------------------------------------------
+  //
+  // A DOT IS A DEBUFF. A poison, a burn and a bleed are curses that
+  // happen to be priced in damage rather than in stats, and everything
+  // that asks "is this thing cursed" or "how many curses is it
+  // carrying" means both.
+  //
+  // That was written out longhand as `fx.kind === 'debuff' || fx.kind
+  // === 'dot'` at a dozen call sites, which is exactly the shape that
+  // drifts: the sites that remembered were right and the ones that did
+  // not were silently wrong. It is one predicate now.
+  //
+  // Checks that name a SPECIFIC stat -- freeze, healblock, buffblock,
+  // a speed cut -- deliberately do not come through here. A dot carries
+  // no stat, so it can never be the thing they are looking for, and
+  // widening them would be a bug rather than a fix.
+  static isDebuff(fx) {
+    return !!fx && (fx.kind === 'debuff' || fx.kind === 'dot');
+  }
+
+  // How many curses are on `unit`, dots included -- the number every
+  // "per debuff" rate reads. Static and tolerant of anything with a
+  // `statusEffects` array, because a passive hook is handed whatever
+  // the caller has: the engine always passes a Unit, and a bench or a
+  // test measuring a rate curve passes the smallest shape that carries
+  // the effects it is measuring.
+  static debuffsOn(unit) {
+    return unit && unit.statusEffects
+      ? unit.statusEffects.filter(Unit.isDebuff).length : 0;
+  }
+
+  // Is anything hostile on `unit` at all?
+  static isDebuffed(unit) {
+    return !!(unit && unit.statusEffects && unit.statusEffects.some(Unit.isDebuff));
+  }
+
+  // The same two, for a real unit that has itself to hand.
+  isDebuffed() { return Unit.isDebuffed(this); }
+  debuffCount() { return Unit.debuffsOn(this); }
+
   // ---- Hex occupancy -----------------------------------------------------
   //
   // A BOSS FILLS THE WHOLE FORMATION. It is one body across all seven
@@ -1207,8 +1247,7 @@ class Unit {
     // party nobody has cursed never pays for the scan. heal() runs a
     // few times a turn where effectiveStat runs constantly, which is
     // what makes a scan affordable here and not there.
-    const cursed = this.statusEffects.some(
-      (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+    const cursed = this.isDebuffed();
     if (cursed && typeof Battle !== 'undefined' && Battle.active) {
       let cut = 0;
       for (const foe of Battle.active.livingUnits()) {
@@ -1345,7 +1384,7 @@ class Unit {
         } finally { Unit.buffRinging = false; }
       }
     }
-    if ((e.kind !== 'debuff' && e.kind !== 'dot') || Unit.debuffRinging) return true;
+    if (!Unit.isDebuff(e) || Unit.debuffRinging) return true;
     const battle = typeof Battle !== 'undefined' ? Battle.active : null;
     if (!battle) return true;
     Unit.debuffRinging = true;

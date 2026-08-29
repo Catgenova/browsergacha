@@ -14986,4 +14986,127 @@ test('a hex-keyed BONUS is live against a boss, not just a hex sweep', () => {
   } finally { Battle.active = prev; }
 });
 
+test('a dot is a debuff: it counts, it cleanses, and it lingers', () => {
+  // The rule, stated once. A poison, a burn and a bleed are curses that
+  // happen to be priced in damage rather than in stats, so everything
+  // that asks "is this cursed" or "how many curses" means both.
+  //
+  // It was written longhand -- `fx.kind === 'debuff' || fx.kind ===
+  // 'dot'` -- at a dozen call sites, which is the shape that drifts:
+  // the sites that remembered were right, the ones that forgot were
+  // silently wrong, and nothing said which was which.
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const hero = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
+
+    assert(Unit.isDebuff({ kind: 'debuff', stat: 'speed' }), 'a stat cut is not a debuff');
+    assert(Unit.isDebuff({ kind: 'dot', flavor: 'burn' }), 'a dot is not counted as a debuff');
+    assert(!Unit.isDebuff({ kind: 'buff' }), 'a buff counted as a debuff');
+    assert(!Unit.isDebuff({ kind: 'shield' }), 'a shield counted as a debuff');
+    assert(!Unit.isDebuff(null), 'nothing counted as a debuff');
+
+    assert(Unit.debuffsOn(foe) === 0 && !Unit.isDebuffed(foe), 'a clean unit reads cursed');
+    foe.addStatusEffect({ kind: 'dot', amount: 10, turns: 3, flavor: 'poison' });
+    assert(Unit.debuffsOn(foe) === 1, `a lone poison counted ${Unit.debuffsOn(foe)}`);
+    assert(Unit.isDebuffed(foe), 'a poisoned unit does not read as debuffed');
+    assert(foe.debuffCount() === 1 && foe.isDebuffed(),
+      'the instance methods disagree with the statics');
+    foe.addStatusEffect({ kind: 'debuff', stat: 'speed', mult: 0.8, turns: 2 });
+    foe.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 2 });
+    assert(Unit.debuffsOn(foe) === 2,
+      `a poison and a stat cut counted ${Unit.debuffsOn(foe)}, and the buff must not`);
+
+    // The statics take a bare shape, because that is what a passive hook
+    // is handed by a bench measuring a rate curve.
+    assert(Unit.debuffsOn({ statusEffects: [{ kind: 'dot' }, { kind: 'debuff' }] }) === 2,
+      'the static does not accept a plain shape');
+    assert(Unit.debuffsOn(undefined) === 0, 'the static threw on nothing');
+
+    // A "per debuff" rate reads them. Sawyer's card says +10% a hex.
+    const rate = HEROES.sawyer.passive.hooks.damageDealtMult;
+    const withPoison = rate(hero, { statusEffects: [{ kind: 'dot' }] });
+    const withCut = rate(hero, { statusEffects: [{ kind: 'debuff', stat: 'speed' }] });
+    assert(Math.abs(withPoison - withCut) < 1e-9,
+      `a poison paid ${withPoison} where a stat cut paid ${withCut}`);
+    assert(withPoison > 1, 'the rate did not fire at all');
+
+    // Serenity lifts one. It counted stat cuts only, which made it the
+    // one cleanse in the game that could not touch a poison -- every
+    // other cleanse already treated dots as hostile, so it was out of
+    // step with the engine as well as with its own card.
+    const serenity = Object.values(HEROES)
+      .map((h) => h.passive)
+      .find((pa) => pa && pa.name === 'Serenity');
+    assert(serenity, 'Serenity is not on the roster to test');
+    {
+      const ally = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+      ally.statusEffects.length = 0;
+      // ONLY poisons, so a version that counts stat cuts finds nothing
+      // to lift and the assertion below actually distinguishes.
+      ally.addStatusEffect({ kind: 'dot', amount: 5, turns: 3, flavor: 'poison' });
+      ally.addStatusEffect({ kind: 'dot', amount: 5, turns: 3, flavor: 'poison' });
+      const res = serenity.hooks.onTurnStart(hero, battle);
+      assert(res, 'Serenity found nobody to help, with two poisons on the field');
+      assert(ally.statusEffects.filter((fx) => fx.kind === 'dot').length === 1,
+        `Serenity left ${ally.statusEffects.length} poisons standing`);
+    }
+
+    // A boss rider keyed to "debuffed" fires on a poison.
+    const bossRider = Object.values(BOSSES)
+      .flatMap((b) => b.passives || [])
+      .find((p) => p.hooks && p.hooks.damageDealtMult &&
+        /debuffed/.test(p.description || ''));
+    if (bossRider) {
+      const poisoned = { statusEffects: [{ kind: 'dot' }] };
+      const clean = { statusEffects: [] };
+      assert(bossRider.hooks.damageDealtMult(null, poisoned) >
+        bossRider.hooks.damageDealtMult(null, clean),
+        'a boss rider for debuffed targets ignored a poison');
+    }
+  } finally { Battle.active = prev; }
+});
+
+test('a dot lasts longer for the same reasons a debuff does', () => {
+  // Two channels a landed debuff got and a landed dot did not: the
+  // general `debuffExtraTurns` hook (a card reading "debuffs this hero
+  // applies last 1 turn longer" was lengthening stat cuts and not the
+  // poison in the same kit) and Dark 4pc Lingering's coin flip, which a
+  // dark party running poisons never saw from its own set.
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const caster = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const foe = place(battle, DUMMIES.rat_brawler, TEAM.ENEMY, 0);
+    caster.gearAccuracy = 10;          // the dot must land to be readable
+    foe.dodgeChance = () => 0;
+    const lay = () => {
+      foe.statusEffects.length = 0;
+      Abilities.execute({ name: 'probe', targeting: 'enemy', effects: [
+        { type: 'dot', pct: 0.1, turns: 2, flavor: 'poison' }] }, caster, foe, battle);
+      const dot = foe.statusEffects.find((fx) => fx.kind === 'dot');
+      return dot ? dot.turns : 0;
+    };
+
+    caster.synergyDebuffExtraChance = 0;
+    caster.passives = [];
+    const plain = lay();
+    assert(plain === 2, `a plain poison landed for ${plain} turns, wanted 2`);
+
+    // The general debuff-lengthening hook now reaches it.
+    caster.passives = [{ hooks: { debuffExtraTurns: 1 } }];
+    assert(lay() === 3, 'debuffExtraTurns did not lengthen a poison');
+
+    // ...and Lingering's flip, forced both ways.
+    caster.passives = [];
+    caster.synergyDebuffExtraChance = 1;
+    assert(lay() === 3, "Lingering's flip did not reach a poison");
+    caster.synergyDebuffExtraChance = 0;
+    assert(lay() === 2, 'the poison grew a turn with no source for it');
+  } finally { Battle.active = prev; }
+});
+
 report();

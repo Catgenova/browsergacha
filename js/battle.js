@@ -1056,7 +1056,7 @@ class Battle {
     const anyImpaired =
       allies.some((u) => u.hp / u.maxHp < hurtBelow) ||
       allies.some((u) => u.statusEffects.some(
-        (fx) => fx.kind === 'debuff' || fx.kind === 'dot'));
+        Unit.isDebuff));
     const usable = ready.filter((a) => {
       const defensiveOnly = a.def.effects.every((e) =>
         e.type === 'heal' || e.type === 'healHpPct' || e.type === 'hot' ||

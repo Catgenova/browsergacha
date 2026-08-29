@@ -369,7 +369,7 @@ const POSITIONALS = (() => {
         if (!battle) return null;
         for (const ally of battle.livingUnits(unit.team)) {
           const i = ally.statusEffects.findIndex(
-            (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+            Unit.isDebuff);
           if (i === -1) continue;
           ally.statusEffects.splice(i, 1);
           return {

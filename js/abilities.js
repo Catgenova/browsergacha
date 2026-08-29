@@ -62,7 +62,7 @@ const Abilities = (() => {
     for (const p of (caster.hookSources ? caster.hookSources() : [])) {
       if (!(p.hooks && p.hooks.noResistWhenAfflicted)) continue;
       const afflicted = (target.statusEffects || []).some(
-        (fx) => fx.kind === 'debuff' || fx.kind === 'dot');
+        Unit.isDebuff);
       if (afflicted) return true;
     }
     const resistance = target.debuffResistance ? target.debuffResistance() : 0;
@@ -717,7 +717,7 @@ const Abilities = (() => {
           // swing is that armour thrown).
           ((effect.perDebuff || 0) + (lad.perDebuff || 0)) *
             caster.statusEffects.filter(
-              (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+              Unit.isDebuff).length;
         const elemMult = Elements.mult(caster.element, target.element);
         let raw = scaleBase * mult * power *
           caster.damageDealtMult(target, currentAbility) * elemMult;
@@ -1052,7 +1052,7 @@ const Abilities = (() => {
           ? effect.count + (cleanseLad.cleanseCount || 0) : Infinity;
         let removed = 0;
         target.statusEffects = target.statusEffects.filter((fx) => {
-          if ((fx.kind !== 'debuff' && fx.kind !== 'dot') || left <= 0) return true;
+          if (!Unit.isDebuff(fx) || left <= 0) return true;
           left--; removed++;
           return false;
         });
@@ -1148,10 +1148,28 @@ const Abilities = (() => {
               (1 + caster.dotBoost()))
           : Math.round(caster.effectiveStat('atk') * (effect.pct + (dotLad.debuffPower || 0)) *
               power * (1 + caster.dotBoost()));
-        // Clinging-flame passives can extend inflicted DoT durations.
+        // A DOT IS A DEBUFF, and everything that lengthens a debuff
+        // lengthens one. Three channels feed the same number:
+        //
+        //  - `dotExtraTurns`, the specialist hook: clinging flame, for a
+        //    kit built around poisons and fires specifically.
+        //  - `debuffExtraTurns`, the general one. This is the half that
+        //    was missing. A hero whose card says "debuffs this hero
+        //    applies last 1 turn longer" was lengthening stat cuts and
+        //    not the poison in the same kit, which reads as a bug to
+        //    anybody playing one.
+        //  - Dark 4pc Lingering's coin flip, for the same reason, rolled
+        //    ONCE for the application rather than per plate: a spread
+        //    that laid three fires would otherwise roll three times for
+        //    a bonus the debuff branch grants on a single flip.
         let dotTurns = effect.turns;
         for (const p of (caster.hookSources ? caster.hookSources() : caster.passives || [])) {
           if (p.hooks && p.hooks.dotExtraTurns) dotTurns += p.hooks.dotExtraTurns;
+          if (p.hooks && p.hooks.debuffExtraTurns) dotTurns += p.hooks.debuffExtraTurns;
+        }
+        if (caster.synergyDebuffExtraChance > 0 &&
+            Math.random() < caster.synergyDebuffExtraChance) {
+          dotTurns += 1;
         }
         for (let i = 0; i <= spread; i++) {
           // Poisons drag too: a curse is a curse whether it is a stat cut
@@ -1494,7 +1512,7 @@ const Abilities = (() => {
           (typeof Battle !== 'undefined' ? Battle.active : null);
         if (!b) return null;
         const mine = b.livingUnits(caster.team);
-        const hostile = (fx) => fx.kind === 'debuff' || fx.kind === 'dot';
+        const hostile = Unit.isDebuff;
         const moving = mine.flatMap((ally) => ally.statusEffects.filter(hostile));
         if (moving.length === 0) return { kind: 'transferDebuffs', target, count: 0 };
         // Rolled BEFORE anything is lifted, so a refusal leaves every
@@ -1527,7 +1545,7 @@ const Abilities = (() => {
         // volunteering to be poisoned does not get to resist itself.
         const b = fieldFor(caster);
         if (!b) return null;
-        const hostile = (fx) => fx.kind === 'debuff' || fx.kind === 'dot';
+        const hostile = Unit.isDebuff;
         const mine = b.livingUnits(caster.team).filter((u) => u !== caster);
         const moving = mine.flatMap((ally) => ally.statusEffects.filter(hostile));
         if (!moving.length) return { kind: 'drawDebuffs', target: caster, count: 0 };
