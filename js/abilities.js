@@ -116,6 +116,7 @@ const Abilities = (() => {
     const before = target.turnMeter;
     target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * frac);
     const taken = before - target.turnMeter;
+    target.bookAp(caster, -taken);
     // Undertow (Stillwater 3pc): a share of what came off the victim
     // goes to whoever took it instead of draining away. `meterSiphon`
     // is a SHARE, not a flag, so a tier can hand over a fraction and the
@@ -1136,6 +1137,7 @@ const Abilities = (() => {
         if (gained > 0 && target !== caster && target.meterGifts) {
           target.meterGifts.push({ source: caster, amount: gained });
         }
+        target.bookAp(caster, gained);
         return { kind: 'meter', target, amount: effect.amount };
       }
       case 'dot': {

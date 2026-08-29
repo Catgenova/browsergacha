@@ -197,6 +197,7 @@ const POSITIONALS = (() => {
         const before = attacker.turnMeter;
         attacker.turnMeter = Math.max(0, attacker.turnMeter - CONFIG.TURN_METER_MAX * 0.10);
         if (attacker.turnMeter >= before) return null;
+        attacker.bookAp(unit, attacker.turnMeter - before);
         if (battle) battle.addFloatingText(attacker, '\u2693', '#8ecfe8');
         return null;
       },

@@ -65,7 +65,8 @@
 
 const { loadGame } = require('./harness');
 const g = loadGame();
-const { HEROES, POSITION, TEAM, Battle, Unit, Meter, Progression, Gear, Abilities } = g;
+const { HEROES, POSITION, TEAM, Battle, Unit, Meter, Progression, Gear, Abilities,
+  CONFIG } = g;
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -377,6 +378,24 @@ function runOne(def, cast, seedValue, boss = false, blank = false) {
     }
     return realMeterDamage(unit, amount);
   };
+  // ---- The action bar, both directions -------------------------------
+  //
+  // Nothing measured this before the Stillwater cats, whose entire kit
+  // is turn order: a sect that takes turns away and hands them out read
+  // as a room of heroes doing nothing at all.
+  //
+  // Both halves are read off Unit.apTaken / Unit.apGiven, the engine's
+  // own action-bar ledger, after the fight. The engine books them at
+  // every path that moves somebody else's meter -- the drain funnel, the
+  // turnMeter gift, a speed buff's share of the fill, and the two hooks
+  // that reach across the line themselves -- so the bench asks the book
+  // rather than trying to keep one of its own. An earlier version
+  // patched Abilities.drainMeter from out here and read zero for every
+  // hero in the game: the effect calls the module-internal closure, not
+  // the export, so the patch never fired.
+  //
+  // Units are built fresh per run, so the counters start at zero and end
+  // at the run's total. Bars, not points: 1.0 is one full turn's worth.
   const unpatch = () => {
     Unit.prototype.startTurn = realStartTurn;
     Meter.damage = realMeterDamage;
@@ -454,6 +473,8 @@ function runOne(def, cast, seedValue, boss = false, blank = false) {
     seconds,
     stalled: !winner,
     died: !hero.alive,
+    apTaken: hero.apTaken,
+    apGiven: hero.apGiven,
     teamTotal,
     damage: mine('damage'),
     poison: dotDealt,
@@ -645,6 +666,14 @@ function measure(def, cast) {
     'solo heal/s': avgSolo((r) => r.healing / r.seconds),
     boons: avg((r) => r.boons),
     hexes: avg((r) => r.hexes),
+    // Action bar moved, per second, as a share of a full bar: 1.0 is one
+    // whole turn's worth of meter a second. Kept as two columns because
+    // taking a turn off an enemy and handing one to an ally are
+    // different jobs even though they cost the same to buy.
+    // Bars of action bar per second: 1.00 means this hero moves a whole
+    // turn's worth of meter every second of the fight.
+    'ap-/s': avg((r) => r.apTaken / r.seconds),
+    'ap+/s': avg((r) => r.apGiven / r.seconds),
     deaths: runs.filter((r) => r.died).length,
     stalls: runs.filter((r) => r.stalled).length,
     seconds: avg((r) => r.seconds),
@@ -658,6 +687,7 @@ const COLUMNS = [
   ['worth/s', 'worth/s', 8, 1],
   ['solo', 'solo', 8, 1],
   ['boons', 'boons', 6, 2], ['hexes', 'hexes', 6, 2],
+  ['ap-/s', 'ap-/s', 7, 3], ['ap+/s', 'ap+/s', 7, 3],
   // Both numbers, always. A lift is only a finding when it is bigger
   // than the bar beside it; printing the one without the other would
   // dress noise up as a measurement, which for the small-effect heroes
@@ -730,6 +760,181 @@ function report(key, rows) {
   }
 }
 
+// ---- Value ---------------------------------------------------------------
+//
+// One number for a hero, comparable across every role in the game.
+//
+// The bucket reports above deliberately refuse to do this: each bucket
+// judges its members on the one axis that bucket exists for, and a tank's
+// ehp and a healer's worth/s are not the same kind of number. That is
+// right for balancing a role and useless for the question "is this
+// 5-star actually better than that 3-star", which is a question about
+// the whole roster at once.
+//
+// Value answers it by measuring six axes and adding them up:
+//
+//   offence     damage a second
+//   durability  effective HP, and damage mitigated a second
+//   healing     HP mended a second
+//   buffing     damage a hero's blessings bought, and blessings held
+//   debuffing   hexes held on the enemy side
+//   tempo       action bar taken off enemies, and handed to allies
+//
+// Each raw figure is divided by the ROSTER MEAN of that figure, which is
+// the whole trick: an axis only a fifth of the roster can post at all
+// has a fifth of the mean, so its specialists score five times on it.
+// Every axis therefore carries the same total mass across the roster,
+// and a healer is not punished for dealing no damage any more than a
+// striker is punished for mending none. Six axes, each averaging 1.00
+// per hero, so a hero of exactly average worth on everything scores 6.
+// The scale is then divided through so the 3-star cohort averages 1.00.
+//
+// Two axes pair two figures (durability, buffing, tempo); the pair is
+// averaged before it enters the sum, so an axis is one share whether it
+// is measured one way or two.
+//
+// Every hero is measured on ITS OWN HEX, in one shared reference cast --
+// not the bucket casts the reports above use. A cross-role number has to
+// come from a cross-role fight, or a front-row tank is being rated
+// against other tanks and a back-row support against other supports, and
+// the two readings never belonged on the same scale.
+
+// The reference cast: one standard 7v7 drawn from the whole roster, the
+// same one for every hero benched. Two picks from the middle of each of
+// the six buckets, walking outward from each bucket's median, so the
+// standard fight contains tanks to break, strikers for a blessing to
+// ride, and menders to out-damage -- every axis has something in the
+// room to work on. Dealt out by power, alternating sides, so neither
+// side is the stronger one.
+function referenceCast() {
+  const byPower = (a, b) => powerOf(a) - powerOf(b) || a.id.localeCompare(b.id);
+  const outward = ORDER.filter((k) => buckets[k] && buckets[k].length).map((k) => {
+    const p = buckets[k].slice().sort(byPower);
+    const mid = Math.floor(p.length / 2);
+    const order = [];
+    for (let d = 0; order.length < p.length; d++) {
+      if (mid + d < p.length) order.push(p[mid + d]);
+      if (d > 0 && mid - d >= 0) order.push(p[mid - d]);
+    }
+    return order;
+  });
+  const need = SQUAD - 1 + SQUAD;
+  const picks = [];
+  for (let i = 0; picks.length < need; i++) {
+    let any = false;
+    for (const p of outward) {
+      if (!p[i]) continue;
+      picks.push(p[i]);
+      any = true;
+      if (picks.length >= need) break;
+    }
+    if (!any) break;
+  }
+  picks.sort((a, b) => powerOf(b) - powerOf(a) || a.id.localeCompare(b.id));
+  const allies = [];
+  const foes = [];
+  for (const d of picks) {
+    const roomForFoes = foes.length < SQUAD;
+    const toFoes = roomForFoes && (allies.length >= SQUAD - 1 || foes.length <= allies.length);
+    (toFoes ? foes : allies).push(d);
+  }
+  const pool = Object.values(HEROES).slice().sort(byPower);
+  return { pool, allies, foes };
+}
+
+// The direct run only. No solo pass and no blank pass: Value never asks
+// what the kit is worth against one body or what the team would have
+// done without it, so two thirds of the simulation is not run.
+function measureValue(def, cast) {
+  const runs = [];
+  for (let i = 0; i < SIMS; i++) {
+    runs.push(runOne(def, castWithout(cast, def), 1000 + i * 7919));
+  }
+  const avg = (pick) => runs.reduce((s, r) => s + pick(r), 0) / runs.length;
+  const mitRatio = avg((r) => r.mitRatio);
+  const maxHp = avg((r) => r.maxHp);
+  return {
+    id: def.id, name: def.name, rarity: def.rarity, power: powerOf(def),
+    dps: avg((r) => r.damage / r.seconds),
+    'heal/s': avg((r) => r.healing / r.seconds),
+    'mit/s': avg((r) => r.mitigated / r.seconds),
+    assist: avg((r) => r.assist / r.seconds),
+    boons: avg((r) => r.boons),
+    hexes: avg((r) => r.hexes),
+    'ap-/s': avg((r) => r.apTaken / r.seconds),
+    'ap+/s': avg((r) => r.apGiven / r.seconds),
+    ehp: maxHp / Math.max(0.05, 1 - mitRatio),
+  };
+}
+
+// Each axis, and the raw column(s) it is built from.
+const AXES = [
+  ['offence', ['dps']],
+  ['durability', ['ehp', 'mit/s']],
+  ['healing', ['heal/s']],
+  ['buffing', ['assist', 'boons']],
+  ['debuffing', ['hexes']],
+  ['tempo', ['ap-/s', 'ap+/s']],
+];
+// Where the scale is pinned, and what the rarities are aiming at. The
+// anchor is the 3-star cohort because it is the broadest and the least
+// exceptional: 1.00 means "an ordinary 3-star's worth".
+const VALUE_ANCHOR = 3;
+const VALUE_TARGET = { 1: 0.70, 2: 0.85, 3: 1.00, 4: 1.15, 5: 1.30 };
+
+function scoreValue(rows) {
+  const mean = {};
+  for (const [, cols] of AXES) {
+    for (const c of cols) {
+      mean[c] = rows.reduce((s, r) => s + (r[c] || 0), 0) / rows.length;
+    }
+  }
+  for (const r of rows) {
+    r.axes = {};
+    for (const [axis, cols] of AXES) {
+      // Square root, because an axis SATURATES. A hero mending nine
+      // times the roster's average is not worth nine ordinary heroes to
+      // a team of seven -- the fourth healer in a squad is worth less
+      // than the first, and the same is true of the fourth striker.
+      // Straight normals said otherwise and produced a table with a
+      // 40x spread in which the median hero read 0.5 and no rarity
+      // curve could exist; compression is the model of diminishing
+      // returns the sum was missing, not a knob turned to fit.
+      const parts = cols.map((c) =>
+        (mean[c] > 0 ? Math.sqrt((r[c] || 0) / mean[c]) : 0));
+      r.axes[axis] = parts.reduce((a, b) => a + b, 0) / parts.length;
+    }
+  }
+  // Compression is not uniform across axes -- the more lopsided the
+  // axis, the harder the root bites -- so each is divided through by its
+  // own post-compression mean. Without this the flattest axes quietly
+  // carry the most weight: offence took 24% of the total and tempo 11%,
+  // for no reason but the shape of their distributions. After it, every
+  // axis carries exactly one sixth, which is the claim this metric is
+  // making and now the one it keeps.
+  for (const [axis] of AXES) {
+    const m = rows.reduce((s, r) => s + r.axes[axis], 0) / rows.length;
+    if (m > 0) for (const r of rows) r.axes[axis] /= m;
+  }
+  for (const r of rows) r.raw = AXES.reduce((s, [a]) => s + r.axes[a], 0);
+  const anchor = rows.filter((r) => r.rarity === VALUE_ANCHOR);
+  const base = anchor.length
+    ? anchor.reduce((s, r) => s + r.raw, 0) / anchor.length
+    : rows.reduce((s, r) => s + r.raw, 0) / rows.length;
+  for (const r of rows) {
+    r.value = base > 0 ? r.raw / base : 0;
+    for (const [axis] of AXES) r.axes[axis] /= base;
+  }
+  rows.sort((a, b) => b.value - a.value);
+  return rows;
+}
+
+let refCastCache = null;
+function valueBench() {
+  const cast = (refCastCache ||= referenceCast());
+  return scoreValue(Object.values(HEROES).map((def) => measureValue(def, cast)));
+}
+
 // ---- Run -----------------------------------------------------------------
 
 // Importable so the test suite can guard the classification — the part
@@ -759,6 +964,7 @@ function bench(only = ONLY) {
 
 module.exports = {
   roleOf, archetypeOf, kitCan, bench,
+  valueBench, referenceCast, scoreValue, AXES, VALUE_TARGET, VALUE_ANCHOR,
   ARCHETYPES: ORDER, HEADLINE, TITLE, COLUMNS,
 };
 if (require.main !== module) return;
@@ -794,6 +1000,42 @@ if (CSV) {
         ...COLUMNS.map(([k, , , p]) => round(r[k], p))].join(','));
     }
   }
+}
+
+// ---- The Value ranking ---------------------------------------------------
+const valueRows = valueBench();
+const refCast = refCastCache;
+console.log(`\nVALUE — all ${valueRows.length} heroes on one scale, ` +
+  `${SQUAD}v${SQUAD} against one shared cast, each on its own hex`);
+console.log(`  reference allies: ${refCast.allies.map((d) => d.name).join(', ')}`);
+console.log(`  reference foes:   ${refCast.foes.map((d) => d.name).join(', ')}`);
+console.log('  ' + '#'.padStart(4) + '  ' + 'hero'.padEnd(24) + '★'.padStart(3) +
+  AXES.map(([a]) => pad(a.slice(0, 6), 8)).join('') + pad('VALUE', 8));
+valueRows.forEach((r, i) => {
+  console.log('  ' + pad(i + 1, 4) + '  ' + r.name.padEnd(24) + pad(r.rarity, 3) +
+    AXES.map(([a]) => pad(round(r.axes[a], 2), 8)).join('') +
+    pad(round(r.value, 2), 8));
+});
+console.log('\n  by rarity — mean value, against the target curve');
+for (const star of [1, 2, 3, 4, 5]) {
+  const cohort = valueRows.filter((r) => r.rarity === star);
+  if (!cohort.length) continue;
+  const mean = cohort.reduce((s, r) => s + r.value, 0) / cohort.length;
+  const target = VALUE_TARGET[star];
+  const off = target > 0 ? mean / target - 1 : 0;
+  console.log(`  ${star}★  ${pad(cohort.length, 3)} heroes   mean ` +
+    `${pad(round(mean, 3), 6)}   target ${round(target, 2).toFixed(2)}   ` +
+    `${off >= 0 ? '+' : ''}${(off * 100).toFixed(1)}%` +
+    (Math.abs(off) > 0.10 ? '  ←← off curve' : ''));
+}
+
+if (CSV) {
+  console.log('\nrank,hero,rarity,power,' +
+    AXES.map(([a]) => a).join(',') + ',value');
+  valueRows.forEach((r, i) => {
+    console.log([i + 1, r.name, r.rarity, r.power,
+      ...AXES.map(([a]) => round(r.axes[a], 3)), round(r.value, 3)].join(','));
+  });
 }
 
 console.log(`\nOUTLIERS — ${flagged.length} hero(es) off their archetype's median`);

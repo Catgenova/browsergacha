@@ -875,6 +875,143 @@ test('next mission follows the road, then the map, then the next chapter', () =>
     'the final chapter offered a next mission');
 });
 
+test('Value scores every axis equally and anchors on the 3-star cohort', () => {
+  const bench = require('./archetypes');
+  const { AXES, VALUE_ANCHOR } = bench;
+  // Synthetic roster: pure specialists, one per axis, plus a body that
+  // does nothing. Every column an axis is built from is set to the same
+  // figure, so the only thing that differs between the specialists is
+  // WHICH axis they fire on -- and a metric that weights its axes evenly
+  // must score all six of them identically.
+  const cols = [...new Set(AXES.flatMap(([, cs]) => cs))];
+  const blank = () => Object.fromEntries(cols.map((c) => [c, 0]));
+  const rows = AXES.map(([axis, cs], i) => Object.assign(blank(), {
+    id: `spec_${axis}`, name: axis, rarity: VALUE_ANCHOR,
+    ...Object.fromEntries(cs.map((c) => [c, 100])),
+    _axis: axis, _i: i,
+  }));
+  rows.push(Object.assign(blank(), { id: 'idle', name: 'idle', rarity: VALUE_ANCHOR }));
+  bench.scoreValue(rows);
+  const specialists = rows.filter((r) => r._axis);
+  const spread = Math.max(...specialists.map((r) => r.value)) -
+    Math.min(...specialists.map((r) => r.value));
+  assert(spread < 1e-9,
+    `six equal specialists scored ${specialists.map((r) => r.value.toFixed(3)).join('/')} ` +
+    '— one axis is carrying more weight than another');
+  const idle = rows.find((r) => r.id === 'idle');
+  assert(idle.value === 0, `a hero doing nothing on every axis scored ${idle.value}`);
+  // The anchor is a MEAN over the 3-star cohort, and here every row is a
+  // 3-star, so the mean of the table must be exactly 1.
+  const mean = rows.reduce((s, r) => s + r.value, 0) / rows.length;
+  assert(Math.abs(mean - 1) < 1e-9, `the anchor cohort averaged ${mean}, not 1.00`);
+});
+
+test('Value axes carry equal mass however lopsided the roster is', () => {
+  const bench = require('./archetypes');
+  const { AXES, VALUE_ANCHOR } = bench;
+  const cols = [...new Set(AXES.flatMap(([, cs]) => cs))];
+  const flat = AXES[0];
+  const spiky = AXES.find(([a], i) => i > 0 && a);
+  const set = (row, [, cs], n) => { for (const c of cs) row[c] = n; };
+  // Two axes with the SAME roster mean and opposite shapes: one every
+  // hero posts evenly, one a single hero owns outright. Compression
+  // bites the lopsided axis far harder, so without a per-axis rescale
+  // the flat axis would quietly decide twice as much of the ranking.
+  const rows = [0, 1, 2, 3].map((i) => {
+    const r = Object.fromEntries(cols.map((c) => [c, 0]));
+    Object.assign(r, { id: `h${i}`, name: `h${i}`, rarity: VALUE_ANCHOR });
+    set(r, flat, 10);
+    set(r, spiky, i === 0 ? 40 : 0);
+    return r;
+  });
+  bench.scoreValue(rows);
+  const mass = (axis) => rows.reduce((s, r) => s + r.axes[axis], 0);
+  assert(Math.abs(mass(flat[0]) - mass(spiky[0])) < 1e-9,
+    `${flat[0]} carries ${mass(flat[0]).toFixed(3)} of the table and ` +
+    `${spiky[0]} carries ${mass(spiky[0]).toFixed(3)} — the axes are not level`);
+});
+
+test('Value is anchored on the 3-star cohort, not on the whole roster', () => {
+  const bench = require('./archetypes');
+  const { AXES, VALUE_ANCHOR } = bench;
+  const cols = [...new Set(AXES.flatMap(([, cs]) => cs))];
+  const make = (id, rarity, n) => {
+    const r = Object.fromEntries(cols.map((c) => [c, 0]));
+    Object.assign(r, { id, name: id, rarity });
+    for (const c of AXES[0][1]) r[c] = n;
+    return r;
+  };
+  // A roster whose 3-stars are the weak half: anchoring on everybody
+  // would put the cohort below 1.00, which is the whole thing the scale
+  // exists to pin.
+  const rows = [
+    make('a', VALUE_ANCHOR, 10), make('b', VALUE_ANCHOR, 10),
+    make('c', 5, 90), make('d', 5, 90),
+  ];
+  bench.scoreValue(rows);
+  const cohort = rows.filter((r) => r.rarity === VALUE_ANCHOR);
+  const mean = cohort.reduce((s, r) => s + r.value, 0) / cohort.length;
+  assert(Math.abs(mean - 1) < 1e-9,
+    `the 3-star cohort averaged ${mean.toFixed(3)}, not 1.00`);
+  const all = rows.reduce((s, r) => s + r.value, 0) / rows.length;
+  assert(all > 1.2, `the roster mean landed at ${all.toFixed(3)} — this ` +
+    'fixture is meant to have 3-stars well below the roster average');
+});
+
+test('Value compresses each axis, so twice the output is not twice the worth', () => {
+  const bench = require('./archetypes');
+  const { AXES, VALUE_ANCHOR } = bench;
+  const cols = [...new Set(AXES.flatMap(([, cs]) => cs))];
+  const blank = () => Object.fromEntries(cols.map((c) => [c, 0]));
+  const [, first] = AXES[0];
+  const make = (id, n) => Object.assign(blank(), {
+    id, name: id, rarity: VALUE_ANCHOR,
+    ...Object.fromEntries(first.map((c) => [c, n])),
+  });
+  // Four strikers on one axis: 1x, 2x, 4x and 16x the smallest.
+  const rows = [make('one', 10), make('two', 20), make('four', 40), make('sixteen', 160)];
+  bench.scoreValue(rows);
+  const v = Object.fromEntries(rows.map((r) => [r.id, r.value]));
+  assert(v.two > v.one && v.four > v.two && v.sixteen > v.four,
+    'more output must still score higher');
+  // Sixteen times the damage, four times the score -- the square root,
+  // exactly. A linear sum would put this at 16.
+  const ratio = v.sixteen / v.one;
+  assert(Math.abs(ratio - 4) < 1e-6,
+    `16x the output scored ${ratio.toFixed(3)}x, expected 4x under compression`);
+  // Scored AND ranked: the table comes back in order, because the CLI
+  // and the report both print it as a ranking and neither re-sorts it.
+  assert(rows.map((r) => r.id).join(',') === 'sixteen,four,two,one',
+    `the scored table came back in the order ${rows.map((r) => r.id).join(',')}`);
+});
+
+test('the action-bar ledger books to the hero who moved the bar', () => {
+  const { Unit, HEROES, TEAM, CONFIG } = g;
+  const def = Object.values(HEROES)[0];
+  const ally = new Unit(def, TEAM.PLAYER, { level: 1, stars: 1 });
+  const mate = new Unit(def, TEAM.PLAYER, { level: 1, stars: 1 });
+  const foe = new Unit(def, TEAM.ENEMY, { level: 1, stars: 1 });
+  const bar = CONFIG.TURN_METER_MAX;
+
+  foe.bookAp(ally, -bar / 2);
+  assert(Math.abs(ally.apTaken - 0.5) < 1e-9,
+    `half an enemy bar should book 0.5 taken, booked ${ally.apTaken}`);
+  assert(ally.apGiven === 0, 'taking meter booked a gift');
+
+  mate.bookAp(ally, bar * 0.25);
+  assert(Math.abs(ally.apGiven - 0.25) < 1e-9,
+    `a quarter bar handed to an ally should book 0.25 given, booked ${ally.apGiven}`);
+
+  // Self-pushes are nobody's gift, and the two crossed directions -- a
+  // gift to an enemy, a drain on your own side -- are not contributions.
+  ally.bookAp(ally, bar);
+  foe.bookAp(ally, bar);
+  mate.bookAp(ally, -bar);
+  assert(Math.abs(ally.apTaken - 0.5) < 1e-9 && Math.abs(ally.apGiven - 0.25) < 1e-9,
+    `self, cross-line and friendly-fire pushes leaked into the ledger: ` +
+    `${ally.apTaken} taken, ${ally.apGiven} given`);
+});
+
 test('every hero classifies into exactly one of the six archetypes', () => {
   const { HEROES } = g;
   const bench = require('./archetypes');

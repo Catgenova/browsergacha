@@ -530,6 +530,39 @@ test('a speed buff banks meter gifts for the hero who granted it', () => {
   assert(runner.meterGifts.length === 0, 'a self-buff or a slow banked a gift');
 });
 
+test('the action-bar ledger covers drains, gifts and speed buffs alike', () => {
+  const battle = makeBattle();
+  const cat = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+  const mate = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 4);
+  const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 1);
+  const bar = CONFIG.TURN_METER_MAX;
+
+  // A drain, through the funnel every drain in the game goes through.
+  foe.turnMeter = bar * 0.8;
+  foe.resistance = 0;
+  cat.accuracy = 999;
+  Abilities.drainMeter(cat, foe, 0.3);
+  assert(Math.abs(cat.apTaken - 0.3) < 1e-6,
+    `a 30% drain should book 0.30 taken, booked ${cat.apTaken}`);
+
+  // A push handed to an ally, through the turnMeter effect.
+  Abilities.applyEffect({ type: 'turnMeter', amount: 0.25 }, cat, mate, 1);
+  assert(Math.abs(cat.apGiven - 0.25) < 1e-6,
+    `a 25% push should book 0.25 given, booked ${cat.apGiven}`);
+
+  // And the slow half of the same contribution: a speed buff buying an
+  // ally's fill a tick at a time.
+  mate.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 2, turns: 5, source: cat });
+  mate.bankSpeedGifts(bar * 0.5);
+  assert(Math.abs(cat.apGiven - 0.5) < 1e-6,
+    `a x2 speed buff should book its half of the fill, total given ${cat.apGiven}`);
+
+  // Pushing your own bar is not a gift to anybody.
+  Abilities.applyEffect({ type: 'turnMeter', amount: 0.5 }, cat, cat, 1);
+  assert(Math.abs(cat.apGiven - 0.5) < 1e-6,
+    `a self-push landed in the gift column: ${cat.apGiven}`);
+});
+
 test('def walls and damage marks credit their caster', () => {
   const battle = makeBattle();
   const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);

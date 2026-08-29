@@ -39,6 +39,26 @@ for line in raw[start + 1:]:
     block.append(line)
 rows = list(csv.DictReader(block))
 
+# The Value block: a second CSV, printed after the first, with its own
+# header. It is found by its header rather than by position, and its
+# column count differs from the archetype block's -- which is exactly why
+# the reader above stops where it does.
+vstart = next((i for i, l in enumerate(raw) if l.startswith('rank,hero,')), None)
+vrows = []
+if vstart is not None:
+    vblock = [raw[vstart]]
+    for line in raw[vstart + 1:]:
+        if not line.strip():
+            continue
+        if line.count(',') != raw[vstart].count(','):
+            break
+        vblock.append(line)
+    vrows = list(csv.DictReader(vblock))
+# The six axes, in the order the bench emits them: everything in the
+# header that is neither identity nor the total.
+VAXES = [c for c in (vrows[0].keys() if vrows else [])
+         if c not in ('rank', 'hero', 'rarity', 'power', 'value')]
+
 # The bench judges each bucket on the axis that bucket exists for.
 BUCKETS = [
     ('front_tank',    'Front row — Tank',    'ehp',     'Effective HP'),
@@ -156,12 +176,12 @@ sect_line = ', '.join(f'{n} {s}' for s, n in
                       sorted(sects.items(), key=lambda kv: -kv[1]))
 
 # ---- The rarity curve -----------------------------------------------------
-# The design goal is 5-star around 1.25x their bucket median, 3-star ON the
+# The design goal is 5-star around 1.30x their bucket median, 3-star ON the
 # median, and the cheap shelves below it. This block reads the curve straight
 # off the same CSV rather than trusting a per-skill balance pass to have moved
 # it, and it prints the median BENCHED POWER beside it -- because if power is
 # inverted by rarity, no amount of skill tuning can right the curve.
-TARGET = {5: 1.25, 4: 1.10, 3: 1.00, 2: 0.85, 1: 0.70}
+TARGET = {5: 1.30, 4: 1.15, 3: 1.00, 2: 0.85, 1: 0.70}
 curve_rows = []
 for star in (5, 4, 3, 2, 1):
     band = [r for r in rows if int(r['rarity']) == star]
@@ -199,6 +219,104 @@ power_spread = f'{_dearest / _cheapest:.2f}'
 # same party twice against a fixed wave, once with the hero and once
 # without, paired on the seed, reported as time-to-clear.
 # ---------------------------------------------------------------------------
+# ---- Value ----------------------------------------------------------------
+# One number per hero across every role: six axes, each divided through by
+# the roster mean, square-rooted for diminishing returns, levelled so each
+# axis carries exactly one sixth, summed, and scaled so the 3-star cohort
+# averages 1.00. The target curve is the same one the shelves are cut on.
+value_rows, value_curve, value_note = [], [], ''
+if vrows:
+    for r in vrows:
+        m = META.get(r['hero']) or {}
+        v = f(r['value'])
+        tag = 'over' if v >= 1.60 else ('under' if v <= 0.55 else 'mid')
+        axes_cells = ''.join(
+            f'<td class="num">{f(r[a]):.2f}</td>' for a in VAXES)
+        value_rows.append(f"""<tr class="{tag}">
+    <td class="num st">{r['rank']}</td>
+    <th scope="row">{html.escape(r['hero'])}</th>
+    <td class="num st">{r['rarity']}</td>
+    <td class="sect">{html.escape(m.get('sect') or '&mdash;')}</td>
+    {axes_cells}
+    <td class="num key">{v:.2f}</td>
+    <td class="dev">{bar(v)}</td>
+  </tr>""")
+    for star in (5, 4, 3, 2, 1):
+        band = [r for r in vrows if int(r['rarity']) == star]
+        if not band:
+            continue
+        mean = statistics.mean(f(r['value']) for r in band)
+        want = TARGET[star]
+        off = mean - want
+        tag = 'over' if off > 0.12 else ('under' if off < -0.12 else 'mid')
+        value_curve.append(f"""<tr class="{tag}">
+    <th scope="row">{star}&#9733;</th>
+    <td class="num st">{len(band)}</td>
+    <td class="num key">{mean:.2f}</td>
+    <td class="num">{want:.2f}</td>
+    <td class="dev">{bar(mean / want)}</td>
+    <td class="num x">{off:+.2f}</td>
+  </tr>""")
+    _off = [(star, statistics.mean(f(r['value']) for r in vrows
+                                   if int(r['rarity']) == star) - TARGET[star])
+            for star in (1, 2, 3, 4, 5)
+            if any(int(r['rarity']) == star for r in vrows)]
+    _bad = [f'{s}&#9733; {o:+.2f}' for s, o in _off if abs(o) > 0.12]
+    value_note = ('Every shelf is within 0.12 of its target.' if not _bad else
+                  'Off the curve: ' + ', '.join(_bad) + '.')
+
+value_section = ''
+if value_rows:
+    value_section = f"""
+  <section>
+    <h2>Value &mdash; the whole roster on one scale</h2>
+    <h3>Six axes, levelled, added up, and pinned to an ordinary 3&#9733;</h3>
+    <p class="sub">Everything above judges a hero against its own bucket, which is right
+    for balancing a role and useless for &ldquo;is this 5&#9733; actually better than that
+    3&#9733;&rdquo;. Value answers that instead. Every hero is run against
+    <b>one shared cast</b> &mdash; not its bucket&#39;s &mdash; on <b>its own hex</b>, and
+    six things are measured: <b>offence</b>, <b>durability</b>, <b>healing</b>,
+    <b>buffing</b>, <b>debuffing</b> and <b>tempo</b> (action bar taken off enemies and
+    handed to allies).</p>
+    <p class="sub">Each figure is divided by the roster mean of that figure, so an axis
+    only a fifth of the roster can post at all is worth five times as much to the fifth
+    that can &mdash; a healer is not punished for dealing no damage. Each is then square
+    rooted, because an axis <b>saturates</b>: the fourth healer in a squad of seven is
+    worth less than the first. Compression does not bite every axis equally, so each is
+    rescaled to carry exactly one sixth of the table. The sum is divided through by the
+    3&#9733; cohort&#39;s average, which is what <b>1.00</b> means: an ordinary
+    3&#9733;&#39;s worth. {value_note}</p>
+    <div class="scroll" style="margin-top:14px">
+      <table>
+        <thead><tr>
+          <th scope="col">Shelf</th><th scope="col" class="num st">Heroes</th>
+          <th scope="col" class="num key">Mean value</th><th scope="col" class="num">Target</th>
+          <th scope="col" class="dev">vs target</th><th scope="col" class="num x">Gap</th>
+        </tr></thead>
+        <tbody>{''.join(value_curve)}</tbody>
+      </table>
+    </div>
+    <div class="scroll" style="margin-top:20px">
+      <table>
+        <thead><tr>
+          <th scope="col" class="num st">#</th><th scope="col">Hero</th>
+          <th scope="col" class="num st">&#9733;</th><th scope="col">Sect</th>
+          {''.join(f'<th scope="col" class="num">{html.escape(a.title())}</th>' for a in VAXES)}
+          <th scope="col" class="num key">Value</th>
+          <th scope="col" class="dev">vs a 3&#9733;</th>
+        </tr></thead>
+        <tbody>{''.join(value_rows)}</tbody>
+      </table>
+    </div>
+    <div class="key-note" style="margin-top:14px">
+      <span><i class="chip mid"></i> an ordinary 3&#9733; is 1.00</span>
+      <span><i class="chip over"></i> 1.60 and up</span>
+      <span><i class="chip under"></i> 0.55 and down</span>
+      <span>bar clipped at 4&times;</span>
+      <span>axis columns are shares of one sixth each, so they sum to Value</span>
+    </div>
+  </section>"""
+
 lift_rows, lift_head, lift_note = [], '', ''
 if LIFT and LIFT.exists():
     lraw = LIFT.read_text().splitlines()
@@ -296,6 +414,7 @@ page = (TEMPLATE
         .replace('%%FLAGROWS%%', ''.join(flag_rows))
         .replace('%%CURVEROWS%%', ''.join(curve_rows))
         .replace('%%PWSPREAD%%', power_spread)
+        .replace('%%VALUE%%', value_section)
         .replace('%%LIFT%%', lift_section)
         .replace('%%BUCKETS%%', ''.join(table_rows)))
 
@@ -307,6 +426,7 @@ page = ''.join(c if ord(c) < 128 else f'&#{ord(c)};' for c in page)
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(page)
-print(OUT, len(page), 'bytes;', len(rows), 'heroes,', len(flagged), 'flagged')
+print(OUT, len(page), 'bytes;', len(rows), 'heroes,', len(flagged), 'flagged,',
+      len(vrows), 'ranked on value')
 bad = [c for c in page if ord(c) > 127]
 print('non-ascii:', bad[:8] if bad else 'none')

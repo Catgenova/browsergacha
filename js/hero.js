@@ -128,6 +128,14 @@ class Unit {
     // turn, and the set that paid for the turn currently being taken.
     this.meterGifts = [];
     this.turnGifts = [];
+    // Lifetime action-bar ledger, in BARS (1 = a full meter), booked to
+    // whoever caused the movement rather than to whoever it happened to:
+    // `apTaken` is enemy meter this unit has pulled off, `apGiven` is
+    // ally meter it has handed out. Self-gain -- a kill refund, a sweep
+    // payout, a meter refund on cast -- is nobody's gift and lands in
+    // neither column; it is already visible as this unit's own tempo.
+    this.apTaken = 0;
+    this.apGiven = 0;
 
     // Abilities: instantiate cooldown state per ability. Player heroes
     // carry saved skill levels (+10% power each past 1); enemies stay 1.
@@ -640,6 +648,24 @@ class Unit {
     return out;
   }
 
+  // Book a movement of THIS unit's action bar to whoever caused it, in
+  // bars. Called from every path that moves somebody ELSE's meter --
+  // the drain funnel, the turnMeter gift, a speed buff's share of the
+  // fill, and the two hooks that reach across the line themselves -- so
+  // that "how much tempo did this hero move" is one number rather than
+  // a dozen scattered side effects nobody adds up.
+  //
+  // Direction decides the column: meter pulled off an enemy is TAKEN,
+  // meter handed to an ally is GIVEN, and the two crossed cases (a gift
+  // to an enemy, a drain on your own side) are booked to neither,
+  // because neither is a contribution.
+  bookAp(source, delta) {
+    if (!source || source === this || !delta) return;
+    const bars = Math.abs(delta) / CONFIG.TURN_METER_MAX;
+    if (delta < 0 && source.team !== this.team) source.apTaken += bars;
+    else if (delta > 0 && source.team === this.team) source.apGiven += bars;
+  }
+
   // A speed buff buys turn meter the way a meter push does, just spread
   // over time: each tick, the share of the fill that sourced speed buffs
   // supplied is banked as a meter gift from those heroes, and the turn
@@ -666,6 +692,7 @@ class Unit {
       const gift = this.meterGifts.find((g) => g.source === fx.source);
       if (gift) gift.amount += amount;
       else this.meterGifts.push({ source: fx.source, amount });
+      this.bookAp(fx.source, amount);
     }
   }
 

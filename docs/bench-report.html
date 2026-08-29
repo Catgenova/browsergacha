@@ -195,10 +195,903 @@
     </div>
   </section>
 
+  
+  <section>
+    <h2>Value &mdash; the whole roster on one scale</h2>
+    <h3>Six axes, levelled, added up, and pinned to an ordinary 3&#9733;</h3>
+    <p class="sub">Everything above judges a hero against its own bucket, which is right
+    for balancing a role and useless for &ldquo;is this 5&#9733; actually better than that
+    3&#9733;&rdquo;. Value answers that instead. Every hero is run against
+    <b>one shared cast</b> &mdash; not its bucket&#39;s &mdash; on <b>its own hex</b>, and
+    six things are measured: <b>offence</b>, <b>durability</b>, <b>healing</b>,
+    <b>buffing</b>, <b>debuffing</b> and <b>tempo</b> (action bar taken off enemies and
+    handed to allies).</p>
+    <p class="sub">Each figure is divided by the roster mean of that figure, so an axis
+    only a fifth of the roster can post at all is worth five times as much to the fifth
+    that can &mdash; a healer is not punished for dealing no damage. Each is then square
+    rooted, because an axis <b>saturates</b>: the fourth healer in a squad of seven is
+    worth less than the first. Compression does not bite every axis equally, so each is
+    rescaled to carry exactly one sixth of the table. The sum is divided through by the
+    3&#9733; cohort&#39;s average, which is what <b>1.00</b> means: an ordinary
+    3&#9733;&#39;s worth. Off the curve: 1&#9733; -0.34, 2&#9733; +0.18.</p>
+    <div class="scroll" style="margin-top:14px">
+      <table>
+        <thead><tr>
+          <th scope="col">Shelf</th><th scope="col" class="num st">Heroes</th>
+          <th scope="col" class="num key">Mean value</th><th scope="col" class="num">Target</th>
+          <th scope="col" class="dev">vs target</th><th scope="col" class="num x">Gap</th>
+        </tr></thead>
+        <tbody><tr class="mid">
+    <th scope="row">5&#9733;</th>
+    <td class="num st">19</td>
+    <td class="num key">1.31</td>
+    <td class="num">1.30</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.2%"></i></span></td>
+    <td class="num x">+0.01</td>
+  </tr><tr class="mid">
+    <th scope="row">4&#9733;</th>
+    <td class="num st">33</td>
+    <td class="num key">1.19</td>
+    <td class="num">1.15</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.6%"></i></span></td>
+    <td class="num x">+0.04</td>
+  </tr><tr class="mid">
+    <th scope="row">3&#9733;</th>
+    <td class="num st">37</td>
+    <td class="num key">1.00</td>
+    <td class="num">1.00</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.0%"></i></span></td>
+    <td class="num x">+0.00</td>
+  </tr><tr class="over">
+    <th scope="row">2&#9733;</th>
+    <td class="num st">8</td>
+    <td class="num key">1.03</td>
+    <td class="num">0.85</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.6%"></i></span></td>
+    <td class="num x">+0.18</td>
+  </tr><tr class="under">
+    <th scope="row">1&#9733;</th>
+    <td class="num st">4</td>
+    <td class="num key">0.36</td>
+    <td class="num">0.70</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:24.2%"></i></span></td>
+    <td class="num x">-0.34</td>
+  </tr></tbody>
+      </table>
+    </div>
+    <div class="scroll" style="margin-top:20px">
+      <table>
+        <thead><tr>
+          <th scope="col" class="num st">#</th><th scope="col">Hero</th>
+          <th scope="col" class="num st">&#9733;</th><th scope="col">Sect</th>
+          <th scope="col" class="num">Offence</th><th scope="col" class="num">Durability</th><th scope="col" class="num">Healing</th><th scope="col" class="num">Buffing</th><th scope="col" class="num">Debuffing</th><th scope="col" class="num">Tempo</th>
+          <th scope="col" class="num key">Value</th>
+          <th scope="col" class="dev">vs a 3&#9733;</th>
+        </tr></thead>
+        <tbody><tr class="over">
+    <td class="num st">1</td>
+    <th scope="row">Toll</th>
+    <td class="num st">5</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.69</td><td class="num">0.19</td><td class="num">1.62</td><td class="num">0.24</td><td class="num">0.77</td><td class="num">0.00</td>
+    <td class="num key">3.51</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:41.9%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">2</td>
+    <th scope="row">Nemeris</th>
+    <td class="num st">5</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.00</td><td class="num">0.19</td><td class="num">0.76</td><td class="num">1.34</td><td class="num">0.00</td><td class="num">1.14</td>
+    <td class="num key">3.44</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:40.7%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">3</td>
+    <th scope="row">Leonardo</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">1.23</td><td class="num">0.00</td><td class="num">1.51</td>
+    <td class="num key">2.86</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:30.9%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">4</td>
+    <th scope="row">Malachar</th>
+    <td class="num st">4</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.00</td><td class="num">0.25</td><td class="num">0.42</td><td class="num">1.26</td><td class="num">0.00</td><td class="num">0.75</td>
+    <td class="num key">2.68</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:28.0%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">5</td>
+    <th scope="row">Tub</th>
+    <td class="num st">5</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.12</td><td class="num">0.60</td><td class="num">0.00</td><td class="num">0.31</td><td class="num">0.00</td><td class="num">1.36</td>
+    <td class="num key">2.39</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:23.2%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">6</td>
+    <th scope="row">Tumble</th>
+    <td class="num st">4</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.18</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.98</td><td class="num">0.00</td><td class="num">1.00</td>
+    <td class="num key">2.29</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:21.6%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">7</td>
+    <th scope="row">Lenore</th>
+    <td class="num st">3</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.00</td><td class="num">0.46</td><td class="num">1.46</td><td class="num">0.26</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">2.18</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.7%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">8</td>
+    <th scope="row">Sands</th>
+    <td class="num st">4</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.09</td><td class="num">0.62</td><td class="num">0.00</td><td class="num">0.34</td><td class="num">0.00</td><td class="num">1.11</td>
+    <td class="num key">2.16</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:19.3%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">9</td>
+    <th scope="row">Koe</th>
+    <td class="num st">4</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.00</td><td class="num">0.22</td><td class="num">0.48</td><td class="num">0.71</td><td class="num">0.00</td><td class="num">0.67</td>
+    <td class="num key">2.08</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:18.0%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">10</td>
+    <th scope="row">Stoddard</th>
+    <td class="num st">3</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.27</td><td class="num">0.12</td><td class="num">0.26</td><td class="num">0.41</td><td class="num">0.82</td><td class="num">0.00</td>
+    <td class="num key">1.90</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.9%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">11</td>
+    <th scope="row">Donut</th>
+    <td class="num st">4</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.00</td><td class="num">0.53</td><td class="num">0.92</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.27</td>
+    <td class="num key">1.86</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.3%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">12</td>
+    <th scope="row">Sarena</th>
+    <td class="num st">4</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.00</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">1.01</td><td class="num">0.00</td><td class="num">0.68</td>
+    <td class="num key">1.82</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.7%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">13</td>
+    <th scope="row">Cain</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.25</td><td class="num">0.15</td><td class="num">0.83</td><td class="num">0.32</td><td class="num">0.00</td><td class="num">0.26</td>
+    <td class="num key">1.81</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.5%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">14</td>
+    <th scope="row">Morrow</th>
+    <td class="num st">4</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.19</td><td class="num">0.45</td><td class="num">0.72</td><td class="num">0.11</td><td class="num">0.30</td><td class="num">0.00</td>
+    <td class="num key">1.76</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.7%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">15</td>
+    <th scope="row">Vex</th>
+    <td class="num st">4</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.15</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.15</td><td class="num">1.34</td><td class="num">0.00</td>
+    <td class="num key">1.75</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.6%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">16</td>
+    <th scope="row">Posie</th>
+    <td class="num st">5</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.00</td><td class="num">0.54</td><td class="num">0.95</td><td class="num">0.26</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.75</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.5%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">17</td>
+    <th scope="row">Valere</th>
+    <td class="num st">4</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.12</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.19</td><td class="num">1.30</td><td class="num">0.00</td>
+    <td class="num key">1.74</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.4%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">18</td>
+    <th scope="row">Andrew</th>
+    <td class="num st">3</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.21</td><td class="num">0.17</td><td class="num">0.00</td><td class="num">0.40</td><td class="num">0.63</td><td class="num">0.30</td>
+    <td class="num key">1.70</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.7%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">19</td>
+    <th scope="row">Strix</th>
+    <td class="num st">2</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.12</td><td class="num">0.19</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.70</td><td class="num">0.67</td>
+    <td class="num key">1.68</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.4%"></i></span></td>
+  </tr><tr class="over">
+    <td class="num st">20</td>
+    <th scope="row">Talon</th>
+    <td class="num st">4</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.27</td><td class="num">0.49</td><td class="num">0.00</td><td class="num">0.26</td><td class="num">0.00</td><td class="num">0.67</td>
+    <td class="num key">1.68</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">21</td>
+    <th scope="row">Pox</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.22</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">1.24</td><td class="num">0.00</td>
+    <td class="num key">1.56</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">22</td>
+    <th scope="row">Wanda</th>
+    <td class="num st">2</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.90</td><td class="num">0.00</td><td class="num">0.52</td>
+    <td class="num key">1.54</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">23</td>
+    <th scope="row">Slick</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.00</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.17</td><td class="num">1.23</td><td class="num">0.00</td>
+    <td class="num key">1.54</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">24</td>
+    <th scope="row">Korvid</th>
+    <td class="num st">5</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.26</td><td class="num">0.51</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.69</td><td class="num">0.00</td>
+    <td class="num key">1.46</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">25</td>
+    <th scope="row">Princess</th>
+    <td class="num st">3</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.79</td><td class="num">0.00</td><td class="num">0.53</td>
+    <td class="num key">1.44</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">26</td>
+    <th scope="row">Click</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.00</td><td class="num">0.33</td><td class="num">0.00</td><td class="num">0.31</td><td class="num">0.00</td><td class="num">0.80</td>
+    <td class="num key">1.44</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">27</td>
+    <th scope="row">Vivian</th>
+    <td class="num st">4</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.10</td><td class="num">0.14</td><td class="num">0.79</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.39</td>
+    <td class="num key">1.42</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">28</td>
+    <th scope="row">Evelune</th>
+    <td class="num st">4</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.13</td><td class="num">0.13</td><td class="num">0.66</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.47</td>
+    <td class="num key">1.39</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">29</td>
+    <th scope="row">Carrion</th>
+    <td class="num st">5</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.19</td><td class="num">0.17</td><td class="num">0.52</td><td class="num">0.00</td><td class="num">0.51</td><td class="num">0.00</td>
+    <td class="num key">1.38</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">30</td>
+    <th scope="row">Tanner</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.00</td><td class="num">0.21</td><td class="num">0.52</td><td class="num">0.30</td><td class="num">0.00</td><td class="num">0.25</td>
+    <td class="num key">1.29</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">31</td>
+    <th scope="row">Artur</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.00</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.65</td><td class="num">0.00</td><td class="num">0.48</td>
+    <td class="num key">1.26</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">32</td>
+    <th scope="row">Peck</th>
+    <td class="num st">3</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.00</td><td class="num">0.66</td><td class="num">0.60</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.25</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.2%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">33</td>
+    <th scope="row">Hallow</th>
+    <td class="num st">5</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.51</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.61</td>
+    <td class="num key">1.23</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">34</td>
+    <th scope="row">Eli</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.26</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.22</td><td class="num">0.00</td><td class="num">0.60</td>
+    <td class="num key">1.22</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">35</td>
+    <th scope="row">Noctelle</th>
+    <td class="num st">3</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.20</td><td class="num">0.15</td><td class="num">0.44</td><td class="num">0.00</td><td class="num">0.42</td><td class="num">0.00</td>
+    <td class="num key">1.22</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.6%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">36</td>
+    <th scope="row">Sawyer</th>
+    <td class="num st">5</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.30</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.36</td><td class="num">0.43</td><td class="num">0.00</td>
+    <td class="num key">1.21</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.6%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">37</td>
+    <th scope="row">Sable</th>
+    <td class="num st">3</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.32</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.77</td><td class="num">0.00</td>
+    <td class="num key">1.20</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">38</td>
+    <th scope="row">Friday</th>
+    <td class="num st">2</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.26</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.82</td>
+    <td class="num key">1.18</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">39</td>
+    <th scope="row">Cirrus</th>
+    <td class="num st">4</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.36</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.69</td>
+    <td class="num key">1.16</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">40</td>
+    <th scope="row">Nehru</th>
+    <td class="num st">5</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.29</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.76</td><td class="num">0.00</td>
+    <td class="num key">1.15</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.5%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">41</td>
+    <th scope="row">Aster</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.32</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.09</td><td class="num">0.61</td><td class="num">0.00</td>
+    <td class="num key">1.12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">42</td>
+    <th scope="row">Durn</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.10</td><td class="num">0.35</td><td class="num">0.68</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">43</td>
+    <th scope="row">Ilyra</th>
+    <td class="num st">3</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.00</td><td class="num">0.14</td><td class="num">0.91</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.05</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">44</td>
+    <th scope="row">Esmerelda</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.23</td><td class="num">0.12</td><td class="num">0.21</td><td class="num">0.00</td><td class="num">0.48</td><td class="num">0.00</td>
+    <td class="num key">1.05</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">45</td>
+    <th scope="row">Mendral</th>
+    <td class="num st">3</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.92</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.04</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">46</td>
+    <th scope="row">Lysandra</th>
+    <td class="num st">4</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.44</td><td class="num">0.13</td><td class="num">0.06</td><td class="num">0.00</td><td class="num">0.41</td><td class="num">0.00</td>
+    <td class="num key">1.04</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">47</td>
+    <th scope="row">Stella</th>
+    <td class="num st">2</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.00</td><td class="num">0.13</td><td class="num">0.88</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.01</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.2%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">48</td>
+    <th scope="row">Bo</th>
+    <td class="num st">3</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.16</td><td class="num">0.18</td><td class="num">0.54</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">1.00</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">49</td>
+    <th scope="row">Tiny</th>
+    <td class="num st">3</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.12</td><td class="num">0.16</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.72</td>
+    <td class="num key">1.00</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">50</td>
+    <th scope="row">Bit</th>
+    <td class="num st">5</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.39</td><td class="num">0.18</td><td class="num">0.00</td><td class="num">0.08</td><td class="num">0.34</td><td class="num">0.00</td>
+    <td class="num key">0.99</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">51</td>
+    <th scope="row">Flurry</th>
+    <td class="num st">3</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.33</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.55</td><td class="num">0.00</td>
+    <td class="num key">0.98</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">52</td>
+    <th scope="row">Polarus</th>
+    <td class="num st">5</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.28</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.16</td><td class="num">0.36</td><td class="num">0.00</td>
+    <td class="num key">0.93</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.4%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">53</td>
+    <th scope="row">Lin</th>
+    <td class="num st">4</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.10</td><td class="num">0.18</td><td class="num">0.00</td><td class="num">0.12</td><td class="num">0.53</td><td class="num">0.00</td>
+    <td class="num key">0.92</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">54</td>
+    <th scope="row">Phil</th>
+    <td class="num st">2</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.35</td><td class="num">0.09</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.47</td><td class="num">0.00</td>
+    <td class="num key">0.92</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.2%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">55</td>
+    <th scope="row">Emily</th>
+    <td class="num st">4</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.79</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.91</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">56</td>
+    <th scope="row">Cleo</th>
+    <td class="num st">5</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.00</td><td class="num">0.14</td><td class="num">0.75</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.89</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">57</td>
+    <th scope="row">Franz</th>
+    <td class="num st">4</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.34</td><td class="num">0.15</td><td class="num">0.37</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.86</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">58</td>
+    <th scope="row">Orr</th>
+    <td class="num st">3</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.29</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.44</td>
+    <td class="num key">0.85</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.7%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">59</td>
+    <th scope="row">Kiri</th>
+    <td class="num st">2</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.00</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.73</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.84</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.2%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">60</td>
+    <th scope="row">Calima</th>
+    <td class="num st">3</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.00</td><td class="num">0.82</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.82</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">61</td>
+    <th scope="row">Brannoc</th>
+    <td class="num st">4</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.35</td><td class="num">0.15</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.32</td><td class="num">0.00</td>
+    <td class="num key">0.81</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">62</td>
+    <th scope="row">Omen</th>
+    <td class="num st">4</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.27</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.43</td><td class="num">0.00</td>
+    <td class="num key">0.81</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.5%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">63</td>
+    <th scope="row">Lucian</th>
+    <td class="num st">5</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.31</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.37</td><td class="num">0.00</td>
+    <td class="num key">0.80</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:10.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">64</td>
+    <th scope="row">Mavros</th>
+    <td class="num st">4</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.14</td><td class="num">0.15</td><td class="num">0.00</td><td class="num">0.14</td><td class="num">0.33</td><td class="num">0.00</td>
+    <td class="num key">0.76</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:11.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">65</td>
+    <th scope="row">Brock</th>
+    <td class="num st">2</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.18</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.46</td>
+    <td class="num key">0.75</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:12.5%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">66</td>
+    <th scope="row">Necros</th>
+    <td class="num st">5</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.16</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.47</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.74</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:12.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">67</td>
+    <th scope="row">Orien</th>
+    <td class="num st">4</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.03</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.56</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.73</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:13.5%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">68</td>
+    <th scope="row">Polo</th>
+    <td class="num st">4</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.00</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.57</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.72</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:14.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">69</td>
+    <th scope="row">Dorian</th>
+    <td class="num st">5</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">0.24</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.34</td><td class="num">0.00</td>
+    <td class="num key">0.71</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:14.6%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">70</td>
+    <th scope="row">Coral</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.29</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.31</td>
+    <td class="num key">0.70</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:14.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">71</td>
+    <th scope="row">Asher</th>
+    <td class="num st">5</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.27</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.03</td><td class="num">0.26</td><td class="num">0.00</td>
+    <td class="num key">0.69</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:15.5%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">72</td>
+    <th scope="row">Kavit</th>
+    <td class="num st">4</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.29</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.27</td><td class="num">0.00</td>
+    <td class="num key">0.66</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:16.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">73</td>
+    <th scope="row">Javarious</th>
+    <td class="num st">5</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.27</td><td class="num">0.22</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.64</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:18.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">74</td>
+    <th scope="row">Angelica</th>
+    <td class="num st">3</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.23</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.29</td><td class="num">0.00</td>
+    <td class="num key">0.62</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:18.8%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">75</td>
+    <th scope="row">Barrington</th>
+    <td class="num st">3</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.26</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.17</td><td class="num">0.10</td><td class="num">0.00</td>
+    <td class="num key">0.62</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:18.9%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">76</td>
+    <th scope="row">Catherine</th>
+    <td class="num st">4</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.20</td><td class="num">0.13</td><td class="num">0.29</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.62</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:19.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">77</td>
+    <th scope="row">Tide</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.25</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.25</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.61</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:19.3%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">78</td>
+    <th scope="row">Nestora</th>
+    <td class="num st">5</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.00</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.46</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.60</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:20.0%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">79</td>
+    <th scope="row">Silas</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.32</td><td class="num">0.14</td><td class="num">0.00</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.58</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:21.1%"></i></span></td>
+  </tr><tr class="mid">
+    <td class="num st">80</td>
+    <th scope="row">Imani</th>
+    <td class="num st">4</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.30</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.13</td><td class="num">0.00</td>
+    <td class="num key">0.56</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:22.2%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">81</td>
+    <th scope="row">Balmor</th>
+    <td class="num st">3</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.12</td><td class="num">0.24</td><td class="num">0.00</td><td class="num">0.17</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.53</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:23.8%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">82</td>
+    <th scope="row">Chirp</th>
+    <td class="num st">1</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.00</td><td class="num">0.16</td><td class="num">0.00</td><td class="num">0.35</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.52</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:24.1%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">83</td>
+    <th scope="row">Wren</th>
+    <td class="num st">3</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.30</td><td class="num">0.18</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.48</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:25.9%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">84</td>
+    <th scope="row">Carl</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.28</td><td class="num">0.17</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.45</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:27.7%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">85</td>
+    <th scope="row">Oak</th>
+    <td class="num st">4</td>
+    <td class="sect">Reverence</td>
+    <td class="num">0.27</td><td class="num">0.17</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.43</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:28.3%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">86</td>
+    <th scope="row">Shrike</th>
+    <td class="num st">4</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.33</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.43</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:28.4%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">87</td>
+    <th scope="row">Ike</th>
+    <td class="num st">3</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.31</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.42</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:29.0%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">88</td>
+    <th scope="row">Rend</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.18</td><td class="num">0.23</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.41</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:29.6%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">89</td>
+    <th scope="row">Aniani</th>
+    <td class="num st">5</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.23</td><td class="num">0.17</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.41</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:29.7%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">90</td>
+    <th scope="row">Ryn</th>
+    <td class="num st">4</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.27</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.39</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:30.8%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">91</td>
+    <th scope="row">Aurek</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.26</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.38</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.1%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">92</td>
+    <th scope="row">Rizzo</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.26</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.37</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.4%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">93</td>
+    <th scope="row">Solari</th>
+    <td class="num st">4</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">0.26</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.37</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.4%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">94</td>
+    <th scope="row">Galen</th>
+    <td class="num st">3</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">0.25</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.37</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.6%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">95</td>
+    <th scope="row">Orri</th>
+    <td class="num st">2</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">0.00</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.25</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.37</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:31.6%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">96</td>
+    <th scope="row">Crook</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">0.24</td><td class="num">0.11</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.34</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:32.8%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">97</td>
+    <th scope="row">Ari</th>
+    <td class="num st">3</td>
+    <td class="sect">Cryst</td>
+    <td class="num">0.22</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.32</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:33.8%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">98</td>
+    <th scope="row">Tip</th>
+    <td class="num st">1</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">0.19</td><td class="num">0.13</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.32</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:33.8%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">99</td>
+    <th scope="row">Tervan</th>
+    <td class="num st">1</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">0.24</td><td class="num">0.08</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.32</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:34.0%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">100</td>
+    <th scope="row">Samuels</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">0.18</td><td class="num">0.12</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.31</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:34.6%"></i></span></td>
+  </tr><tr class="under">
+    <td class="num st">101</td>
+    <th scope="row">Jack</th>
+    <td class="num st">1</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">0.20</td><td class="num">0.09</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td>
+    <td class="num key">0.28</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:35.9%"></i></span></td>
+  </tr></tbody>
+      </table>
+    </div>
+    <div class="key-note" style="margin-top:14px">
+      <span><i class="chip mid"></i> an ordinary 3&#9733; is 1.00</span>
+      <span><i class="chip over"></i> 1.60 and up</span>
+      <span><i class="chip under"></i> 0.55 and down</span>
+      <span>bar clipped at 4&times;</span>
+      <span>axis columns are shares of one sixth each, so they sum to Value</span>
+    </div>
+  </section>
+
   <section>
     <h2>The rarity curve</h2>
     <h3 style="margin-bottom:6px">What a star is worth, measured</h3>
-    <p class="sub">The goal: a 5&#9733; around <b>1.25&times;</b> its bucket median, a
+    <p class="sub">The goal: a 5&#9733; around <b>1.30&times;</b> its bucket median, a
       3&#9733; <b>on</b> it, and the cheap shelves below. Each row is the median of
       every hero on that shelf, across all six buckets.</p>
     <div class="scroll" style="margin-top:14px">
@@ -213,17 +1106,17 @@
     <th scope="row">5&#9733;</th>
     <td class="num st">19</td>
     <td class="num key">1.18&times;</td>
-    <td class="num">1.25&times;</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.6%"></i></span></td>
-    <td class="num x">-0.07</td>
+    <td class="num">1.30&times;</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.5%"></i></span></td>
+    <td class="num x">-0.12</td>
     <td class="num">57,373</td>
-  </tr><tr class="mid">
+  </tr><tr class="under">
     <th scope="row">4&#9733;</th>
     <td class="num st">33</td>
     <td class="num key">1.02&times;</td>
-    <td class="num">1.10&times;</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.4%"></i></span></td>
-    <td class="num x">-0.08</td>
+    <td class="num">1.15&times;</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.5%"></i></span></td>
+    <td class="num x">-0.13</td>
     <td class="num">47,159</td>
   </tr><tr class="mid">
     <th scope="row">3&#9733;</th>
@@ -520,7 +1413,7 @@
   <section>
     <h2>Lift &mdash; what the mirror cannot see</h2>
     <h3>The same party twice against a fixed wave, once with the hero and once without</h3>
-    <p class="run">Lift bench &#8212; 101 heroes, 15 paired fights each, cap 1600 ticks, vs six Barrington at Lv 40 5&#9733;</p>
+    <p class="run">Lift bench &#8212; 101 heroes, 25 paired fights each, cap 1600 ticks, vs six Barrington at Lv 40 5&#9733;</p>
     <p class="sub">A mirror gives both sides the same party buff, so it cancels and every
     pure buffer reads at or below nothing above. This bench is asymmetric instead: paired
     on the seed, the only difference is whether the hero is on the board, and the reading
@@ -544,1012 +1437,1012 @@
     <th scope="row">Hallow</th>
     <td class="num st">5</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">407</td>
-    <td class="num key">+534</td>
-    <td class="num">&plusmn;17</td>
+    <td class="num">945</td>
+    <td class="num">412</td>
+    <td class="num key">+533</td>
+    <td class="num">&plusmn;13</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:50.0%"></i></span></td>
-    <td class="num x">+56.8%</td>
+    <td class="num x">+56.4%</td>
   </tr><tr class="over">
     <th scope="row">Toll</th>
     <td class="num st">5</td>
     <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">620</td>
-    <td class="num key">+322</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:30.1%"></i></span></td>
-    <td class="num x">+34.2%</td>
+    <td class="num">945</td>
+    <td class="num">629</td>
+    <td class="num key">+316</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:29.6%"></i></span></td>
+    <td class="num x">+33.5%</td>
   </tr><tr class="over">
     <th scope="row">Aster</th>
     <td class="num st">3</td>
     <td class="sect">Sunbrood</td>
-    <td class="num">1,222</td>
-    <td class="num">940</td>
-    <td class="num key">+282</td>
-    <td class="num">&plusmn;22</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:26.4%"></i></span></td>
-    <td class="num x">+23.1%</td>
+    <td class="num">1,220</td>
+    <td class="num">944</td>
+    <td class="num key">+276</td>
+    <td class="num">&plusmn;15</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:25.9%"></i></span></td>
+    <td class="num x">+22.6%</td>
   </tr><tr class="over">
     <th scope="row">Franz</th>
     <td class="num st">4</td>
     <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">691</td>
-    <td class="num key">+250</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:23.4%"></i></span></td>
-    <td class="num x">+26.6%</td>
-  </tr><tr class="over">
-    <th scope="row">Phil</th>
-    <td class="num st">2</td>
-    <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">742</td>
-    <td class="num key">+200</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:18.7%"></i></span></td>
-    <td class="num x">+21.2%</td>
-  </tr><tr class="over">
-    <th scope="row">Cirrus</th>
-    <td class="num st">4</td>
-    <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">763</td>
-    <td class="num key">+178</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:16.7%"></i></span></td>
-    <td class="num x">+18.9%</td>
+    <td class="num">945</td>
+    <td class="num">681</td>
+    <td class="num key">+264</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:24.8%"></i></span></td>
+    <td class="num x">+28.0%</td>
   </tr><tr class="over">
     <th scope="row">Bit</th>
     <td class="num st">5</td>
     <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">766</td>
-    <td class="num key">+175</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:16.4%"></i></span></td>
-    <td class="num x">+18.6%</td>
+    <td class="num">945</td>
+    <td class="num">758</td>
+    <td class="num key">+188</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:17.6%"></i></span></td>
+    <td class="num x">+19.9%</td>
   </tr><tr class="over">
-    <th scope="row">Cain</th>
+    <th scope="row">Cirrus</th>
     <td class="num st">4</td>
-    <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">778</td>
-    <td class="num key">+163</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:15.3%"></i></span></td>
-    <td class="num x">+17.3%</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">945</td>
+    <td class="num">758</td>
+    <td class="num key">+187</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:17.5%"></i></span></td>
+    <td class="num x">+19.8%</td>
   </tr><tr class="over">
-    <th scope="row">Javarious</th>
-    <td class="num st">5</td>
-    <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">785</td>
-    <td class="num key">+157</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.7%"></i></span></td>
-    <td class="num x">+16.7%</td>
+    <th scope="row">Phil</th>
+    <td class="num st">2</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">945</td>
+    <td class="num">763</td>
+    <td class="num key">+182</td>
+    <td class="num">&plusmn;14</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:17.1%"></i></span></td>
+    <td class="num x">+19.3%</td>
   </tr><tr class="over">
     <th scope="row">Rizzo</th>
     <td class="num st">3</td>
     <td class="sect">Sunbrood</td>
-    <td class="num">1,098</td>
-    <td class="num">942</td>
-    <td class="num key">+156</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.6%"></i></span></td>
-    <td class="num x">+14.2%</td>
-  </tr><tr class="over">
-    <th scope="row">Malachar</th>
-    <td class="num st">4</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">787</td>
-    <td class="num key">+154</td>
+    <td class="num">1,108</td>
+    <td class="num">945</td>
+    <td class="num key">+162</td>
     <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.4%"></i></span></td>
-    <td class="num x">+16.4%</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:15.2%"></i></span></td>
+    <td class="num x">+14.6%</td>
+  </tr><tr class="over">
+    <th scope="row">Cain</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">945</td>
+    <td class="num">786</td>
+    <td class="num key">+159</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.9%"></i></span></td>
+    <td class="num x">+16.9%</td>
   </tr><tr class="over">
     <th scope="row">Brannoc</th>
     <td class="num st">4</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">790</td>
-    <td class="num key">+151</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.1%"></i></span></td>
-    <td class="num x">+16.1%</td>
-  </tr><tr class="over">
-    <th scope="row">Lucian</th>
-    <td class="num st">5</td>
-    <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">791</td>
-    <td class="num key">+150</td>
-    <td class="num">&plusmn;26</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.0%"></i></span></td>
-    <td class="num x">+16.0%</td>
+    <td class="num">945</td>
+    <td class="num">789</td>
+    <td class="num key">+156</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.6%"></i></span></td>
+    <td class="num x">+16.6%</td>
   </tr><tr class="over">
     <th scope="row">Sable</th>
     <td class="num st">3</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">791</td>
-    <td class="num key">+150</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.0%"></i></span></td>
-    <td class="num x">+16.0%</td>
+    <td class="num key">+154</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.4%"></i></span></td>
+    <td class="num x">+16.3%</td>
   </tr><tr class="over">
     <th scope="row">Coral</th>
     <td class="num st">4</td>
     <td class="sect">Cryst</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
+    <td class="num">791</td>
+    <td class="num key">+154</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.4%"></i></span></td>
+    <td class="num x">+16.3%</td>
+  </tr><tr class="over">
+    <th scope="row">Javarious</th>
+    <td class="num st">5</td>
+    <td class="sect">Reverence</td>
+    <td class="num">945</td>
     <td class="num">795</td>
+    <td class="num key">+150</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:14.1%"></i></span></td>
+    <td class="num x">+15.9%</td>
+  </tr><tr class="over">
+    <th scope="row">Malachar</th>
+    <td class="num st">4</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">799</td>
     <td class="num key">+146</td>
-    <td class="num">&plusmn;11</td>
+    <td class="num">&plusmn;9</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.7%"></i></span></td>
-    <td class="num x">+15.5%</td>
+    <td class="num x">+15.4%</td>
   </tr><tr class="over">
     <th scope="row">Shrike</th>
     <td class="num st">4</td>
     <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">801</td>
-    <td class="num key">+141</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.2%"></i></span></td>
-    <td class="num x">+14.9%</td>
+    <td class="num key">+144</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.5%"></i></span></td>
+    <td class="num x">+15.3%</td>
+  </tr><tr class="over">
+    <th scope="row">Polarus</th>
+    <td class="num st">5</td>
+    <td class="sect">Cryst</td>
+    <td class="num">945</td>
+    <td class="num">803</td>
+    <td class="num key">+142</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.3%"></i></span></td>
+    <td class="num x">+15.0%</td>
+  </tr><tr class="over">
+    <th scope="row">Silas</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">945</td>
+    <td class="num">807</td>
+    <td class="num key">+138</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.9%"></i></span></td>
+    <td class="num x">+14.6%</td>
   </tr><tr class="over">
     <th scope="row">Solari</th>
     <td class="num st">4</td>
     <td class="sect">Sunbrood</td>
     <td class="num">1,081</td>
-    <td class="num">942</td>
-    <td class="num key">+139</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:13.0%"></i></span></td>
-    <td class="num x">+12.9%</td>
-  </tr><tr class="over">
-    <th scope="row">Silas</th>
-    <td class="num st">3</td>
-    <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">806</td>
-    <td class="num key">+135</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.6%"></i></span></td>
-    <td class="num x">+14.4%</td>
+    <td class="num">945</td>
+    <td class="num key">+136</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.8%"></i></span></td>
+    <td class="num x">+12.6%</td>
   </tr><tr class="over">
     <th scope="row">Tide</th>
     <td class="num st">4</td>
     <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">813</td>
-    <td class="num key">+129</td>
-    <td class="num">&plusmn;20</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.1%"></i></span></td>
-    <td class="num x">+13.7%</td>
+    <td class="num">945</td>
+    <td class="num">812</td>
+    <td class="num key">+133</td>
+    <td class="num">&plusmn;14</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.5%"></i></span></td>
+    <td class="num x">+14.1%</td>
   </tr><tr class="over">
-    <th scope="row">Polarus</th>
+    <th scope="row">Lucian</th>
     <td class="num st">5</td>
-    <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">813</td>
-    <td class="num key">+128</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.0%"></i></span></td>
-    <td class="num x">+13.6%</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">945</td>
+    <td class="num">815</td>
+    <td class="num key">+130</td>
+    <td class="num">&plusmn;20</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:12.2%"></i></span></td>
+    <td class="num x">+13.8%</td>
   </tr><tr class="over">
     <th scope="row">Kavit</th>
     <td class="num st">4</td>
     <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">818</td>
-    <td class="num key">+124</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.6%"></i></span></td>
-    <td class="num x">+13.1%</td>
+    <td class="num">945</td>
+    <td class="num">819</td>
+    <td class="num key">+126</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.8%"></i></span></td>
+    <td class="num x">+13.3%</td>
   </tr><tr class="over">
     <th scope="row">Dorian</th>
     <td class="num st">5</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">825</td>
+    <td class="num">945</td>
+    <td class="num">823</td>
+    <td class="num key">+122</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.4%"></i></span></td>
+    <td class="num x">+12.9%</td>
+  </tr><tr class="over">
+    <th scope="row">Angelica</th>
+    <td class="num st">3</td>
+    <td class="sect">Cryst</td>
+    <td class="num">945</td>
+    <td class="num">828</td>
     <td class="num key">+117</td>
-    <td class="num">&plusmn;13</td>
+    <td class="num">&plusmn;12</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:11.0%"></i></span></td>
     <td class="num x">+12.4%</td>
   </tr><tr class="over">
     <th scope="row">Carl</th>
     <td class="num st">3</td>
     <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">826</td>
+    <td class="num">945</td>
+    <td class="num">829</td>
     <td class="num key">+116</td>
-    <td class="num">&plusmn;14</td>
+    <td class="num">&plusmn;10</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:10.9%"></i></span></td>
     <td class="num x">+12.3%</td>
-  </tr><tr class="over">
-    <th scope="row">Angelica</th>
-    <td class="num st">3</td>
-    <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">828</td>
-    <td class="num key">+114</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:10.7%"></i></span></td>
-    <td class="num x">+12.1%</td>
   </tr><tr class="over">
     <th scope="row">Mavros</th>
     <td class="num st">4</td>
     <td class="sect">Sunbrood</td>
-    <td class="num">1,063</td>
+    <td class="num">1,070</td>
     <td class="num">958</td>
-    <td class="num key">+104</td>
-    <td class="num">&plusmn;26</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.7%"></i></span></td>
-    <td class="num x">+9.8%</td>
-  </tr><tr class="over">
-    <th scope="row">Necros</th>
-    <td class="num st">5</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">840</td>
-    <td class="num key">+102</td>
-    <td class="num">&plusmn;11</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.6%"></i></span></td>
-    <td class="num x">+10.8%</td>
-  </tr><tr class="over">
-    <th scope="row">Nehru</th>
-    <td class="num st">5</td>
-    <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">840</td>
-    <td class="num key">+102</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.6%"></i></span></td>
-    <td class="num x">+10.8%</td>
-  </tr><tr class="over">
-    <th scope="row">Oak</th>
-    <td class="num st">4</td>
-    <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">842</td>
-    <td class="num key">+100</td>
-    <td class="num">&plusmn;19</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.4%"></i></span></td>
-    <td class="num x">+10.6%</td>
-  </tr><tr class="over">
-    <th scope="row">Flurry</th>
-    <td class="num st">3</td>
-    <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">845</td>
-    <td class="num key">+97</td>
-    <td class="num">&plusmn;19</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.1%"></i></span></td>
-    <td class="num x">+10.3%</td>
-  </tr><tr class="over">
-    <th scope="row">Ike</th>
-    <td class="num st">3</td>
-    <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">846</td>
-    <td class="num key">+95</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.9%"></i></span></td>
-    <td class="num x">+10.1%</td>
-  </tr><tr class="over">
-    <th scope="row">Ari</th>
-    <td class="num st">3</td>
-    <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">850</td>
-    <td class="num key">+91</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.5%"></i></span></td>
-    <td class="num x">+9.7%</td>
-  </tr><tr class="over">
-    <th scope="row">Aurek</th>
-    <td class="num st">3</td>
-    <td class="sect">Sunbrood</td>
-    <td class="num">1,033</td>
-    <td class="num">942</td>
-    <td class="num key">+91</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.5%"></i></span></td>
-    <td class="num x">+8.8%</td>
+    <td class="num key">+112</td>
+    <td class="num">&plusmn;21</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:10.5%"></i></span></td>
+    <td class="num x">+10.5%</td>
   </tr><tr class="over">
     <th scope="row">Orr</th>
     <td class="num st">3</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">851</td>
-    <td class="num key">+90</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.4%"></i></span></td>
-    <td class="num x">+9.6%</td>
-  </tr><tr class="over">
-    <th scope="row">Omen</th>
-    <td class="num st">4</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">854</td>
-    <td class="num key">+87</td>
+    <td class="num">945</td>
+    <td class="num">839</td>
+    <td class="num key">+106</td>
     <td class="num">&plusmn;11</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.1%"></i></span></td>
-    <td class="num x">+9.3%</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.9%"></i></span></td>
+    <td class="num x">+11.2%</td>
+  </tr><tr class="over">
+    <th scope="row">Flurry</th>
+    <td class="num st">3</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">945</td>
+    <td class="num">842</td>
+    <td class="num key">+104</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.8%"></i></span></td>
+    <td class="num x">+11.0%</td>
+  </tr><tr class="over">
+    <th scope="row">Nehru</th>
+    <td class="num st">5</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">945</td>
+    <td class="num">842</td>
+    <td class="num key">+103</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.7%"></i></span></td>
+    <td class="num x">+10.9%</td>
+  </tr><tr class="over">
+    <th scope="row">Ike</th>
+    <td class="num st">3</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">945</td>
+    <td class="num">843</td>
+    <td class="num key">+103</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.7%"></i></span></td>
+    <td class="num x">+10.9%</td>
+  </tr><tr class="over">
+    <th scope="row">Necros</th>
+    <td class="num st">5</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">844</td>
+    <td class="num key">+101</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.5%"></i></span></td>
+    <td class="num x">+10.7%</td>
+  </tr><tr class="over">
+    <th scope="row">Oak</th>
+    <td class="num st">4</td>
+    <td class="sect">Reverence</td>
+    <td class="num">945</td>
+    <td class="num">844</td>
+    <td class="num key">+101</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.5%"></i></span></td>
+    <td class="num x">+10.7%</td>
+  </tr><tr class="over">
+    <th scope="row">Ari</th>
+    <td class="num st">3</td>
+    <td class="sect">Cryst</td>
+    <td class="num">945</td>
+    <td class="num">848</td>
+    <td class="num key">+97</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.1%"></i></span></td>
+    <td class="num x">+10.3%</td>
   </tr><tr class="over">
     <th scope="row">Sawyer</th>
     <td class="num st">5</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">858</td>
-    <td class="num key">+84</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.9%"></i></span></td>
-    <td class="num x">+8.9%</td>
+    <td class="num">945</td>
+    <td class="num">849</td>
+    <td class="num key">+96</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:9.0%"></i></span></td>
+    <td class="num x">+10.2%</td>
   </tr><tr class="over">
-    <th scope="row">Imani</th>
+    <th scope="row">Omen</th>
     <td class="num st">4</td>
-    <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">858</td>
-    <td class="num key">+83</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.8%"></i></span></td>
-    <td class="num x">+8.8%</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">852</td>
+    <td class="num key">+93</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.7%"></i></span></td>
+    <td class="num x">+9.9%</td>
   </tr><tr class="over">
     <th scope="row">Lysandra</th>
     <td class="num st">4</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">861</td>
-    <td class="num key">+81</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.6%"></i></span></td>
+    <td class="num">945</td>
+    <td class="num">856</td>
+    <td class="num key">+90</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.4%"></i></span></td>
+    <td class="num x">+9.5%</td>
+  </tr><tr class="over">
+    <th scope="row">Aurek</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">1,034</td>
+    <td class="num">945</td>
+    <td class="num key">+89</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.3%"></i></span></td>
     <td class="num x">+8.6%</td>
   </tr><tr class="over">
     <th scope="row">Barrington</th>
     <td class="num st">3</td>
     <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">871</td>
-    <td class="num key">+71</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.6%"></i></span></td>
-    <td class="num x">+7.5%</td>
+    <td class="num">945</td>
+    <td class="num">858</td>
+    <td class="num key">+87</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:8.2%"></i></span></td>
+    <td class="num x">+9.2%</td>
   </tr><tr class="over">
-    <th scope="row">Galen</th>
-    <td class="num st">3</td>
+    <th scope="row">Imani</th>
+    <td class="num st">4</td>
     <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">874</td>
-    <td class="num key">+67</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.3%"></i></span></td>
-    <td class="num x">+7.1%</td>
-  </tr><tr class="over">
-    <th scope="row">Friday</th>
-    <td class="num st">2</td>
-    <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">876</td>
-    <td class="num key">+66</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.2%"></i></span></td>
-    <td class="num x">+7.0%</td>
+    <td class="num">945</td>
+    <td class="num">868</td>
+    <td class="num key">+77</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:7.2%"></i></span></td>
+    <td class="num x">+8.2%</td>
   </tr><tr class="over">
     <th scope="row">Jack</th>
     <td class="num st">1</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">876</td>
-    <td class="num key">+65</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.1%"></i></span></td>
-    <td class="num x">+7.0%</td>
-  </tr><tr class="over">
-    <th scope="row">Asher</th>
-    <td class="num st">5</td>
-    <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">878</td>
-    <td class="num key">+63</td>
-    <td class="num">&plusmn;18</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.9%"></i></span></td>
-    <td class="num x">+6.7%</td>
+    <td class="num key">+70</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.6%"></i></span></td>
+    <td class="num x">+7.4%</td>
   </tr><tr class="over">
     <th scope="row">Eli</th>
     <td class="num st">3</td>
     <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">880</td>
-    <td class="num key">+62</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.8%"></i></span></td>
-    <td class="num x">+6.5%</td>
+    <td class="num">945</td>
+    <td class="num">876</td>
+    <td class="num key">+70</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.6%"></i></span></td>
+    <td class="num x">+7.4%</td>
+  </tr><tr class="over">
+    <th scope="row">Galen</th>
+    <td class="num st">3</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">945</td>
+    <td class="num">876</td>
+    <td class="num key">+70</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.6%"></i></span></td>
+    <td class="num x">+7.4%</td>
+  </tr><tr class="over">
+    <th scope="row">Friday</th>
+    <td class="num st">2</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">945</td>
+    <td class="num">877</td>
+    <td class="num key">+69</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:6.5%"></i></span></td>
+    <td class="num x">+7.3%</td>
   </tr><tr class="over">
     <th scope="row">Brock</th>
     <td class="num st">2</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">880</td>
-    <td class="num key">+62</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.8%"></i></span></td>
-    <td class="num x">+6.5%</td>
-  </tr><tr class="over">
-    <th scope="row">Crook</th>
-    <td class="num st">3</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">884</td>
-    <td class="num key">+58</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.4%"></i></span></td>
-    <td class="num x">+6.1%</td>
-  </tr><tr class="over">
-    <th scope="row">Noctelle</th>
-    <td class="num st">3</td>
-    <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">887</td>
-    <td class="num key">+54</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.1%"></i></span></td>
-    <td class="num x">+5.8%</td>
+    <td class="num key">+61</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.7%"></i></span></td>
+    <td class="num x">+6.4%</td>
   </tr><tr class="over">
     <th scope="row">Aniani</th>
     <td class="num st">5</td>
     <td class="sect">Cryst</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
+    <td class="num">885</td>
+    <td class="num key">+60</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.6%"></i></span></td>
+    <td class="num x">+6.3%</td>
+  </tr><tr class="over">
+    <th scope="row">Crook</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">885</td>
+    <td class="num key">+60</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.6%"></i></span></td>
+    <td class="num x">+6.3%</td>
+  </tr><tr class="over">
+    <th scope="row">Noctelle</th>
+    <td class="num st">3</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">945</td>
+    <td class="num">887</td>
+    <td class="num key">+59</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.5%"></i></span></td>
+    <td class="num x">+6.2%</td>
+  </tr><tr class="over">
+    <th scope="row">Asher</th>
+    <td class="num st">5</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">945</td>
     <td class="num">888</td>
-    <td class="num key">+54</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.1%"></i></span></td>
-    <td class="num x">+5.7%</td>
+    <td class="num key">+57</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.3%"></i></span></td>
+    <td class="num x">+6.0%</td>
+  </tr><tr class="over">
+    <th scope="row">Wren</th>
+    <td class="num st">3</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">945</td>
+    <td class="num">891</td>
+    <td class="num key">+55</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.2%"></i></span></td>
+    <td class="num x">+5.8%</td>
   </tr><tr class="over">
     <th scope="row">Talon</th>
     <td class="num st">4</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">889</td>
+    <td class="num">945</td>
+    <td class="num">892</td>
     <td class="num key">+53</td>
-    <td class="num">&plusmn;16</td>
+    <td class="num">&plusmn;11</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:5.0%"></i></span></td>
     <td class="num x">+5.6%</td>
   </tr><tr class="over">
     <th scope="row">Nestora</th>
     <td class="num st">5</td>
     <td class="sect">Sunbrood</td>
-    <td class="num">942</td>
-    <td class="num">894</td>
-    <td class="num key">+47</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.4%"></i></span></td>
-    <td class="num x">+5.0%</td>
-  </tr><tr class="over">
-    <th scope="row">Rend</th>
-    <td class="num st">3</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">894</td>
-    <td class="num key">+47</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.4%"></i></span></td>
-    <td class="num x">+5.0%</td>
+    <td class="num">945</td>
+    <td class="num">895</td>
+    <td class="num key">+50</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.7%"></i></span></td>
+    <td class="num x">+5.3%</td>
   </tr><tr class="over">
     <th scope="row">Andrew</th>
     <td class="num st">3</td>
     <td class="sect">Cryst</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">896</td>
-    <td class="num key">+46</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.3%"></i></span></td>
-    <td class="num x">+4.8%</td>
-  </tr><tr class="over">
-    <th scope="row">Wren</th>
-    <td class="num st">3</td>
-    <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">899</td>
-    <td class="num key">+42</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.9%"></i></span></td>
-    <td class="num x">+4.5%</td>
-  </tr><tr class="over">
-    <th scope="row">Stoddard</th>
-    <td class="num st">3</td>
-    <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">900</td>
-    <td class="num key">+41</td>
-    <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.8%"></i></span></td>
-    <td class="num x">+4.4%</td>
+    <td class="num key">+49</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.6%"></i></span></td>
+    <td class="num x">+5.2%</td>
   </tr><tr class="over">
     <th scope="row">Vex</th>
     <td class="num st">4</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">901</td>
-    <td class="num key">+41</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.8%"></i></span></td>
-    <td class="num x">+4.3%</td>
+    <td class="num">945</td>
+    <td class="num">896</td>
+    <td class="num key">+49</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.6%"></i></span></td>
+    <td class="num x">+5.2%</td>
+  </tr><tr class="over">
+    <th scope="row">Stoddard</th>
+    <td class="num st">3</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">945</td>
+    <td class="num">897</td>
+    <td class="num key">+48</td>
+    <td class="num">&plusmn;8</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.5%"></i></span></td>
+    <td class="num x">+5.1%</td>
+  </tr><tr class="over">
+    <th scope="row">Rend</th>
+    <td class="num st">3</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">897</td>
+    <td class="num key">+48</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.5%"></i></span></td>
+    <td class="num x">+5.1%</td>
   </tr><tr class="over">
     <th scope="row">Ryn</th>
     <td class="num st">4</td>
     <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">905</td>
-    <td class="num key">+37</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.5%"></i></span></td>
-    <td class="num x">+3.9%</td>
-  </tr><tr class="over">
-    <th scope="row">Esmerelda</th>
-    <td class="num st">3</td>
-    <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">906</td>
-    <td class="num key">+36</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.4%"></i></span></td>
-    <td class="num x">+3.8%</td>
-  </tr><tr class="over">
-    <th scope="row">Pox</th>
-    <td class="num st">3</td>
-    <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">907</td>
-    <td class="num key">+35</td>
+    <td class="num">945</td>
+    <td class="num">903</td>
+    <td class="num key">+43</td>
     <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.3%"></i></span></td>
-    <td class="num x">+3.7%</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:4.0%"></i></span></td>
+    <td class="num x">+4.5%</td>
   </tr><tr class="over">
     <th scope="row">Catherine</th>
     <td class="num st">4</td>
     <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">911</td>
-    <td class="num key">+30</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.8%"></i></span></td>
-    <td class="num x">+3.2%</td>
+    <td class="num">945</td>
+    <td class="num">906</td>
+    <td class="num key">+39</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.7%"></i></span></td>
+    <td class="num x">+4.2%</td>
   </tr><tr class="over">
-    <th scope="row">Carrion</th>
-    <td class="num st">5</td>
+    <th scope="row">Esmerelda</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">945</td>
+    <td class="num">906</td>
+    <td class="num key">+39</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.7%"></i></span></td>
+    <td class="num x">+4.2%</td>
+  </tr><tr class="over">
+    <th scope="row">Pox</th>
+    <td class="num st">3</td>
     <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">917</td>
-    <td class="num key">+25</td>
-    <td class="num">&plusmn;11</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.3%"></i></span></td>
-    <td class="num x">+2.6%</td>
+    <td class="num">945</td>
+    <td class="num">911</td>
+    <td class="num key">+34</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:3.2%"></i></span></td>
+    <td class="num x">+3.6%</td>
   </tr><tr class="over">
     <th scope="row">Bo</th>
     <td class="num st">3</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">918</td>
-    <td class="num key">+23</td>
-    <td class="num">&plusmn;18</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.2%"></i></span></td>
-    <td class="num x">+2.5%</td>
+    <td class="num key">+27</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.5%"></i></span></td>
+    <td class="num x">+2.9%</td>
   </tr><tr class="over">
     <th scope="row">Samuels</th>
     <td class="num st">3</td>
     <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">919</td>
-    <td class="num key">+22</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.1%"></i></span></td>
-    <td class="num x">+2.4%</td>
-  </tr><tr class="flat">
+    <td class="num">945</td>
+    <td class="num">918</td>
+    <td class="num key">+27</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.5%"></i></span></td>
+    <td class="num x">+2.8%</td>
+  </tr><tr class="over">
+    <th scope="row">Carrion</th>
+    <td class="num st">5</td>
+    <td class="sect">Hollowbone</td>
+    <td class="num">945</td>
+    <td class="num">920</td>
+    <td class="num key">+25</td>
+    <td class="num">&plusmn;8</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:2.3%"></i></span></td>
+    <td class="num x">+2.6%</td>
+  </tr><tr class="over">
     <th scope="row">Tervan</th>
     <td class="num st">1</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">930</td>
-    <td class="num key">+12</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.1%"></i></span></td>
-    <td class="num x">+1.3%</td>
-  </tr><tr class="flat">
-    <th scope="row">Korvid</th>
-    <td class="num st">5</td>
-    <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">940</td>
-    <td class="num key">+1</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.1%"></i></span></td>
-    <td class="num x">+0.2%</td>
-  </tr><tr class="flat">
-    <th scope="row">Leonardo</th>
-    <td class="num st">3</td>
-    <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">943</td>
-    <td class="num key">-2</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.2%"></i></span></td>
-    <td class="num x">-0.2%</td>
+    <td class="num">945</td>
+    <td class="num">925</td>
+    <td class="num key">+20</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.9%"></i></span></td>
+    <td class="num x">+2.1%</td>
   </tr><tr class="flat">
     <th scope="row">Morrow</th>
     <td class="num st">4</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
     <td class="num">945</td>
-    <td class="num key">-3</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.3%"></i></span></td>
-    <td class="num x">-0.3%</td>
+    <td class="num">934</td>
+    <td class="num key">+12</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:1.1%"></i></span></td>
+    <td class="num x">+1.2%</td>
+  </tr><tr class="flat">
+    <th scope="row">Korvid</th>
+    <td class="num st">5</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">945</td>
+    <td class="num">935</td>
+    <td class="num key">+10</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.9%"></i></span></td>
+    <td class="num x">+1.1%</td>
   </tr><tr class="flat">
     <th scope="row">Tip</th>
     <td class="num st">1</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">946</td>
-    <td class="num key">-4</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.4%"></i></span></td>
-    <td class="num x">-0.5%</td>
+    <td class="num">945</td>
+    <td class="num">941</td>
+    <td class="num key">+4</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill over" style="left:50%;width:0.4%"></i></span></td>
+    <td class="num x">+0.5%</td>
   </tr><tr class="flat">
     <th scope="row">Orien</th>
     <td class="num st">4</td>
     <td class="sect">Sunbrood</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">948</td>
+    <td class="num key">-2</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.2%"></i></span></td>
+    <td class="num x">-0.3%</td>
+  </tr><tr class="flat">
+    <th scope="row">Leonardo</th>
+    <td class="num st">3</td>
+    <td class="sect">Reverence</td>
+    <td class="num">945</td>
+    <td class="num">949</td>
+    <td class="num key">-3</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.3%"></i></span></td>
+    <td class="num x">-0.4%</td>
+  </tr><tr class="flat">
+    <th scope="row">Wanda</th>
+    <td class="num st">2</td>
+    <td class="sect">Gulldigger</td>
+    <td class="num">945</td>
+    <td class="num">952</td>
     <td class="num key">-6</td>
-    <td class="num">&plusmn;10</td>
+    <td class="num">&plusmn;11</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:0.6%"></i></span></td>
     <td class="num x">-0.7%</td>
-  </tr><tr class="under">
-    <th scope="row">Tub</th>
-    <td class="num st">5</td>
-    <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">954</td>
-    <td class="num key">-13</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.2%"></i></span></td>
-    <td class="num x">-1.4%</td>
   </tr><tr class="under">
     <th scope="row">Evelune</th>
     <td class="num st">4</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
+    <td class="num">957</td>
+    <td class="num key">-12</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.1%"></i></span></td>
+    <td class="num x">-1.2%</td>
+  </tr><tr class="under">
+    <th scope="row">Tub</th>
+    <td class="num st">5</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">945</td>
     <td class="num">958</td>
-    <td class="num key">-17</td>
-    <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.6%"></i></span></td>
-    <td class="num x">-1.8%</td>
-  </tr><tr class="under">
-    <th scope="row">Wanda</th>
-    <td class="num st">2</td>
-    <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">960</td>
-    <td class="num key">-18</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.7%"></i></span></td>
-    <td class="num x">-2.0%</td>
-  </tr><tr class="under">
-    <th scope="row">Balmor</th>
-    <td class="num st">3</td>
-    <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">969</td>
-    <td class="num key">-27</td>
-    <td class="num">&plusmn;15</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.5%"></i></span></td>
-    <td class="num x">-2.9%</td>
+    <td class="num key">-13</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.2%"></i></span></td>
+    <td class="num x">-1.4%</td>
   </tr><tr class="under">
     <th scope="row">Tiny</th>
     <td class="num st">3</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">970</td>
-    <td class="num key">-28</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.6%"></i></span></td>
-    <td class="num x">-3.0%</td>
+    <td class="num">945</td>
+    <td class="num">959</td>
+    <td class="num key">-13</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.2%"></i></span></td>
+    <td class="num x">-1.4%</td>
   </tr><tr class="under">
     <th scope="row">Valere</th>
     <td class="num st">4</td>
     <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">970</td>
+    <td class="num">945</td>
+    <td class="num">964</td>
+    <td class="num key">-19</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:1.8%"></i></span></td>
+    <td class="num x">-2.0%</td>
+  </tr><tr class="under">
+    <th scope="row">Sands</th>
+    <td class="num st">4</td>
+    <td class="sect">Stillwater</td>
+    <td class="num">945</td>
+    <td class="num">972</td>
+    <td class="num key">-27</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.5%"></i></span></td>
+    <td class="num x">-2.8%</td>
+  </tr><tr class="under">
+    <th scope="row">Kiri</th>
+    <td class="num st">2</td>
+    <td class="sect">Razorwings</td>
+    <td class="num">945</td>
+    <td class="num">975</td>
     <td class="num key">-29</td>
     <td class="num">&plusmn;12</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.7%"></i></span></td>
     <td class="num x">-3.1%</td>
   </tr><tr class="under">
-    <th scope="row">Sands</th>
-    <td class="num st">4</td>
-    <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">970</td>
-    <td class="num key">-29</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.7%"></i></span></td>
-    <td class="num x">-3.1%</td>
-  </tr><tr class="under">
-    <th scope="row">Kiri</th>
-    <td class="num st">2</td>
+    <th scope="row">Balmor</th>
+    <td class="num st">3</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">977</td>
-    <td class="num key">-35</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.3%"></i></span></td>
-    <td class="num x">-3.7%</td>
+    <td class="num">945</td>
+    <td class="num">976</td>
+    <td class="num key">-31</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:2.9%"></i></span></td>
+    <td class="num x">-3.2%</td>
   </tr><tr class="under">
     <th scope="row">Sarena</th>
     <td class="num st">4</td>
     <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">978</td>
-    <td class="num key">-37</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.5%"></i></span></td>
-    <td class="num x">-3.9%</td>
+    <td class="num">945</td>
+    <td class="num">979</td>
+    <td class="num key">-34</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.2%"></i></span></td>
+    <td class="num x">-3.6%</td>
   </tr><tr class="under">
     <th scope="row">Princess</th>
     <td class="num st">3</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">979</td>
-    <td class="num key">-38</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.6%"></i></span></td>
-    <td class="num x">-4.0%</td>
-  </tr><tr class="under">
-    <th scope="row">Emily</th>
-    <td class="num st">4</td>
-    <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">981</td>
-    <td class="num key">-39</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.7%"></i></span></td>
-    <td class="num x">-4.2%</td>
+    <td class="num key">-34</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.2%"></i></span></td>
+    <td class="num x">-3.6%</td>
   </tr><tr class="under">
     <th scope="row">Strix</th>
     <td class="num st">2</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">982</td>
-    <td class="num key">-41</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.8%"></i></span></td>
-    <td class="num x">-4.3%</td>
+    <td class="num">945</td>
+    <td class="num">985</td>
+    <td class="num key">-39</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.7%"></i></span></td>
+    <td class="num x">-4.2%</td>
   </tr><tr class="under">
     <th scope="row">Click</th>
     <td class="num st">3</td>
     <td class="sect">Hollowbone</td>
-    <td class="num">942</td>
-    <td class="num">982</td>
-    <td class="num key">-41</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.8%"></i></span></td>
-    <td class="num x">-4.3%</td>
-  </tr><tr class="under">
-    <th scope="row">Durn</th>
-    <td class="num st">3</td>
-    <td class="sect">Sunbrood</td>
-    <td class="num">894</td>
-    <td class="num">942</td>
-    <td class="num key">-48</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.5%"></i></span></td>
-    <td class="num x">-5.3%</td>
+    <td class="num">945</td>
+    <td class="num">985</td>
+    <td class="num key">-39</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:3.7%"></i></span></td>
+    <td class="num x">-4.2%</td>
   </tr><tr class="under">
     <th scope="row">Lin</th>
     <td class="num st">4</td>
     <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">996</td>
-    <td class="num key">-55</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.1%"></i></span></td>
-    <td class="num x">-5.8%</td>
+    <td class="num">945</td>
+    <td class="num">992</td>
+    <td class="num key">-47</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.4%"></i></span></td>
+    <td class="num x">-4.9%</td>
+  </tr><tr class="under">
+    <th scope="row">Emily</th>
+    <td class="num st">4</td>
+    <td class="sect">Reverence</td>
+    <td class="num">945</td>
+    <td class="num">993</td>
+    <td class="num key">-48</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.5%"></i></span></td>
+    <td class="num x">-5.0%</td>
+  </tr><tr class="under">
+    <th scope="row">Durn</th>
+    <td class="num st">3</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">897</td>
+    <td class="num">945</td>
+    <td class="num key">-49</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.6%"></i></span></td>
+    <td class="num x">-5.4%</td>
+  </tr><tr class="under">
+    <th scope="row">Vivian</th>
+    <td class="num st">4</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">945</td>
+    <td class="num">998</td>
+    <td class="num key">-52</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:4.9%"></i></span></td>
+    <td class="num x">-5.5%</td>
   </tr><tr class="under">
     <th scope="row">Tumble</th>
     <td class="num st">4</td>
     <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">1,002</td>
+    <td class="num">945</td>
+    <td class="num">1,003</td>
+    <td class="num key">-58</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.4%"></i></span></td>
+    <td class="num x">-6.1%</td>
+  </tr><tr class="under">
+    <th scope="row">Nemeris</th>
+    <td class="num st">5</td>
+    <td class="sect">Sunbrood</td>
+    <td class="num">945</td>
+    <td class="num">1,006</td>
     <td class="num key">-60</td>
-    <td class="num">&plusmn;15</td>
+    <td class="num">&plusmn;9</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.6%"></i></span></td>
     <td class="num x">-6.4%</td>
   </tr><tr class="under">
     <th scope="row">Orri</th>
     <td class="num st">2</td>
     <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">1,003</td>
+    <td class="num">945</td>
+    <td class="num">1,008</td>
     <td class="num key">-62</td>
-    <td class="num">&plusmn;18</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.8%"></i></span></td>
-    <td class="num x">-6.5%</td>
-  </tr><tr class="under">
-    <th scope="row">Vivian</th>
-    <td class="num st">4</td>
-    <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">1,004</td>
-    <td class="num key">-62</td>
-    <td class="num">&plusmn;9</td>
+    <td class="num">&plusmn;14</td>
     <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.8%"></i></span></td>
     <td class="num x">-6.6%</td>
-  </tr><tr class="under">
-    <th scope="row">Nemeris</th>
-    <td class="num st">5</td>
-    <td class="sect">Sunbrood</td>
-    <td class="num">942</td>
-    <td class="num">1,006</td>
-    <td class="num key">-65</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.1%"></i></span></td>
-    <td class="num x">-6.9%</td>
   </tr><tr class="under">
     <th scope="row">Artur</th>
     <td class="num st">3</td>
     <td class="sect">Reverence</td>
-    <td class="num">942</td>
-    <td class="num">1,012</td>
-    <td class="num key">-70</td>
-    <td class="num">&plusmn;13</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.6%"></i></span></td>
-    <td class="num x">-7.5%</td>
-  </tr><tr class="under">
-    <th scope="row">Lenore</th>
-    <td class="num st">3</td>
-    <td class="sect">Nightflower</td>
-    <td class="num">942</td>
-    <td class="num">1,017</td>
-    <td class="num key">-75</td>
-    <td class="num">&plusmn;19</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.0%"></i></span></td>
-    <td class="num x">-8.0%</td>
-  </tr><tr class="under">
-    <th scope="row">Tanner</th>
-    <td class="num st">4</td>
-    <td class="sect">Cryst</td>
-    <td class="num">942</td>
-    <td class="num">1,018</td>
-    <td class="num key">-77</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.2%"></i></span></td>
-    <td class="num x">-8.2%</td>
-  </tr><tr class="under">
-    <th scope="row">Posie</th>
-    <td class="num st">5</td>
-    <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">1,018</td>
-    <td class="num key">-77</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.2%"></i></span></td>
-    <td class="num x">-8.2%</td>
-  </tr><tr class="under">
-    <th scope="row">Slick</th>
-    <td class="num st">3</td>
-    <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">1,019</td>
-    <td class="num key">-78</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.3%"></i></span></td>
-    <td class="num x">-8.2%</td>
+    <td class="num">945</td>
+    <td class="num">1,009</td>
+    <td class="num key">-63</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:5.9%"></i></span></td>
+    <td class="num x">-6.7%</td>
   </tr><tr class="under">
     <th scope="row">Polo</th>
     <td class="num st">4</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
-    <td class="num">1,020</td>
-    <td class="num key">-78</td>
-    <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.3%"></i></span></td>
-    <td class="num x">-8.3%</td>
+    <td class="num">945</td>
+    <td class="num">1,012</td>
+    <td class="num key">-67</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.3%"></i></span></td>
+    <td class="num x">-7.1%</td>
   </tr><tr class="under">
     <th scope="row">Peck</th>
     <td class="num st">3</td>
     <td class="sect">Gulldigger</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
+    <td class="num">1,014</td>
+    <td class="num key">-69</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.5%"></i></span></td>
+    <td class="num x">-7.3%</td>
+  </tr><tr class="under">
+    <th scope="row">Tanner</th>
+    <td class="num st">4</td>
+    <td class="sect">Cryst</td>
+    <td class="num">945</td>
+    <td class="num">1,015</td>
+    <td class="num key">-70</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.6%"></i></span></td>
+    <td class="num x">-7.4%</td>
+  </tr><tr class="under">
+    <th scope="row">Lenore</th>
+    <td class="num st">3</td>
+    <td class="sect">Nightflower</td>
+    <td class="num">945</td>
+    <td class="num">1,016</td>
+    <td class="num key">-71</td>
+    <td class="num">&plusmn;15</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.7%"></i></span></td>
+    <td class="num x">-7.5%</td>
+  </tr><tr class="under">
+    <th scope="row">Posie</th>
+    <td class="num st">5</td>
+    <td class="sect">Whisperchime</td>
+    <td class="num">945</td>
+    <td class="num">1,018</td>
+    <td class="num key">-73</td>
+    <td class="num">&plusmn;12</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.8%"></i></span></td>
+    <td class="num x">-7.7%</td>
+  </tr><tr class="under">
+    <th scope="row">Slick</th>
+    <td class="num st">3</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">945</td>
+    <td class="num">1,019</td>
+    <td class="num key">-73</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:6.8%"></i></span></td>
+    <td class="num x">-7.8%</td>
+  </tr><tr class="under">
+    <th scope="row">Cleo</th>
+    <td class="num st">5</td>
+    <td class="sect">Firetroupe</td>
+    <td class="num">945</td>
     <td class="num">1,024</td>
-    <td class="num key">-82</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.7%"></i></span></td>
-    <td class="num x">-8.8%</td>
+    <td class="num key">-78</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.3%"></i></span></td>
+    <td class="num x">-8.3%</td>
   </tr><tr class="under">
     <th scope="row">Donut</th>
     <td class="num st">4</td>
     <td class="sect">Stillwater</td>
-    <td class="num">942</td>
-    <td class="num">1,027</td>
-    <td class="num key">-86</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.1%"></i></span></td>
-    <td class="num x">-9.1%</td>
+    <td class="num">945</td>
+    <td class="num">1,028</td>
+    <td class="num key">-83</td>
+    <td class="num">&plusmn;10</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:7.8%"></i></span></td>
+    <td class="num x">-8.8%</td>
   </tr><tr class="under">
     <th scope="row">Koe</th>
     <td class="num st">4</td>
     <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">1,030</td>
+    <td class="num key">-85</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.0%"></i></span></td>
+    <td class="num x">-9.0%</td>
+  </tr><tr class="under">
+    <th scope="row">Stella</th>
+    <td class="num st">2</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">945</td>
+    <td class="num">1,033</td>
     <td class="num key">-88</td>
-    <td class="num">&plusmn;16</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.2%"></i></span></td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.3%"></i></span></td>
     <td class="num x">-9.3%</td>
   </tr><tr class="under">
     <th scope="row">Calima</th>
     <td class="num st">3</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">1,031</td>
-    <td class="num key">-90</td>
-    <td class="num">&plusmn;17</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.4%"></i></span></td>
-    <td class="num x">-9.5%</td>
-  </tr><tr class="under">
-    <th scope="row">Cleo</th>
-    <td class="num st">5</td>
-    <td class="sect">Firetroupe</td>
-    <td class="num">942</td>
-    <td class="num">1,032</td>
-    <td class="num key">-90</td>
-    <td class="num">&plusmn;11</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.4%"></i></span></td>
-    <td class="num x">-9.6%</td>
+    <td class="num">945</td>
+    <td class="num">1,037</td>
+    <td class="num key">-92</td>
+    <td class="num">&plusmn;13</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.6%"></i></span></td>
+    <td class="num x">-9.7%</td>
   </tr><tr class="under">
     <th scope="row">Ilyra</th>
     <td class="num st">3</td>
     <td class="sect">Whisperchime</td>
-    <td class="num">942</td>
-    <td class="num">1,036</td>
-    <td class="num key">-94</td>
-    <td class="num">&plusmn;14</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.8%"></i></span></td>
-    <td class="num x">-10.0%</td>
-  </tr><tr class="under">
-    <th scope="row">Stella</th>
-    <td class="num st">2</td>
-    <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
+    <td class="num">945</td>
     <td class="num">1,038</td>
-    <td class="num key">-97</td>
-    <td class="num">&plusmn;12</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.1%"></i></span></td>
-    <td class="num x">-10.3%</td>
-  </tr><tr class="under">
-    <th scope="row">Chirp</th>
-    <td class="num st">1</td>
-    <td class="sect">Phoenix Court</td>
-    <td class="num">942</td>
-    <td class="num">1,044</td>
-    <td class="num key">-102</td>
-    <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.6%"></i></span></td>
-    <td class="num x">-10.9%</td>
+    <td class="num key">-93</td>
+    <td class="num">&plusmn;11</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.7%"></i></span></td>
+    <td class="num x">-9.9%</td>
   </tr><tr class="under">
     <th scope="row">Mendral</th>
     <td class="num st">3</td>
     <td class="sect">Razorwings</td>
-    <td class="num">942</td>
-    <td class="num">1,048</td>
-    <td class="num key">-106</td>
-    <td class="num">&plusmn;10</td>
-    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.9%"></i></span></td>
-    <td class="num x">-11.3%</td>
+    <td class="num">945</td>
+    <td class="num">1,040</td>
+    <td class="num key">-95</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:8.9%"></i></span></td>
+    <td class="num x">-10.1%</td>
+  </tr><tr class="under">
+    <th scope="row">Chirp</th>
+    <td class="num st">1</td>
+    <td class="sect">Phoenix Court</td>
+    <td class="num">945</td>
+    <td class="num">1,042</td>
+    <td class="num key">-97</td>
+    <td class="num">&plusmn;9</td>
+    <td class="dev"><span class="bar"><i class="mid"></i><i class="fill under" style="right:50%;width:9.1%"></i></span></td>
+    <td class="num x">-10.3%</td>
   </tr></tbody>
       </table>
     </div>
@@ -2989,7 +3882,7 @@
 
   <footer class="foot">
     Generated from the benches' own CSV &mdash; <code>node test/archetypes.js --sims 25 --csv</code>
-    and <code>node test/lift.js --csv 15 1600</code>, piped through
+    and <code>node test/lift.js --csv 25 1600</code>, piped through
     <code>tools/build_bench_report.py</code>. No figure on this page is transcribed by
     hand; re-running them is the whole update path.<br>
     Play at <a href="https://catgenova.github.io/browsergacha/">catgenova.github.io/browsergacha</a>.
