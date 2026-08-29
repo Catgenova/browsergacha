@@ -9,6 +9,7 @@ by hand, so re-running the bench and re-running this is the whole update
 path.
 """
 import csv
+import re
 import html
 import json
 import statistics
@@ -268,8 +269,26 @@ if lift_rows:
     </div>
   </section>'''
 
+def _sims(line, default):
+    """The sims-per-hero a bench header reports, e.g. "25 seeded sims
+    each" or "15 paired fights each"."""
+    m = re.search(r'(\d+)\s+(?:seeded sims|paired fights)', line or '')
+    return m.group(1) if m else default
+
+arch_cmd = f'node test/archetypes.js --sims {_sims(head, "25")} --csv'
+lift_head = LIFT.read_text().splitlines()[0] if LIFT and LIFT.exists() else ''
+lift_cmd = f'node test/lift.js --csv {_sims(lift_head, "25")} 1600'
+
 TEMPLATE = Path('tools/bench_report.template.html').read_text()
 page = (TEMPLATE
+        # The footer names the exact commands that produced the page,
+        # so it has to be read out of the data like everything else. It
+        # was hardcoded at 25 sims for both benches and quietly went
+        # wrong the first time the lift sweep was run at a different
+        # count -- on a page whose whole claim is that no figure on it is
+        # transcribed by hand.
+        .replace('%%ARCHCMD%%', html.escape(arch_cmd))
+        .replace('%%LIFTCMD%%', html.escape(lift_cmd))
         .replace('%%HEADER%%', html.escape(head))
         .replace('%%NHEROES%%', str(len(rows)))
         .replace('%%NFLAG%%', str(len(flagged)))
