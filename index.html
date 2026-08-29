@@ -30,7 +30,6 @@
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="shop">Shop</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
-        <button class="nav-tab" data-screen="campaign">Campaign<span id="campaign-badge" class="hidden">•</span></button>
         <button class="nav-tab" data-screen="compendium">Compendium</button>
         <button class="nav-tab" data-screen="battle">Battle<span id="battle-badge" class="hidden"></span></button>
       </nav>
@@ -282,7 +281,11 @@ members and favourites are never spent.">
         <div id="idle-actions">
           <button id="idle-again" class="panel-btn hidden">Fight again</button>
           <button id="idle-team" class="panel-btn">Team</button>
-          <button id="idle-campaign" class="panel-btn">Campaign</button>
+          <!-- The campaign has no nav tab of its own: this is the door
+               to it, so the "a reachable node is unbeaten" dot that used
+               to sit on that tab sits here instead. -->
+          <button id="idle-campaign" class="panel-btn">Campaign<span
+            id="campaign-badge" class="hidden">•</span></button>
         </div>
         <div id="battle-select"></div>
       </div>

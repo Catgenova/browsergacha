@@ -43,11 +43,17 @@ const Onboarding = (() => {
         'actually worth the investment.',
     },
     {
-      el: '.nav-tab[data-screen="campaign"]',
+      // No target: the campaign lost its own nav tab and lives behind the
+      // Battle tab's Campaign button, which sits inside a panel that is
+      // hidden while a fight is running -- so there is nothing reliable to
+      // point at. A null target centres the card, which position() already
+      // handles, and the step that follows shows where fights start.
+      el: null,
       title: 'The campaign is the spine',
       body: 'Clearing campaign nodes is what unlocks hunts, bosses and later ' +
-        'chapters. First clears pay scrolls — chapter-end fights pay Temporal ' +
-        'Scrolls, which are the only source of Dark and Light heroes.',
+        'chapters. You will find it on the Battle tab, next to the hunt and ' +
+        'boss pickers. First clears pay scrolls — chapter-end fights pay ' +
+        'Temporal Scrolls, which are the only source of Dark and Light heroes.',
     },
     {
       el: '.nav-tab[data-screen="summon"]',
@@ -60,9 +66,10 @@ const Onboarding = (() => {
       el: '.nav-tab[data-screen="battle"]',
       title: 'Now send them in',
       body: 'Every fight starts on the Battle tab — hunts, bosses, elemental ' +
-        'bosses and the tower each have a picker there. Battles run themselves ' +
-        'if you want them to (Auto), and they keep running while you are off ' +
-        'summoning or reading the compendium.',
+        'bosses and the tower each have a picker there, and the campaign is ' +
+        'one button away. Battles run themselves if you want them to (Auto), ' +
+        'and they keep running while you are off summoning or reading the ' +
+        'compendium.',
     },
   ];
 
@@ -166,9 +173,9 @@ const Onboarding = (() => {
     root.querySelector('.ob-next').onclick = next;
 
     // Bring the target into view first. On a phone the nav strip scrolls
-    // sideways, so the Campaign tab can sit entirely off-screen; without
-    // this the spotlight lands outside the viewport and the step points
-    // at nothing.
+    // sideways, so a tab near the end of it can sit entirely off-screen;
+    // without this the spotlight lands outside the viewport and the step
+    // points at nothing.
     const target = step.el ? document.querySelector(step.el) : null;
     if (target && target.offsetParent !== null) {
       target.scrollIntoView({ block: 'center', inline: 'center' });

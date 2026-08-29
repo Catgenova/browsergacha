@@ -136,7 +136,11 @@ body {
 .rarity-5 { color: #ffd76a; }
 
 /* ==== Quests screen ==== */
-#quest-badge {
+/* Notification dots. #campaign-badge rides the Battle tab's Campaign
+   button rather than a nav tab of its own -- the campaign has no tab
+   any more -- so it needs the same colour to read as the same signal. */
+#quest-badge,
+#campaign-badge {
   margin-left: 4px;
   color: #ffd76a;
   font-weight: bold;
