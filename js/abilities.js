@@ -115,8 +115,36 @@ const Abilities = (() => {
     }
     const before = target.turnMeter;
     target.turnMeter = Math.max(0, target.turnMeter - CONFIG.TURN_METER_MAX * frac);
+    const taken = before - target.turnMeter;
+    // Undertow (Stillwater 3pc): a share of what came off the victim
+    // goes to whoever took it instead of draining away. `meterSiphon`
+    // is a SHARE, not a flag, so a tier can hand over a fraction and the
+    // label can state it exactly.
+    //
+    // Read here rather than at the ~dozen call sites that drain, for the
+    // same reason the guard and the resistance contest are read here:
+    // every taking in the game goes through this function, and a rule
+    // written anywhere else would cover only the drains someone
+    // remembered.
+    //
+    // Uncapped, like every other meter gain -- a head start must never
+    // subtract. And nothing is siphoned when the drain was guarded,
+    // resisted or missed, because those return before this line with
+    // `taken` never computed.
+    let siphoned = 0;
+    if (taken > 0 && caster && caster !== target && caster.alive) {
+      let share = 0;
+      for (const p of (caster.hookSources ? caster.hookSources() : [])) {
+        if (p.hooks && p.hooks.meterSiphon) share += p.hooks.meterSiphon;
+      }
+      if (share > 0) {
+        siphoned = taken * share;
+        caster.turnMeter += siphoned;
+      }
+    }
     return { kind: 'meter', target,
-      amount: (target.turnMeter - before) / CONFIG.TURN_METER_MAX };
+      amount: (target.turnMeter - before) / CONFIG.TURN_METER_MAX,
+      siphoned: siphoned / CONFIG.TURN_METER_MAX, siphonedBy: siphoned > 0 ? caster : null };
   }
 
   // Resolve one effect against one unit. Returns a log-friendly result.
