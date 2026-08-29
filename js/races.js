@@ -250,10 +250,12 @@ const RACES = (() => {
       },
       {
         count: 4, name: 'Lingering',
-        // The one live tier of the three. DEBUFFS only, not
-        // damage-over-time: the channel is read inside the debuff branch
-        // (abilities.js), so a burn or a poison does not get the coin
-        // flip and the label must not promise it one.
+        // The one live tier of the three, and it covers DOTS as well now:
+        // a burn or a poison is a debuff, so it gets the same coin flip.
+        // The channel used to be read only inside the debuff branch of
+        // abilities.js, which meant a dark party running poisons -- which
+        // in a dark meta is most of what is being thrown -- got nothing
+        // from its own 4-piece. The label always read as though it did.
         mods: { debuffExtraChance: 0.50 },
         label: 'a landed debuff has a 50% chance to last an extra turn',
       },
@@ -730,8 +732,7 @@ const RACES = (() => {
         hooks: {
           damageDealtMult(unit, target) {
             if (!target || !target.statusEffects) return 1;
-            const hexes = target.statusEffects.filter(
-              (fx) => fx.kind === 'debuff' || fx.kind === 'dot').length;
+            const hexes = Unit.debuffsOn(target);
             return 1 + 0.08 * Math.min(5, hexes);
           },
         },
