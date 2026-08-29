@@ -32,6 +32,10 @@ class SummonScreen {
     // updateBannerBlock (banners can overlap, one per scroll kind).
     this.bannerBtns = [];
     this.builtBannerKey = null;
+    // Per-banner countdown elements, and the string each is currently
+    // showing, so a tick that would not change the text touches nothing.
+    this.bannerClockEls = {};
+    this.bannerClockText = {};
   }
 
   enter() {
@@ -113,6 +117,7 @@ class SummonScreen {
       this.builtBannerKey = key;
       this.bannerBtns = [];
       this.bannerPityEls = {};
+      this.bannerClockEls = {};
       block.innerHTML = '';
       for (const banner of banners) {
         const [icon, scrollName] = SCROLL[banner.scroll] || ['📜', banner.scroll];
@@ -171,6 +176,15 @@ class SummonScreen {
         const pityLine = document.createElement('div');
         pityLine.className = 'banner-pity';
         this.bannerPityEls[banner.id] = pityLine;
+        // The countdown. The sub-line above names the Sunday the banner
+        // runs through, which answers "roughly when"; this answers "how
+        // long have I got", which is the question on the last evening.
+        // Ticked in update() rather than written here, because the panel
+        // it lives in is only rebuilt when the calendar changes which
+        // banners run -- once a week.
+        const clock = document.createElement('div');
+        clock.className = 'banner-clock';
+        this.bannerClockEls[banner.id] = clock;
         const actions = document.createElement('div');
         actions.className = 'banner-panel-actions';
         for (const count of [1, 10]) {
@@ -182,7 +196,7 @@ class SummonScreen {
           actions.appendChild(btn);
           this.bannerBtns.push({ el: btn, count, scroll: banner.scroll });
         }
-        panel.append(title, sub, strip, pityLine, actions);
+        panel.append(title, sub, clock, strip, pityLine, actions);
         block.appendChild(panel);
       }
     }
@@ -408,6 +422,33 @@ class SummonScreen {
     return [fav, store];
   }
 
-  update() {}
+  // Drive the banner countdowns. Called every frame while the Summon
+  // screen is up; the clock is recomputed from the wall clock rather
+  // than accumulated from dt, so it cannot drift away from the window
+  // it is counting to, and the DOM is only written when the rendered
+  // second actually changes.
+  update() {
+    this.tickBannerClocks();
+  }
+
+  tickBannerClocks() {
+    if (!this.bannerClockEls) return;
+    const now = new Date();
+    for (const banner of Events.activeBanners(now)) {
+      const el = this.bannerClockEls[banner.id];
+      if (!el) continue;
+      const left = Events.bannerTimeLeft(banner, now);
+      // A banner whose clock has run out is over; the weekly rebuild
+      // will swap the panel on the next render, and until it does the
+      // panel should not claim there is still time on it.
+      const text = left > 0
+        ? `⏳ Ends in ${Events.countdown(left)}`
+        : '⏳ This banner has ended.';
+      if (this.bannerClockText[banner.id] === text) continue;
+      this.bannerClockText[banner.id] = text;
+      el.textContent = text;
+    }
+  }
+
   draw() {}
 }

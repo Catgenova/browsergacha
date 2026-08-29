@@ -2098,24 +2098,32 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     }
   }
 
-  // The Rare wheel: Cryst, the Firetroupe, the Whisperchime, and round
-  // again. The Temporal wheel is two long, so it simply alternates.
+  // The two wheels, in the order they are meant to turn. Written out
+  // rather than read off BANNER_CYCLES on purpose: this is the contract
+  // that the order does not shuffle under a player mid-rotation, and a
+  // test that derived it from the thing it is checking would agree with
+  // any reordering. The length check below is what forces an append to
+  // be a deliberate edit here too.
   const rare = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'rare').id;
   const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
   const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup',
-    'gulldigger_rateup', 'phoenixcourt_rateup'];
-  const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup'];
+    'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup'];
+  const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
+    'sunbrood_rateup', 'hollowbone_rateup'];
+  assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
+    E.BANNER_CYCLES.temporal.length === TEMPORAL_WHEEL.length,
+    'a wheel grew or shrank without this test being told');
   assert(rare(2026, 7, 26) === 'cryst_rateup', 'the Rare scroll is not on Cryst today');
   assert(temporal(2026, 7, 26) === 'reverence_rateup', 'the Temporal scroll is not on Reverence today');
   // Two full turns of the longer wheel from the epoch Monday, both
-  // scrolls. Ten covers the Rare rotation exactly twice and the
-  // Temporal one five times, so a wheel that grew and a wheel that did
-  // not are both walked end to end.
+  // scrolls -- twelve weeks, which walks the Rare wheel twice and the
+  // Temporal one three times, so both are walked end to end and past
+  // their own wrap.
   for (let w = 0; w < RARE_WHEEL.length * 2; w++) {
     const mon = new Date(2026, 7, 24 + w * 7, 12);
     assert(E.currentBanner(mon, 'rare').id === RARE_WHEEL[w % RARE_WHEEL.length],
       `week ${w} of the Rare wheel is ${E.currentBanner(mon, 'rare').id}`);
-    assert(E.currentBanner(mon, 'temporal').id === TEMPORAL_WHEEL[w % 2],
+    assert(E.currentBanner(mon, 'temporal').id === TEMPORAL_WHEEL[w % TEMPORAL_WHEEL.length],
       `week ${w} of the Temporal wheel is ${E.currentBanner(mon, 'temporal').id}`);
   }
 
@@ -2134,8 +2142,16 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'the Gulldiggers did not hold their whole week');
   assert(rare(2026, 8, 21) === 'phoenixcourt_rateup' && rare(2026, 8, 27) === 'phoenixcourt_rateup',
     'the Phoenix Court did not hold their whole week');
-  assert(rare(2026, 8, 28) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
-  assert(temporal(2026, 8, 7) === 'reverence_rateup',
+  // The three finished sects that had no week until they were appended:
+  // the Rare wheel runs six now and the Temporal four.
+  assert(rare(2026, 8, 28) === 'razorwings_rateup' && rare(2026, 9, 4) === 'razorwings_rateup',
+    'the Razorwings did not hold their whole week');
+  assert(rare(2026, 9, 5) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  assert(temporal(2026, 8, 7) === 'sunbrood_rateup' && temporal(2026, 8, 13) === 'sunbrood_rateup',
+    'the Sunbrood did not hold their whole week');
+  assert(temporal(2026, 8, 14) === 'hollowbone_rateup' && temporal(2026, 8, 20) === 'hollowbone_rateup',
+    'the Hollowbone did not hold their whole week');
+  assert(temporal(2026, 8, 21) === 'reverence_rateup',
     'the Temporal wheel did not bounce back to Reverence');
 
   // The window a banner reports is the week it actually holds, and its
@@ -14746,6 +14762,69 @@ test('tower: floors up to the anchor pay exactly what they always did', () => {
     assert(Tower.payout(1234, f) === 1234, `floor ${f} pays ${Tower.payout(1234, f)}`);
     assert(Tower.payout(1, f) === 1, `floor ${f} scroll count moved`);
   }
+});
+
+test('summon banners: every standing sect has a week on the wheel', () => {
+  // The gap this closes twice over. Two bird sects shipped unbannered
+  // and were noticed; the Razorwings, Sunbrood and Hollowbone then did
+  // the same thing behind them -- twenty-seven finished heroes with no
+  // way to go looking for them. Derived from RACES.SECTS rather than
+  // from a list, so the next order to be finished cannot be forgotten
+  // in turn: writing a sect into the roster and not onto a wheel fails
+  // here.
+  const E = g.Events;
+  const scheduled = new Map();
+  for (const [scroll, cycle] of Object.entries(E.BANNER_CYCLES)) {
+    for (const entry of cycle) {
+      assert(!scheduled.has(entry.sect),
+        `${entry.sect} rides two wheels at once`);
+      scheduled.set(entry.sect, scroll);
+    }
+  }
+  for (const sect of Object.values(RACES.SECTS)) {
+    // A closed order advertises a rate-up on nobody, and one still
+    // being founded has nobody to advertise yet.
+    if (sect.defunct || sect.founding) {
+      assert(!scheduled.has(sect.id), `${sect.id} is not standing but holds a week`);
+      continue;
+    }
+    assert(scheduled.has(sect.id),
+      `${sect.name} is finished and standing but has no banner week`);
+    // And on the wheel its element allows: the Temporal scroll draws
+    // Dark and Light, everything else comes off the Rare.
+    const members = sect.members.map((id) => HEROES[id]).filter(Boolean);
+    const temporal = members.every((h) => g.Elements.TEMPORAL.includes(h.element));
+    assert(scheduled.get(sect.id) === (temporal ? 'temporal' : 'rare'),
+      `${sect.name} rides the ${scheduled.get(sect.id)} wheel, which cannot draw it`);
+  }
+});
+
+test('banner countdown: h:mm:ss, with days only while there are days', () => {
+  const E = g.Events;
+  assert(E.countdown(0) === '00:00:00', `zero reads ${E.countdown(0)}`);
+  assert(E.countdown(-5000) === '00:00:00', 'a finished banner counted backwards');
+  assert(E.countdown(59 * 1000) === '00:00:59', E.countdown(59 * 1000));
+  assert(E.countdown(3661 * 1000) === '01:01:01', E.countdown(3661 * 1000));
+  // Every field stays two digits wide, which is the whole reason the
+  // days are split out rather than rolled into the hours: a week is 167
+  // hours and "167:59:59" is not a glanceable clock.
+  assert(E.countdown((23 * 3600 + 59 * 60 + 59) * 1000) === '23:59:59',
+    'the last hour before a day boundary is wrong');
+  assert(E.countdown(86400 * 1000) === '1d 00:00:00', E.countdown(86400 * 1000));
+  assert(E.countdown((6 * 86400 + 23 * 3600 + 59 * 60 + 59) * 1000) === '6d 23:59:59',
+    'a fresh week does not read as one');
+  // It counts down against the banner's own close, second by second.
+  const mid = new Date(2026, 7, 26, 12, 0, 0);
+  const b = E.bannerFor('rare', mid);
+  const left = E.bannerTimeLeft(b, mid);
+  assert(left === b.until - mid, 'the clock is not measured to the window close');
+  assert(E.countdown(left) === '4d 12:00:00', E.countdown(left));
+  const oneSecondLater = new Date(+mid + 1000);
+  assert(E.countdown(E.bannerTimeLeft(b, oneSecondLater)) === '4d 11:59:59',
+    'a second passing did not move the clock');
+  // Past the close it sits at zero rather than going negative.
+  assert(E.bannerTimeLeft(b, new Date(+b.until + 60000)) === 0,
+    'a closed banner reported time left');
 });
 
 report();
