@@ -15109,4 +15109,80 @@ test('a dot lasts longer for the same reasons a debuff does', () => {
   } finally { Battle.active = prev; }
 });
 
+test('campaign tiers widen the cast: 3★ on Normal, 4★ on Hard, 5★ on Expert', () => {
+  const w = loadGame();
+  const { Campaign, CAMPAIGN, ENEMIES } = w;
+  const rarities = (pool) => [...new Set(pool.map((d) => d.rarity || 1))].sort();
+
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    assert(rarities(Campaign.poolFor(ch, 'normal')).join() === '3',
+      `${ch.id} Normal fields ${rarities(Campaign.poolFor(ch, 'normal'))}`);
+    assert(rarities(Campaign.poolFor(ch, 'hard')).join() === '3,4',
+      `${ch.id} Hard fields ${rarities(Campaign.poolFor(ch, 'hard'))}`);
+    assert(rarities(Campaign.poolFor(ch, 'expert')).join() === '3,4,5',
+      `${ch.id} Expert fields ${rarities(Campaign.poolFor(ch, 'expert'))}`);
+  }
+  // The FLOOR holds at every tier. The sects put 1- and 2-stars on the
+  // shelf, and a 1-star wave is as wrong as a 5-star one on Normal --
+  // the ceiling moved, the band did not become "anything".
+  for (const t of ['normal', 'hard', 'expert']) {
+    const pool = Campaign.poolFor(CAMPAIGN.CHAPTERS[0], t);
+    assert(pool.every((d) => (d.rarity || 1) >= 3),
+      `${t} let a ${Math.min(...pool.map((d) => d.rarity || 1))}★ into the cast`);
+    assert(pool.length > 0, `${t} has an empty cast`);
+  }
+  // Default is Normal, so nothing that forgets to pass a tier widens.
+  assert(rarities(Campaign.poolFor(CAMPAIGN.CHAPTERS[0])).join() === '3',
+    'the default pool is not the roaming band');
+
+  // And a real node actually fields them.
+  const ch = CAMPAIGN.CHAPTERS[CAMPAIGN.CHAPTERS.length - 1];
+  const node = ch.nodes.find((n) => n.type !== 'boss');
+  const top = (t) => Math.max(...Campaign.encounter(node, null, t)
+    .map((e) => e.def.rarity || 1));
+  assert(top('normal') === 3, `a Normal node fielded a ${top('normal')}★`);
+  assert(top('hard') === 4, `a Hard node topped out at ${top('hard')}★`);
+  assert(top('expert') === 5, `an Expert node topped out at ${top('expert')}★`);
+});
+
+test('the roaming band stays 3★: hunts and the tower did not widen', () => {
+  // The band exists so a STARTER team never meets a signature kit. Hard
+  // and Expert are a map already cleared, which is why the ceiling lifts
+  // there and nowhere else -- this is the assertion that keeps the two
+  // apart.
+  const w = loadGame();
+  const { LOCATION_ENEMIES, ENEMIES, locationEnemies } = w;
+  for (const [loc, ids] of Object.entries(LOCATION_ENEMIES)) {
+    const rs = [...new Set(ids.map((id) => ENEMIES[id].rarity || 1))];
+    assert(rs.length === 1 && rs[0] === 3,
+      `location ${loc} roams with ${rs.join(',')}★ enemies`);
+  }
+  // locationEnemies defaults to the same band, and clamps a ceiling
+  // below the floor rather than returning nothing.
+  const base = locationEnemies(0);
+  assert(base.length === LOCATION_ENEMIES[0].length, 'the default band moved');
+  assert(locationEnemies(0, 1).length === base.length,
+    'a ceiling under the floor emptied the cast');
+  assert(locationEnemies(0, 5).length > base.length, 'a raised ceiling drew nothing new');
+  // An unknown location falls back rather than throwing.
+  assert(locationEnemies(999).length > 0, 'an unknown location returned nothing');
+});
+
+test('an elite node is led by the rarest body its tier can field', () => {
+  // This branch was dead. It filtered for `rarity >= 4` against a pool
+  // that was flat 3-star, so it could never match and an elite node was
+  // led by nothing in particular. It reads the pool's actual top now.
+  const w = loadGame();
+  const { Campaign, CAMPAIGN } = w;
+  const elite = CAMPAIGN.CHAPTERS
+    .flatMap((ch) => ch.nodes)
+    .find((n) => n.type === 'elite' && !n.enemies);
+  assert(elite, 'no unpinned elite node to test');
+  for (const [t, want] of [['normal', 3], ['hard', 4], ['expert', 5]]) {
+    const led = Campaign.encounter(elite, null, t);
+    const top = Math.max(...led.map((e) => e.def.rarity || 1));
+    assert(top === want, `a ${t} elite is led by a ${top}★, wanted ${want}★`);
+  }
+});
+
 report();

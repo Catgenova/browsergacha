@@ -81,10 +81,42 @@ const ENEMIES = (() => {
 // sect's cheapest body started turning up as a roaming hunt enemy. A
 // 1-star wave is as wrong as a 5-star one, in the other direction.
 const ENEMY_RARITY = 3;
-const LOCATION_ENEMIES = (() => {
-  const pool = Object.keys(ENEMIES)
-    .filter((id) => ENEMIES[id].rarity === ENEMY_RARITY);
+
+// The full per-location cast, before any rarity band is applied. Every
+// location fields the same roster today (see above); this is the layer a
+// per-location narrowing would edit, and the layer the band is taken
+// from, so the two stay separable.
+const LOCATION_ROSTER = (() => {
+  const all = Object.keys(ENEMIES);
   const out = {};
-  for (let loc = 0; loc < CONFIG.BATTLE_BGS.length; loc++) out[loc] = pool;
+  for (let loc = 0; loc < CONFIG.BATTLE_BGS.length; loc++) out[loc] = all;
   return out;
 })();
+
+// The roaming band: exactly 3-star. What hunts, the Endless Tower and
+// the campaign's Normal tier draw from, for the reason above.
+const LOCATION_ENEMIES = (() => {
+  const out = {};
+  for (const loc of Object.keys(LOCATION_ROSTER)) {
+    out[loc] = LOCATION_ROSTER[loc]
+      .filter((id) => ENEMIES[id].rarity === ENEMY_RARITY);
+  }
+  return out;
+})();
+
+// A location's cast up to `maxRarity`. The campaign's harder tiers draw
+// wider than the roaming band -- Hard fields 4-stars, Expert 5-stars --
+// because the thing the band exists to prevent is a STARTER team meeting
+// a signature kit, and Hard and Expert are the endgame re-run of a map
+// the player has already cleared. See TIERS in js/campaign.js.
+//
+// The FLOOR stays at ENEMY_RARITY whatever the ceiling is: a 1-star wave
+// is as wrong as a 5-star one, in the other direction, and the sects put
+// 1- and 2-stars on the shelf.
+function locationEnemies(loc, maxRarity = ENEMY_RARITY) {
+  const ids = LOCATION_ROSTER[loc] || LOCATION_ROSTER[0] || [];
+  return ids.filter((id) => {
+    const r = ENEMIES[id].rarity || 1;
+    return r >= ENEMY_RARITY && r <= Math.max(ENEMY_RARITY, maxRarity);
+  });
+}
