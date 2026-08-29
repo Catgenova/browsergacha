@@ -3769,3 +3769,15 @@ svg.icon {
 
 /* A full roster that still has vault room: a warning, not a wall. */
 .roster-overflow { color: #ffb36a; }
+
+/* The auto-pick row above the sacrifice list: bottom-shelf sweeps, the
+   dumpling filler, and a way back out of a fifty-hero selection. */
+.ros-autopick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.ros-autopick .panel-btn { padding: 4px 8px; font-size: 11px; }
+.ros-autopick i { font-style: normal; color: #9a92b8; }
+.ros-autopick .panel-btn:disabled i { color: inherit; }

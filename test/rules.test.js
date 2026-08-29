@@ -14519,4 +14519,59 @@ test('the dumpling shop prices 4* to 8* and never sells a worse deal upward', ()
   assert(F.diamonds === beforeFull, `charged ${beforeFull - F.diamonds} for nothing`);
 });
 
+// The bottom-shelf sweep: tick every spendable hero at or below a rating.
+test('planStarSweep takes the shelf and leaves the dumplings', () => {
+  const G = loadGame();
+  const { GameState, HEROES } = G;
+  const byR = (r) => Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === r &&
+    !['light', 'dark'].includes(HEROES[k].element));
+  const spend = (r) => {
+    const uid = GameState.addHero(byR(r)).uid;
+    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
+    return uid;
+  };
+
+  const target = spend(4);
+  const ones = [spend(1), spend(1), spend(1), spend(1)];
+  const twos = [spend(2), spend(2), spend(2)];
+  const threes = [spend(3), spend(3)];
+  const five = spend(5);
+  const dump = GameState.addDumpling(3).uid;   // a 3-star that must survive
+
+  const sweep1 = GameState.planStarSweep(target, 1);
+  assert(sweep1.uids.length === ones.length,
+    `<=1* took ${sweep1.uids.length}, wanted ${ones.length}`);
+  assert(sweep1.points === ones.length, `<=1* is worth ${sweep1.points}, wanted 4`);
+
+  const sweep3 = GameState.planStarSweep(target, 3);
+  const want = ones.length + twos.length + threes.length;
+  assert(sweep3.uids.length === want, `<=3* took ${sweep3.uids.length}, wanted ${want}`);
+  // 4x1 + 3x2 + 2x6 = 22
+  assert(sweep3.points === 22, `<=3* is worth ${sweep3.points}, wanted 22`);
+
+  // The two things it must never touch.
+  assert(!sweep3.uids.includes(five), 'the sweep ate a 5-star');
+  assert(!sweep3.uids.includes(dump),
+    'the sweep ate a dumpling -- they have their own button, which spends the ' +
+    'fewest it can, and this one spends everything');
+  assert(!sweep3.uids.includes(target), 'the sweep ate the hero being improved');
+
+  // It is additive: what is already ticked is not offered twice, so
+  // pressing <=2* and then <=3* adds only the 3-stars.
+  const twoFirst = GameState.planStarSweep(target, 2);
+  const thenThree = GameState.planStarSweep(target, 3, twoFirst.uids);
+  assert(thenThree.uids.length === threes.length,
+    `the second press re-picked ${thenThree.uids.length}, wanted just the 3-stars`);
+  assert(twoFirst.points + thenThree.points === sweep3.points,
+    'two presses do not add up to the one that takes everything');
+
+  // Favourites and the fielded are never offered, exactly as by hand.
+  GameState.toggleFavorite(ones[0]);
+  GameState.setTeamSlot(0, ones[1]);
+  const guarded = GameState.planStarSweep(target, 3);
+  assert(!guarded.uids.includes(ones[0]), 'the sweep ate a favourite');
+  assert(!guarded.uids.includes(ones[1]), 'the sweep ate a fielded hero');
+  assert(guarded.uids.length === want - 2, `guarded sweep took ${guarded.uids.length}`);
+});
+
 report();

@@ -926,6 +926,23 @@ const GameState = (() => {
       return out;
     },
 
+    // Every hero at or below `maxStars` that can be spent on `targetUid`,
+    // minus anything in `already`. The bottom-shelf sweep: a roster fills
+    // up with 1- and 2-star strangers nobody will ever field, and ticking
+    // them one at a time is the tedium this exists to remove.
+    //
+    // DUMPLINGS ARE EXCLUDED even when their rating qualifies. A 3-star
+    // dumpling is a hundred points a player bought or won on purpose, and
+    // a button labelled "sweep the junk" must not eat it by accident --
+    // they have their own button, which spends the fewest it can.
+    planStarSweep(targetUid, maxStars, already = []) {
+      const skip = new Set(already);
+      const uids = this.sacrificeOptions(targetUid)
+        .filter((o) => !o.consumable && o.stars <= maxStars && !skip.has(o.uid))
+        .map((o) => o.uid);
+      return { uids, points: uids.reduce((n, u) => n + this.fodderValue(u), 0) };
+    },
+
     // Pick the smallest set of dumplings that finishes `targetUid`'s star
     // bar, ignoring anything in `already` (the fodder the player has
     // ticked by hand). Returns { uids, points, need, short }.
