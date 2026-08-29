@@ -213,6 +213,11 @@ const App = {
   // Campaign badge: a dot while any reachable node is still unbeaten,
   // so the spine of the game keeps asking to be walked.
   //
+  // It used to sit on the Campaign nav tab. That tab is gone -- the
+  // campaign is reached from the Battle tab's Campaign button now -- so
+  // the dot moved onto that button, which is the door it was always
+  // really pointing at. Same id, so this lookup did not change.
+  //
   // Normal only, deliberately. Hard and Expert are replay content the
   // player opts into; a badge that lit up forever the moment Hard
   // unlocked would stop meaning anything.
