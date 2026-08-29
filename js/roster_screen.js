@@ -36,6 +36,37 @@ class RosterScreen {
     this.message = '';       // one-line result note for panel actions
     this.cardCache = new Map();
 
+    // Auto star up, carried over from the Improve screen when that was
+    // folded in here. One button per target star, each forging every
+    // hero below that rank as far toward it as the shelf allows. It
+    // SPENDS heroes, so the first press on a button quotes the price and
+    // the second pays it; arming one disarms the rest.
+    //
+    // It lives beside the grid rather than in the Star Up panel because
+    // it is a whole-roster action and that panel is about one hero.
+    this.autoBtns = [...document.querySelectorAll('.ros-auto-btn')];
+    this.autoArmed = null;
+    this.autoMsg = '';
+    for (const btn of this.autoBtns) {
+      const target = Number(btn.dataset.target);
+      btn.addEventListener('click', () => {
+        const plan = GameState.planAutoStarUp(target);
+        if (!plan.length) return;
+        if (this.autoArmed !== target) {
+          this.autoArmed = target;
+          this.renderAuto();
+          return;
+        }
+        this.autoArmed = null;
+        const r = GameState.autoStarUp(target);
+        this.autoMsg = `Auto star up to ${target}★: ${r.starUps} star up` +
+          `${r.starUps === 1 ? '' : 's'}, ${r.spent} hero${r.spent === 1 ? '' : 'es'} spent` +
+          (r.skills ? `, ${r.skills} skill level${r.skills === 1 ? '' : 's'} gained` : '') + '.';
+        if (typeof Sound !== 'undefined') Sound.play('levelup');
+        this.refresh();
+      });
+    }
+
     if (this.searchEl) this.searchEl.addEventListener('input', () => this.buildGrid());
     if (this.sortEl) this.sortEl.addEventListener('change', () => this.buildGrid());
     for (const tab of this.tabsEl.querySelectorAll('.ros-tab')) {
@@ -56,7 +87,7 @@ class RosterScreen {
     this.message = '';
   }
 
-  enter() { this.refresh(); }
+  enter() { this.autoArmed = null; this.refresh(); }
   exit() {}
   update() {}
   draw() {}
@@ -71,7 +102,31 @@ class RosterScreen {
       if (!GameState.defOf(uid)) this.chosen.delete(uid);
     }
     this.buildGrid();
+    this.renderAuto();
     this.renderPanel();
+  }
+
+  // Each auto button always says what it would do RIGHT NOW, and goes
+  // disabled when the shelf has nothing to forge toward its star.
+  renderAuto() {
+    const msgEl = document.getElementById('ros-auto-msg');
+    if (msgEl) msgEl.textContent = this.autoMsg || '';
+    for (const btn of this.autoBtns) {
+      const target = Number(btn.dataset.target);
+      const plan = GameState.planAutoStarUp(target);
+      const spend = plan.reduce((n, st) => n + st.fodder.length, 0);
+      const armed = this.autoArmed === target && plan.length > 0;
+      btn.disabled = !plan.length;
+      btn.classList.toggle('armed', armed);
+      btn.innerHTML = armed
+        ? `${target}&#9733;: spend ${spend} for ${plan.length} — sure?`
+        : `${target}&#9733;${plan.length ? ` (${plan.length})` : ''}`;
+      btn.title = plan.length
+        ? `Forge toward ${target}★: ${plan.length} star up${plan.length === 1 ? '' : 's'} ` +
+          `for ${spend} spare hero${spend === 1 ? '' : 'es'}. Team members and ` +
+          'favourites are never spent.'
+        : `Nothing on the shelf can star up toward ${target}★ right now.`;
+    }
   }
 
   // ---- left: the grid -------------------------------------------------
@@ -830,7 +885,7 @@ all together are not enough, every one of them is picked.">🥟 Fill</button>`
         ${Progression.skillFactsHtml(a, lv)}
         <div class="detail-section">Skill ups</div>
         <div class="ros-ladder">${ladder}</div>
-        <div class="ros-note">Raised by sacrificing another copy of ${def.name}, over in Improve.</div>`;
+        <div class="ros-note">Raised by sacrificing another copy of ${def.name} on the Star Up tab.</div>`;
     }
 
     this.panelEl.innerHTML = `${this.header(uid)}

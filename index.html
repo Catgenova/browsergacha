@@ -27,7 +27,6 @@
         <button class="nav-tab" data-screen="summon">Summon</button>
         <button class="nav-tab" data-screen="team">Team</button>
         <button class="nav-tab" data-screen="roster">Roster</button>
-        <button class="nav-tab" data-screen="improve">Improve</button>
         <button class="nav-tab" data-screen="blacksmith">Blacksmith</button>
         <button class="nav-tab" data-screen="shop">Shop</button>
         <button class="nav-tab" data-screen="quests">Quests<span id="quest-badge" class="hidden">•</span></button>
@@ -150,6 +149,16 @@
               <option value="element">Element</option>
             </select>
           </div>
+          <div id="ros-auto-row" title="Forge the bottom of the roster upward. Team
+members and favourites are never spent.">
+            <span id="ros-auto-label">Auto star up to</span>
+            <button class="panel-btn ros-auto-btn" data-target="3"></button>
+            <button class="panel-btn ros-auto-btn" data-target="4"></button>
+            <button class="panel-btn ros-auto-btn" data-target="5"></button>
+            <button class="panel-btn ros-auto-btn" data-target="6"></button>
+            <button class="panel-btn ros-auto-btn" data-target="7"></button>
+            <span id="ros-auto-msg"></span>
+          </div>
           <div id="ros-grid"></div>
           <div id="ros-empty" class="details-empty hidden">No heroes match.</div>
         </div>
@@ -167,24 +176,6 @@
     </section>
 
     <!-- ================= Blacksmith screen ================= -->
-    <section id="screen-improve" class="screen hidden">
-      <div id="imp-top">
-        <span id="imp-count"></span>
-        <div id="imp-auto-row">
-          <span id="imp-auto-label">Auto star up to</span>
-          <button class="panel-btn imp-auto-btn" data-target="3"></button>
-          <button class="panel-btn imp-auto-btn" data-target="4"></button>
-          <button class="panel-btn imp-auto-btn" data-target="5"></button>
-          <button class="panel-btn imp-auto-btn" data-target="6"></button>
-          <button class="panel-btn imp-auto-btn" data-target="7"></button>
-        </div>
-        <input id="imp-search" type="search" placeholder="Search name or element…">
-      </div>
-      <div id="imp-body">
-        <div id="imp-list"></div>
-        <aside id="imp-detail"></aside>
-      </div>
-    </section>
 
     <section id="screen-blacksmith" class="screen hidden">
       <div id="bs-toolbar">
@@ -433,7 +424,6 @@
   <script src="js/battle_screen.js?v=__BUILD__"></script>
   <script src="js/team_screen.js?v=__BUILD__"></script>
   <script src="js/roster_screen.js?v=__BUILD__"></script>
-  <script src="js/improve_screen.js?v=__BUILD__"></script>
   <script src="js/blacksmith_screen.js?v=__BUILD__"></script>
   <script src="js/quests_screen.js?v=__BUILD__"></script>
   <script src="js/shop_screen.js?v=__BUILD__"></script>

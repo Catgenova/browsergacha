@@ -192,7 +192,6 @@ const App = {
   App.screens.summon = new SummonScreen(App);
   App.screens.team = new TeamScreen(App);
   App.screens.roster = new RosterScreen(App);
-  App.screens.improve = new ImproveScreen(App);
   App.screens.blacksmith = new BlacksmithScreen(App);
   App.screens.shop = new ShopScreen(App);
   App.screens.quests = new QuestsScreen(App);
