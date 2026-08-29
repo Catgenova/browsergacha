@@ -14295,11 +14295,44 @@ test('a dumpling is roster fodder and nothing else', () => {
 
   const heroUid = spendable;
 
-  // It IS offered as fodder, at the top of the list, and it pays.
+  // It IS offered as fodder, and with no duplicate of the target in the
+  // roster it leads the list.
   const offered = GameState.sacrificeOptions(heroUid);
   assert(offered.length && offered[0].uid === uid,
     'the dumpling is not at the top of the sacrifice list');
   assert(offered[0].value === 100, `offered at ${offered[0].value}`);
+
+  // ...but a DUPLICATE outranks it. A duplicate is the only fodder that
+  // buys something a dumpling cannot -- a skill level -- and it is the
+  // row a player would be sorry to scroll past. Dumplings led this list
+  // for a while, on the reasoning that they exist only to be eaten;
+  // that put the one irreplaceable row underneath them.
+  const twin = GameState.addHero(GameState.defIdOf(heroUid)).uid;
+  if (GameState.isFavorite(twin)) GameState.toggleFavorite(twin);
+  const withTwin = GameState.sacrificeOptions(heroUid);
+  assert(withTwin[0].uid === twin,
+    'a duplicate does not lead the list ahead of a dumpling');
+  assert(withTwin[0].skill === true, 'the leading row is not a skill up');
+  const dumpAt = withTwin.findIndex((o) => o.uid === uid);
+  const twinAt = withTwin.findIndex((o) => o.uid === twin);
+  assert(twinAt < dumpAt, `the duplicate sits at ${twinAt}, the dumpling at ${dumpAt}`);
+  // And the dumpling still outranks the ordinary strangers below it.
+  //
+  // The stranger is deliberately CHEAPER than the dumpling (a 1-star
+  // against a 3-star). Without one, the tie-break below the consumable
+  // key -- cheapest first -- would have put the dumpling on top anyway,
+  // and this assertion passed with the consumable key deleted entirely.
+  const cheapId = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === 1 &&
+    k !== GameState.defIdOf(heroUid));
+  const stranger = GameState.addHero(cheapId).uid;
+  if (GameState.isFavorite(stranger)) GameState.toggleFavorite(stranger);
+  const mixed = GameState.sacrificeOptions(heroUid);
+  const at = (u) => mixed.findIndex((o) => o.uid === u);
+  assert(GameState.progressOf(stranger).stars < GameState.progressOf(uid).stars,
+    'the stranger is not cheaper than the dumpling, so this proves nothing');
+  assert(at(twin) < at(uid), 'the duplicate fell below the dumpling');
+  assert(at(uid) < at(stranger),
+    `the dumpling (${at(uid)}) sank below a cheaper stranger (${at(stranger)})`);
   const bankBefore = GameState.progressOf(heroUid).starPoints || 0;
   const report = GameState.sacrifice(heroUid, [uid]);
   assert(report && report.points === 100, `paid ${report && report.points}`);

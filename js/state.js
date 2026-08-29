@@ -918,10 +918,15 @@ const GameState = (() => {
           value: this.fodderValue(uid),
         });
       }
-      // Dumplings lead: they exist only to be eaten, so a list that
-      // buries them under a hundred heroes is hiding the answer.
-      // Then duplicates (a skill up on top), then cheapest first.
-      out.sort((a, b) => (b.consumable - a.consumable) || (b.skill - a.skill) ||
+      // Duplicates lead, THEN dumplings, then cheapest first.
+      //
+      // Dumplings were on top for a while, on the reasoning that they
+      // exist only to be eaten. But a duplicate is the only fodder that
+      // buys something a dumpling cannot -- a skill level -- and it is
+      // the one row a player would be sorry to scroll past. A dumpling
+      // is never a skill up (the target is never a dumpling, so no
+      // dumpling can share its character), so the two keys never fight.
+      out.sort((a, b) => (b.skill - a.skill) || (b.consumable - a.consumable) ||
         (a.stars - b.stars) || (a.level - b.level));
       return out;
     },
