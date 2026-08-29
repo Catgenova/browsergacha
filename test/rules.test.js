@@ -2127,7 +2127,8 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   const rare = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'rare').id;
   const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
   const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup',
-    'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup'];
+    'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup',
+    'stillwater_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
     'sunbrood_rateup', 'hollowbone_rateup'];
   assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
@@ -2166,7 +2167,9 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   // the Rare wheel runs six now and the Temporal four.
   assert(rare(2026, 8, 28) === 'razorwings_rateup' && rare(2026, 9, 4) === 'razorwings_rateup',
     'the Razorwings did not hold their whole week');
-  assert(rare(2026, 9, 5) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  assert(rare(2026, 9, 5) === 'stillwater_rateup' && rare(2026, 9, 11) === 'stillwater_rateup',
+    'Stillwater did not hold their whole week');
+  assert(rare(2026, 9, 12) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
   assert(temporal(2026, 8, 7) === 'sunbrood_rateup' && temporal(2026, 8, 13) === 'sunbrood_rateup',
     'the Sunbrood did not hold their whole week');
   assert(temporal(2026, 8, 14) === 'hollowbone_rateup' && temporal(2026, 8, 20) === 'hollowbone_rateup',
@@ -15267,20 +15270,28 @@ test('Stillwater sect pack: take the turn, keep it, and never lose one', () => {
   } finally { Battle.active = prev; }
 });
 
-test('Stillwater is founded, numbered and packed, with nobody in it yet', () => {
+test('Stillwater stands: nine cats, the bird shape, and a week on the wheel', () => {
   const sect = RACES.SECTS.stillwater;
-  assert(sect, 'Stillwater is not declared');
-  assert(sect.number === 13, `Stillwater is No. ${sect.number}`);
-  assert(sect.founding && sect.members.length === 0,
-    'Stillwater is not in the founding state');
-  // A declared shape that adds to nine, so the first cat cannot land at
-  // a rarity the sect has no room for.
-  const total = Object.values(sect.shape).reduce((a, c) => a + c, 0);
-  assert(total === 9, `the Stillwater shape adds to ${total}`);
-  // The pack exists ahead of the roster on purpose -- it is the frame
-  // the nine kits get written into.
-  assert((RACES.SECT_PARTY_BONUSES.stillwater || []).length === 3,
-    'a founding sect with no pack is just an empty name');
+  assert(sect && sect.number === 13, 'Stillwater is not No. 13');
+  assert(!sect.founding, 'Stillwater is still marked founding with nine cats in it');
+  assert(sect.members.length === 9, `Stillwater holds ${sect.members.length}`);
+  // The shape it declared while empty is the shape it filled to.
+  const have = {};
+  for (const id of sect.members) {
+    const h = HEROES[id];
+    assert(h, `${id} is in the sect and not on the roster`);
+    assert(h.element === 'water', `${id} is ${h.element}, and Stillwater is water`);
+    have[h.rarity] = (have[h.rarity] || 0) + 1;
+  }
+  assert(JSON.stringify(have) === JSON.stringify(sect.shape),
+    `filled to ${JSON.stringify(have)}, declared ${JSON.stringify(sect.shape)}`);
+  // Every cat reads as a cat, so the race pack finds them.
+  for (const id of sect.members) {
+    assert(RACES.of(HEROES[id]) === 'cat', `${id} does not read as a cat`);
+  }
+  // And it is offered as a choice now that there is something to choose.
+  assert(RACES.liveSects().some((s) => s.id === 'stillwater'),
+    'a standing sect is not in liveSects');
 });
 
 report();

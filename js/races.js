@@ -37,6 +37,14 @@ const RACES = (() => {
   // The humans are named individuals rather than "<race> <role>", so
   // they're an explicit roster. Listed by id, not inferred, so bosses
   // and future one-off ids never fall into the race by accident.
+  // Named cats. Same reasoning as AVIANS above: a sect's members are
+  // individuals rather than "<species> <role>" generated bodies, so the
+  // roster is explicit. The `cat` PREFIX still catches the generated
+  // cohort ids (cat_prowler and the rest); these are the Stillwater.
+  const CATS = new Set([
+    'tip', 'brock', 'friday', 'tiny', 'orr', 'princess', 'sands', 'donut', 'tub',
+  ]);
+
   const HUMANS = new Set([
     'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
@@ -58,6 +66,7 @@ const RACES = (() => {
     if (!def || !def.id) return null;
     if (HUMANS.has(def.id)) return 'human';
     if (AVIANS.has(def.id)) return 'avian';
+    if (CATS.has(def.id)) return 'cat';
     const head = def.id.split('_')[0];
     if (PREFIXES.has(head)) return head;
     if (BIRD_SPECIES.has(head)) return 'avian';
@@ -212,9 +221,10 @@ const RACES = (() => {
     // ceiling on an empty roster today, so it costs one line to change
     // right up until the first cat lands.
     stillwater: { id: 'stillwater', name: 'Stillwater', number: 13,
-                 race: 'cat', founding: true,
+                 race: 'cat',
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
-                 members: [] },
+                 members: ['tip', 'brock', 'friday', 'tiny', 'orr', 'princess',
+                           'sands', 'donut', 'tub'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',

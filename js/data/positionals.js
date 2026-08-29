@@ -874,5 +874,98 @@ const POSITIONALS = (() => {
     },
   });
 
+  // ---- Stillwater (No. 13): nine cats on one axis ----------------------
+  // The sect reads the action bar from every side, so its hexes do too:
+  // reach, timing, weight, order, and where the giver stands relative to
+  // the given.
+
+  def('long_needle', {
+    position: POSITION.FRONT,
+    name: 'Long Needle',
+    // Hit them before they go. Everything else the cats do pushes bars
+    // DOWN, so this is the one hex in the sect worth more at the top of
+    // a turn cycle than the bottom -- and it is on the 1-star, whose
+    // whole job is to swing first and often.
+    description: 'Front hex: +30% damage to enemies whose action bar is over half.',
+    hooks: {
+      damageDealtMult: (u, t) =>
+        (t && t.turnMeter > CONFIG.TURN_METER_MAX * 0.5 ? 1.30 : 1),
+    },
+  });
+
+  def('close_quarters', {
+    position: POSITION.FRONT,
+    name: 'Close Quarters',
+    // Feeds the same channel Cold Current does, so a Brock on his hex in
+    // a full sect is rolling a quarter of the time on every body he
+    // touches -- and under Undertow every one of those rolls is his.
+    description: 'Front hex: +10% chance for this hero to take turn meter on a hit.',
+    hooks: { apDrainAdd: 0.10 },
+  });
+
+  def('loosed_early', {
+    position: POSITION.CENTER,
+    name: 'Loosed Early',
+    description: 'Center hex: +12% damage with all-enemy skills.',
+    hooks: {
+      damageDealtMult: (u, t, ability) =>
+        (ability && ability.targeting === 'all-enemies' ? 1.12 : 1),
+    },
+  });
+
+  def('settled_low', {
+    position: POSITION.FRONT,
+    name: 'Settled Low',
+    description: 'Front hex: shields on this hero last 1 turn longer.',
+    hooks: { shieldExtraTurns: 1 },
+  });
+
+  def('the_long_haft', {
+    position: POSITION.FRONT,
+    name: 'The Long Haft',
+    description: "Front hex: attacks ignore 20% of the target's DEF.",
+    hooks: { defIgnoreAdd: 0.20 },
+  });
+
+  def('order_of_march', {
+    position: POSITION.BACK,
+    name: 'Order of March',
+    // The giving half of the sect, sharpened. Weather Eye (Wanda's) is
+    // the same channel at 25%; this is the smaller share on a hero whose
+    // whole kit is the push, which is the trade -- she gives more often,
+    // Wanda gives harder.
+    description: 'Back hex: +15% turn meter given to allies.',
+    hooks: { meterGiftAdd: 0.15 },
+  });
+
+  def('reads_the_water', {
+    position: POSITION.BACK,
+    name: 'Reads the Water',
+    // Accuracy is the stat that decides whether a drain lands at all:
+    // drainMeter rolls it against the victim's resistance before a
+    // single point moves. On the sect's mass-drain hero it is worth more
+    // than a damage line would be.
+    description: 'Back hex: +25% Accuracy.',
+    hooks: { accuracyAdd: 0.25 },
+  });
+
+  def('the_warm_spot', {
+    position: POSITION.CENTER,
+    name: 'The Warm Spot',
+    description: 'Center hex: +25% healing done.',
+    hooks: { healBoostAdd: 0.25 },
+  });
+
+  def('deep_keel', {
+    position: POSITION.FRONT,
+    name: 'Deep Keel',
+    // The 4-piece early, for one cat and only while it holds its hex --
+    // a party that has not yet fielded four still has an answer to a
+    // drain team, and it is standing in the front rank where it can be
+    // killed for it.
+    description: 'Front hex: this hero cannot be pushed backwards in the order.',
+    hooks: { meterGuard: true },
+  });
+
   return P;
 })();
