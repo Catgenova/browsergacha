@@ -1215,6 +1215,114 @@ test('star ups and skill ups are paid for in heroes', () => {
   }
 });
 
+test('a common scroll is half dumplings, on its own star ladder', () => {
+  const { Gacha } = g;
+  // The tables first. A ladder has to BE a ladder: consecutive rungs,
+  // shares adding to exactly one, and each rung rarer than the one
+  // below it -- a 5-star dumpling that fell out more often than a
+  // 1-star would be a typo nobody would ever notice in play.
+  assert(Gacha.DUMPLING_CHANCE.common === 0.50,
+    `common pays out dumplings ${Gacha.DUMPLING_CHANCE.common} of the time`);
+  for (const kind of ['rare', 'temporal']) {
+    assert(!(kind in Gacha.DUMPLING_CHANCE),
+      `the ${kind} scroll has a dumpling rate; those scrolls sell heroes`);
+  }
+  const ladder = Gacha.DUMPLING_STARS;
+  const sum = ladder.reduce((a, r) => a + r.p, 0);
+  assert(Math.abs(sum - 1) < 1e-9, `the dumpling ladder sums to ${sum}, not 1`);
+  for (let i = 1; i < ladder.length; i++) {
+    assert(ladder[i].stars === ladder[i - 1].stars - 1,
+      `the ladder jumps ${ladder[i - 1].stars}\u2605 to ${ladder[i].stars}\u2605`);
+    assert(ladder[i].p > ladder[i - 1].p,
+      `${ladder[i].stars}\u2605 is not commoner than ${ladder[i - 1].stars}\u2605`);
+  }
+
+  // And the roll honours them. Seeded, so this is a fact about the
+  // tables rather than a coin toss that fails one run in fifty.
+  g.seed(20260829);
+  const N = 20000;
+  const seen = { hero: 0 };
+  for (const r of ladder) seen[r.stars] = 0;
+  for (let i = 0; i < N; i++) {
+    const stars = Gacha.rollDumpling('common');
+    if (stars === null) seen.hero++;
+    else seen[stars]++;
+  }
+  g.unseed();
+  const share = (n) => n / N;
+  assert(Math.abs(share(seen.hero) - 0.5) < 0.02,
+    `${(share(seen.hero) * 100).toFixed(1)}% of common pulls were heroes, not 50%`);
+  for (const r of ladder) {
+    // The rung's share of the WHOLE scroll: its place on the ladder
+    // times the half of the scroll the ladder gets at all.
+    const want = r.p * Gacha.DUMPLING_CHANCE.common;
+    assert(Math.abs(share(seen[r.stars]) - want) < 0.015,
+      `${r.stars}\u2605 dumplings came out ${(share(seen[r.stars]) * 100).toFixed(1)}% ` +
+      `of the time, wanted ${(want * 100).toFixed(1)}%`);
+  }
+
+  // Nothing else draws them. The hero half keeps the band rates it
+  // always had, untouched by any of this.
+  g.seed(7);
+  for (let i = 0; i < 500; i++) {
+    assert(Gacha.rollDumpling('rare') === null &&
+      Gacha.rollDumpling('temporal') === null,
+      'a rare or temporal scroll rolled a dumpling');
+  }
+  g.unseed();
+  const common = Gacha.RATES.common;
+  assert(Math.abs(common.reduce((a, r) => a + r.p, 0) - 1) < 1e-9,
+    'the common hero band no longer sums to one');
+  assert(common.find((r) => r.rarity === 1).p === 0.60 &&
+    common.find((r) => r.rarity === 2).p === 0.30 &&
+    common.find((r) => r.rarity === 3).p === 0.10,
+    'the hero half of the common scroll moved off 60/30/10');
+});
+
+test('a common pull pays out dumplings into the bag, never into the roster', () => {
+  const { GameState, Gacha } = g;
+  GameState.addScrolls('common', 400);
+  const roster = GameState.rosterCount();
+  const stored = GameState.storageCount();
+  const bag = GameState.dumplingCount();
+  const results = Gacha.pull('common', 200);
+  assert(Array.isArray(results), `the pull was refused: ${JSON.stringify(results)}`);
+
+  const dumplings = results.filter((r) => r.dumpling);
+  const heroes = results.filter((r) => !r.dumpling);
+  assert(dumplings.length > 50 && dumplings.length < 150,
+    `${dumplings.length} of 200 were dumplings; the rate is meant to be half`);
+
+  // A dumpling result carries the star rating as its rarity, because
+  // that is what the card, its border and the reveal sound all read.
+  for (const d of dumplings) {
+    assert(d.def && d.def.id === 'dumpling', `a dumpling result carried ${d.def && d.def.id}`);
+    assert(d.stars === d.rarity && d.stars >= 1 && d.stars <= 5,
+      `a dumpling came out at ${d.stars} stars / rarity ${d.rarity}`);
+    assert(d.uid === null && d.stored === false && d.blessing === null,
+      'a dumpling result is dressed as a roster hero');
+  }
+  for (const h of heroes) {
+    assert(!h.def.consumable, `a hero result was ${h.def.id}`);
+    assert(h.rarity >= 1 && h.rarity <= 3, `a common pull rolled a ${h.rarity}-star hero`);
+  }
+
+  // Every dumpling is in the bag and none of them is on a shelf.
+  assert(GameState.dumplingCount() === bag + dumplings.length,
+    `${dumplings.length} dumplings pulled, ` +
+    `${GameState.dumplingCount() - bag} reached the bag`);
+  assert(GameState.rosterCount() + GameState.storageCount() ===
+    roster + stored + heroes.length,
+    'the shelves moved by something other than the heroes');
+  // And the bag holds them at the ratings they were pulled at.
+  const wanted = {};
+  for (const d of dumplings) wanted[d.stars] = (wanted[d.stars] || 0) + 1;
+  for (const [stars, n] of Object.entries(wanted)) {
+    assert(GameState.dumplingsAt(Number(stars)) >= n,
+      `pulled ${n} at ${stars}\u2605, bag holds ${GameState.dumplingsAt(Number(stars))}`);
+  }
+});
+
 test('a full roster overflows into the vault, and only a full vault refuses', () => {
   const { GameState, Gacha } = g;
   const max = GameState.MAX_ROSTER;
@@ -1240,13 +1348,17 @@ test('a full roster overflows into the vault, and only a full vault refuses', ()
   // arriving here must not touch either shelf.
   const roomBefore = GameState.rosterCount();
   const vaultBefore = GameState.storageCount();
+  // Relative to what is already in the bag: common pulls stock it now,
+  // so an earlier test in this file may well have left 2-stars in it.
+  const heldBefore = GameState.dumplingsAt(2);
   const dump = GameState.addDumpling(2);
   assert(dump && dump.stars === 2 && dump.stored === undefined,
     `dumpling intake returned ${JSON.stringify(dump)}`);
   assert(GameState.rosterCount() === roomBefore &&
     GameState.storageCount() === vaultBefore,
     'a dumpling took a shelf slot on a full account');
-  assert(GameState.dumplingsAt(2) === 1, 'the dumpling did not reach the bag');
+  assert(GameState.dumplingsAt(2) === heldBefore + 1,
+    'the dumpling did not reach the bag');
 
   // A pull that cannot fit is still refused whole rather than
   // part-filled -- but "fit" counts the vault now.
@@ -1263,10 +1375,38 @@ test('a full roster overflows into the vault, and only a full vault refuses', ()
   const bagBefore = GameState.dumplingCount();
   assert(GameState.addDumpling(1), 'a dumpling was refused by a full account');
   assert(GameState.dumplingCount() === bagBefore + 1, 'the dumpling did not land');
+  // And the pull itself splits the same way. Half of every common
+  // scroll is a dumpling, which needs no shelf -- so a full account
+  // refuses the pulls that roll a HERO and honours the ones that roll a
+  // dumpling. It has to do BOTH: refusing outright would mean the
+  // account that most needs a dumpling is the one that cannot buy one,
+  // and honouring outright would drop heroes on the floor.
+  GameState.addScrolls('common', 200);
   const scrolls = GameState.scrollsCommon;
-  const res = Gacha.pull('common', 1);
-  assert(res && res.error === 'roster-full', `expected a refusal, got ${JSON.stringify(res)}`);
-  assert(GameState.scrollsCommon === scrolls, 'the scroll was spent on nothing');
+  let refused = 0;
+  let got = 0;
+  for (let i = 0; i < 60; i++) {
+    const bag = GameState.dumplingCount();
+    const r = Gacha.pull('common', 1);
+    if (r && r.error === 'roster-full') {
+      refused++;
+      assert(GameState.dumplingCount() === bag, 'a refused pull still paid out');
+      continue;
+    }
+    assert(Array.isArray(r) && r.length === 1 && r[0].dumpling,
+      `a full account handed over ${JSON.stringify(r)}`);
+    assert(r[0].uid === null, 'a dumpling pull claimed a roster uid');
+    assert(GameState.dumplingCount() === bag + 1, 'the dumpling never reached the bag');
+    got++;
+  }
+  assert(refused > 0, '60 pulls on a full account and not one was refused');
+  assert(got > 0, '60 pulls on a full account and not one dumpling got through');
+  assert(GameState.rosterCount() === max && GameState.storageCount() ===
+    GameState.MAX_STORAGE, 'the dumpling pulls moved a shelf');
+  // A refusal costs nothing; only the pulls that paid out were charged.
+  assert(GameState.scrollsCommon === scrolls - got,
+    `${scrolls} scrolls became ${GameState.scrollsCommon} over ${got} paid pulls ` +
+    `and ${refused} refusals`);
 });
 
 test('a campaign node is the same fight every time it is opened', () => {

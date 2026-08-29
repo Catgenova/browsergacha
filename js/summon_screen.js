@@ -272,7 +272,7 @@ class SummonScreen {
   }
 
   buildCard(res) {
-    const { def, rarity, isNew, copies, blessing, uid } = res;
+    const { def, rarity, isNew, copies, blessing, uid, dumpling } = res;
 
     const card = document.createElement('div');
     card.className = `summon-card rarity-${rarity}`;
@@ -315,8 +315,13 @@ class SummonScreen {
     // NEW! is first-ever-collected (compendium-new), not new-to-roster:
     // re-summoning a character you once spent reads as a return visit.
     const status = document.createElement('div');
-    status.className = isNew ? 'card-new' : 'card-dupe';
-    status.textContent = isNew ? 'NEW!'
+    // A dumpling is not collected, so NEW / dupe says nothing about it.
+    // What matters is how many of that rating are now in the bag, which
+    // is the number the Star Up tab will offer to spend.
+    status.className = dumpling ? 'card-dupe' : isNew ? 'card-new' : 'card-dupe';
+    status.textContent = dumpling
+      ? `\u00d7${copies} in the bag`
+      : isNew ? 'NEW!'
       : copies > 1 ? `\u00d7${copies} in roster` : 'Collected before';
 
     front.append(portrait, name, element, stars, status);
@@ -344,13 +349,19 @@ class SummonScreen {
     card.appendChild(inner);
 
     // A summon card is also a link: straight to this hero's compendium
-    // page, where the kit and animations live.
-    card.title = `Open ${def.name} in the compendium`;
-    card.classList.add('summon-linked');
-    card.addEventListener('click', () => {
-      this.app.screens.compendium.openHero(def.id);
-      this.app.showScreen('compendium');
-    });
+    // page, where the kit and animations live. A dumpling has no page --
+    // it is deliberately not in HEROES -- so its card is inert and says
+    // where the thing actually goes instead.
+    if (dumpling) {
+      card.title = `${rarity}\u2605 Dumpling \u2014 spend it on the Roster's Star Up tab`;
+    } else {
+      card.title = `Open ${def.name} in the compendium`;
+      card.classList.add('summon-linked');
+      card.addEventListener('click', () => {
+        this.app.screens.compendium.openHero(def.id);
+        this.app.showScreen('compendium');
+      });
+    }
     return card;
   }
 
