@@ -1,6 +1,6 @@
-// The Shop: everything Diamonds buy, in one place — summon scrolls and
-// capacity expansions. Prices and ceilings live in GameState; this
-// screen just sells them.
+// The Shop: everything Diamonds buy, in one place — summon scrolls,
+// dumplings, and capacity expansions. Prices and ceilings live in
+// GameState; this screen just sells them.
 
 class ShopScreen {
   constructor(app) {
@@ -36,6 +36,19 @@ class ShopScreen {
     } else if (what === 'storage') {
       result = GameState.expandStorage();
       this.message = result ? `Storage expanded to ${result} heroes.` : '';
+    } else if (what.startsWith('dumpling')) {
+      const stars = Number(what.slice('dumpling'.length));
+      result = GameState.buyDumpling(stars);
+      if (result && result.error === 'no-room') {
+        this.message = 'The roster and the vault are both full — no Diamonds spent.';
+        this.render();
+        return;
+      }
+      this.message = result
+        ? `A ${stars}★ Dumpling, worth ${Progression.starValue(stars, DUMPLINGS.dumpling)
+          .toLocaleString('en-US')} star-up points` +
+          (result.stored ? ' — the roster is full, so it went to storage.' : '.')
+        : '';
     }
     if (result === null || result === false) this.message = 'Not enough Diamonds.';
     else if (typeof Sound !== 'undefined') Sound.play('click');
@@ -80,6 +93,23 @@ class ShopScreen {
         buy: 'temporal', price: GameState.TEMPORAL_COST,
         disabled: d < GameState.TEMPORAL_COST,
       })}
+
+      <div class="shop-section">Dumplings
+        <span class="shop-hint">— fodder for star-ups; 🥟 ${
+          GameState.dumplingCount().toLocaleString('en-US')} in hand</span></div>
+      ${Object.keys(GameState.DUMPLING_PRICES).map(Number).sort((a, b) => a - b)
+        .map((stars) => {
+          const price = GameState.dumplingPrice(stars);
+          const pts = Progression.starValue(stars, DUMPLINGS.dumpling);
+          return row({
+            icon: '🥟', name: `1 ${stars}★ Dumpling`,
+            detail: `Worth <b>${pts.toLocaleString('en-US')}</b> star-up points — ` +
+              `${(pts / price).toFixed(2)} per 💎.`,
+            buy: `dumpling${stars}`, price,
+            disabled: d < price || !GameState.intakeShelf(),
+            note: !GameState.intakeShelf() ? 'No room' : '',
+          });
+        }).join('')}
 
       <div class="shop-section">Capacity</div>
       ${row({

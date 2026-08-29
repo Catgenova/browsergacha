@@ -14450,4 +14450,73 @@ test('planDumplingFill takes the least it can, and everything when that is not e
   assert(second, 'unused target');
 });
 
+// The dumpling counter in the Diamond Shop.
+test('the dumpling shop prices 4* to 8* and never sells a worse deal upward', () => {
+  const G = loadGame();
+  const { GameState, Progression, DUMPLINGS } = G;
+  const D = DUMPLINGS.dumpling;
+
+  // Only the middle of the ladder is for sale. A 1-star is what a lucky
+  // battle drop pays and is not worth a transaction; 9s and 10s are the
+  // top of the Kitchen board and should not be purchasable at all.
+  const onSale = Object.keys(GameState.DUMPLING_PRICES).map(Number).sort((a, b) => a - b);
+  assert(onSale.join(',') === '4,5,6,7,8',
+    `the counter sells ${onSale.join(',')}, wanted 4,5,6,7,8`);
+  for (const off of [1, 2, 3, 9, 10]) {
+    assert(GameState.dumplingPrice(off) === null, `${off}* is on the counter`);
+    const before = GameState.diamonds;
+    assert(GameState.buyDumpling(off) === null, `${off}* was sold anyway`);
+    assert(GameState.diamonds === before, `buying a ${off}* moved diamonds`);
+  }
+
+  // The two fixed ends.
+  assert(GameState.dumplingPrice(4) === 200, `a 4* costs ${GameState.dumplingPrice(4)}`);
+  assert(GameState.dumplingPrice(8) === 10000, `an 8* costs ${GameState.dumplingPrice(8)}`);
+
+  // Price climbs with the rating, and so does what a diamond buys. The
+  // second is the rule the middle three were chosen by: a player who
+  // buys UP a rung must never get less for their money.
+  let lastPrice = 0;
+  let lastRate = 0;
+  for (const stars of onSale) {
+    const price = GameState.dumplingPrice(stars);
+    const rate = Progression.starValue(stars, D) / price;
+    assert(price > lastPrice, `${stars}* (${price}) is not dearer than the rung below`);
+    assert(rate >= lastRate - 1e-9,
+      `${stars}* pays ${rate.toFixed(3)} points a diamond, worse than the ` +
+      `${lastRate.toFixed(3)} below it`);
+    lastPrice = price;
+    lastRate = rate;
+  }
+
+  // A purchase takes exactly the price and hands over exactly one.
+  GameState.addDiamonds(1000);
+  const purse = GameState.diamonds;
+  const held = GameState.dumplingCount();
+  const got = GameState.buyDumpling(5);
+  assert(got && got.stars === 5, `bought ${JSON.stringify(got)}`);
+  assert(GameState.diamonds === purse - 400,
+    `a 5* cost ${purse - GameState.diamonds}, wanted 400`);
+  assert(GameState.dumplingCount() === held + 1, 'the dumpling did not arrive');
+
+  // Too few diamonds: refused, and nothing moves.
+  const broke = loadGame();
+  const B = broke.GameState;
+  while (B.diamonds > 0) B.spendDiamonds(1);
+  assert(B.buyDumpling(4) === null, 'a dumpling was sold on credit');
+  assert(B.dumplingCount() === 0, 'a dumpling arrived unpaid for');
+
+  // Nowhere to put it: refused BEFORE the diamonds are taken. Charging
+  // for a dumpling the game then cannot hand over would be the worst bug
+  // on that screen.
+  const full = loadGame();
+  const F = full.GameState;
+  F.addDiamonds(20000);
+  while (F.intakeShelf()) F.addHero('silas');
+  const beforeFull = F.diamonds;
+  const res = F.buyDumpling(4);
+  assert(res && res.error === 'no-room', `a full account got ${JSON.stringify(res)}`);
+  assert(F.diamonds === beforeFull, `charged ${beforeFull - F.diamonds} for nothing`);
+});
+
 report();
