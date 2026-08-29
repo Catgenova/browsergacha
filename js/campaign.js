@@ -46,15 +46,25 @@ const Campaign = (() => {
   // the same three things that make a player's team strong. The stat
   // scale stays on top of that: these tiers are the endgame re-run, and
   // the point of clearing a chapter is not to be handed an easier one.
+  // `maxRarity` is the fourth thing that separates them, and the one a
+  // player feels rather than reads. Roaming enemies -- hunts, the tower,
+  // Normal -- are 3-star only, because the thing that band exists to
+  // prevent is a STARTER team meeting a signature kit: Aniani's mirrors,
+  // Sawyer's hexes, Polarus's freeze lock. Hard and Expert are the
+  // endgame re-run of a map already cleared, so that reason has expired
+  // and the kits come out.
   const TIERS = [
     { id: 'normal', label: 'Normal', scale: 1, reward: 1, levels: 0,
+      maxRarity: 3,
       blurb: 'The campaign as written.' },
     { id: 'hard', label: 'Hard', scale: 1.6, reward: 2, levels: 5,
-      band: [50, 80], full: true,
-      blurb: 'Full formations, geared, Lv 50 rising to Lv 80. Double rewards.' },
+      band: [50, 80], full: true, maxRarity: 4,
+      blurb: 'Full formations, geared, 4★ enemies, Lv 50 rising to Lv 80. ' +
+        'Double rewards.' },
     { id: 'expert', label: 'Expert', scale: 2.4, reward: 3, levels: 10,
-      band: [80, 100], full: true,
-      blurb: 'Full formations, geared, Lv 80 rising to Lv 100. Triple rewards.' },
+      band: [80, 100], full: true, maxRarity: 5,
+      blurb: 'Full formations, geared, 5★ enemies, Lv 80 rising to Lv 100. ' +
+        'Triple rewards.' },
   ];
   const TIER_IDS = TIERS.map((t) => t.id);
   function tier(tierId) {
@@ -158,10 +168,18 @@ const Campaign = (() => {
   // The chapter's own race pool, split by the same role reading the wave
   // builder uses, so campaign fights have the shape hunts do — a line to
   // break, casters behind it — while staying fixed per node.
-  function poolFor(ch) {
-    const ids = LOCATION_ENEMIES[ch.location] || LOCATION_ENEMIES[0];
+  // The tier decides how wide the cast is, not just how hard it hits:
+  // Normal draws the roaming 3-star band, Hard adds 4-stars and Expert
+  // adds 5-stars. See locationEnemies in js/data/enemies.js.
+  function poolFor(ch, tierId = 'normal') {
+    const ids = typeof locationEnemies === 'function'
+      ? locationEnemies(ch.location, tier(tierId).maxRarity)
+      : (LOCATION_ENEMIES[ch.location] || LOCATION_ENEMIES[0]);
     return ids.map((id) => ENEMIES[id]).filter(Boolean);
   }
+
+  // The rarity ceiling a tier fields, for anything that wants to say so.
+  function maxRarityFor(tierId = 'normal') { return tier(tierId).maxRarity || 3; }
 
   // A real formation, for deploy()'s front/centre/back reading. The
   // position of a slot comes from its pixel offset, so this has to be
@@ -180,7 +198,7 @@ const Campaign = (() => {
     const ch = chapterFor(nodeObj.id);
     if (nodeObj.type === 'boss') return [];
     const into = slots || formation();
-    const pool = poolFor(ch);
+    const pool = poolFor(ch, tierId);
     if (nodeObj.enemies) {
       const defs = nodeObj.enemies.map((id) => ENEMIES[id]).filter(Boolean);
       // A pinned roster is the fight as written, but on a full tier the
@@ -189,7 +207,7 @@ const Campaign = (() => {
       const want = sizeFor(nodeObj, tierId);
       if (defs.length < want) {
         const rand = rng(seedOf(`${nodeObj.id}:fill`));
-        const pool = poolFor(ch).filter((d) => !defs.includes(d));
+        const pool = poolFor(ch, tierId).filter((d) => !defs.includes(d));
         while (defs.length < want && pool.length) {
           defs.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
         }
@@ -204,7 +222,13 @@ const Campaign = (() => {
     const elite = nodeObj.type === 'elite';
     const picked = [];
     if (elite) {
-      const rare = pool.filter((d) => (d.rarity || 1) >= 4);
+      // The pool's RAREST, whatever that is, rather than a hardcoded
+      // "4-star or better". On Normal the pool is flat 3-star and this
+      // was dead code -- the filter could never match -- so an elite
+      // node was led by nothing in particular. Now Hard leads with a
+      // 4-star and Expert with a 5-star, off the same line.
+      const top = Math.max(...pool.map((d) => d.rarity || 1));
+      const rare = pool.filter((d) => (d.rarity || 1) === top);
       if (rare.length) picked.push(rare[Math.floor(rand() * rare.length)]);
     }
     const byRole = {};
@@ -455,7 +479,7 @@ const Campaign = (() => {
     TIERS, TIER_IDS, tier, tierIndex, tierUnlocked, highestTier, clearKey,
     enemyScale, holderScaleFor,
     chapter, node, chapterFor, bossNode, levelFor, sizeFor, encounter, holderScale,
-    gearFor, gearRarityFor, tierNote,
+    gearFor, gearRarityFor, tierNote, maxRarityFor, poolFor,
     chapterUnlocked, nodeUnlocked, nodeCleared, chapterProgress,
     currentChapter, payout, firstClearBonus, nextMission,
     locationUnlocked, bossUnlocked, unlockedLocations,

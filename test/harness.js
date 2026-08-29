@@ -89,7 +89,7 @@ function loadGame(opts = {}) {
   // Top-level `const` in a vm script lives in the context's lexical
   // scope, not on the sandbox object, so surface what the tests need.
   const EXPORTS = ['CONFIG', 'POSITION', 'TEAM', 'HEROES', 'BOSSES', 'ENEMIES', 'Tags',
-    'LOCATION_ENEMIES', 'POSITIONALS', 'SUMMONS', 'DUMPLINGS', 'RACES', 'Elements', 'Gear',
+    'LOCATION_ENEMIES', 'locationEnemies', 'POSITIONALS', 'SUMMONS', 'DUMPLINGS', 'RACES', 'Elements', 'Gear',
     'Progression', 'Abilities', 'Unit', 'AI', 'Meter', 'Hex', 'Quests', 'Battle', 'BattleState', 'GameState', 'Events',
     'Waves', 'Tower', 'CAMPAIGN', 'Campaign', 'ACHIEVEMENTS', 'Gacha',
     'Attune', 'ELEMENTAL_BOSSES', 'DUNGEON_BOSSES', 'ELEMENTS', 'Unit', 'Blessing',

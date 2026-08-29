@@ -682,13 +682,20 @@ test('every hero with art on disk is actually wired to it', () => {
 });
 
 
-test('campaign and hunt waves field 3-star enemies only', () => {
+test('the roaming pool fields 3-star enemies only', () => {
   const { LOCATION_ENEMIES, ENEMIES, HEROES } = g;
   // The roaming pool stands in for the retired 3-star cohorts, so it
   // must stay at that weight: a 4- or 5-star in the pool hands random
   // hunt waves a signature kit (mirrors, hex stacking, freeze lock)
   // against a player who may still be on a starter team. Nodes that
   // want a heavyweight pin it explicitly instead.
+  //
+  // This is the ROAMING pool -- hunts, the Endless Tower and the
+  // campaign's Normal tier. It used to be every campaign fight too, and
+  // the test was named for that. Campaign Hard and Expert now draw
+  // wider (4-star and 5-star respectively) off Campaign.poolFor, which
+  // has its own tests in rules.test.js: the starter-team reason above
+  // has expired by the time a player is re-running a cleared map.
   const offenders = [];
   for (const [loc, ids] of Object.entries(LOCATION_ENEMIES)) {
     assert(ids.length > 0, `location ${loc}: empty enemy pool`);
