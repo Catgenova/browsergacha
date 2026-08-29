@@ -48,11 +48,20 @@ class Unit {
     // definition. The campaign uses it to hold its chapter holders to a
     // curve of their own: the boss roster is unevenly tuned relative to
     // level, and the boss-stage ladder depends on those exact numbers.
+    //
+    // A number scales all three stats. An object -- { hp, atk, def },
+    // each defaulting to 1 -- scales them separately, which the Endless
+    // Tower needs: DEF sits on a SATURATING curve (damage is multiplied
+    // by 300 / (def + 300)), so multiplying it alongside the others buys
+    // near-total immunity and turns a deep floor into a fight neither
+    // side can finish. HP and ATK are linear in their effect and are the
+    // honest knobs. See the header of js/tower.js.
     const k = progress?.statScale;
     if (k && k !== 1) {
-      scaled.hp = Math.max(1, Math.round(scaled.hp * k));
-      scaled.atk = Math.max(1, Math.round(scaled.atk * k));
-      scaled.def = Math.max(0, Math.round(scaled.def * k));
+      const per = typeof k === 'number' ? { hp: k, atk: k, def: k } : k;
+      scaled.hp = Math.max(1, Math.round(scaled.hp * (per.hp ?? 1)));
+      scaled.atk = Math.max(1, Math.round(scaled.atk * (per.atk ?? 1)));
+      scaled.def = Math.max(0, Math.round(scaled.def * (per.def ?? 1)));
     }
     const stats = Gear.applyToStats(scaled, progress?.gear || []);
     this.maxHp = stats.hp;

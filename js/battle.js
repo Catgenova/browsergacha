@@ -24,6 +24,12 @@ class Battle {
     // Turn-limited fights (the World Rift): total unit turns allowed,
     // null = fight to the finish.
     this.turnLimit = null;
+    // Who the clock hands the fight to when `turnLimit` runs out. The
+    // World Rift is a damage race, so its clock expiring is a normal
+    // ending and the player takes it. The Endless Tower's clock is a
+    // DEADLINE -- a floor you cannot kill inside it is a floor you have
+    // not beaten -- so the tower points this at the enemy.
+    this.turnLimitWinner = TEAM.PLAYER;
     this.turnsTaken = 0;
     this.deaths = 0;            // bodies this fight, both sides
     this.activeUnit = null;
@@ -181,21 +187,31 @@ class Battle {
       .sort((a, b) => b.turnMeter - a.turnMeter);
 
     if (ready.length > 0) {
-      // A turn-limited fight (the World Rift) ends when the clock runs
-      // out, whoever is standing — the score is the point, not a kill.
+      // A turn-limited fight ends when the clock runs out, whoever is
+      // standing. For the World Rift the score is the point rather than
+      // a kill, so the player takes it; for the Endless Tower the clock
+      // is a deadline and running it out is a loss (turnLimitWinner).
       if (this.turnLimit && this.turnsTaken >= this.turnLimit) {
         this.activeUnit = null;
         this.state = BattleState.ENDED;
-        if (this.onBattleEnd) this.onBattleEnd(TEAM.PLAYER);
+        if (this.onBattleEnd) this.onBattleEnd(this.turnLimitWinner);
         return;
       }
       this.turnsTaken++;
       if (this.turnLimit) {
         const left = this.turnLimit - this.turnsTaken;
+        // Whose clock this is decides what the countdown says: the rift
+        // is closing on you, the tower floor is running you out of time.
+        const closing = this.turnLimitWinner === TEAM.PLAYER;
         if ([30, 20, 10, 5, 3, 2, 1].includes(left)) {
-          this.log(`The rift closes in ${left} turn${left === 1 ? '' : 's'}!`, 'log-system');
+          this.log(closing
+            ? `The rift closes in ${left} turn${left === 1 ? '' : 's'}!`
+            : `${left} turn${left === 1 ? '' : 's'} left to clear the floor!`,
+          'log-system');
         } else if (left === 0) {
-          this.log('The final turn — the rift is closing!', 'log-system');
+          this.log(closing
+            ? 'The final turn — the rift is closing!'
+            : 'The final turn — clear the floor or fall back!', 'log-system');
         }
       }
       this.beginTurn(ready[0]);
