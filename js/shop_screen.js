@@ -39,15 +39,12 @@ class ShopScreen {
     } else if (what.startsWith('dumpling')) {
       const stars = Number(what.slice('dumpling'.length));
       result = GameState.buyDumpling(stars);
-      if (result && result.error === 'no-room') {
-        this.message = 'The roster and the vault are both full — no Diamonds spent.';
-        this.render();
-        return;
-      }
+      // No room check any more: dumplings are inventory, and an
+      // inventory line cannot fill up.
       this.message = result
         ? `A ${stars}★ Dumpling, worth ${Progression.starValue(stars, DUMPLINGS.dumpling)
-          .toLocaleString('en-US')} star-up points` +
-          (result.stored ? ' — the roster is full, so it went to storage.' : '.')
+          .toLocaleString('en-US')} star-up points. ` +
+          `${GameState.dumplingCount().toLocaleString('en-US')} in hand.`
         : '';
     }
     if (result === null || result === false) this.message = 'Not enough Diamonds.';
@@ -106,8 +103,13 @@ class ShopScreen {
             detail: `Worth <b>${pts.toLocaleString('en-US')}</b> star-up points — ` +
               `${(pts / price).toFixed(2)} per 💎.`,
             buy: `dumpling${stars}`, price,
-            disabled: d < price || !GameState.intakeShelf(),
-            note: !GameState.intakeShelf() ? 'No room' : '',
+            // Diamonds are the only thing that can refuse a sale here.
+            // This used to also require a free roster or vault slot,
+            // because a dumpling needed somewhere to stand -- which
+            // greyed the counter out on exactly the account that most
+            // wanted it. Dumplings are inventory now and cannot run out
+            // of room.
+            disabled: d < price,
           });
         }).join('')}
 

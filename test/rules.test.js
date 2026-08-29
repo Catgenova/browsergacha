@@ -1202,10 +1202,18 @@ test('a full roster overflows into the vault, and only a full vault refuses', ()
   assert(GameState.rosterCount() === max, 'the roster grew past its cap');
   assert(GameState.storedEntry(over.uid), 'the overflow hero is not in the vault');
 
-  // Dumplings take the same road.
+  // Dumplings do NOT take the same road, and that is deliberate: they
+  // are inventory, so a full roster is not their problem. A dumpling
+  // arriving here must not touch either shelf.
+  const roomBefore = GameState.rosterCount();
+  const vaultBefore = GameState.storageCount();
   const dump = GameState.addDumpling(2);
-  assert(dump && dump.stored === true, `dumpling overflow returned ${JSON.stringify(dump)}`);
-  assert(GameState.storedEntry(dump.uid), 'the overflow dumpling is not in the vault');
+  assert(dump && dump.stars === 2 && dump.stored === undefined,
+    `dumpling intake returned ${JSON.stringify(dump)}`);
+  assert(GameState.rosterCount() === roomBefore &&
+    GameState.storageCount() === vaultBefore,
+    'a dumpling took a shelf slot on a full account');
+  assert(GameState.dumplingsAt(2) === 1, 'the dumpling did not reach the bag');
 
   // A pull that cannot fit is still refused whole rather than
   // part-filled -- but "fit" counts the vault now.
@@ -1216,7 +1224,12 @@ test('a full roster overflows into the vault, and only a full vault refuses', ()
   // Fill the vault too, and only then does it refuse.
   while (GameState.intakeShelf()) GameState.addHero('silas');
   assert(GameState.addHero('silas') === null, 'a hero was added with nowhere to go');
-  assert(GameState.addDumpling(1) === null, 'a dumpling was added with nowhere to go');
+  // A dumpling still arrives: it has no shelf to be short of. This is
+  // the whole point of moving them off the roster -- the account that
+  // most needs a dumpling is the one that has run out of room.
+  const bagBefore = GameState.dumplingCount();
+  assert(GameState.addDumpling(1), 'a dumpling was refused by a full account');
+  assert(GameState.dumplingCount() === bagBefore + 1, 'the dumpling did not land');
   const scrolls = GameState.scrollsCommon;
   const res = Gacha.pull('common', 1);
   assert(res && res.error === 'roster-full', `expected a refusal, got ${JSON.stringify(res)}`);
@@ -14262,7 +14275,7 @@ test('star points: the table, the rollover, and the cascade', () => {
 // codebase had no precedent for -- summons are hero-shaped but never
 // owned, and everything else in the roster is a fighter. So the rules
 // that keep it out of the places it does not belong are pinned here.
-test('a dumpling is roster fodder and nothing else', () => {
+test('a dumpling is inventory, not a roster entry', () => {
   const G = loadGame();
   const { GameState, Progression, HEROES, DUMPLINGS } = G;
 
@@ -14273,15 +14286,20 @@ test('a dumpling is roster fodder and nothing else', () => {
   assert(!HEROES.dumpling, 'the dumpling leaked into HEROES');
   assert(DUMPLINGS && DUMPLINGS.dumpling, 'there is no dumpling to test');
 
+  // And it is not a roster entry either, which is the thing that
+  // changed. It used to hold a uid and a slot, so it cost roster room
+  // and could overflow into a vault that could not spend it. A bag
+  // counted by star has no slot to hold and nothing to overflow into.
+  const before = GameState.rosterCount();
   const got = GameState.addDumpling(3);
-  assert(got && got.stars === 3, `addDumpling returned ${JSON.stringify(got)}`);
-  const uid = got.uid;
-
-  // ...but defOf still resolves it, which is what lets it be listed,
-  // sorted, favourited and spent like anyone else.
-  assert(GameState.defOf(uid) === DUMPLINGS.dumpling, 'defOf lost the dumpling');
-  assert(GameState.isConsumable(uid), 'the dumpling does not read as consumable');
+  assert(got && got.stars === 3 && got.n === 1,
+    `addDumpling returned ${JSON.stringify(got)}`);
+  assert(got.uid === undefined, 'a dumpling was handed a roster uid');
+  assert(GameState.rosterCount() === before, 'a dumpling took a roster slot');
   assert(GameState.dumplingCount() === 1, 'the count disagrees');
+  assert(GameState.dumplingsAt(3) === 1, 'the bag did not record the rating');
+  assert(JSON.stringify(GameState.dumplingBag()) === '{"3":1}',
+    `the bag reads ${JSON.stringify(GameState.dumplingBag())}`);
 
   // Its own price ladder, not the factorials.
   const WANT = [10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000];
@@ -14289,81 +14307,163 @@ test('a dumpling is roster fodder and nothing else', () => {
     assert(Progression.starValue(st, DUMPLINGS.dumpling) === WANT[st - 1],
       `${st}* dumpling is worth ${Progression.starValue(st, DUMPLINGS.dumpling)}, ` +
       `wanted ${WANT[st - 1]}`);
+    assert(GameState.dumplingValue(st) === WANT[st - 1],
+      `dumplingValue(${st}) is ${GameState.dumplingValue(st)}`);
   }
   // A hero of the same rating is still priced off the factorials: the
   // override is per-def, not a change to the table.
   assert(Progression.starValue(3) === 6, 'the hero table moved');
-  assert(GameState.fodderValue(uid) === 100, `a 3* dumpling banked ${GameState.fodderValue(uid)}`);
+  assert(GameState.dumplingPoints() === 100,
+    `the bag is worth ${GameState.dumplingPoints()}`);
 
-  // It cannot be placed on a formation.
-  assert(GameState.setTeamSlot(0, uid) === false, 'a dumpling was seated');
-  assert(GameState.teamSlotOf(uid) === null, 'a dumpling reached the board anyway');
-
-  // It cannot be a star-up TARGET -- feeding a roster into a thing whose
-  // only purpose is to be fed to something else is how a player loses
-  // everything at once.
-  //
-  // The fodder here is made SPENDABLE on purpose. Reaching for a starter
-  // instead let this assertion pass with the guard deleted: starters
-  // arrive favourited or fielded, canSacrifice refuses them, and
-  // sacrifice() returned null well before it ever asked what the target
-  // was. A guard that cannot be reached is a guard that is not tested.
+  // It never appears among the heroes offered as fodder -- it is not a
+  // hero and has its own shelf on the panel.
   const heroId = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === 1);
-  const spendable = GameState.addHero(heroId).uid;
-  if (GameState.isFavorite(spendable)) GameState.toggleFavorite(spendable);
-  assert(GameState.canSacrifice(spendable, uid),
-    'the fodder for this check is not actually spendable');
-  assert(GameState.sacrifice(uid, [spendable]) === null,
-    'a dumpling accepted a sacrifice');
-  assert(GameState.defOf(spendable), 'the refused sacrifice ate the hero anyway');
+  const heroUid = GameState.addHero(heroId).uid;
+  if (GameState.isFavorite(heroUid)) GameState.toggleFavorite(heroUid);
+  const target = GameState.addHero(heroId).uid;
+  const offered = GameState.sacrificeOptions(target);
+  assert(offered.every((o) => GameState.defIdOf(o.uid) !== 'dumpling'),
+    'a dumpling turned up in the hero sacrifice list');
+  assert(offered.every((o) => o.consumable === undefined),
+    'sacrificeOptions still carries a consumable flag');
 
-  const heroUid = spendable;
-
-  // It IS offered as fodder, and with no duplicate of the target in the
-  // roster it leads the list.
-  const offered = GameState.sacrificeOptions(heroUid);
-  assert(offered.length && offered[0].uid === uid,
-    'the dumpling is not at the top of the sacrifice list');
-  assert(offered[0].value === 100, `offered at ${offered[0].value}`);
-
-  // ...but a DUPLICATE outranks it. A duplicate is the only fodder that
-  // buys something a dumpling cannot -- a skill level -- and it is the
-  // row a player would be sorry to scroll past. Dumplings led this list
-  // for a while, on the reasoning that they exist only to be eaten;
-  // that put the one irreplaceable row underneath them.
-  const twin = GameState.addHero(GameState.defIdOf(heroUid)).uid;
-  if (GameState.isFavorite(twin)) GameState.toggleFavorite(twin);
-  const withTwin = GameState.sacrificeOptions(heroUid);
-  assert(withTwin[0].uid === twin,
-    'a duplicate does not lead the list ahead of a dumpling');
-  assert(withTwin[0].skill === true, 'the leading row is not a skill up');
-  const dumpAt = withTwin.findIndex((o) => o.uid === uid);
-  const twinAt = withTwin.findIndex((o) => o.uid === twin);
-  assert(twinAt < dumpAt, `the duplicate sits at ${twinAt}, the dumpling at ${dumpAt}`);
-  // And the dumpling still outranks the ordinary strangers below it.
-  //
-  // The stranger is deliberately CHEAPER than the dumpling (a 1-star
-  // against a 3-star). Without one, the tie-break below the consumable
-  // key -- cheapest first -- would have put the dumpling on top anyway,
-  // and this assertion passed with the consumable key deleted entirely.
-  const cheapId = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === 1 &&
-    k !== GameState.defIdOf(heroUid));
-  const stranger = GameState.addHero(cheapId).uid;
-  if (GameState.isFavorite(stranger)) GameState.toggleFavorite(stranger);
-  const mixed = GameState.sacrificeOptions(heroUid);
-  const at = (u) => mixed.findIndex((o) => o.uid === u);
-  assert(GameState.progressOf(stranger).stars < GameState.progressOf(uid).stars,
-    'the stranger is not cheaper than the dumpling, so this proves nothing');
-  assert(at(twin) < at(uid), 'the duplicate fell below the dumpling');
-  assert(at(uid) < at(stranger),
-    `the dumpling (${at(uid)}) sank below a cheaper stranger (${at(stranger)})`);
-  const bankBefore = GameState.progressOf(heroUid).starPoints || 0;
-  const report = GameState.sacrifice(heroUid, [uid]);
+  // Eaten through the bag, and the points land.
+  const bankBefore = GameState.progressOf(target).starPoints || 0;
+  const report = GameState.sacrifice(target, [], { 3: 1 });
   assert(report && report.points === 100, `paid ${report && report.points}`);
-  assert(!GameState.defOf(uid), 'the eaten dumpling is still in the roster');
-  const bankAfter = GameState.progressOf(heroUid).starPoints || 0;
+  assert(report.dumplings === 1, `ate ${report.dumplings} dumplings`);
+  assert(report.spent === 0, 'a hero was eaten too');
+  assert(GameState.dumplingCount() === 0, 'the bag did not shrink');
+  const bankAfter = GameState.progressOf(target).starPoints || 0;
   assert(report.starred || bankAfter === bankBefore + 100,
     `banked ${bankAfter}, wanted ${bankBefore + 100}`);
+
+  // The bag never pays out more than it holds.
+  GameState.addDumpling(1, 2);
+  const over = GameState.sacrifice(target, [], { 1: 99 });
+  assert(over.dumplings === 2, `${over.dumplings} came out of a bag holding 2`);
+  assert(GameState.dumplingCount() === 0, 'the bag went negative');
+});
+
+test('a full roster no longer costs a dumpling anything', () => {
+  // The bug this whole change exists to kill. Dumplings used to
+  // overflow into the vault once the roster filled, and a vaulted
+  // dumpling could not be spent -- so the shelf a dumpling landed on
+  // when the roster was fullest was the one shelf it was useless on,
+  // and the roster is fullest exactly when a player is buying dumplings
+  // to star up and clear it.
+  const G = loadGame();
+  const { GameState, HEROES } = G;
+  const filler = Object.keys(HEROES)[0];
+  let guard = 0;
+  while (GameState.rosterCount() < GameState.MAX_ROSTER && guard++ < 400) {
+    if (!GameState.addHero(filler)) break;
+  }
+  assert(GameState.rosterCount() === GameState.MAX_ROSTER, 'the roster did not fill');
+  assert(GameState.storageCount() === 0, 'the vault is not empty to start');
+
+  GameState.addDiamonds(500000);
+  const bought = [];
+  for (let i = 0; i < 3; i++) bought.push(GameState.buyDumpling(8));
+  assert(bought.every((b) => b && b.stars === 8), 'the shop refused on a full roster');
+  assert(bought.every((b) => !b.error), 'the shop reported no room');
+  assert(GameState.dumplingCount() === 3, `${GameState.dumplingCount()} in hand`);
+  assert(GameState.storageCount() === 0, 'a dumpling reached the vault');
+  assert(GameState.rosterCount() === GameState.MAX_ROSTER,
+    'a dumpling displaced a hero');
+
+  // And they are spendable, which is the point.
+  const target = GameState.ownedHeroIds().find((id) =>
+    !GameState.isFavorite(id) && GameState.teamSlotOf(id) === null);
+  assert(GameState.starUpAffordable(target),
+    '150,000 points in hand and the readout says it cannot be paid');
+  const r = GameState.sacrifice(target, [], { 8: 3 });
+  assert(r && r.points === 150000, `the bag paid ${r && r.points}`);
+  assert(r.to > r.from, `${r.from}★ did not climb on 150,000 points`);
+});
+
+test('planDumplingFill takes the least it can, and everything when short', () => {
+  const G = loadGame();
+  const { GameState, HEROES } = G;
+  const heroId = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === 1);
+  const target = GameState.addHero(heroId).uid;
+  // A 1★ needs 2 points to reach 2★, so a single 1★ dumpling (10) is
+  // already too much -- and the plan must not take a second.
+  GameState.addDumpling(1, 4);
+  const plan = GameState.planDumplingFill(target, []);
+  assert(plan.n === 1, `took ${plan.n} dumplings for a 2-point bar`);
+  assert(JSON.stringify(plan.bag) === '{"1":1}', JSON.stringify(plan.bag));
+  assert(plan.short === 0, 'the plan reported itself short');
+
+  // Cheapest first: with a big one and small ones in the bag, the small
+  // ones go first while they are enough.
+  const G2 = loadGame();
+  const t2 = G2.GameState.addHero(heroId).uid;
+  G2.GameState.addDumpling(8, 1);
+  G2.GameState.addDumpling(1, 1);
+  const p2 = G2.GameState.planDumplingFill(t2, []);
+  assert(JSON.stringify(p2.bag) === '{"1":1}',
+    `an 8★ was spent when a 1★ would have done: ${JSON.stringify(p2.bag)}`);
+
+  // Not enough: everything goes in, and the plan says how far short.
+  const G3 = loadGame();
+  const big = Object.keys(G3.HEROES).find((k) => (G3.HEROES[k].rarity || 1) >= 4);
+  const t3 = G3.GameState.addHero(big).uid;
+  G3.GameState.addDumpling(1, 2);
+  const p3 = G3.GameState.planDumplingFill(t3, []);
+  assert(p3.n === 2, `took ${p3.n} of 2`);
+  assert(p3.short > 0, 'a 20-point bag covered a 4★ star up');
+  assert(p3.points === 20, `counted ${p3.points}`);
+});
+
+test('an old save\'s dumplings are rescued out of the roster and the vault', () => {
+  // The migration. A save written before this change has dumplings as
+  // roster and storage entries; they must come back as bag counts with
+  // nothing lost and the slots returned.
+  const save = {
+    // Stamped at the current schema on purpose. Dumplings postdate every
+    // migration in the table, so a real save holding one is already
+    // here; starting at 0 would run migration 7, which rebuilds the
+    // roster keyed by character and would collapse the three 8-stars
+    // into one before the sweep ever saw them.
+    schemaVersion: 7,
+    starters: { },
+    roster: {
+      '1': { heroId: 'dumpling', level: 1, xp: 0, stars: 8, equipment: {}, skills: {} },
+      '2': { heroId: 'dumpling', level: 1, xp: 0, stars: 8, equipment: {}, skills: {} },
+      '3': { heroId: 'dumpling', level: 1, xp: 0, stars: 1, equipment: {}, skills: {} },
+    },
+    storage: {
+      '4': { heroId: 'dumpling', level: 1, xp: 0, stars: 8, equipment: {}, skills: {} },
+      '5': { heroId: 'dumpling', level: 1, xp: 0, stars: 5, equipment: {}, skills: {} },
+    },
+    // And limbo, which is where roster dumplings were quietly ending up:
+    // the guard that parks entries with no HEROES definition never knew
+    // about the dumpling table, so one standing in the roster was
+    // limboed on the next load and vanished from every screen. The sweep
+    // has to run before that guard AND collect what it already took.
+    limbo: {
+      '9': { heroId: 'dumpling', level: 1, xp: 0, stars: 6, equipment: {}, skills: {} },
+    },
+    nextHeroUid: 10,
+  };
+  const G = loadGame({ save });
+  const bag = G.GameState.dumplingBag();
+  assert(G.GameState.dumplingCount() === 6,
+    `${G.GameState.dumplingCount()} of 6 dumplings survived the migration`);
+  assert(bag['8'] === 3, `${bag['8']} 8-stars, wanted 3 (roster AND vault)`);
+  assert(bag['1'] === 1 && bag['5'] === 1 && bag['6'] === 1, JSON.stringify(bag));
+  // The slots come back. The starters land on the empty roster after
+  // the sweep, so what matters is that no DUMPLING is left standing on
+  // either shelf.
+  assert(G.GameState.ownedHeroIds().every((id) => G.GameState.defIdOf(id) !== 'dumpling'),
+    'a dumpling was left in the roster');
+  assert(G.GameState.storageCount() === 0, `${G.GameState.storageCount()} left in the vault`);
+  // And nothing of value was lost: 3x50,000 + 10 + 1,000 + 5,000.
+  assert(G.GameState.dumplingPoints() === 156010,
+    `the rescued bag is worth ${G.GameState.dumplingPoints()}`);
+  assert(Object.keys(G.GameState.storedHeroIds()).length === 0, 'the vault kept one');
 });
 
 // The Kitchen: five hundred quests, all of them paying dumplings.
@@ -14409,103 +14509,6 @@ test('the Kitchen board is 500 quests that all pay dumplings', () => {
 });
 
 // The dumpling picker: the smallest set that finishes the bar.
-test('planDumplingFill takes the least it can, and everything when that is not enough', () => {
-  const G = loadGame();
-  const { GameState, Progression, HEROES } = G;
-
-  const fresh = (rarity) => {
-    const id = Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === rarity &&
-      !['light', 'dark'].includes(HEROES[k].element));
-    const uid = GameState.addHero(id).uid;
-    if (GameState.isFavorite(uid)) GameState.toggleFavorite(uid);
-    return uid;
-  };
-  const dump = (st) => GameState.addDumpling(st).uid;
-  const worth = (plan) => plan.uids.reduce((n, u) => n + GameState.fodderValue(u), 0);
-
-  // A 3-star bar wants 24. Twenty-four 1-star dumplings (10 each) are in
-  // hand, and three of them cover it -- the picker must not tick all 24.
-  const target = fresh(3);
-  assert(Progression.starUpCost(GameState.progressOf(target).stars) === 24,
-    'the 3-star bar is not 24 points');
-  for (let i = 0; i < 24; i++) dump(1);
-  let plan = GameState.planDumplingFill(target);
-  assert(plan.uids.length === 3, `took ${plan.uids.length} dumplings, wanted 3`);
-  assert(plan.points === 30 && worth(plan) === 30, `worth ${plan.points}`);
-  assert(plan.short === 0, `reported ${plan.short} short`);
-
-  // THE PRUNE. One 1-star and one 4-star against the same 24-point bar:
-  // greedy-ascending takes the 10, is still short, takes the 500, and has
-  // spent both where the 500 alone would have done. Only the 4-star
-  // should survive.
-  const second = fresh(3);
-  const solo = loadGame();
-  const S = solo.GameState;
-  const id3 = Object.keys(solo.HEROES).find((k) => (solo.HEROES[k].rarity || 1) === 3 &&
-    !['light', 'dark'].includes(solo.HEROES[k].element));
-  const t2 = S.addHero(id3).uid;
-  if (S.isFavorite(t2)) S.toggleFavorite(t2);
-  const small = S.addDumpling(1).uid;
-  const big = S.addDumpling(4).uid;
-  const p2 = S.planDumplingFill(t2);
-  assert(p2.uids.length === 1 && p2.uids[0] === big,
-    `the prune kept ${p2.uids.length} picks: ${JSON.stringify(p2.uids)}`);
-  assert(!p2.uids.includes(small), 'the redundant 1-star survived the prune');
-  assert(p2.short === 0, 'a 500-point dumpling did not cover a 24-point bar');
-
-  // SMALLEST FIRST, and this is the case that says so. A 24-point bar
-  // with three 1-stars (30 between them) and one 5-star (1,000) in hand:
-  // both policies "work", and largest-first spends a thousand points on
-  // a bar that thirty covers. Overflow rolls over so nothing is
-  // destroyed -- but it is not handed back either, and a convenience
-  // button must not make that call for the player.
-  const cheap = loadGame();
-  const C = cheap.GameState;
-  const idc = Object.keys(cheap.HEROES).find((k) => (cheap.HEROES[k].rarity || 1) === 3 &&
-    !['light', 'dark'].includes(cheap.HEROES[k].element));
-  const tc = C.addHero(idc).uid;
-  if (C.isFavorite(tc)) C.toggleFavorite(tc);
-  for (let i = 0; i < 3; i++) C.addDumpling(1);
-  C.addDumpling(5);
-  const pc = C.planDumplingFill(tc);
-  assert(pc.points === 30,
-    `spent ${pc.points} on a 24-point bar that three 1-stars cover for 30`);
-  assert(pc.uids.length === 3, `took ${pc.uids.length} picks, wanted the three cheap ones`);
-  assert(pc.uids.every((u) => C.progressOf(u).stars === 1),
-    'the 5-star dumpling was spent when 1-stars would have done');
-
-  // Not enough: every dumpling in hand is taken and the shortfall named.
-  const third = loadGame();
-  const T = third.GameState;
-  const id4 = Object.keys(third.HEROES).find((k) => (third.HEROES[k].rarity || 1) === 4 &&
-    !['light', 'dark'].includes(third.HEROES[k].element));
-  const t3 = T.addHero(id4).uid;
-  if (T.isFavorite(t3)) T.toggleFavorite(t3);
-  T.addDumpling(1); T.addDumpling(1);        // 20 against a 120-point bar
-  const p3 = T.planDumplingFill(t3);
-  assert(p3.uids.length === 2, `took ${p3.uids.length} of the two available`);
-  assert(p3.points === 20 && p3.short === 100,
-    `${p3.points} points, ${p3.short} short -- wanted 20 and 100`);
-
-  // It accounts for what is ALREADY ticked rather than re-picking from
-  // scratch: two 1-stars in hand plus a 3-star, with the 1-stars already
-  // chosen, needs only the 3-star on top.
-  T.addDumpling(3);
-  const held = T.sacrificeOptions(t3).filter((o) => o.consumable && o.stars === 1)
-    .map((o) => o.uid);
-  assert(held.length === 2, 'the two 1-star dumplings went missing');
-  const p4 = T.planDumplingFill(t3, held);
-  assert(p4.need === 100, `with 20 already ticked the bar wants ${p4.need}, not 100`);
-  assert(p4.uids.length === 1 && p4.points === 100,
-    `topped up with ${p4.uids.length} picks worth ${p4.points}`);
-
-  // Nothing to do when the picks already cover it.
-  const all = T.sacrificeOptions(t3).filter((o) => o.consumable).map((o) => o.uid);
-  const p5 = T.planDumplingFill(t3, all);
-  assert(p5.uids.length === 0 && p5.need <= 0,
-    `still picked ${p5.uids.length} with the bar covered`);
-  assert(second, 'unused target');
-});
 
 // The dumpling counter in the Diamond Shop.
 test('the dumpling shop prices 4* to 8* and never sells a worse deal upward', () => {
@@ -14563,17 +14566,23 @@ test('the dumpling shop prices 4* to 8* and never sells a worse deal upward', ()
   assert(B.buyDumpling(4) === null, 'a dumpling was sold on credit');
   assert(B.dumplingCount() === 0, 'a dumpling arrived unpaid for');
 
-  // Nowhere to put it: refused BEFORE the diamonds are taken. Charging
-  // for a dumpling the game then cannot hand over would be the worst bug
-  // on that screen.
+  // A full account is no longer a reason to refuse. The counter used to
+  // check for room before taking the diamonds, because a dumpling
+  // needed a shelf to stand on and charging for one the game could not
+  // hand over would have been the worst bug on that screen. There is no
+  // shelf and no room check now: an inventory line cannot fill up, so
+  // the sale always completes.
   const full = loadGame();
   const F = full.GameState;
   F.addDiamonds(20000);
   while (F.intakeShelf()) F.addHero('silas');
   const beforeFull = F.diamonds;
   const res = F.buyDumpling(4);
-  assert(res && res.error === 'no-room', `a full account got ${JSON.stringify(res)}`);
-  assert(F.diamonds === beforeFull, `charged ${beforeFull - F.diamonds} for nothing`);
+  assert(res && res.stars === 4 && !res.error,
+    `a full account got ${JSON.stringify(res)}`);
+  assert(F.diamonds === beforeFull - F.dumplingPrice(4),
+    `charged ${beforeFull - F.diamonds} for a ${F.dumplingPrice(4)} dumpling`);
+  assert(F.dumplingsAt(4) === 1, 'the paid-for dumpling did not arrive');
 });
 
 // The bottom-shelf sweep: tick every spendable hero at or below a rating.
@@ -14834,72 +14843,6 @@ test('banner countdown: h:mm:ss, with days only while there are days', () => {
     'a closed banner reported time left');
 });
 
-test('a dumpling can be eaten out of the vault; a hero cannot', () => {
-  // The bug: overflow sends anything summoned past the roster cap to
-  // storage. That is right for a hero and destroys a dumpling, whose
-  // only purpose is to be eaten by a star-up bar -- and the roster is
-  // fullest exactly when a player is buying dumplings to star up and
-  // clear it. Three 8-star dumplings, 150,000 points, sat in a vault
-  // that could not spend them and on no screen that could.
-  const w = loadGame();
-  const G = w.GameState;
-  const filler = Object.keys(w.HEROES)[0];
-  let guard = 0;
-  while (G.rosterCount() < G.MAX_ROSTER && guard++ < 400) {
-    if (!G.addHero(filler)) break;
-  }
-  assert(G.rosterCount() === G.MAX_ROSTER, 'the roster did not fill');
-  assert(G.intakeShelf() === 'storage', 'a full roster did not overflow to the vault');
 
-  const bought = [];
-  G.addDiamonds(500000);
-  for (let i = 0; i < 3; i++) bought.push(G.buyDumpling(8));
-  assert(bought.every((b) => b && b.stored), 'the dumplings did not go to the vault');
-
-  const target = G.ownedHeroIds().find((id) =>
-    !G.isConsumable(id) && !G.isFavorite(id) && G.teamSlotOf(id) === null);
-  const opts = G.sacrificeOptions(target);
-  const vaulted = opts.filter((o) => o.consumable && o.stored);
-  assert(vaulted.length === 3, `${vaulted.length} vaulted dumplings offered, not 3`);
-  // And the row can say where it came from, so spending out of the
-  // vault is not a silent surprise.
-  assert(vaulted.every((o) => o.value === 50000),
-    `a vaulted 8-star dumpling is worth ${vaulted[0] && vaulted[0].value}`);
-  // A vaulted HERO is still off the menu, which is the safety net this
-  // exception must not punch through.
-  const strandedHero = G.storedHeroIds().find((id) => !G.isConsumable(id));
-  if (strandedHero) {
-    assert(!G.canSacrifice(strandedHero, target), 'a vaulted hero was offered');
-  }
-
-  const before = G.progressOf(target).stars;
-  const r = G.sacrifice(target, vaulted.map((o) => o.uid));
-  assert(r && r.points === 150000, `the vault paid ${r && r.points}`);
-  assert(r.to > before, `${before}★ did not climb on 150,000 points`);
-  // Eaten off the shelf they were actually standing on.
-  assert(G.storageCount() === 0, `${G.storageCount()} left in the vault`);
-  assert(G.dumplingCount() === 0, `${G.dumplingCount()} dumplings survived being eaten`);
-});
-
-test('the vault counts toward what a star up can afford', () => {
-  const w = loadGame();
-  const G = w.GameState;
-  const filler = Object.keys(w.HEROES)[0];
-  let guard = 0;
-  while (G.rosterCount() < G.MAX_ROSTER && guard++ < 400) {
-    if (!G.addHero(filler)) break;
-  }
-  const target = G.ownedHeroIds().find((id) =>
-    !G.isConsumable(id) && !G.isFavorite(id) && G.teamSlotOf(id) === null);
-  // Favourite everything else so the roster alone cannot pay, and the
-  // only thing that can is what the vault is about to hold.
-  for (const id of G.ownedHeroIds()) if (id !== target && !G.isFavorite(id)) G.toggleFavorite(id);
-  assert(!G.starUpAffordable(target), 'a locked roster still claimed it could pay');
-  G.addDiamonds(500000);
-  const got = G.buyDumpling(8);
-  assert(got && got.stored, 'the dumpling did not go to the vault');
-  assert(G.starUpAffordable(target),
-    'the vault held the points and the readout said no');
-});
 
 report();

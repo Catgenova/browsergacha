@@ -252,15 +252,15 @@ const Quests = (() => {
     take('scrollsTemporal', (v) => GameState.addScrolls('temporal', v));
     take('whetstones', (v) => GameState.addWhetstones(v));
     take('arcana', (v) => GameState.addArcana(v));
-    // Dumplings are roster entries, so a full roster refuses them. The
-    // quest is still claimed -- refusing the claim would strand a
-    // finished quest behind a roster the player may never empty -- and
-    // the screen says how many actually landed.
+    // Dumplings are inventory, so every one a quest pays lands. This
+    // used to loop and count, because a full roster could refuse them
+    // and the screen had to say how many actually made it; `made` is
+    // kept in the receipt (the quest screen reads it) and is now always
+    // the number promised.
     const receipt = { handled };
     take('dumplings', ({ stars, n }) => {
-      let made = 0;
-      for (let i = 0; i < n; i++) if (GameState.addDumpling(stars)) made++;
-      receipt.dumplings = { stars, wanted: n, made };
+      GameState.addDumpling(stars, n);
+      receipt.dumplings = { stars, wanted: n, made: n };
     });
     return receipt;
   }

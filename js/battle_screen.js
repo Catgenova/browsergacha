@@ -965,12 +965,12 @@ class BattleScreen {
         // that knows about all of them at once.
         if (Math.random() < 0.01) {
           const stars = this.dumplingStars(battle);
-          const got = GameState.addDumpling(stars);
-          sub.push(got
-            ? `🥟 A ${stars}★ Dumpling rolls out of the wreckage! ` +
-              `Worth ${Progression.starValue(stars, DUMPLINGS.dumpling).toLocaleString()} ` +
-              'star-up points.'
-            : '🥟 A dumpling rolled out — but the roster is full, so it got away.');
+          GameState.addDumpling(stars);
+          // It always lands now: dumplings are inventory, so there is no
+          // full roster to lose one to.
+          sub.push(`🥟 A ${stars}★ Dumpling rolls out of the wreckage! ` +
+            `Worth ${Progression.starValue(stars, DUMPLINGS.dumpling).toLocaleString()} ` +
+            'star-up points.');
         }
         // Random scroll drops (10% Common, 3% Rare) apply outside the
         // tower and the campaign — both pay their own fixed rewards.

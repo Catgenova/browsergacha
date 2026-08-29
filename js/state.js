@@ -220,6 +220,9 @@ const GameState = (() => {
     rosterCapBonus: 0,   // purchased roster room, in tens
     storageCapBonus: 0,  // purchased vault room, in tens
     storage: {},  // parked heroes: same entries, no gear, out of play
+    // Dumplings are INVENTORY, not roster entries: a bag counted by star
+    // rating, `{ '8': 3 }` for three 8-stars. See addDumpling.
+    dumplings: {},
     // Quarantine for roster entries whose character definition failed
     // to load (mid-deploy script failure, removed character). Entries
     // wait here intact and return to the roster when the def is back.
@@ -425,6 +428,34 @@ const GameState = (() => {
     // permanent). Limbo keeps the entry whole — level, stars, gear,
     // favourite — and hands it straight back on the first load where
     // the definition exists again.
+    // Dumplings became INVENTORY, and this has to run before the limbo
+    // guard below. They used to be roster entries with a uid apiece,
+    // which cost a roster slot and, once the roster filled, overflowed
+    // into a vault that could not spend them. A dumpling is not a
+    // character: no element, no kit, no hex, cannot be fielded. A slot
+    // in a roster of characters was never the right home for it.
+    //
+    // LIMBO is swept too, and that is not belt-and-braces. The guard
+    // below parks any roster entry whose heroId is not in HEROES, and
+    // `dumpling` never was -- it lives in its own table, reachable only
+    // through defById. So a dumpling standing in the roster was moved
+    // to limbo on the next load and disappeared from every screen. That
+    // bug predates this change; the sweep collects its victims.
+    //
+    // Nothing is lost: the bag is counted by the same star rating the
+    // entry carried, which is the only thing about a dumpling that was
+    // ever worth anything, and the slots come back.
+    if (!loaded.dumplings) loaded.dumplings = {};
+    if (!loaded.limbo) loaded.limbo = {};
+    for (const shelf of [loaded.roster, loaded.storage, loaded.limbo]) {
+      for (const [uid, entry] of Object.entries(shelf || {})) {
+        if (!entry || entry.heroId !== 'dumpling') continue;
+        const stars = Math.max(1, Math.min(10, Math.round(entry.stars || 1)));
+        loaded.dumplings[stars] = (loaded.dumplings[stars] || 0) + 1;
+        delete shelf[uid];
+      }
+    }
+
     if (!loaded.limbo) loaded.limbo = {};
     if (typeof HEROES !== 'undefined') {
       for (const [uid, entry] of Object.entries(loaded.limbo)) {
@@ -709,34 +740,78 @@ const GameState = (() => {
       return { uid, heroId, isNew, blessing, stored: shelf === 'storage' };
     },
 
-    // Hand the player a dumpling at `stars`. It goes in through the
-    // ordinary roster path so the cap, the save and the listeners behave
-    // exactly as they do for a hero -- a dumpling occupies a roster slot,
-    // which is the price of it sitting where you can see it.
-    addDumpling(stars = 1) {
-      const shelf = this.intakeShelf();
-      if (!shelf) return null;
-      const uid = String(state.nextHeroUid++);
-      const s = Math.max(1, Math.min(Progression.MAX_STARS, Math.round(stars)));
-      const entry = {
-        heroId: 'dumpling',
-        level: 1, xp: 0, stars: s,
-        attune: 0, starPoints: 0,
-        equipment: {}, skills: {}, favorite: false,
-      };
-      if (shelf === 'storage') state.storage[uid] = entry;
-      else state.roster[uid] = entry;
-      save();
-      return { uid, stars: s, stored: shelf === 'storage' };
+    // ---- Dumplings: inventory, not roster ----
+    //
+    // A dumpling used to be a roster entry with a uid of its own. That
+    // made it cost a roster slot, and once the roster filled it
+    // overflowed into the vault -- where the one thing it exists to do
+    // could not be done. Both problems have the same root: a dumpling is
+    // not a character. No element, no kit, no hex, cannot be fielded,
+    // cannot be geared, cannot be levelled. The only fact about one that
+    // has ever mattered is its star rating, because that is what it is
+    // worth when eaten.
+    //
+    // So it is a BAG, counted by star: `{ '8': 3 }` is three 8-stars.
+    // Nothing about it can fill up, overflow, or be locked away, and the
+    // roster is a roster of characters again.
+
+    // A copy of the bag, sparse — only ratings actually held appear.
+    dumplingBag() {
+      const out = {};
+      for (const [stars, n] of Object.entries(state.dumplings || {})) {
+        if (n > 0) out[stars] = n;
+      }
+      return out;
     },
 
-    // How many are in hand. Counts the vault as well as the roster,
-    // because overflow puts them there and a readout that ignored it
-    // would tell a player they own none while a dozen sit in storage.
+    // How many of one rating are in hand.
+    dumplingsAt(stars) {
+      return (state.dumplings || {})[String(stars)] || 0;
+    },
+
+    // Hand the player `n` dumplings at `stars`. This cannot fail: there
+    // is no cap on an inventory line, which is the whole point of the
+    // move off the roster. Returns what was granted.
+    addDumpling(stars = 1, n = 1) {
+      const s = Math.max(1, Math.min(Progression.MAX_STARS, Math.round(stars)));
+      const count = Math.max(1, Math.round(n));
+      state.dumplings[s] = (state.dumplings[s] || 0) + count;
+      save();
+      return { stars: s, n: count, total: this.dumplingCount() };
+    },
+
+    // Take `n` at `stars` out of the bag. Returns how many actually
+    // came out, which is never more than were there.
+    takeDumplings(stars, n) {
+      const s = String(stars);
+      const took = Math.max(0, Math.min(Math.round(n) || 0, state.dumplings[s] || 0));
+      if (!took) return 0;
+      state.dumplings[s] -= took;
+      if (state.dumplings[s] <= 0) delete state.dumplings[s];
+      save();
+      return took;
+    },
+
+    // How many are in hand, all ratings.
     dumplingCount() {
-      const isDump = (e) => e && e.heroId === 'dumpling';
-      return Object.values(state.roster).filter(isDump).length +
-        Object.values(state.storage).filter(isDump).length;
+      return Object.values(state.dumplings || {})
+        .reduce((n, c) => n + (c > 0 ? c : 0), 0);
+    },
+
+    // What one at `stars` is worth in the star-up bank.
+    dumplingValue(stars) {
+      const def = this.defById('dumpling');
+      return Progression.starValue(stars, def);
+    },
+
+    // What the whole bag is worth, or a chosen subset of it.
+    dumplingPoints(bag = null) {
+      const src = bag || state.dumplings || {};
+      let total = 0;
+      for (const [stars, n] of Object.entries(src)) {
+        total += this.dumplingValue(Number(stars)) * (n > 0 ? n : 0);
+      }
+      return total;
     },
 
     // The permanent collection: characters ever obtained, whether or not
@@ -778,8 +853,11 @@ const GameState = (() => {
       return this.defById(this.defIdOf(uid));
     },
 
-    // Is this roster entry a dumpling (or anything else that is fodder
-    // rather than a fighter)?
+    // Kept for the handful of call sites that ask "is this thing a
+    // fighter", and for any save mid-migration. Nothing consumable
+    // stands in the roster any more -- dumplings are inventory -- so on
+    // a migrated save this is false for every uid, which is the answer
+    // those call sites want.
     isConsumable(uid) {
       const def = this.defOf(uid);
       return !!(def && def.consumable);
@@ -886,7 +964,11 @@ const GameState = (() => {
       let bank = e.starPoints || 0;
       const need = Progression.starUpCost(e.stars);
       if (bank >= need) return true;
-      for (const other of Object.keys(state.roster).concat(Object.keys(state.storage))) {
+      // The bag counts: it is spendable in full, at any moment, with no
+      // shelf to be stranded on.
+      bank += this.dumplingPoints();
+      if (bank >= need) return true;
+      for (const other of Object.keys(state.roster)) {
         if (!this.canSacrifice(other, uid)) continue;
         bank += this.fodderValue(other);
         if (bank >= need) return true;
@@ -898,24 +980,17 @@ const GameState = (() => {
     // the team, and not favourited. Locking the team and favourites is
     // the whole safety net on an action that destroys a hero.
     //
-    // A CONSUMABLE can also be spent out of the vault, and it has to be.
-    // Overflow sends anything summoned past the roster cap to storage,
-    // which is right for a hero -- it is out of play until withdrawn --
-    // and destroys a dumpling, whose only purpose is to be eaten by a
-    // star-up bar. Worse, the roster is fullest exactly when a player is
-    // buying dumplings to star up and clear it, so the overflow rule
-    // collided head-on with the reason dumplings exist: three 8-star
-    // dumplings, 150,000 star-up points, sat in a vault that could not
-    // spend them and showed them on no screen that could.
+    // Roster only. A hero in the vault is out of play and stays that
+    // way: putting something somewhere safe must not put it on the menu.
     //
-    // A stored hero stays locked. That is a real safety net -- putting
-    // something somewhere safe must not put it on the menu -- and a
-    // dumpling has nothing to be protected from.
+    // There is no consumable exception here any more, and there is no
+    // longer anything for one to apply to -- dumplings are inventory,
+    // spent through the bag (see sacrifice's `bag` argument) rather than
+    // by uid, so they can never be stranded on a shelf again.
     canSacrifice(uid, targetUid = null) {
       if (uid === targetUid) return false;
-      const e = this.entryOf(uid);
+      const e = state.roster[uid];
       if (!e || e.favorite) return false;
-      if (!state.roster[uid] && !this.isConsumable(uid)) return false;
       return this.teamSlotOf(uid) === null;
     },
 
@@ -932,31 +1007,21 @@ const GameState = (() => {
       const target = state.roster[targetUid];
       if (!target) return [];
       const out = [];
-      // Both shelves. canSacrifice is what decides whether a vault entry
-      // is actually offered -- consumables yes, heroes no -- so this
-      // does not need to know the rule, only to show it the candidates.
-      for (const uid of Object.keys(state.roster).concat(Object.keys(state.storage))) {
+      for (const uid of Object.keys(state.roster)) {
         if (!this.canSacrifice(uid, targetUid)) continue;
-        const e = this.entryOf(uid);
+        const e = state.roster[uid];
         out.push({
           uid, heroId: e.heroId, stars: e.stars, level: e.level,
           skill: e.heroId === target.heroId,
-          consumable: this.isConsumable(uid),
-          // Which shelf it comes off, so the row can say so: spending
-          // something out of the vault should not be a silent surprise.
-          stored: !state.roster[uid],
           value: this.fodderValue(uid),
         });
       }
-      // Duplicates lead, THEN dumplings, then cheapest first.
-      //
-      // Dumplings were on top for a while, on the reasoning that they
-      // exist only to be eaten. But a duplicate is the only fodder that
-      // buys something a dumpling cannot -- a skill level -- and it is
-      // the one row a player would be sorry to scroll past. A dumpling
-      // is never a skill up (the target is never a dumpling, so no
-      // dumpling can share its character), so the two keys never fight.
-      out.sort((a, b) => (b.skill - a.skill) || (b.consumable - a.consumable) ||
+      // Duplicates lead, then cheapest first. A duplicate is the only
+      // fodder that buys something else as well -- a skill level -- and
+      // it is the one row a player would be sorry to scroll past.
+      // Dumplings used to be sorted in here too; they have their own
+      // shelf now and are not heroes to be listed among heroes.
+      out.sort((a, b) => (b.skill - a.skill) ||
         (a.stars - b.stars) || (a.level - b.level));
       return out;
     },
@@ -973,7 +1038,7 @@ const GameState = (() => {
     planStarSweep(targetUid, maxStars, already = []) {
       const skip = new Set(already);
       const uids = this.sacrificeOptions(targetUid)
-        .filter((o) => !o.consumable && o.stars <= maxStars && !skip.has(o.uid))
+        .filter((o) => o.stars <= maxStars && !skip.has(o.uid))
         .map((o) => o.uid);
       return { uids, points: uids.reduce((n, u) => n + this.fodderValue(u), 0) };
     },
@@ -993,32 +1058,39 @@ const GameState = (() => {
     // have done. So the greedy pass is followed by a prune from the
     // dearest down, dropping anything the rest already covers.
     planDumplingFill(targetUid, already = []) {
+      const empty = { bag: {}, n: 0, points: 0, need: 0, short: 0 };
       const e = state.roster[targetUid];
-      if (!e) return { uids: [], points: 0, need: 0, short: 0 };
-      const skip = new Set(already);
+      if (!e) return empty;
       const picked = already.reduce((n, u) => n + this.fodderValue(u), 0);
       const need = Progression.starUpCost(e.stars) - (e.starPoints || 0) - picked;
-      const spare = this.sacrificeOptions(targetUid)
-        .filter((o) => o.consumable && !skip.has(o.uid))
-        .sort((a, b) => a.value - b.value);
-      if (need <= 0) return { uids: [], points: 0, need: 0, short: 0 };
+      if (need <= 0) return empty;
+
+      // Every dumpling in hand, cheapest first, as a flat list of
+      // ratings -- the bag is counted, so a 3-of-a-kind is three entries
+      // here. Smallest first is what makes "the smallest set" mean the
+      // least VALUE spent rather than the fewest bodies.
+      const spare = [];
+      for (const [stars, n] of Object.entries(this.dumplingBag())) {
+        for (let i = 0; i < n; i++) spare.push(Number(stars));
+      }
+      spare.sort((a, b) => this.dumplingValue(a) - this.dumplingValue(b));
 
       const take = [];
       let have = 0;
-      for (const o of spare) {
+      for (const stars of spare) {
         if (have >= need) break;
-        take.push(o);
-        have += o.value;
+        take.push(stars);
+        have += this.dumplingValue(stars);
       }
       // `take` is ascending, so walking it backwards drops the dearest
       // redundant pick first.
       for (let i = take.length - 1; i >= 0; i--) {
-        if (have - take[i].value >= need) {
-          have -= take[i].value;
-          take.splice(i, 1);
-        }
+        const v = this.dumplingValue(take[i]);
+        if (have - v >= need) { have -= v; take.splice(i, 1); }
       }
-      return { uids: take.map((o) => o.uid), points: have, need,
+      const bag = {};
+      for (const stars of take) bag[stars] = (bag[stars] || 0) + 1;
+      return { bag, n: take.length, points: have, need,
         short: Math.max(0, need - have) };
     },
 
@@ -1118,18 +1190,35 @@ const GameState = (() => {
     },
 
     // Spend a set of heroes on one. Returns a report of what it bought.
-    sacrifice(targetUid, fodderUids) {
+    // Feed `targetUid`'s star-up bar. `fodderUids` are roster heroes;
+    // `bag` is an optional { stars: n } of dumplings to eat alongside
+    // them. Either may be empty, but not both.
+    sacrifice(targetUid, fodderUids, bag = null) {
       const target = state.roster[targetUid];
-      if (!target || !fodderUids || !fodderUids.length) return null;
-      // A dumpling is fodder, never a recipient. Letting one be starred
-      // up would let a player pour a roster into a thing whose only
-      // purpose is to be poured somewhere else.
-      if (this.isConsumable(targetUid)) return null;
-      const spend = fodderUids.filter((uid) => this.canSacrifice(uid, targetUid));
-      if (!spend.length) return null;
+      if (!target) return null;
+      const spend = (fodderUids || []).filter((uid) => this.canSacrifice(uid, targetUid));
+      // Only take dumplings that are actually in the bag, and only while
+      // there is a rating left to buy.
+      const eat = {};
+      let eating = 0;
+      for (const [stars, n] of Object.entries(bag || {})) {
+        const have = Math.min(Math.round(n) || 0, this.dumplingsAt(stars));
+        if (have > 0) { eat[stars] = have; eating += have; }
+      }
+      if (!spend.length && !eating) return null;
 
-      const report = { spent: 0, skills: [], starred: false, points: 0,
-        from: target.stars, to: target.stars, gearFreed: 0 };
+      const report = { spent: 0, dumplings: 0, skills: [], starred: false,
+        points: 0, from: target.stars, to: target.stars, gearFreed: 0 };
+      // The bag first: it has no gear to strip and can never be a skill
+      // up, so it is pure points into the bank.
+      if (target.stars < Progression.MAX_STARS) {
+        report.points += this.dumplingPoints(eat);
+      }
+      for (const [stars, n] of Object.entries(eat)) {
+        this.takeDumplings(stars, n);
+        report.dumplings += n;
+        for (let i = 0; i < n; i++) this.questBumpQuiet('sacrifices');
+      }
       for (const uid of spend) {
         const e = this.entryOf(uid);
         // Their gear goes back to the inventory rather than down with
@@ -1386,18 +1475,12 @@ const GameState = (() => {
     buyDumpling(stars) {
       const price = this.dumplingPrice(stars);
       if (!price) return null;
-      // Room is checked BEFORE the diamonds are taken. addDumpling
-      // refuses when the roster and vault are both full, and a purchase
-      // that charged for a dumpling it then could not hand over would be
-      // the worst bug on this screen.
-      if (!this.intakeShelf()) return { error: 'no-room' };
+      // There is no room check left to do. A dumpling is an inventory
+      // line now, so the shop can always hand one over -- which is what
+      // this counter is for, and what it could not always do while a
+      // dumpling needed a roster slot to stand in.
       if (!this.spendDiamonds(price)) return null;
-      const got = this.addDumpling(stars);
-      if (!got) {                      // belt and braces; should not happen
-        this.addDiamonds(price);
-        return { error: 'no-room' };
-      }
-      return got;
+      return this.addDumpling(stars);
     },
     get whetstones() { return state.whetstones; },
     // ---- Login bonuses ----
