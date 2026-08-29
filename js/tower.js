@@ -139,6 +139,37 @@ const Tower = (() => {
     return { hp: k, atk: k, def: 1 };
   }
 
+  // ---- What a floor pays -------------------------------------------
+  //
+  // Every reward channel the tower had was linear in the floor number:
+  // XP and whetstones off the enemy levels, arcana off the same, the
+  // milestone diamonds at 50 per boss floor and the milestone arcana at
+  // 100 per twentieth. That was consistent with a difficulty curve that
+  // was also linear, and it stopped being consistent the moment the
+  // difficulty started compounding -- a floor 26x harder than the old
+  // curve made it was still paying the old curve's price.
+  //
+  // So a floor pays its own STRAIN: the same correction, from the same
+  // function, which is the only way the two cannot drift apart again.
+  //
+  // This does not inflate anything, because the tower is not a farm.
+  // The climb always fights `towerBest + 1` and a clear advances it, so
+  // a floor can be cleared exactly once, ever. A deep floor's payout is
+  // a one-time bounty for a one-time achievement, not an income rate,
+  // and it is unreachable until the party that can take it already
+  // exists.
+  function reward(floor) {
+    return correction(floor);
+  }
+
+  // Scale one payout. Never returns less than the unscaled figure, so
+  // rounding can only ever round a reward up -- a floor must not pay
+  // less than the floor below it, and an item count of 1 must not
+  // round away to nothing.
+  function payout(base, floor) {
+    return Math.max(base, Math.round(base * reward(floor)));
+  }
+
   // What to add to a floor's intro line. Above the anchor the enemies
   // are no longer just "high level" -- the floor is carrying a stat
   // multiplier the level does not show -- and a player reading Lv 334
@@ -175,7 +206,8 @@ const Tower = (() => {
     };
   }
 
-  return { level, power, correction, statScale, floorNote, isBossFloor, bossIndex, floorSpec,
+  return { level, power, correction, reward, payout, statScale, floorNote,
+    isBossFloor, bossIndex, floorSpec,
     ANCHOR, RATE, LEVEL_PER_FLOOR, MAX_POWER, TURN_LIMIT };
 })();
 

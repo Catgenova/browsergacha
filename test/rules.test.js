@@ -14712,4 +14712,40 @@ test('tower: boss floors are every tenth, and the bosses cycle', () => {
   assert(Tower.bossIndex(30, 5) === 2, 'boss cadence drifted');
 });
 
+test('tower: a floor pays exactly the strain it charges', () => {
+  // Rewards were linear in the floor while difficulty compounded, so a
+  // floor 26x harder than the old curve still paid the old curve's
+  // price. Both sides read the same function now; this is what stops
+  // them drifting apart a second time.
+  for (const f of [150, 222, 400, 900]) {
+    assert(Tower.reward(f) === Tower.correction(f),
+      `floor ${f} pays x${Tower.reward(f)} for x${Tower.correction(f)} of strain`);
+  }
+  assert(Math.abs(Tower.payout(1000, 400) - 1000 * Tower.correction(400)) <= 1,
+    'payout does not apply the strain');
+});
+
+test('tower: a payout never shrinks, and never rounds an item away', () => {
+  // Rounding must only ever round up: a deeper floor paying less than a
+  // shallower one is a bug a player would feel immediately, and a lone
+  // scroll rounding to zero is a reward that silently vanishes.
+  for (const f of [1, 50, 100, 101, 150, 300]) {
+    assert(Tower.payout(1, f) >= 1, `floor ${f} rounded a single scroll away`);
+    assert(Tower.payout(437, f) >= 437, `floor ${f} paid less than base`);
+  }
+  let prev = 0;
+  for (let f = 1; f <= 800; f += 3) {
+    const p = Tower.payout(100, f);
+    assert(p >= prev, `floor ${f} pays ${p}, below floor ${f - 3}'s ${prev}`);
+    prev = p;
+  }
+});
+
+test('tower: floors up to the anchor pay exactly what they always did', () => {
+  for (const f of [1, 10, 50, 99, Tower.ANCHOR]) {
+    assert(Tower.payout(1234, f) === 1234, `floor ${f} pays ${Tower.payout(1234, f)}`);
+    assert(Tower.payout(1, f) === 1, `floor ${f} scroll count moved`);
+  }
+});
+
 report();
