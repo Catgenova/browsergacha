@@ -558,6 +558,10 @@ class RosterScreen {
       const fodder = GameState.defOf(o.uid);
       const tags = [];
       if (o.skill) tags.push('<span class="imp-tag imp-tag-skill">SKILL UP</span>');
+      // Consumables can be spent straight out of the vault (see
+      // GameState.canSacrifice), so the row has to say when one is
+      // coming from there rather than off the roster.
+      if (o.stored) tags.push('<span class="imp-tag imp-tag-vault">VAULT</span>');
       tags.push(`<span class="imp-tag imp-tag-dim">${o.stars}&#9733;</span>`);
       tags.push(`<span class="ros-worth">+${num(o.value)}</span>`);
       return `<div class="imp-opt${on ? ' chosen' : ''}" data-uid="${o.uid}">
