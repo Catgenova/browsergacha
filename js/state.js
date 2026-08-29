@@ -748,8 +748,17 @@ const GameState = (() => {
     ownedHeroIds() { return Object.keys(state.roster); },
     // The character a roster entry is: `defIdOf` for the id, `defOf` for
     // the definition. Call sites that want art or abilities want these.
+    //
+    // A uid is a uid whichever shelf it is on. `entryOf` finds it on
+    // either -- the roster first, then the vault -- so the accessors
+    // below can answer "what is this" for something parked in storage.
+    // `ownedHeroIds` stays roster-only on purpose: this widens what can
+    // be LOOKED UP, not what any screen lists.
+    entryOf(uid) {
+      return state.roster[uid] || state.storage[uid] || null;
+    },
     defIdOf(uid) {
-      const e = state.roster[uid];
+      const e = this.entryOf(uid);
       return e ? e.heroId : null;
     },
     // The one place a CHARACTER ID becomes a definition. Heroes first,
@@ -779,7 +788,7 @@ const GameState = (() => {
     // Points this roster entry is worth when spent, its own def's scale
     // included.
     fodderValue(uid) {
-      const e = state.roster[uid];
+      const e = this.entryOf(uid);
       return e ? Progression.starValue(e.stars, this.defOf(uid)) : 0;
     },
     // How many of one character stand in the roster.
@@ -813,7 +822,7 @@ const GameState = (() => {
     // ---- Progression ----
     // { heroId, level, xp, stars, skills } for a roster hero (null if gone).
     progressOf(uid) {
-      const e = state.roster[uid];
+      const e = this.entryOf(uid);
       return e
         ? { heroId: e.heroId, level: e.level, xp: e.xp, stars: e.stars,
             attune: e.attune || 0, blessing: e.blessing || null,
@@ -877,7 +886,7 @@ const GameState = (() => {
       let bank = e.starPoints || 0;
       const need = Progression.starUpCost(e.stars);
       if (bank >= need) return true;
-      for (const other of Object.keys(state.roster)) {
+      for (const other of Object.keys(state.roster).concat(Object.keys(state.storage))) {
         if (!this.canSacrifice(other, uid)) continue;
         bank += this.fodderValue(other);
         if (bank >= need) return true;
@@ -888,10 +897,25 @@ const GameState = (() => {
     // A hero can be spent if it is not the one being improved, not on
     // the team, and not favourited. Locking the team and favourites is
     // the whole safety net on an action that destroys a hero.
+    //
+    // A CONSUMABLE can also be spent out of the vault, and it has to be.
+    // Overflow sends anything summoned past the roster cap to storage,
+    // which is right for a hero -- it is out of play until withdrawn --
+    // and destroys a dumpling, whose only purpose is to be eaten by a
+    // star-up bar. Worse, the roster is fullest exactly when a player is
+    // buying dumplings to star up and clear it, so the overflow rule
+    // collided head-on with the reason dumplings exist: three 8-star
+    // dumplings, 150,000 star-up points, sat in a vault that could not
+    // spend them and showed them on no screen that could.
+    //
+    // A stored hero stays locked. That is a real safety net -- putting
+    // something somewhere safe must not put it on the menu -- and a
+    // dumpling has nothing to be protected from.
     canSacrifice(uid, targetUid = null) {
-      const e = state.roster[uid];
-      if (!e || uid === targetUid) return false;
-      if (e.favorite) return false;
+      if (uid === targetUid) return false;
+      const e = this.entryOf(uid);
+      if (!e || e.favorite) return false;
+      if (!state.roster[uid] && !this.isConsumable(uid)) return false;
       return this.teamSlotOf(uid) === null;
     },
 
@@ -908,13 +932,19 @@ const GameState = (() => {
       const target = state.roster[targetUid];
       if (!target) return [];
       const out = [];
-      for (const uid of Object.keys(state.roster)) {
+      // Both shelves. canSacrifice is what decides whether a vault entry
+      // is actually offered -- consumables yes, heroes no -- so this
+      // does not need to know the rule, only to show it the candidates.
+      for (const uid of Object.keys(state.roster).concat(Object.keys(state.storage))) {
         if (!this.canSacrifice(uid, targetUid)) continue;
-        const e = state.roster[uid];
+        const e = this.entryOf(uid);
         out.push({
           uid, heroId: e.heroId, stars: e.stars, level: e.level,
           skill: e.heroId === target.heroId,
           consumable: this.isConsumable(uid),
+          // Which shelf it comes off, so the row can say so: spending
+          // something out of the vault should not be a silent surprise.
+          stored: !state.roster[uid],
           value: this.fodderValue(uid),
         });
       }
@@ -1101,7 +1131,7 @@ const GameState = (() => {
       const report = { spent: 0, skills: [], starred: false, points: 0,
         from: target.stars, to: target.stars, gearFreed: 0 };
       for (const uid of spend) {
-        const e = state.roster[uid];
+        const e = this.entryOf(uid);
         // Their gear goes back to the inventory rather than down with
         // them -- the hero is the cost, not the kit they were wearing.
         for (const slot of Object.keys(e.equipment || {})) {
@@ -1118,7 +1148,9 @@ const GameState = (() => {
         if (target.stars < Progression.MAX_STARS) {
           report.points += Progression.starValue(e.stars, this.defOf(uid));
         }
+        // Off whichever shelf it was standing on.
         delete state.roster[uid];
+        delete state.storage[uid];
         report.spent++;
         this.questBumpQuiet('sacrifices');
       }

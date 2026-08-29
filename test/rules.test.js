@@ -1634,7 +1634,14 @@ test('hero storage: gear comes off on deposit, play resumes on withdraw', () => 
   assert(r && r.gearFreed === 1, `deposit report ${JSON.stringify(r)}`);
   assert(G.rosterCount() === before - 1, 'roster did not shrink');
   assert(G.storageCount() === 1, 'vault did not grow');
-  assert(G.progressOf(uid) === null || G.defOf(uid) === null, 'stored hero still in play');
+  // "Out of play" used to be asserted as "progressOf/defOf go null",
+  // which was a proxy rather than the property. A uid now resolves on
+  // either shelf -- the star-up list has to be able to name a dumpling
+  // sitting in the vault -- so the real thing is checked instead: a
+  // stored hero is not listed, and cannot be spent.
+  assert(!G.ownedHeroIds().includes(uid), 'a stored hero is still listed in the roster');
+  assert(G.teamSlotOf(uid) === null, 'a stored hero is still fielded');
+  assert(!G.canSacrifice(uid, fielded), 'a stored HERO was offered as fodder');
   const stored = G.storedEntry(uid);
   assert(stored && Object.keys(stored.equipment || {}).length === 0, 'gear went into the vault');
   assert(G.unequippedGear().some((p) => p.uid === gid), 'the stripped piece is not back in the inventory');
@@ -14825,6 +14832,74 @@ test('banner countdown: h:mm:ss, with days only while there are days', () => {
   // Past the close it sits at zero rather than going negative.
   assert(E.bannerTimeLeft(b, new Date(+b.until + 60000)) === 0,
     'a closed banner reported time left');
+});
+
+test('a dumpling can be eaten out of the vault; a hero cannot', () => {
+  // The bug: overflow sends anything summoned past the roster cap to
+  // storage. That is right for a hero and destroys a dumpling, whose
+  // only purpose is to be eaten by a star-up bar -- and the roster is
+  // fullest exactly when a player is buying dumplings to star up and
+  // clear it. Three 8-star dumplings, 150,000 points, sat in a vault
+  // that could not spend them and on no screen that could.
+  const w = loadGame();
+  const G = w.GameState;
+  const filler = Object.keys(w.HEROES)[0];
+  let guard = 0;
+  while (G.rosterCount() < G.MAX_ROSTER && guard++ < 400) {
+    if (!G.addHero(filler)) break;
+  }
+  assert(G.rosterCount() === G.MAX_ROSTER, 'the roster did not fill');
+  assert(G.intakeShelf() === 'storage', 'a full roster did not overflow to the vault');
+
+  const bought = [];
+  G.addDiamonds(500000);
+  for (let i = 0; i < 3; i++) bought.push(G.buyDumpling(8));
+  assert(bought.every((b) => b && b.stored), 'the dumplings did not go to the vault');
+
+  const target = G.ownedHeroIds().find((id) =>
+    !G.isConsumable(id) && !G.isFavorite(id) && G.teamSlotOf(id) === null);
+  const opts = G.sacrificeOptions(target);
+  const vaulted = opts.filter((o) => o.consumable && o.stored);
+  assert(vaulted.length === 3, `${vaulted.length} vaulted dumplings offered, not 3`);
+  // And the row can say where it came from, so spending out of the
+  // vault is not a silent surprise.
+  assert(vaulted.every((o) => o.value === 50000),
+    `a vaulted 8-star dumpling is worth ${vaulted[0] && vaulted[0].value}`);
+  // A vaulted HERO is still off the menu, which is the safety net this
+  // exception must not punch through.
+  const strandedHero = G.storedHeroIds().find((id) => !G.isConsumable(id));
+  if (strandedHero) {
+    assert(!G.canSacrifice(strandedHero, target), 'a vaulted hero was offered');
+  }
+
+  const before = G.progressOf(target).stars;
+  const r = G.sacrifice(target, vaulted.map((o) => o.uid));
+  assert(r && r.points === 150000, `the vault paid ${r && r.points}`);
+  assert(r.to > before, `${before}★ did not climb on 150,000 points`);
+  // Eaten off the shelf they were actually standing on.
+  assert(G.storageCount() === 0, `${G.storageCount()} left in the vault`);
+  assert(G.dumplingCount() === 0, `${G.dumplingCount()} dumplings survived being eaten`);
+});
+
+test('the vault counts toward what a star up can afford', () => {
+  const w = loadGame();
+  const G = w.GameState;
+  const filler = Object.keys(w.HEROES)[0];
+  let guard = 0;
+  while (G.rosterCount() < G.MAX_ROSTER && guard++ < 400) {
+    if (!G.addHero(filler)) break;
+  }
+  const target = G.ownedHeroIds().find((id) =>
+    !G.isConsumable(id) && !G.isFavorite(id) && G.teamSlotOf(id) === null);
+  // Favourite everything else so the roster alone cannot pay, and the
+  // only thing that can is what the vault is about to hold.
+  for (const id of G.ownedHeroIds()) if (id !== target && !G.isFavorite(id)) G.toggleFavorite(id);
+  assert(!G.starUpAffordable(target), 'a locked roster still claimed it could pay');
+  G.addDiamonds(500000);
+  const got = G.buyDumpling(8);
+  assert(got && got.stored, 'the dumpling did not go to the vault');
+  assert(G.starUpAffordable(target),
+    'the vault held the points and the readout said no');
 });
 
 report();
