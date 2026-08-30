@@ -322,6 +322,10 @@ test('every sect holds one race, once each, with its number', () => {
     // The wind cats, FOUNDING: the third verb of the pride triad
     // (take / keep / give), declared on both sides like the others.
     zephyrclaw: { number: 15, race: 'cat', founding: true, members: [] },
+    // The light cats, FOUNDING: the endurance verb of the pride
+    // quartet. Light shape -- no 1- or 2-stars, because the Temporal
+    // scroll never rolls below three.
+    sunpulse: { number: 16, race: 'cat', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
