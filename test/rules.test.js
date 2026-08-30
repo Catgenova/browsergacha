@@ -56,11 +56,14 @@ function makeBattle() {
       unit.slot = slot;
       battle.units.push(unit);
     },
-    onUnitHealed(healed, amount) {
+    // A hand copy of the real bus, and it has to stay in signature
+    // lockstep: the real one hands hooks { amount, healer } now, and a
+    // tier paid per mend reads them.
+    onUnitHealed(healed, amount, healer = null) {
       for (const u of battle.livingUnits(healed.team)) {
         for (const p of (u.hookSources ? u.hookSources() : u.passives)) {
           const hook = p.hooks && p.hooks.onAllyHealed;
-          if (hook) hook(u, healed, battle);
+          if (hook) hook(u, healed, battle, { amount, healer });
         }
       }
     },
@@ -15635,6 +15638,126 @@ test('the Zephyrclaw pack turns speed into tempo and hands it out', () => {
     mate.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.2, turns: 3,
       source: mate });
     assert(mate.turnMeter === 0, 'a self-buff paid the windfall');
+  } finally { Battle.active = prev; }
+});
+
+test('the Sunpulse pack makes the heartbeat pay: triage, spill, and full health', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.sunpulse;
+  assert(PACK && PACK.length === 3, 'the Sunpulse pack is not three tiers');
+  assert(PACK.map((t) => t.count).join() === '2,3,4', 'the tiers are not 2/3/4');
+  // The pride quartet, held from this side: Sunpulse ENDURES, so it may
+  // not take (Stillwater), feed on aggression (Emberpride), or ride
+  // speed (Zephyrclaw).
+  for (const t of PACK) {
+    for (const key of ['apDrainAdd', 'meterSiphon', 'meterGuard',
+      'onUnitDied', 'onDealtDamage', 'meterRefund', 'onAllyBuffed']) {
+      assert(!(t.hooks && key in t.hooks),
+        `${t.name} carries ${key}, which is another pride's verb`);
+    }
+  }
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const healer = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const mate = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 1);
+    const wear = (unit, ...counts) => {
+      unit.passives = PACK.filter((t) => counts.includes(t.count))
+        .map((t) => ({ name: t.name, description: t.label, hooks: t.hooks }));
+    };
+    const full = CONFIG.TURN_METER_MAX;
+
+    // ---- 2pc Healer's Reward: triage pays, judged by the wound knelt
+    // at, once, off the healer's own copy of the hook.
+    wear(healer, 2);
+    wear(mate, 2); // both hold it; the payout must still land once
+    mate.hp = Math.floor(mate.maxHp * 0.30);
+    healer.turnMeter = 0;
+    mate.heal(Math.round(mate.maxHp * 0.4), healer);
+    assert(Math.abs(healer.turnMeter - full * 0.10) < 1,
+      `triage paid ${healer.turnMeter}; two copies collecting would read double`);
+    // The patient is above half now -- the same mend pays nothing more.
+    healer.turnMeter = 0;
+    mate.heal(Math.round(mate.maxHp * 0.2), healer);
+    assert(healer.turnMeter === 0,
+      `mending the healthy still paid ${healer.turnMeter}`);
+    // A self-mend is not triage, however deep the wound.
+    mate.hp = Math.floor(mate.maxHp * 0.2);
+    mate.turnMeter = 0;
+    mate.heal(Math.round(mate.maxHp * 0.2), mate);
+    assert(mate.turnMeter === 0, `a self-mend paid its own caster ${mate.turnMeter}`);
+    mate.heal(mate.maxHp, healer); // top back up for the tiers below
+
+    // ---- 3pc Sunlit Wards: the spill hardens onto the receiver, once.
+    wear(healer, 3);
+    wear(mate, 3);
+    // The mend is ATK-priced (mult of the healer's ATK), so the spill
+    // is arranged rather than assumed: a big mult into a nearly-full
+    // body, and the expected ward is computed from what actually
+    // overflowed.
+    // (Shields are status effects, not their own array -- read them the
+    // way the engine does, through shieldTotal.)
+    const bareShields = (u) => {
+      u.statusEffects = u.statusEffects.filter((fx) => fx.kind !== 'shield');
+    };
+    mate.hp = mate.maxHp - 50;
+    bareShields(mate);
+    const res = Abilities.applyEffect({ type: 'heal', mult: 2.0 }, healer, mate, 1);
+    const spill = Math.round(healer.effectiveStat('atk') * 2.0) - res.amount;
+    assert(spill > 100, `the fixture failed to overheal: spill ${spill}`);
+    const warded = mate.shieldTotal();
+    assert(Math.abs(warded - Math.round(spill * 0.5)) < 2,
+      `a ${spill} spill should ward half = ${Math.round(spill * 0.5)}, ` +
+      `warded ${warded} -- more means two copies collected, less means ` +
+      'the overflow never reached the hook');
+    // A mend that fits wards nothing.
+    mate.hp = 100;
+    bareShields(mate);
+    Abilities.applyEffect({ type: 'heal', mult: 0.1 }, healer, mate, 1);
+    assert(mate.shieldTotal() === 0,
+      `a mend with no spill still warded ${mate.shieldTotal()}`);
+    mate.heal(mate.maxHp, healer);
+
+    // ---- 4pc High Noon: full means FULL, and the cut is real damage.
+    wear(healer, 4);
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+    foe.baseDef = 300; // deep enough that 15% blindness moves the number
+    healer.hp = healer.maxHp;
+    g.seed(11);
+    const whole = Abilities.strike(healer, foe, 1000, { crit: false, dodge: false });
+    healer.hp = healer.maxHp - 1;
+    g.seed(11);
+    const scratched = Abilities.strike(healer, foe, 1000, { crit: false, dodge: false });
+    g.unseed();
+    assert(whole.amount > scratched.amount,
+      `full HP dealt ${whole.amount} vs scratched ${scratched.amount} -- ` +
+      'the armour cut is not being read');
+    // 15% of DEF ignored at DEF 300 on the 300-scale curve: the exact
+    // figure is the formula's business; the direction and a real gap
+    // are this test's.
+    assert((whole.amount - scratched.amount) / scratched.amount > 0.02,
+      'the full-HP cut is too small to be the 15% tier');
+
+    // ---- And once against the REAL bus. Everything above ran on the
+    // stub battle's hand copy of onUnitHealed, which proves the tier
+    // and not the plumbing: the real Battle must hand the hook the
+    // healer too, or the tier works in tests and never in play.
+    const rb = new Battle();
+    Battle.active = rb;
+    const rHealer = new Unit(DUMMIES.rat_brawler, TEAM.PLAYER, { level: 30, stars: 3 });
+    const rMate = new Unit(DUMMIES.rat_knight, TEAM.PLAYER, { level: 30, stars: 3 });
+    rb.placeUnit(rHealer, rb.playerSlots[0].index);
+    rb.placeUnit(rMate, rb.playerSlots[1].index);
+    const t2 = PACK.find((t) => t.count === 2);
+    rHealer.passives = [{ name: t2.name, hooks: t2.hooks }];
+    rMate.passives = [];
+    rMate.hp = Math.floor(rMate.maxHp * 0.30);
+    rHealer.turnMeter = 0;
+    rMate.heal(Math.round(rMate.maxHp * 0.4), rHealer);
+    assert(Math.abs(rHealer.turnMeter - full * 0.10) < 1,
+      `the real heal bus paid ${rHealer.turnMeter} -- it is not handing ` +
+      'the hook the healer');
   } finally { Battle.active = prev; }
 });
 

@@ -252,6 +252,20 @@ const RACES = (() => {
                  race: 'cat', founding: true,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: [] },
+    // The light cat sect, FOUNDING, and the fourth verb on the pride
+    // meter: Stillwater takes, Emberpride charges, Zephyrclaw gives --
+    // Sunpulse ENDURES. HP is the heartbeat and the heartbeat pays: the
+    // mend, the spill and the unbroken body are all worth tempo or
+    // teeth here, and nothing drains, hunts or rides speed.
+    //
+    // The light shape, 4 threes / 3 fours / 2 fives, because light
+    // heroes are always 3-star and up -- the Temporal scroll never
+    // rolls below three, and a sect the gacha cannot sell is a shelf
+    // full of nothing.
+    sunpulse: { id: 'sunpulse', name: 'Sunpulse', number: 16,
+                 race: 'cat', founding: true,
+                 shape: { 3: 4, 4: 3, 5: 2 },
+                 members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -1101,6 +1115,75 @@ const RACES = (() => {
         },
         label: 'a speed blessing granted to an ally also pushes their ' +
           'action bar 10% on the spot',
+      },
+    ],
+    // Sunpulse is the endurance verb: HP moving is what pays. A mend on
+    // the badly hurt pays the mender in tempo, a mend past full hardens
+    // into a ward, and a body kept whole cuts straight through armour.
+    // None of it resells light's own resonance (flat max HP, the
+    // below-quarter shave, the opening ward), none of it boosts healing
+    // DONE (the Sunbrood's ground), and none of it touches the other
+    // prides' verbs.
+    sunpulse: [
+      {
+        count: 2, name: "Healer's Reward",
+        // Paid off the healer's own copy of the hook, exactly once per
+        // mend -- the heal bus reaches every living ally, so anyone
+        // else's copy returns without collecting. The below-half read
+        // is the patient BEFORE the mend (hp minus what just landed):
+        // triage is judged by the wound you knelt at, not the one you
+        // left. Covers every sourced mend in the game -- a HoT ticking
+        // on the badly hurt pays its caster per tick, the same way
+        // Undertow covers every drain -- but a self-mend pays nothing,
+        // or every sustain kit would charge itself.
+        hooks: {
+          onAllyHealed(unit, healedUnit, battle, info = {}) {
+            const healer = info.healer;
+            if (!healer || unit !== healer || healer === healedUnit) return null;
+            if (!(info.amount > 0)) return null;
+            const before = healedUnit.hp - info.amount;
+            if (before >= healedUnit.maxHp * 0.5) return null;
+            healer.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
+            return { floats: [{ target: healer, text: '\u25b2 10%', color: '#ffe8a8' }] };
+          },
+        },
+        label: 'mending an ally who is below half HP pays the healer ' +
+          '10% action bar',
+      },
+      {
+        count: 3, name: 'Sunlit Wards',
+        // The party-wide copy of Peck's pot, on the same precedent that
+        // let Reverence copy Gathering Dawn -- half the spill, two
+        // turns, warded to the RECEIVER and credited to the healer.
+        // onAllyOverheal fires on every living ally, so only the
+        // receiver's own copy collects; a party also fielding Peck
+        // stacks his ward on top, which is two perks doing their jobs.
+        hooks: {
+          onAllyOverheal(unit, { overflow, target, healer } = {}) {
+            if (!target || unit !== target || !target.alive) return null;
+            if (!(overflow > 0)) return null;
+            const kept = Math.round(overflow * 0.5);
+            if (kept <= 0) return null;
+            const gained = target.addShield(kept, 2, healer || target);
+            if (gained <= 0) return null;
+            return { floats: [{ target, text: `\u25c7 ${gained}`, color: '#ffe8a8' }] };
+          },
+        },
+        label: 'overhealing an ally wards them for half the spill (2 turns)',
+      },
+      {
+        count: 4, name: 'High Noon',
+        // Read on the attacker at the moment the blow is priced, the
+        // same function shape as Crystquiver. Full means FULL: the
+        // whole tier is the reason to keep the line topped up, and a
+        // scratch is what turns it off -- which is also what stops it
+        // being a permanent party-wide armour cut.
+        hooks: {
+          defIgnoreAdd(unit) {
+            return unit.hp >= unit.maxHp ? 0.15 : 0;
+          },
+        },
+        label: 'an ally at full HP ignores 15% of DEF',
       },
     ],
     cryst: [
