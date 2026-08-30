@@ -2304,7 +2304,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
   const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup',
     'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup',
-    'stillwater_rateup', 'emberpride_rateup'];
+    'stillwater_rateup', 'emberpride_rateup', 'zephyrclaw_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
     'sunbrood_rateup', 'hollowbone_rateup'];
   assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
@@ -2349,7 +2349,9 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   // the Rare wheel runs eight now and wraps a week later.
   assert(rare(2026, 9, 12) === 'emberpride_rateup' && rare(2026, 9, 18) === 'emberpride_rateup',
     'the Emberpride did not hold their whole week');
-  assert(rare(2026, 9, 19) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  assert(rare(2026, 9, 19) === 'zephyrclaw_rateup' && rare(2026, 9, 25) === 'zephyrclaw_rateup',
+    'the Zephyrclaw did not hold their whole week');
+  assert(rare(2026, 9, 26) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
   assert(temporal(2026, 8, 7) === 'sunbrood_rateup' && temporal(2026, 8, 13) === 'sunbrood_rateup',
     'the Sunbrood did not hold their whole week');
   assert(temporal(2026, 8, 14) === 'hollowbone_rateup' && temporal(2026, 8, 20) === 'hollowbone_rateup',

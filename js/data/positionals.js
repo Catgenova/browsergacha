@@ -1039,5 +1039,50 @@ const POSITIONALS = (() => {
     hooks: { buffPowerAdd: 0.05 },
   });
 
+  // ---- The Zephyrclaw hexes ---------------------------------------------
+  // The wind cats' pack turns speed into tempo and hands it out, so
+  // their hexes sharpen the two currencies: pace, and the gift.
+
+  def('leading_edge', {
+    position: POSITION.FRONT,
+    name: 'Leading Edge',
+    // Speed is identity, not budget, so a hex that grants it buys
+    // everything the sect prices off it at once: Tailwind rungs,
+    // Crosswind rungs, and plain turn order.
+    description: 'Front hex: +15% SPD.',
+    hooks: {
+      statMult: (u, stat) => (stat === 'speed' ? 1.15 : 1),
+    },
+  });
+
+  def('eye_of_the_gale', {
+    position: POSITION.CENTER,
+    name: 'Eye of the Gale',
+    // Weather Eye and Order of March, seated in the middle: the same
+    // gift channel, from the hex the pride's pushers actually hold.
+    description: 'Center hex: +15% turn meter given to allies.',
+    hooks: { meterGiftAdd: 0.15 },
+  });
+
+  def('thermal_rise', {
+    position: POSITION.CENTER,
+    name: 'Thermal Rise',
+    description: 'Center hex: blessings this hero grants last 1 turn longer.',
+    hooks: { buffExtraTurns: 1 },
+  });
+
+  def('downwind_shot', {
+    position: POSITION.BACK,
+    name: 'Downwind Shot',
+    // Long Needle's opposite number: Stillwater hits them before they
+    // go, the wind archer catches them just after -- an enemy under
+    // half a bar has spent its turn and cannot answer for a while.
+    description: 'Back hex: +25% damage to enemies whose action bar is under half.',
+    hooks: {
+      damageDealtMult: (u, t) =>
+        (t && t.turnMeter < CONFIG.TURN_METER_MAX * 0.5 ? 1.25 : 1),
+    },
+  });
+
   return P;
 })();

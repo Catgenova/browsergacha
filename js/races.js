@@ -45,6 +45,7 @@ const RACES = (() => {
     'tip', 'brock', 'friday', 'tiny', 'orr', 'princess', 'sands', 'donut', 'tub',
   ,
     'kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan',
+    'soren', 'suri', 'caracall', 'damar', 'kira', 'bondo', 'aveline', 'tessa', 'lira',
   ]);
 
   const HUMANS = new Set([
@@ -252,9 +253,10 @@ const RACES = (() => {
     //
     // Full spread, 1/2/3/2/1, a ceiling on an empty roster.
     zephyrclaw: { id: 'zephyrclaw', name: 'Zephyrclaw', number: 15,
-                 race: 'cat', founding: true,
+                 race: 'cat',
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
-                 members: [] },
+                 members: ['soren', 'suri', 'caracall', 'damar', 'kira',
+                           'bondo', 'aveline', 'tessa', 'lira'] },
     // The light cat sect, FOUNDING, and the fourth verb on the pride
     // meter: Stillwater takes, Emberpride charges, Zephyrclaw gives --
     // Sunpulse ENDURES. HP is the heartbeat and the heartbeat pays: the

@@ -322,9 +322,10 @@ test('every sect holds one race, once each, with its number', () => {
     // together like Stillwater before them.
     emberpride: { number: 14, race: 'cat',
       members: ['kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan'] },
-    // The wind cats, FOUNDING: the third verb of the pride triad
-    // (take / keep / give), declared on both sides like the others.
-    zephyrclaw: { number: 15, race: 'cat', founding: true, members: [] },
+    // The wind cats, standing: nine at once, the third verb of the
+    // pride quartet (take / keep / give / endure).
+    zephyrclaw: { number: 15, race: 'cat',
+      members: ['soren', 'suri', 'caracall', 'damar', 'kira', 'bondo', 'aveline', 'tessa', 'lira'] },
     // The light cats, FOUNDING: the endurance verb of the pride
     // quartet. Light shape -- no 1- or 2-stars, because the Temporal
     // scroll never rolls below three.
