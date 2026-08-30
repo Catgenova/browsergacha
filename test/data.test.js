@@ -318,7 +318,10 @@ test('every sect holds one race, once each, with its number', () => {
     // hero, on the Stillwater precedent. The flag is declared on both
     // sides on purpose -- an empty members array alone must never read
     // as founding.
-    emberpride: { number: 14, race: 'cat', founding: true, members: [] },
+    // The fire cats, standing: nine at once, the whole sheet landing
+    // together like Stillwater before them.
+    emberpride: { number: 14, race: 'cat',
+      members: ['kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan'] },
     // The wind cats, FOUNDING: the third verb of the pride triad
     // (take / keep / give), declared on both sides like the others.
     zephyrclaw: { number: 15, race: 'cat', founding: true, members: [] },

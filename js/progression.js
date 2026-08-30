@@ -330,6 +330,7 @@ const Progression = (() => {
           // HP-priced shields ride `heal`, ATK-priced ones ride `mult`
           // (abilities.js:521).
           if (e.pct !== undefined) add('Shield (max HP)', e.pct, e.pct + g('heal'), 'pct');
+          else if (e.defMult !== undefined) add('Shield (DEF)', e.defMult, e.defMult + g('mult'), 'pct');
           else add('Shield (ATK)', e.mult, e.mult + g('mult'), 'pct');
           if (e.turns !== undefined) add('Shield lasts', e.turns, e.turns + g('duration'), 'turns');
           break;

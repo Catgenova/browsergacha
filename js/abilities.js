@@ -918,9 +918,19 @@ const Abilities = (() => {
         // shared pot does.
         const shared = ((effect.perTarget || 0) + (shLad.perTarget || 0)) *
           Math.max(0, currentTargetCount - 1);
+        // Three pricings, one per stat a ward can be worth a share of:
+        // `pct` of the caster's own pool, `defMult` of their DEF (the
+        // tank recipe -- Tiny, Nala, Magnus), `mult` of their ATK.
+        // defMult existed in three kits before it existed here, and an
+        // unknown pricing fell through to the ATK branch where
+        // `effect.mult` was undefined: the ward went up holding NaN,
+        // ate the next blow into NaN HP, and the wearer read as dead to
+        // every alive check without ever being hit for a number.
         const base = effect.pct !== undefined
           ? caster.maxHp * (effect.pct + (shLad.heal || 0) + shared)
-          : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0) + shared);
+          : effect.defMult !== undefined
+            ? caster.effectiveStat('def') * (effect.defMult + (shLad.mult || 0) + shared)
+            : caster.effectiveStat('atk') * (effect.mult + (shLad.mult || 0) + shared);
         // A `shieldPowerAdd` hook widens the pot itself (Click's Long
         // Peal), the sibling of shieldExtraTurns below: one hook for how
         // big a ward is, one for how long it lasts.
