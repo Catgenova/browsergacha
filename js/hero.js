@@ -1119,7 +1119,7 @@ class Unit {
   //
   // Guarded the same way retaliation is, and for the same reason: a hook
   // here that deals damage of its own would otherwise feed itself.
-  dealt(amount, target) {
+  dealt(amount, target, crit = false) {
     if (amount <= 0 || Unit.dealing) return;
     const battle = typeof Battle !== 'undefined' ? Battle.active : null;
     Unit.dealing = true;
@@ -1146,7 +1146,7 @@ class Unit {
       }
       for (const p of this.hookSources()) {
         const hook = p.hooks && p.hooks.onDealtDamage;
-        if (hook) hook(this, { amount, target, battle });
+        if (hook) hook(this, { amount, target, battle, crit });
       }
     } finally {
       Unit.dealing = false;
