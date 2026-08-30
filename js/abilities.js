@@ -277,7 +277,9 @@ const Abilities = (() => {
     else caster.bookDamage(target, dealt, crit);
     // Hooks that answer landing a blow (Javarious builds his shield out
     // of his own damage). After the books, so a hook sees a settled hit.
-    if (caster.dealt) caster.dealt(dealt, target);
+    // The crit rides along: it is settled here and nowhere else, and a
+    // hook paid per crit (Emberpride's 3pc) has no other way to know.
+    if (caster.dealt) caster.dealt(dealt, target, crit);
     // Crystalline (Polarus): striking a hero wearing the crystal is how
     // you catch the cold — 30% chance the attacker freezes. Guarded like
     // retaliation so a frozen counter can never chain into another.

@@ -15443,6 +15443,108 @@ test('Stillwater sect pack: take the turn, keep it, and never lose one', () => {
   } finally { Battle.active = prev; }
 });
 
+test('the Emberpride pack pays aggression back as the party\'s own tempo', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.emberpride;
+  assert(PACK && PACK.length === 3, 'the Emberpride pack is not three tiers');
+  assert(PACK.map((t) => t.count).join() === '2,3,4', 'the tiers are not 2/3/4');
+  // The line the two cat packs must never cross: Emberpride charges its
+  // OWN bar and never touches the enemy's, or the two sects stop being
+  // tellable at a glance. No drain, no siphon, no guard.
+  for (const t of PACK) {
+    for (const key of ['apDrainAdd', 'meterSiphon', 'meterGuard']) {
+      assert(!(t.hooks && key in t.hooks),
+        `${t.name} carries ${key}, which is Stillwater's side of the meter`);
+    }
+  }
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const cat = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+    const wear = (unit, ...counts) => {
+      unit.passives = PACK.filter((t) => counts.includes(t.count))
+        .map((t) => ({ name: t.name, description: t.label, hooks: t.hooks }));
+    };
+    const full = CONFIG.TURN_METER_MAX;
+
+    // ---- 2pc First Blood: pays on an undamaged victim, once.
+    wear(cat, 2);
+    cat.turnMeter = 0;
+    foe.hp = foe.maxHp;
+    Abilities.strike(cat, foe, 200, { crit: false, dodge: false });
+    assert(Math.abs(cat.turnMeter - full * 0.15) < 1,
+      `first blood on a fresh enemy paid ${cat.turnMeter} of ${full * 0.15}`);
+    // The same enemy again is no longer undamaged: nothing.
+    cat.turnMeter = 0;
+    Abilities.strike(cat, foe, 200, { crit: false, dodge: false });
+    assert(cat.turnMeter === 0,
+      `a wounded enemy still paid first blood: ${cat.turnMeter}`);
+    // And blood drawn from an ALLY (a bond, a hazard) is nobody's hunt.
+    const mate = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 1);
+    cat.turnMeter = 0;
+    mate.hp = mate.maxHp;
+    Abilities.strike(cat, mate, 50, { crit: false, dodge: false });
+    assert(cat.turnMeter === 0, 'first blood paid out on an ally');
+
+    // ---- 3pc Taste for It: the crit flag travels from strike to the
+    // hook, and only a real crit pays.
+    wear(cat, 3);
+    cat.turnMeter = 0;
+    cat.baseCritChance = 0;
+    Abilities.strike(cat, foe, 100, { crit: true, dodge: false });
+    assert(cat.turnMeter === 0,
+      `a non-crit refunded ${cat.turnMeter} of the bar`);
+    cat.baseCritChance = 10; // a certainty, however the multipliers move
+    cat.turnMeter = 0;
+    const r = Abilities.strike(cat, foe, 100, { crit: true, dodge: false });
+    assert(r.crit, 'the guaranteed crit did not crit');
+    assert(Math.abs(cat.turnMeter - full * 0.20) < 1,
+      `a crit refunded ${cat.turnMeter} of ${full * 0.20}`);
+
+    // ---- 4pc The Pride Eats: one kill, the whole party eats, once.
+    wear(cat, 4);
+    wear(mate, 4); // every fielded hero holds a pack hook; the payout
+                   // must still land exactly once.
+    const prey = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 1);
+    prey.hp = 10;
+    cat.turnMeter = 0;
+    mate.turnMeter = full * 0.5;
+    Abilities.strike(cat, prey, 500, { crit: false, dodge: false });
+    assert(!prey.alive, 'the prey survived a 500 raw blow at 10 HP');
+    assert(Math.abs(cat.turnMeter - full * 0.10) < 1,
+      `the killer's share came to ${cat.turnMeter}, expected exactly ` +
+      `${full * 0.10} \u2014 more means two copies of the hook collected`);
+    assert(Math.abs(mate.turnMeter - full * 0.60) < 1,
+      `the ally's share came to ${mate.turnMeter - full * 0.5} of ${full * 0.10}`);
+    // Booked to the killer as bar handed out: allies' shares, not own.
+    assert(Math.abs(cat.apGiven - 0.10) < 1e-9,
+      `the kill booked ${cat.apGiven} given; only the ally's share counts`);
+
+    // A death nobody dealt pays nobody: poison has no killer.
+    const prey2 = place(battle, DUMMIES.rat_archer, TEAM.ENEMY, 2);
+    prey2.hp = 5;
+    mate.turnMeter = 0;
+    prey2.takeDamage(50, null);
+    assert(!prey2.alive, 'the second prey survived');
+    assert(mate.turnMeter === 0,
+      `a kill with no killer still fed the pride ${mate.turnMeter}`);
+
+    // And an ALLY's death is a loss, not a hunt -- whoever dealt it.
+    // (A bond or a reflect can make a player unit the killer of its own
+    // side; the pride must not eat off that.)
+    const kin = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 2);
+    kin.hp = 5;
+    cat.turnMeter = 0;
+    mate.turnMeter = 0;
+    kin.takeDamage(50, cat);
+    assert(!kin.alive, 'the kinsman survived');
+    assert(cat.turnMeter === 0 && mate.turnMeter === 0,
+      `the pride ate off its own dead: cat ${cat.turnMeter}, mate ${mate.turnMeter}`);
+  } finally { Battle.active = prev; }
+});
+
 test('Stillwater stands: nine cats, the bird shape, and a week on the wheel', () => {
   const sect = RACES.SECTS.stillwater;
   assert(sect && sect.number === 13, 'Stillwater is not No. 13');

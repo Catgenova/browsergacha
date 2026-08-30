@@ -225,6 +225,21 @@ const RACES = (() => {
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['tip', 'brock', 'friday', 'tiny', 'orr', 'princess',
                            'sands', 'donut', 'tub'] },
+    // The fire cat sect, FOUNDING: numbered, packed, waiting on art, on
+    // the Stillwater precedent. Where Stillwater is the water pride that
+    // owns the ENEMY's action bar -- taking turns, keeping them, refusing
+    // to give its own back -- Emberpride is the fire pride that stokes
+    // its OWN: aggression pays tempo, tempo pays aggression. The two
+    // never read as recolours of each other because they touch opposite
+    // ends of the same meter.
+    //
+    // The shape is the full spread, 1/2/3/2/1, because fire carries
+    // every rarity band. A ceiling on an empty roster costs one line to
+    // change until the first cat lands.
+    emberpride: { id: 'emberpride', name: 'Emberpride', number: 14,
+                 race: 'cat', founding: true,
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
+                 members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -927,6 +942,88 @@ const RACES = (() => {
         // another Stillwater party both halves cancel exactly.
         hooks: { meterGuard: true },
         label: 'the party\'s action bars cannot be pushed backwards',
+      },
+    ],
+    // Emberpride turns the Stillwater machine around. Their cousins take
+    // the enemy's bar; this pride charges its own -- every tier below is
+    // the party's aggression paid back as tempo. Nothing here drains,
+    // siphons or guards, so the two cat packs stay tellable at a glance,
+    // and nothing here resells what fire's own resonance already sells
+    // (flat ATK, damage to the burning, the crit echo).
+    //
+    // The three feed each other in fight order. First Blood pays the
+    // opener, Taste for It pays every good swing after it, and The Pride
+    // Eats pays the whole table when a hunt closes -- open hot, crit
+    // often, finish together.
+    emberpride: [
+      {
+        count: 2, name: 'First Blood',
+        // Read off the receipt rather than off a snapshot: dealt() hands
+        // over the HP the blow actually took, so hp + amount IS the bar
+        // the victim stood at before it landed. An opener absorbed
+        // entirely by a shield never fires this (no HP lost, no hook),
+        // and an overkill on a full bar still reads as full.
+        //
+        // Fires per target actually damaged, so a sweep over a fresh
+        // line pays once per body -- the same width-scaling as Cold
+        // Current, and the check on it is that an enemy is only
+        // undamaged once. A fight pays this at the top and then it is
+        // spent, unless a mender hands it back by topping somebody up.
+        hooks: {
+          onDealtDamage(unit, { amount, target, battle } = {}) {
+            if (!target || target.team === unit.team || !(amount > 0)) return;
+            if (target.hp + amount < target.maxHp) return;
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.15;
+            if (battle) battle.addFloatingText(unit, '\u25b2 15%', '#ffb060');
+          },
+        },
+        label: 'drawing first blood from an undamaged enemy pays the ' +
+          'attacker 15% action bar',
+      },
+      {
+        count: 3, name: 'Taste for It',
+        // The crit travels to this hook through the dealt() payload,
+        // threaded from strike where the roll is settled. A crit echo's
+        // follow-up blow can never feed it -- the echo swings with
+        // crit: false -- so a lucky hit pays once, not once per bounce.
+        hooks: {
+          onDealtDamage(unit, { crit, battle } = {}) {
+            if (!crit) return;
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.20;
+            if (battle) battle.addFloatingText(unit, '\u25b2 20%', '#ffb060');
+          },
+        },
+        label: 'a critical hit refunds 20% of the action bar',
+      },
+      {
+        count: 4, name: 'The Pride Eats',
+        // Paid off the KILLER's copy of the hook, exactly once -- the
+        // death ring fires this on every watcher, so anyone else's copy
+        // returns without collecting. A death nobody dealt (a poison
+        // tick, a reflect) has a null killer and pays nothing, same as
+        // the Razorwings' kill bonus and for the same reason.
+        //
+        // The whole party eats, killer included -- a sect pack lifts
+        // everyone fielded, never only its own. Booked to the killer as
+        // handed-out bar, since the killer is who bought the tempo.
+        hooks: {
+          onUnitDied(unit, { victim, killer, battle } = {}) {
+            if (!victim || killer !== unit) return null;
+            if (victim.team === unit.team) return null;
+            const b = battle || (typeof Battle !== 'undefined' ? Battle.active : null);
+            const ring = b ? b.livingUnits(unit.team) : [unit];
+            for (const ally of ring) {
+              ally.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
+              ally.bookAp(unit, CONFIG.TURN_METER_MAX * 0.10);
+            }
+            if (b && b.log) {
+              b.log(`The pride eats \u2014 the party gains 10% action bar.`,
+                'log-system');
+            }
+            return null;
+          },
+        },
+        label: "a kill hands the whole party 10% action bar",
       },
     ],
     cryst: [

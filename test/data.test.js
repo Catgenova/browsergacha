@@ -314,6 +314,11 @@ test('every sect holds one race, once each, with its number', () => {
     // the whole sheet landed together.
     stillwater: { number: 13, race: 'cat',
       members: ['tip', 'brock', 'friday', 'tiny', 'orr', 'princess', 'sands', 'donut', 'tub'] },
+    // The fire cats, FOUNDING: numbered and packed ahead of a single
+    // hero, on the Stillwater precedent. The flag is declared on both
+    // sides on purpose -- an empty members array alone must never read
+    // as founding.
+    emberpride: { number: 14, race: 'cat', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
