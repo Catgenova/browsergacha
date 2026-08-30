@@ -319,6 +319,9 @@ test('every sect holds one race, once each, with its number', () => {
     // sides on purpose -- an empty members array alone must never read
     // as founding.
     emberpride: { number: 14, race: 'cat', founding: true, members: [] },
+    // The wind cats, FOUNDING: the third verb of the pride triad
+    // (take / keep / give), declared on both sides like the others.
+    zephyrclaw: { number: 15, race: 'cat', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);

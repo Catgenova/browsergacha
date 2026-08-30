@@ -240,6 +240,18 @@ const RACES = (() => {
                  race: 'cat', founding: true,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: [] },
+    // The wind cat sect, FOUNDING like its firetouched sibling above.
+    // The three prides are three verbs on the same meter: Stillwater
+    // TAKES the enemy's bar, Emberpride CHARGES its own, Zephyrclaw
+    // GIVES it away -- speed becomes tempo and tempo is handed out. The
+    // triad is the at-a-glance rule: no pride may pick up another's
+    // verb.
+    //
+    // Full spread, 1/2/3/2/1, a ceiling on an empty roster.
+    zephyrclaw: { id: 'zephyrclaw', name: 'Zephyrclaw', number: 15,
+                 race: 'cat', founding: true,
+                 shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
+                 members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -1026,6 +1038,71 @@ const RACES = (() => {
         label: "a kill hands the whole party 10% action bar",
       },
     ],
+    // Zephyrclaw is the third verb on the cat meter: where Stillwater
+    // takes and Emberpride keeps, this pride GIVES. Speed is turned into
+    // bar, the whole party starts ahead, and a speed blessing pays out
+    // on the spot -- every tier is tempo arriving on an ally, and none
+    // of it drains, siphons, guards or feeds on aggression, so all
+    // three prides stay tellable at a glance.
+    //
+    // Nothing here resells wind's own resonance either: wind banks
+    // speed as damage rungs and extra turns, never as meter.
+    zephyrclaw: [
+      {
+        count: 2, name: 'Tailwind',
+        // The thesis conversion, in the same rung shape as Wingbeat
+        // Mend and Rigor: speed over the line becomes the resource the
+        // sect is built on. Rungs of 25 rather than 20, matching
+        // Crosswind's -- this is a wind sect, and its cats will be
+        // written to reach them.
+        //
+        // meterRefund fires at useAbility, after the bar resets, so the
+        // refund is a head start on the next fill -- uncapped, like
+        // every other meter gain.
+        hooks: {
+          meterRefund(unit) {
+            const over = unit.effectiveStat('speed') - 100;
+            return over <= 0 ? 0 : Math.floor(over / 25) * 0.05;
+          },
+        },
+        label: "an ally's own turn refunds 5% action bar per full " +
+          '25 SPD above 100',
+      },
+      {
+        count: 3, name: 'First Off the Mark',
+        // A flat write at battle build, through the same mods channel
+        // every start-of-battle grant uses. Fifteen percent is a head
+        // start, not a turn: nobody opens at full off a pack bonus.
+        mods: { startMeter: 0.15 },
+        label: 'the party opens every battle with 15% action bar',
+      },
+      {
+        count: 4, name: 'Windfall',
+        // Fired from the buff ring, which reaches every living ally --
+        // so only the RECEIVER's own copy collects, or a full party
+        // would pay this seven times per blessing. Gated to a buff with
+        // a real granter: a self-quickening is nobody's gift.
+        //
+        // The push is booked like any other meter gift -- into the
+        // receiver's gift ledger so the turn it buys credits back, and
+        // onto the granter's AP column -- because that is exactly what
+        // it is: the blessing paying a deposit on the turn it promises.
+        hooks: {
+          onAllyBuffed(unit, { receiver, effect, battle } = {}) {
+            if (unit !== receiver) return;
+            if (!effect || effect.stat !== 'speed') return;
+            if (!effect.source || effect.source === receiver) return;
+            const gained = CONFIG.TURN_METER_MAX * 0.10;
+            receiver.turnMeter += gained;
+            receiver.meterGifts.push({ source: effect.source, amount: gained });
+            receiver.bookAp(effect.source, gained);
+            if (battle) battle.addFloatingText(receiver, '\u25b2 10%', '#a8e8c8');
+          },
+        },
+        label: 'a speed blessing granted to an ally also pushes their ' +
+          'action bar 10% on the spot',
+      },
+    ],
     cryst: [
       {
         count: 2, name: 'Cold Iron Court',
@@ -1112,6 +1189,10 @@ const RACES = (() => {
     critDamage: (u, v) => { u.baseCritDamage += v; },
     takenMult: (u, v) => { u.synergyTakenMult *= v; },
     apOnEnemyTurn: (u, v) => { u.synergyApOnEnemyTurn += v; },
+    // A head start on the action bar, written once at battle build --
+    // meters start at zero and nothing re-zeros them before the first
+    // tick, so a flat add here IS the opening state.
+    startMeter: (u, v) => { u.turnMeter += CONFIG.TURN_METER_MAX * v; },
   };
 
   function applyModsToUnit(unit, mods) {
@@ -1269,7 +1350,7 @@ const RACES = (() => {
   // heroes now bring exactly what their own kit and gear say, no matter
   // who stands beside them.
 
-  return { of, NAMES, SECTS, liveSects, sectOf,
+  return { of, NAMES, SECTS, liveSects, sectOf, applyModsToUnit,
     ELEMENT_NAMES, ELEMENT_PARTY_BONUSES, elementCounts, elementTiers,
     SECT_PARTY_BONUSES, sectCounts, sectTiers, PREVIEW_MIN,
     applyParty, previewParty };

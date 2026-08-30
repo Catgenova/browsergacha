@@ -15545,6 +15545,99 @@ test('the Emberpride pack pays aggression back as the party\'s own tempo', () =>
   } finally { Battle.active = prev; }
 });
 
+test('the Zephyrclaw pack turns speed into tempo and hands it out', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.zephyrclaw;
+  assert(PACK && PACK.length === 3, 'the Zephyrclaw pack is not three tiers');
+  assert(PACK.map((t) => t.count).join() === '2,3,4', 'the tiers are not 2/3/4');
+  // The pride triad, held from this side too: Zephyrclaw GIVES, so it
+  // may not take (Stillwater's verb) and it may not feed on aggression
+  // (Emberpride's). No drain, siphon or guard; no kill or crit payout.
+  for (const t of PACK) {
+    for (const key of ['apDrainAdd', 'meterSiphon', 'meterGuard',
+      'onUnitDied', 'onDealtDamage']) {
+      assert(!(t.hooks && key in t.hooks),
+        `${t.name} carries ${key}, which is another pride's verb`);
+    }
+  }
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const cat = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const mate = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 1);
+    const wear = (unit, ...counts) => {
+      unit.passives = PACK.filter((t) => counts.includes(t.count))
+        .map((t) => ({ name: t.name, description: t.label, hooks: t.hooks }));
+    };
+    const full = CONFIG.TURN_METER_MAX;
+
+    // ---- 2pc Tailwind: rungs of 25 over 100, read at the ability.
+    wear(cat, 2);
+    cat.speed = 155; // two full rungs; the 5 left over buys nothing
+    cat.turnMeter = full;
+    cat.useAbility(cat.abilities[0]);
+    assert(Math.abs(cat.turnMeter - full * 0.10) < 1,
+      `155 SPD refunded ${cat.turnMeter}, wanted two rungs = ${full * 0.10}`);
+    cat.speed = 100; // on the line is not over it
+    cat.turnMeter = full;
+    cat.useAbility(cat.abilities[0]);
+    assert(cat.turnMeter === 0, `100 SPD still refunded ${cat.turnMeter}`);
+    // 120 tells the rung size apart: under one 25-rung, but a full
+    // 20-rung -- the sabotage 155 could not catch, because 55 over
+    // floors to two rungs at both sizes.
+    cat.speed = 120;
+    cat.turnMeter = full;
+    cat.useAbility(cat.abilities[0]);
+    assert(cat.turnMeter === 0,
+      `120 SPD refunded ${cat.turnMeter}; the rung is 25, not 20`);
+
+    // ---- 3pc First Off the Mark: the tier is a startMeter mod, and it
+    // is applied through the REAL channel applier -- the same function
+    // the battle build calls -- so a deleted or renamed channel fails
+    // here (applyModsToUnit throws on a mod with nowhere to land)
+    // rather than only in play.
+    cat.turnMeter = 0;
+    RACES.applyParty([cat]); // no sect earned; proves the path is inert
+    assert(cat.turnMeter === 0, 'an unearned pack still moved the bar');
+    const tier3 = PACK.find((t) => t.count === 3);
+    assert(tier3.mods && Object.keys(tier3.mods).join() === 'startMeter',
+      `the 3pc mods are ${JSON.stringify(tier3.mods)}, expected startMeter alone`);
+    cat.turnMeter = 0;
+    RACES.applyModsToUnit(cat, tier3.mods);
+    assert(Math.abs(cat.turnMeter - full * 0.15) < 1e-9,
+      `the opening grant landed at ${cat.turnMeter}, wanted ${full * 0.15}`);
+
+    // ---- 4pc Windfall: a speed blessing pays 10% bar on the spot,
+    // once, however many allies hold the hook.
+    wear(cat, 4);
+    wear(mate, 4);
+    mate.turnMeter = 0;
+    mate.statusEffects = [];
+    mate.meterGifts = [];
+    mate.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.3, turns: 3,
+      source: cat });
+    assert(Math.abs(mate.turnMeter - full * 0.10) < 1,
+      `a speed blessing pushed ${mate.turnMeter}; two copies collecting ` +
+      'would read double');
+    // Booked as a gift from the granter, so the bought turn credits back.
+    assert(mate.meterGifts.length === 1 && mate.meterGifts[0].source === cat,
+      'the push is not on the gift ledger');
+    assert(Math.abs(cat.apGiven - 0.10) < 1e-9,
+      `the granter's AP column reads ${cat.apGiven}`);
+
+    // A non-speed blessing is not a windfall.
+    mate.turnMeter = 0;
+    mate.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 3,
+      source: cat });
+    assert(mate.turnMeter === 0, 'an ATK blessing paid the windfall');
+    // And a self-quickening is nobody's gift.
+    mate.addStatusEffect({ kind: 'buff', stat: 'speed', mult: 1.2, turns: 3,
+      source: mate });
+    assert(mate.turnMeter === 0, 'a self-buff paid the windfall');
+  } finally { Battle.active = prev; }
+});
+
 test('Stillwater stands: nine cats, the bird shape, and a week on the wheel', () => {
   const sect = RACES.SECTS.stillwater;
   assert(sect && sect.number === 13, 'Stillwater is not No. 13');
