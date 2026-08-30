@@ -23,6 +23,7 @@ const FILES = [
   'test/dummies.js',
   'js/data/heroes.js', 'js/data/heroes/humans.js', 'js/data/heroes/avians.js',
   'js/data/heroes/cats.js',
+  'js/data/heroes/emberpride.js',
   'js/data/summons.js', 'js/data/dumplings.js',
   'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',

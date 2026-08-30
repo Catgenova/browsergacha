@@ -2304,7 +2304,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   const temporal = (y, m, d) => E.currentBanner(new Date(y, m, d, 12), 'temporal').id;
   const RARE_WHEEL = ['cryst_rateup', 'firetroupe_rateup', 'whisperchime_rateup',
     'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup',
-    'stillwater_rateup'];
+    'stillwater_rateup', 'emberpride_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
     'sunbrood_rateup', 'hollowbone_rateup'];
   assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
@@ -2345,7 +2345,11 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'the Razorwings did not hold their whole week');
   assert(rare(2026, 9, 5) === 'stillwater_rateup' && rare(2026, 9, 11) === 'stillwater_rateup',
     'Stillwater did not hold their whole week');
-  assert(rare(2026, 9, 12) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
+  // The Emberpride took the appended seat when the fire cats landed, so
+  // the Rare wheel runs eight now and wraps a week later.
+  assert(rare(2026, 9, 12) === 'emberpride_rateup' && rare(2026, 9, 18) === 'emberpride_rateup',
+    'the Emberpride did not hold their whole week');
+  assert(rare(2026, 9, 19) === 'cryst_rateup', 'the Rare wheel did not wrap back to Cryst');
   assert(temporal(2026, 8, 7) === 'sunbrood_rateup' && temporal(2026, 8, 13) === 'sunbrood_rateup',
     'the Sunbrood did not hold their whole week');
   assert(temporal(2026, 8, 14) === 'hollowbone_rateup' && temporal(2026, 8, 20) === 'hollowbone_rateup',
@@ -15443,6 +15447,67 @@ test('Stillwater sect pack: take the turn, keep it, and never lose one', () => {
     assert(mirrorA.guarded && mirrorB.guarded, 'two Stillwater parties still drained');
     assert(cat.turnMeter === full * 0.5 && rival.turnMeter === full * 0.5,
       'a bar moved in a mirror match');
+  } finally { Battle.active = prev; }
+});
+
+test('every shield pricing yields a finite ward, and its rungs widen it', () => {
+  // A DEF-priced ward (defMult) existed in three tank kits before the
+  // shield case knew the word: the unknown pricing fell through to the
+  // ATK branch, multiplied an undefined mult, and the wearer stood
+  // behind a NaN -- which ate the next blow into NaN HP and read as
+  // dead to every alive check. Tiny benched all zeros for a week and
+  // nobody noticed, because nothing asserted a ward is a NUMBER.
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const caster = place(battle, DUMMIES.rat_knight, TEAM.PLAYER, 0);
+    const bare = () => {
+      caster.statusEffects = caster.statusEffects.filter((fx) => fx.kind !== 'shield');
+    };
+    const cast = (effect, level = 1) => {
+      bare();
+      Abilities.applyEffect(effect, caster, caster, 1);
+      return caster.shieldTotal();
+    };
+    const atkW = cast({ type: 'shield', mult: 1.00, turns: 3 });
+    const defW = cast({ type: 'shield', defMult: 1.00, turns: 3 });
+    const hpW = cast({ type: 'shield', pct: 0.10, turns: 3 });
+    for (const [name, w] of [['ATK', atkW], ['DEF', defW], ['max-HP', hpW]]) {
+      assert(Number.isFinite(w) && w > 0, `a ${name}-priced ward came up ${w}`);
+    }
+    assert(Math.abs(atkW - caster.effectiveStat('atk')) < 2 &&
+      Math.abs(defW - caster.effectiveStat('def')) < 2,
+      `wards priced off the wrong stat: ATK ward ${atkW}, DEF ward ${defW}`);
+
+    // And every shield ladder on the roster rides a key the engine
+    // reads. The `{ shield: }` rung was written onto seventeen skills
+    // and read by nothing: the card advertised a wider ward and the
+    // engine never widened it.
+    const LIVE = new Set(['heal', 'mult']);
+    for (const h of Object.values(HEROES)) {
+      for (const a of h.abilities || []) {
+        const shields = [...(a.effects || []), ...(a.selfEffects || [])]
+          .filter((e) => e.type === 'shield');
+        if (!shields.length || !a.levelUps) continue;
+        for (const rung of a.levelUps) {
+          for (const k of Object.keys(rung)) {
+            assert(k !== 'shield',
+              `${h.id}/${a.name}: a { shield: } rung, which nothing reads -- ` +
+              `HP wards ride { heal: }, ATK and DEF wards { mult: }`);
+          }
+        }
+      }
+    }
+    // And the ENGINE reads the rung on a DEF ward: hand the caster a
+    // ladder by the same door the real one arrives through
+    // (skillBonusFor), and the ward must come out wider by exactly it.
+    caster.skillBonusFor = () => ({ mult: 0.45 });
+    const laddered = cast({ type: 'shield', defMult: 1.00, turns: 3 });
+    delete caster.skillBonusFor;
+    assert(Math.abs(laddered - caster.effectiveStat('def') * 1.45) < 2,
+      `a +45% ladder on a DEF ward produced ${laddered} against a bare ` +
+      `${defW} -- the mult rung is not read on the DEF branch`);
   } finally { Battle.active = prev; }
 });
 

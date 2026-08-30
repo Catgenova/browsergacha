@@ -43,6 +43,8 @@ const RACES = (() => {
   // cohort ids (cat_prowler and the rest); these are the Stillwater.
   const CATS = new Set([
     'tip', 'brock', 'friday', 'tiny', 'orr', 'princess', 'sands', 'donut', 'tub',
+  ,
+    'kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan',
   ]);
 
   const HUMANS = new Set([
@@ -237,9 +239,10 @@ const RACES = (() => {
     // every rarity band. A ceiling on an empty roster costs one line to
     // change until the first cat lands.
     emberpride: { id: 'emberpride', name: 'Emberpride', number: 14,
-                 race: 'cat', founding: true,
+                 race: 'cat',
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
-                 members: [] },
+                 members: ['kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei',
+                           'boros', 'magnus', 'rajan'] },
     // The wind cat sect, FOUNDING like its firetouched sibling above.
     // The three prides are three verbs on the same meter: Stillwater
     // TAKES the enemy's bar, Emberpride CHARGES its own, Zephyrclaw

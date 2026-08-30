@@ -968,5 +968,76 @@ const POSITIONALS = (() => {
     hooks: { meterGuard: true },
   });
 
+  // ---- The Emberpride hexes ---------------------------------------------
+  // The fire cats' pack pays aggression back as tempo (first blood,
+  // crits, kills), so their hexes sharpen the aggression itself.
+
+  def('first_lunge', {
+    position: POSITION.FRONT,
+    name: 'First Lunge',
+    // The opener's hex: cooldown-free skills are the swings a cat makes
+    // every single turn, and the pride's 2pc pays those same swings for
+    // drawing first blood.
+    description: 'Front hex: +15% damage with cooldown-free skills.',
+    hooks: {
+      damageDealtMult: (u, t, ability) =>
+        (ability && !ability.cooldown ? 1.15 : 1),
+    },
+  });
+
+  def('den_door', {
+    position: POSITION.FRONT,
+    name: 'Den Door',
+    description: 'Front hex: +25% DEF.',
+    hooks: {
+      statMult: (u, stat) => (stat === 'def' ? 1.25 : 1),
+    },
+  });
+
+  def('sunset_perch', {
+    position: POSITION.BACK,
+    name: 'Sunset Perch',
+    // The finisher's hex: the pride's 4pc pays the whole party when a
+    // hunt closes, and this is the seat the closing shot comes from.
+    description: 'Back hex: +20% damage to enemies below half HP.',
+    hooks: {
+      damageDealtMult: (u, t) =>
+        (t && t.maxHp > 0 && t.hp / t.maxHp < 0.5 ? 1.20 : 1),
+    },
+  });
+
+  def('triage_lantern', {
+    position: POSITION.BACK,
+    name: 'Triage Lantern',
+    description: 'Back hex: +20% healing done.',
+    hooks: { healBoostAdd: 0.20 },
+  });
+
+  def('drum_line', {
+    position: POSITION.BACK,
+    name: 'Drum Line',
+    // Read off the granter when a blessing lands (Unit.addStatusEffect),
+    // so it lengthens what this hero hands out, never what they receive.
+    description: 'Back hex: blessings this hero grants last 1 turn longer.',
+    hooks: { buffExtraTurns: 1 },
+  });
+
+  def('braced_recoil', {
+    position: POSITION.CENTER,
+    name: 'Braced Recoil',
+    description: 'Center hex: +25% Crit Damage.',
+    stat: 'critDamage', add: 0.25,
+  });
+
+  def('loudest_voice', {
+    position: POSITION.BACK,
+    name: 'Loudest Voice',
+    // The same channel as Polo's chart table, smaller: every blessing
+    // this hero grants lands 5 points deeper. On a kit that is nothing
+    // but blessings, the hex multiplies the whole kit.
+    description: 'Back hex: blessings this hero grants run 5% deeper.',
+    hooks: { buffPowerAdd: 0.05 },
+  });
+
   return P;
 })();
