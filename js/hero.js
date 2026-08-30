@@ -1246,7 +1246,7 @@ class Unit {
     if (this.animator) this.animator.play('idle');
     // Counts as a heal for heal-reactive passives.
     if (typeof Battle !== 'undefined' && Battle.active) {
-      Battle.active.onUnitHealed(this, this.hp);
+      Battle.active.onUnitHealed(this, this.hp, source || this);
     }
   }
 
@@ -1312,7 +1312,7 @@ class Unit {
     }
     // Heal event bus: lets passives react to any ally being healed.
     if (healed > 0 && typeof Battle !== 'undefined' && Battle.active) {
-      Battle.active.onUnitHealed(this, healed);
+      Battle.active.onUnitHealed(this, healed, source || this);
     }
     return healed;
   }

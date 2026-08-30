@@ -67,12 +67,15 @@ class Battle {
   }
 
   // Called (via the heal event bus) whenever any unit is actually healed.
-  onUnitHealed(healedUnit, amount) {
+  // `healer` is whoever the mend was credited to -- the same source the
+  // damage meter books -- so a hook paid per mend (Sunpulse's 2pc) can
+  // tell a colleague's triage from a self-mend. Null for old callers.
+  onUnitHealed(healedUnit, amount, healer = null) {
     for (const u of this.livingUnits(healedUnit.team)) {
       for (const p of (u.hookSources ? u.hookSources() : u.passives || [])) {
         const hook = p.hooks && p.hooks.onAllyHealed;
         if (!hook) continue;
-        const res = hook(u, healedUnit, this);
+        const res = hook(u, healedUnit, this, { amount, healer });
         if (res && res.floats) {
           res.floats.forEach((f) => this.addFloatingText(f.target, f.text, f.color));
         }
