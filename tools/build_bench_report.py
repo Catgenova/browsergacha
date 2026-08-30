@@ -90,7 +90,8 @@ for key, label, axis, axis_label in BUCKETS:
         # and a hex do not. A hero holding a field full of them is not
         # idle, so a low headline is only called out when the hero is
         # quiet on every axis the bench can see.
-        r['_works'] = f(r.get('boons')) >= 1 or f(r.get('hexes')) >= 1
+        r['_works'] = (f(r.get('boons')) >= 1 or f(r.get('hexes')) >= 1
+                       or f(r.get('ap+/s')) >= 0.02 or f(r.get('ap-/s')) >= 0.02)
         if r['_x'] >= HIGH or (r['_x'] <= LOW and not r['_works']):
             flagged.append((label, axis_label, r))
     buckets.append((key, label, axis, axis_label, med, members))

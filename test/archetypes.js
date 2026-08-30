@@ -731,12 +731,16 @@ function report(key, rows) {
     // was the bench failing to look rather than the hero failing to
     // work. A low reading is only worth flagging when the hero is
     // quiet on every axis the bench can see.
-    const working = r.boons >= 1 || r.hexes >= 1;
+    // ...and the action bar is the third axis HP-currency cannot see.
+    // A pure meter-gifter (Caracall) posts no boons, no hexes and
+    // almost no worth, and is still doing the one thing its kit says.
+    const working = r.boons >= 1 || r.hexes >= 1 ||
+      r['ap+/s'] >= 0.02 || r['ap-/s'] >= 0.02;
     const low = ratio <= 0.4 && !working;
     const mark = !can ? `  (no ${headline} in kit)`
       : ratio >= 2 ? ' ←← far above'
       : low ? ' ←← far below'
-      : ratio <= 0.4 ? `  (works in boons/hexes)` : '';
+      : ratio <= 0.4 ? `  (works in boons/hexes/AP)` : '';
     if (can && (ratio >= 2 || low)) {
       flagged.push({ key, name: r.name, headline, value: r[headline], ratio });
     }

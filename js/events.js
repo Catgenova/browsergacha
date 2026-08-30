@@ -95,6 +95,7 @@ const Events = (() => {
       { id: 'razorwings_rateup', name: 'The Razorwings', sect: 'razorwings' },
       { id: 'stillwater_rateup', name: 'Stillwater', sect: 'stillwater' },
       { id: 'emberpride_rateup', name: 'The Emberpride', sect: 'emberpride' },
+      { id: 'zephyrclaw_rateup', name: 'The Zephyrclaw', sect: 'zephyrclaw' },
     ],
     temporal: [
       { id: 'reverence_rateup', name: 'Heralds of Reverence', sect: 'reverence' },
