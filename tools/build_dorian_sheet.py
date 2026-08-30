@@ -184,7 +184,7 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     <div class="stat atk"><div class="k">ATK</div><div class="v">151</div></div>
     <div class="stat"><div class="k">HP</div><div class="v">1050</div></div>
     <div class="stat"><div class="k">DEF</div><div class="v">79</div></div>
-    <div class="stat"><div class="k">SPD</div><div class="v">112</div><div class="sub">+40% accuracy on a front hex</div></div>
+    <div class="stat"><div class="k">SPD</div><div class="v">112</div><div class="sub">+50% accuracy on a front hex</div></div>
   </div>
 
   <h2><span class="glyph">&#x2726;</span> Nothing stopped a heal before him</h2>
@@ -209,8 +209,8 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     <div class="ability">
       <div class="slot">Skill 1 &middot; No cooldown</div>
       <h3>Low Sweep</h3>
-      <div class="meta">Single enemy &middot; <b>140% ATK</b></div>
-      <p>The glaive comes across at knee height: <b>140% ATK</b>. No
+      <div class="meta">Single enemy &middot; <b>150% ATK</b></div>
+      <p>The glaive comes across at knee height: <b>150% ATK</b>. No
       trick to it &#x2014; it is the stroke he spams into a target that
       can no longer be repaired.</p>
       <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power &rsaquo; +10% power <i>&middot; max Lv 6</i></div>
@@ -218,8 +218,8 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     <div class="ability">
       <div class="slot">Skill 2 &middot; Cooldown 4 &rarr; 2 fully levelled</div>
       <h3>Nothing For The Pain</h3>
-      <div class="meta">Single enemy &middot; <b>150% ATK &middot; no healing, 2 turns</b></div>
-      <p><b>150% ATK</b>, and a <b>50% chance</b> that for two turns
+      <div class="meta">Single enemy &middot; <b>185% ATK &middot; no healing, 2 turns</b></div>
+      <p><b>185% ATK</b>, and a <b>50% chance</b> that for two turns
       <b>nothing can heal them</b>
       &#x2014; no cast, no regen, no drain, no lifesteal.</p>
       <div class="ladder"><b>Skill ups</b> &middot; +10% power &rsaquo; +20% land chance &rsaquo; +20% land chance &rsaquo; +10% land chance &rsaquo; -1 cooldown &rsaquo; -1 cooldown <i>&middot; max Lv 7</i></div>
@@ -227,8 +227,8 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     <div class="ability">
       <div class="slot">Skill 3 &middot; Cooldown 6 &rarr; 4 fully levelled</div>
       <h3>No Physician</h3>
-      <div class="meta">Single enemy &middot; <b>190% ATK &middot; both locks, 2 turns</b></div>
-      <p>The lit blade: <b>190% ATK</b> to one enemy, then two <b>50%</b>
+      <div class="meta">Single enemy &middot; <b>240% ATK &middot; both locks, 2 turns</b></div>
+      <p>The lit blade: <b>240% ATK</b> to one enemy, then two <b>50%</b>
       rolls made apart &#x2014; one to cut them off from <b>being
       healed</b> for two turns, one to seal them against <b>any new
       blessing</b> for two. Their
@@ -239,7 +239,7 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
       <div class="slot">Passive</div>
       <h3>Past Helping</h3>
       <div class="meta">Per lock on the target</div>
-      <p><b>+20% damage for each of his two locks</b> the target is
+      <p><b>+25% damage for each of his two locks</b> the target is
       under. One is <b>&times;1.20</b>; an enemy who can be neither
       mended nor blessed takes <b>&times;1.40</b>. Other people's debuffs
       do not count &#x2014; only his.</p>
@@ -247,7 +247,7 @@ html = r'''<title>Dorian, Glaive of the Nightflowers</title>
     <div class="ability passive-card">
       <div class="slot">Positional &middot; Front hex</div>
       <h3>Reach</h3>
-      <div class="meta">Front &middot; <b>+40% accuracy</b></div>
+      <div class="meta">Front &middot; <b>+50% accuracy</b></div>
       <p>The highest accuracy bonus of any hex in the game, and the one
       stat a lock-based carry actually needs: <b>every lock he throws is
       rolled against their Resistance</b>, and a refused lock is a whole

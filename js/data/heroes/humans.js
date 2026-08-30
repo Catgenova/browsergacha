@@ -2404,11 +2404,11 @@ Object.assign(HEROES, {
       {
         id: 'lucian_cinder_lash', name: 'Cinder Lash',
         icon: 'assets/icons/fc1025.png',
-        description: 'One enemy: 110% ATK damage; 50% chance: 3% of target max HP per turn for 3 turns.',
+        description: 'One enemy: 125% ATK damage; 50% chance: 4% of target max HP per turn for 3 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.10 },
-          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 3, flavor: 'burn' },
+          { type: 'damage', mult: 1.25 },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.04, turns: 3, flavor: 'burn' },
         ],
         levelUps: [
           { mult: 0.1 },
@@ -2421,10 +2421,10 @@ Object.assign(HEROES, {
       {
         id: 'lucian_stoke_the_forge', name: 'Stoke the Forge',
         icon: 'assets/icons/fc1026.png',
-        description: 'Self: permanent +50 ATK for every burn on the enemy team, up to +1000 this battle.',
+        description: 'Self: permanent +75 ATK for every burn on the enemy team, up to +1000 this battle.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
-          { type: 'atkPerDebuff', flavor: 'burn', per: 50, cap: 1000 },
+          { type: 'atkPerDebuff', flavor: 'burn', per: 75, cap: 1000 },
         ],
         levelUps: [
           { per: 10 },
@@ -2438,10 +2438,10 @@ Object.assign(HEROES, {
       {
         id: 'lucian_wildfire_arc', name: 'Wildfire Arc',
         icon: 'assets/icons/fc1027.png',
-        description: 'One enemy: 125% ATK damage, then a 75% chance to bounce to another enemy and repeat.',
+        description: 'One enemy: 140% ATK damage, then a 75% chance to bounce to another enemy and repeat.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'slash',
         effects: [
-          { type: 'bounce', mult: 1.25, chance: 0.75 },
+          { type: 'bounce', mult: 1.40, chance: 0.75 },
         ],
         levelUps: [
           { mult: 0.1 },
@@ -4784,10 +4784,10 @@ Object.assign(HEROES, {
       {
         id: 'dorian_low_sweep', name: 'Low Sweep',
         icon: 'assets/icons/fc1307.png',
-        description: 'One enemy: 140% ATK damage.',
+        description: 'One enemy: 150% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.40 },
+          { type: 'damage', mult: 1.50 },
         ],
         levelUps: [
           { mult: 0.1 },
@@ -4800,10 +4800,10 @@ Object.assign(HEROES, {
       {
         id: 'dorian_nothing_for_the_pain', name: 'Nothing For The Pain',
         icon: 'assets/icons/fc1308.png',
-        description: 'One enemy: 150% ATK damage; 50% chance: cannot be healed for 2 turns.',
+        description: 'One enemy: 185% ATK damage; 50% chance: cannot be healed for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.50 },
+          { type: 'damage', mult: 1.85 },
           { type: 'healBlock', turns: 2, chance: 0.5 },
         ],
         levelUps: [
@@ -4818,11 +4818,11 @@ Object.assign(HEROES, {
       {
         id: 'dorian_no_physician', name: 'No Physician',
         icon: 'assets/icons/fc1309.png',
-        description: 'One enemy: 190% ATK damage; 50% chance: cannot be healed for 2 turns; 50% chance: cannot ' +
+        description: 'One enemy: 240% ATK damage; 50% chance: cannot be healed for 2 turns; 50% chance: cannot ' +
           'gain buffs for 2 turns.',
         cooldown: 6, targeting: 'enemy', animation: 'skill3', impact: 'strike_purple',
         effects: [
-          { type: 'damage', mult: 1.90 },
+          { type: 'damage', mult: 2.40 },
           { type: 'healBlock', turns: 2, chance: 0.5 },
           { type: 'buffBlock', turns: 2, chance: 0.5 },
         ],
@@ -4840,14 +4840,14 @@ Object.assign(HEROES, {
     passive: {
       name: 'Past Helping',
       icon: 'assets/icons/fc1310.png',
-      description: '+20% damage per lock on the target (heal block, buff seal), up to +40%.',
+      description: '+25% damage per lock on the target (heal block, buff seal), up to +50%.',
       hooks: {
         damageDealtMult(unit, target) {
           if (!target) return 1;
           let locks = 0;
           if (target.healBlocked && target.healBlocked()) locks++;
           if (target.buffsSealed && target.buffsSealed()) locks++;
-          return 1 + 0.20 * locks;
+          return 1 + 0.25 * locks;
         },
       },
     },
