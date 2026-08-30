@@ -3355,7 +3355,7 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
     f.dodgeChance = () => 0;
   }
 
-  // Cinder Lash: damage plus a burn ticking exactly 3% of the VICTIM's
+  // Cinder Lash: damage plus a burn ticking exactly 4% of the VICTIM's
   // max HP (rats carry no resistance, so the land roll is certain).
   // The burn also rolls the 50% application gate now, so the skill is
   // maxed -- at which point it is certain again.
@@ -3363,21 +3363,22 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
   A.execute(lucian.abilities[0].def, lucian, foeA, battle);
   const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
   assert(burn, 'the burn failed to land');
-  assert(burn.amount === Math.round(foeA.maxHp * 0.03) && burn.turns === 3,
+  assert(burn.amount === Math.round(foeA.maxHp * 0.04) && burn.turns === 3,
     `burn reads ${burn && burn.amount} for ${burn && burn.turns} turns`);
   assert(foeA.burning() && !foeB.burning(), 'burning() misreads the field');
 
-  // Stoke the Forge: +50 flat ATK per burning enemy, banked to 1000.
+  // Stoke the Forge: +75 flat ATK per burning enemy, banked to 1000.
   const atk0 = lucian.baseAtk;
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  assert(lucian.baseAtk === atk0 + 50 && lucian.forgeBanked === 50,
+  assert(lucian.baseAtk === atk0 + 75 && lucian.forgeBanked === 75,
     `one fire banked ${lucian.forgeBanked}`);
   lucian.forgeBanked = 990;
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  assert(lucian.baseAtk === atk0 + 60 && lucian.forgeBanked === 1000,
+  // The first cast banked 75; this one only has 10 of headroom left.
+  assert(lucian.baseAtk === atk0 + 85 && lucian.forgeBanked === 1000,
     'the cap leaked');
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  assert(lucian.baseAtk === atk0 + 60, 'a full forge kept gaining');
+  assert(lucian.baseAtk === atk0 + 85, 'a full forge kept gaining');
 
   // By Firelight: his turn opens at +30% ATK while anything burns, and
   // cold once the fires are out.
@@ -6502,14 +6503,14 @@ test("Dorian's kit: he does not out-heal a healer, he removes the healer", () =>
     const mark = foes[0];
     assert(dor.damageDealtMult(mark) === 1, 'an untouched enemy already paid');
     mark.addStatusEffect({ kind: 'debuff', stat: 'healblock', turns: 3 });
-    assert(Math.abs(dor.damageDealtMult(mark) - 1.20) < 1e-9,
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.25) < 1e-9,
       `one lock gave ${dor.damageDealtMult(mark)}`);
     mark.addStatusEffect({ kind: 'debuff', stat: 'buffblock', turns: 3 });
-    assert(Math.abs(dor.damageDealtMult(mark) - 1.40) < 1e-9,
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.50) < 1e-9,
       `both locks gave ${dor.damageDealtMult(mark)}`);
     // Some other affliction is not one of his locks.
     mark.addStatusEffect({ kind: 'debuff', stat: 'atk', mult: 0.5, turns: 3 });
-    assert(Math.abs(dor.damageDealtMult(mark) - 1.40) < 1e-9,
+    assert(Math.abs(dor.damageDealtMult(mark) - 1.50) < 1e-9,
       'an unrelated debuff was counted as a lock');
     // ...and it shows in the damage, not just the multiplier.
     const clean = foes[1];
@@ -6518,7 +6519,7 @@ test("Dorian's kit: he does not out-heal a healer, he removes the healer", () =>
       return h - t.hp; };
     const elem = g.Elements.mult('dark', mark.element) /
       g.Elements.mult('dark', clean.element);
-    assert(Math.abs(hit(mark) / (hit(clean) * elem) - 1.40) < 0.02,
+    assert(Math.abs(hit(mark) / (hit(clean) * elem) - 1.50) < 0.02,
       'the locks did not show up in the swing');
   }
 
