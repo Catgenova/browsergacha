@@ -1332,14 +1332,24 @@ const Abilities = (() => {
       case 'stun': {
         // Stun: the target skips its next turn(s). `chance` gates the
         // roll (default always), then resistance applies like a debuff.
-        if (effect.chance !== undefined && Math.random() >= effect.chance) {
+        // The gate reads debuffChance rungs like every other gate --
+        // until the first hero carried a laddered stun (Dusk), only
+        // bosses threw these and the ladder was never consulted, so a
+        // stun's rungs bought nothing and its card lied.
+        const sLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
+        if (effect.chance !== undefined &&
+            Math.random() >= Math.min(1, effect.chance + (sLad.debuffChance || 0))) {
           return null; // the stun simply doesn't trigger — no log noise
         }
         if (!debuffLands(caster, target)) {
           return { kind: 'debuff', target, stat: 'stun', resisted: true };
         }
         const turns = effect.turns || 1;
-        target.addStatusEffect({ kind: 'debuff', stat: 'stun', turns });
+        // Sourced, like every other affliction: a stun is a debuff, and
+        // everything that reads who laid one (the landing hooks, the
+        // gift ledgers) was blind to stuns while this line carried no
+        // caster.
+        target.addStatusEffect({ kind: 'debuff', stat: 'stun', turns, source: caster });
         return { kind: 'stun', target, turns };
       }
       case 'buff':

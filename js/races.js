@@ -47,10 +47,11 @@ const RACES = (() => {
     'kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan',
     'soren', 'suri', 'caracall', 'damar', 'kira', 'bondo', 'aveline', 'tessa', 'lira',
     'serin', 'lumir', 'celeste', 'ravi', 'cassian', 'bram', 'sunny', 'khema', 'helios',
+    'vex', 'dusk', 'zeth', 'nyx', 'murk', 'skar', 'nox', 'vesper', 'drazan',
   ]);
 
   const HUMANS = new Set([
-    'florence', 'vivian', 'vex', 'emily', 'coral', 'catherine', 'echo',
+    'florence', 'vivian', 'emily', 'coral', 'catherine', 'echo',
     'toll', 'javarious', 'leonardo', 'oak', 'silas', 'eli', 'sawyer',
     'polarus', 'andrew', 'angelica', 'ari', 'cain', 'bit', 'tanner',
     'lucian', 'franz', 'carl', 'esmerelda', 'slick', 'samuels', 'lin', 'koe', 'cleo', 'artur',
@@ -148,7 +149,7 @@ const RACES = (() => {
     // the debuff -- she was writing their 2pc before she joined them.
     nightflower: { id: 'nightflower', name: 'Nightflower', number: 6,
                  members: ['sawyer', 'noctelle', 'sable', 'evelune', 'lysandra',
-                           'morrow', 'valere', 'lenore', 'dorian', 'vex'] },
+                           'morrow', 'valere', 'lenore', 'dorian'] },
     // Tumble's order: acrobats who fight by never standing still.
     whisperchime: { id: 'whisperchime', name: 'Whisperchime', number: 7,
                  members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren',
@@ -284,9 +285,10 @@ const RACES = (() => {
     // The dark shape, 4/3/2 from three stars up, same rule as light:
     // the Temporal scroll never rolls below three.
     nightbane: { id: 'nightbane', name: 'Nightbane', number: 17,
-                 race: 'cat', founding: true,
+                 race: 'cat',
                  shape: { 3: 4, 4: 3, 5: 2 },
-                 members: [] },
+                 members: ['vex', 'dusk', 'zeth', 'nyx', 'murk', 'skar',
+                           'nox', 'vesper', 'drazan'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',

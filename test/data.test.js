@@ -288,7 +288,7 @@ test('every sect holds one race, once each, with its number', () => {
     // Named and numbered ahead of its roster; members land as the
     // Nightflowers are wired.
     nightflower: { number: 6, members: ['sawyer', 'noctelle', 'sable', 'evelune',
-      'lysandra', 'morrow', 'valere', 'lenore', 'dorian', 'vex'] },
+      'lysandra', 'morrow', 'valere', 'lenore', 'dorian'] },
     whisperchime: { number: 7, members: ['tumble', 'posie', 'galen', 'ilyra', 'ryn', 'vivian', 'imani', 'wren', 'asher'] },
     // The first non-human sect. Filled one bird at a time; the shape it
     // is being filled to is checked below.
@@ -333,7 +333,11 @@ test('every sect holds one race, once each, with its number', () => {
       members: ['serin', 'lumir', 'celeste', 'ravi', 'cassian', 'bram', 'sunny', 'khema', 'helios'] },
     // The dark cats, FOUNDING: the haunting verb of the pride pentad,
     // declared on both sides like every founding order before it.
-    nightbane: { number: 17, race: 'cat', founding: true, members: [] },
+    // The dark cats, standing -- led by a defector: Vex left the
+    // Nightflowers with her whole kit, and only the body and the
+    // banner changed.
+    nightbane: { number: 17, race: 'cat',
+      members: ['vex', 'dusk', 'zeth', 'nyx', 'murk', 'skar', 'nox', 'vesper', 'drazan'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -445,7 +449,7 @@ test('every hero resolves a full tag line', () => {
   assert(/Front Line DPS/.test(text('javarious')) && /Shielder/.test(text('javarious')),
     `Javarious should read front-line DPS shielder: ${text('javarious')}`);
   assert(/Reverence Sect/.test(text('toll')), `Toll should carry his sect: ${text('toll')}`);
-  assert(/Debuffer/.test(text('vex')) && /Nightflower Sect/.test(text('vex')),
+  assert(/Debuffer/.test(text('vex')) && /Nightbane Sect/.test(text('vex')),
     `Vex should read debuffer of the Nightflowers: ${text('vex')}`);
   // Coral moved with her. Both tags follow membership, so a hero whose
   // sect closes must never be left reading the closed one.
