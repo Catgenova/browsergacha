@@ -1733,6 +1733,12 @@ test('favourites and team members are never sacrifice material', () => {
 test('auto star up forges the bottom shelf one rank up', () => {
   const w = loadGame();
   const G = w.GameState;
+  // A fresh account is not an empty one: the starter grant stocks the
+  // bottom shelves now (two 1-stars, two 2-stars among the seven), and
+  // an unfavourited starter on the target shelf would be swept into the
+  // forge and throw every count below off. Park them all in the vault,
+  // where the star-up planner does not reach.
+  for (const uid of G.ownedHeroIds().slice()) G.deposit(uid);
   const floor = shelfOf(2, w);
   const goal = floor + 1;
   const ones = Object.values(w.HEROES).filter((h) => (h.rarity || 1) === floor);
@@ -4154,7 +4160,8 @@ test('a wiped save regrows its roster from the collection registry', () => {
   raw.limbo = {};
   raw.team = {};
   raw.nextHeroUid = 40;
-  raw.starters = { florence: true, vivian: true, coral: true, vex: true, emily: true };
+  raw.starters = { tiny: true, torra: true, mei: true, kira: true,
+    suri: true, tip: true, kiva: true };
   raw.collected = { florence: true, cain: true, oak: true };
 
   const G = loadGame({ save: raw }).GameState;
@@ -14825,6 +14832,10 @@ test('the dumpling shop prices 4* to 8* and never sells a worse deal upward', ()
 test('planStarSweep takes the shelf and leaves the dumplings', () => {
   const G = loadGame();
   const { GameState, HEROES } = G;
+  // Same vaulting as the auto-star-up test above: the starters stock
+  // the low shelves, and the sweep must count only what this fixture
+  // dealt.
+  for (const uid of GameState.ownedHeroIds().slice()) GameState.deposit(uid);
   const byR = (r) => Object.keys(HEROES).find((k) => (HEROES[k].rarity || 1) === r &&
     !['light', 'dark'].includes(HEROES[k].element));
   const spend = (r) => {
