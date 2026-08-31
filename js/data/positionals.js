@@ -1084,5 +1084,60 @@ const POSITIONALS = (() => {
     },
   });
 
+  // ---- The Sunpulse hexes -----------------------------------------------
+  // The light cats' pack pays the heartbeat -- triage, spill, and the
+  // unbroken body -- so their hexes keep bodies whole and mends wide.
+
+  def('zenith_seat', {
+    position: POSITION.BACK,
+    name: 'Zenith Seat',
+    // High Noon's hex: the pack pierces armour at full HP, and this
+    // seat pays the same condition in raw damage. Back row, because
+    // full is a state only the unhit keep.
+    description: 'Back hex: +20% damage while at full HP.',
+    hooks: {
+      damageDealtMult: (u) => (u.maxHp > 0 && u.hp >= u.maxHp ? 1.20 : 1),
+    },
+  });
+
+  def('sunrise_gate', {
+    position: POSITION.FRONT,
+    name: 'Sunrise Gate',
+    // Rallying Banner mends the most wounded ally; this mends the
+    // holder. A front-line body that closes its own wounds is one the
+    // healers can afford to overheal -- which is the sect's whole
+    // economy.
+    description: 'Front hex: heals 3% max HP at the start of each turn.',
+    hooks: {
+      onTurnStart(unit) {
+        if (unit.hp >= unit.maxHp) return null;
+        const healed = unit.heal(Math.round(unit.maxHp * 0.03), unit);
+        if (healed <= 0) return null;
+        return { label: 'Sunrise Gate',
+          floats: [{ target: unit, text: `+${healed}`, color: '#ffe8a8' }] };
+      },
+    },
+  });
+
+  def('first_to_kneel', {
+    position: POSITION.FRONT,
+    name: 'First to Kneel',
+    // The third seat on the heal-boost channel: the Warm Spot holds the
+    // center at 25, the Triage Lantern the back at 20, and this one
+    // kneels at the front line where the wounds actually are.
+    description: 'Front hex: +20% healing done.',
+    hooks: { healBoostAdd: 0.20 },
+  });
+
+  def('hearthlight', {
+    position: POSITION.BACK,
+    name: 'Hearthlight',
+    // Settled Low keeps shields ON its holder longer; this keeps the
+    // shields its holder GRANTS -- read off the caster in the shield
+    // case, beside shieldPowerAdd.
+    description: 'Back hex: shields this hero grants last 1 turn longer.',
+    hooks: { shieldExtraTurns: 1 },
+  });
+
   return P;
 })();

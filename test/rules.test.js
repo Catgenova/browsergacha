@@ -2306,7 +2306,7 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup',
     'stillwater_rateup', 'emberpride_rateup', 'zephyrclaw_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
-    'sunbrood_rateup', 'hollowbone_rateup'];
+    'sunbrood_rateup', 'hollowbone_rateup', 'sunpulse_rateup'];
   assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
     E.BANNER_CYCLES.temporal.length === TEMPORAL_WHEEL.length,
     'a wheel grew or shrank without this test being told');
@@ -2356,7 +2356,11 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'the Sunbrood did not hold their whole week');
   assert(temporal(2026, 8, 14) === 'hollowbone_rateup' && temporal(2026, 8, 20) === 'hollowbone_rateup',
     'the Hollowbone did not hold their whole week');
-  assert(temporal(2026, 8, 21) === 'reverence_rateup',
+  // The Sunpulse took the appended seat when the light cats landed, so
+  // the Temporal wheel runs five now and bounces a week later.
+  assert(temporal(2026, 8, 21) === 'sunpulse_rateup' && temporal(2026, 8, 27) === 'sunpulse_rateup',
+    'the Sunpulse did not hold their whole week');
+  assert(temporal(2026, 8, 28) === 'reverence_rateup',
     'the Temporal wheel did not bounce back to Reverence');
 
   // The window a banner reports is the week it actually holds, and its

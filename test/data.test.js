@@ -326,10 +326,11 @@ test('every sect holds one race, once each, with its number', () => {
     // pride quartet (take / keep / give / endure).
     zephyrclaw: { number: 15, race: 'cat',
       members: ['soren', 'suri', 'caracall', 'damar', 'kira', 'bondo', 'aveline', 'tessa', 'lira'] },
-    // The light cats, FOUNDING: the endurance verb of the pride
-    // quartet. Light shape -- no 1- or 2-stars, because the Temporal
-    // scroll never rolls below three.
-    sunpulse: { number: 16, race: 'cat', founding: true, members: [] },
+    // The light cats, standing: nine at once, the endurance verb of the
+    // pride quartet. Light shape -- no 1- or 2-stars, because the
+    // Temporal scroll never rolls below three.
+    sunpulse: { number: 16, race: 'cat',
+      members: ['serin', 'lumir', 'celeste', 'ravi', 'cassian', 'bram', 'sunny', 'khema', 'helios'] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
@@ -1026,6 +1027,26 @@ test('the action-bar ledger books to the hero who moved the bar', () => {
   assert(Math.abs(ally.apTaken - 0.5) < 1e-9 && Math.abs(ally.apGiven - 0.25) < 1e-9,
     `self, cross-line and friendly-fire pushes leaked into the ledger: ` +
     `${ally.apTaken} taken, ${ally.apGiven} given`);
+});
+
+test('no effect carries a key the engine does not read', () => {
+  // Five skills shipped with `defIgnore` while strike reads
+  // `ignoreDef`: the cards said "(ignores 25% DEF)" and the blows
+  // ignored nothing, for three sects' worth of finishers. A wrong key
+  // fails silently -- an object simply has an extra property -- so the
+  // known wrong spellings are banned by name.
+  const BANNED = { defIgnore: 'ignoreDef', shield: null };
+  const problems = [];
+  for (const h of Object.values(g.HEROES)) {
+    for (const a of h.abilities || []) {
+      for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
+        if ('defIgnore' in e) {
+          problems.push(`${h.id}/${a.name}: defIgnore is a dead key; the engine reads ignoreDef`);
+        }
+      }
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 5).join(' | '));
 });
 
 test('every hero classifies into exactly one of the six archetypes', () => {
