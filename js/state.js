@@ -336,8 +336,19 @@ const GameState = (() => {
     };
   }
 
-  // Heroes every player owns, granted retroactively to existing saves too.
-  const STARTERS = ['florence', 'vivian', 'coral', 'vex', 'emily'];
+  // Heroes every player owns, granted retroactively to existing saves
+  // too. Seven now, drawn 1-to-3 star from the three basic elements so
+  // the opening hand teaches the game's two party systems by itself:
+  // three fire (Emberpride to the 3pc), two water (Stillwater 2pc), two
+  // wind (Zephyrclaw 2pc), a tank, a healer, three shapes of striker
+  // and two supports across all three rows. Tiny leads the array
+  // because the first starter granted is the one placed on a brand-new
+  // player's board.
+  //
+  // The five old starters are not revoked -- the ledger below grants by
+  // character, once, and never takes anything back -- so an existing
+  // account keeps Florence and her friends and gains the seven cats.
+  const STARTERS = ['tiny', 'torra', 'mei', 'kira', 'suri', 'tip', 'kiva'];
 
   let state = load();
   const listeners = [];
