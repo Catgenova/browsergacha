@@ -273,6 +273,20 @@ const RACES = (() => {
                  shape: { 3: 4, 4: 3, 5: 2 },
                  members: ['serin', 'lumir', 'celeste', 'ravi', 'cassian',
                            'bram', 'sunny', 'khema', 'helios'] },
+    // The dark cat sect, FOUNDING, and the fifth verb on the pride
+    // meter: take, charge, give, endure -- Nightbane HAUNTS. The
+    // affliction itself is the party's tempo and its teeth, which is
+    // ground none of the darks hold either: dark resonance sells
+    // whether a hex lands and how long it stays, the Hollowbone sell
+    // how hard it bites, the Nightflowers what it costs. Nobody sold
+    // what it PAYS.
+    //
+    // The dark shape, 4/3/2 from three stars up, same rule as light:
+    // the Temporal scroll never rolls below three.
+    nightbane: { id: 'nightbane', name: 'Nightbane', number: 17,
+                 race: 'cat', founding: true,
+                 shape: { 3: 4, 4: 3, 5: 2 },
+                 members: [] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',
@@ -1191,6 +1205,73 @@ const RACES = (() => {
           },
         },
         label: 'an ally at full HP ignores 15% of DEF',
+      },
+    ],
+    // Nightbane is the haunting verb: the curse pays. Landing an
+    // affliction is the sect's aggression, and all three tiers price
+    // it -- the first curse on a clean enemy, the steady rhythm of
+    // every one after, and a field held under three or more.
+    //
+    // The 2pc and 3pc STACK by design (the buyer chose both): at three
+    // claws, a curse on a clean enemy pays 15% and every further curse
+    // pays 5. Both ride onDebuffLanded, which fires once per affliction
+    // actually landed on the other team -- so a sweep that hexes seven
+    // bodies pays seven times, the same width-scaling as Cold Current
+    // and First Blood, checked the same way: a board is only clean
+    // once, and a resisted or missed hex pays nothing because it never
+    // lands. Nothing here drains, guards, feeds on kills or crits,
+    // rides speed, or touches healing, so the five prides stay
+    // tellable at a glance.
+    nightbane: [
+      {
+        count: 2, name: 'First Curse',
+        // wasAfflicted is the victim's state BEFORE this landing (see
+        // Unit.addStatusEffect), so the curse that is asking never
+        // counts itself.
+        hooks: {
+          onDebuffLanded(unit, { wasAfflicted } = {}) {
+            if (wasAfflicted) return null;
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.10;
+            return { floats: [{ target: unit, text: '\u25b2 10%', color: '#c8a0e8' }] };
+          },
+        },
+        label: 'laying a debuff on an unafflicted enemy pays the caster ' +
+          '10% action bar',
+      },
+      {
+        count: 3, name: 'Coven Rhythm',
+        hooks: {
+          onDebuffLanded(unit) {
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.05;
+            return null; // quiet: it fires on every hex in a hexing sect
+          },
+        },
+        label: 'laying any debuff pays the caster 5% action bar',
+      },
+      {
+        count: 4, name: 'Witching Hour',
+        // Counts AFFLICTIONS, not afflicted bodies: three curses on one
+        // boss open the hour just as three spread thin do, which is
+        // what makes the tier worth the same against one body as seven.
+        hooks: {
+          onTurnStart(unit, battle) {
+            if (!battle) return null;
+            let live = 0;
+            for (const foe of battle.livingUnits()) {
+              if (foe.team === unit.team) continue;
+              // debuffsOn returns a COUNT, not a list -- .length on it
+              // is undefined, and NaN slips straight through both
+              // gates below and pays the hour on an empty field.
+              live += Unit.debuffsOn(foe);
+              if (live >= 3) break;
+            }
+            if (live < 3) return null;
+            unit.turnMeter += CONFIG.TURN_METER_MAX * 0.04;
+            return null; // quiet: it ticks every turn once the hour opens
+          },
+        },
+        label: 'while 3 or more afflictions hold on the enemy side, ' +
+          'allies gain 4% action bar at the start of their turns',
       },
     ],
     cryst: [

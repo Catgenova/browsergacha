@@ -15856,6 +15856,102 @@ test('the Sunpulse pack makes the heartbeat pay: triage, spill, and full health'
   } finally { Battle.active = prev; }
 });
 
+test('the Nightbane pack pays the curse: first, every, and the witching hour', () => {
+  const PACK = RACES.SECT_PARTY_BONUSES.nightbane;
+  assert(PACK && PACK.length === 3, 'the Nightbane pack is not three tiers');
+  assert(PACK.map((t) => t.count).join() === '2,3,4', 'the tiers are not 2/3/4');
+  // The pride pentad, held from the fifth side: Nightbane HAUNTS, so
+  // it may not take, feed on aggression, ride speed, or touch healing.
+  for (const t of PACK) {
+    for (const key of ['apDrainAdd', 'meterSiphon', 'meterGuard',
+      'onUnitDied', 'onDealtDamage', 'meterRefund', 'onAllyBuffed',
+      'onAllyHealed', 'onAllyOverheal']) {
+      assert(!(t.hooks && key in t.hooks),
+        `${t.name} carries ${key}, which is another pride's verb`);
+    }
+  }
+
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const cat = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const mate = place(battle, DUMMIES.rat_archer, TEAM.PLAYER, 1);
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+    const wear = (unit, ...counts) => {
+      unit.passives = PACK.filter((t) => counts.includes(t.count))
+        .map((t) => ({ name: t.name, description: t.label, hooks: t.hooks }));
+    };
+    const full = CONFIG.TURN_METER_MAX;
+    const hex = (who, target, stat = 'atk') =>
+      target.addStatusEffect({ kind: 'debuff', stat, mult: 0.85, turns: 2, source: who });
+
+    // ---- 2pc First Curse: the clean board pays, once, through the
+    // REAL dispatch in addStatusEffect.
+    wear(cat, 2);
+    cat.turnMeter = 0;
+    foe.statusEffects = [];
+    hex(cat, foe);
+    assert(Math.abs(cat.turnMeter - full * 0.10) < 1,
+      `cursing the clean paid ${cat.turnMeter}, wanted ${full * 0.10}`);
+    // The same enemy again is no longer clean: nothing.
+    cat.turnMeter = 0;
+    hex(cat, foe, 'def');
+    assert(cat.turnMeter === 0,
+      `cursing the already-cursed still paid first curse: ${cat.turnMeter}`);
+    // A blessing is not a curse, and a self-hex has no cross-team source.
+    cat.turnMeter = 0;
+    mate.statusEffects = [];
+    cat.addStatusEffect({ kind: 'buff', stat: 'atk', mult: 1.2, turns: 2, source: cat });
+    cat.addStatusEffect({ kind: 'debuff', stat: 'def', mult: 0.9, turns: 2, source: cat });
+    hex(cat, mate); // friendly fire: an ally-laid mark pays nothing
+    assert(cat.turnMeter === 0,
+      `a blessing, a self-hex or an ally mark paid the coven: ${cat.turnMeter}`);
+
+    // ---- 3pc Coven Rhythm: every landed curse pays 5, and the two
+    // tiers STACK -- a clean-board curse at 3 claws is 15.
+    wear(cat, 2, 3);
+    cat.turnMeter = 0;
+    foe.statusEffects = [];
+    hex(cat, foe);
+    assert(Math.abs(cat.turnMeter - full * 0.15) < 1,
+      `a clean-board curse at 3 claws paid ${cat.turnMeter}, wanted the ` +
+      `stacked ${full * 0.15}`);
+    cat.turnMeter = 0;
+    hex(cat, foe, 'speed');
+    assert(Math.abs(cat.turnMeter - full * 0.05) < 1,
+      `a follow-up curse paid ${cat.turnMeter}, wanted rhythm alone = ${full * 0.05}`);
+    // A dot is a debuff too (they are counted as such everywhere).
+    cat.turnMeter = 0;
+    foe.addStatusEffect({ kind: 'dot', amount: 50, turns: 2, flavor: 'burn', source: cat });
+    assert(Math.abs(cat.turnMeter - full * 0.05) < 1,
+      `a dot landing paid ${cat.turnMeter}; dots are debuffs here as everywhere`);
+
+    // ---- 4pc Witching Hour: three afflictions open the hour, counted
+    // as CURSES rather than cursed bodies.
+    wear(cat, 4);
+    wear(mate, 4);
+    foe.statusEffects = [];
+    const foe2 = place(battle, DUMMIES.rat_mauler, TEAM.ENEMY, 1);
+    foe2.statusEffects = [];
+    cat.turnMeter = 0;
+    // Two live afflictions: the hour is not open.
+    hex(mate, foe); hex(mate, foe, 'def');
+    const r1 = cat.passives.map((p) => p.hooks.onTurnStart(cat, battle));
+    assert(cat.turnMeter === 0, `two afflictions already paid ${cat.turnMeter}`);
+    // The third opens it -- stacked three-on-one counts the same.
+    hex(mate, foe, 'speed');
+    cat.passives.forEach((p) => p.hooks.onTurnStart(cat, battle));
+    assert(Math.abs(cat.turnMeter - full * 0.04) < 1,
+      `the witching hour paid ${cat.turnMeter}, wanted ${full * 0.04}`);
+    // Expiry closes it again.
+    foe.statusEffects = [];
+    cat.turnMeter = 0;
+    cat.passives.forEach((p) => p.hooks.onTurnStart(cat, battle));
+    assert(cat.turnMeter === 0, `an empty field still paid ${cat.turnMeter}`);
+  } finally { Battle.active = prev; }
+});
+
 test('Stillwater stands: nine cats, the bird shape, and a week on the wheel', () => {
   const sect = RACES.SECTS.stillwater;
   assert(sect && sect.number === 13, 'Stillwater is not No. 13');
