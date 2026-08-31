@@ -2494,9 +2494,29 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     `plain share ${flatSeen.toFixed(3)} drifted from flat ${expectedFlat.toFixed(3)}`);
 });
 
+// Pin a world's banner calendar to one moment. Gacha's pull path reads
+// Events.currentBanner(new Date(), kind) -- the LIVE clock -- so any
+// test that both pulls and asserts which sect is featured is a time
+// bomb: it holds only during whatever week it was written in, and goes
+// off at the next Monday-midnight rollover. (Two did, the first time CI
+// ran on the far side of one.) Wrapping currentBanner pins every path
+// that flows through it, bannerWeight included. No restore needed: each
+// caller pins its own throwaway loadGame() world, gone with the test.
+function pinBannerWeek(w, when) {
+  const realCB = w.Events.currentBanner;
+  const realBW = w.Events.bannerWeight;
+  w.Events.currentBanner = (d, scroll) => realCB(when, scroll);
+  // bannerWeight reaches currentBanner through the module-internal
+  // closure, not the export -- the same bypass Abilities.drainMeter
+  // taught us about -- so the draw-weight path needs its own pin.
+  w.Events.bannerWeight = (def, d, scroll) => realBW(def, when, scroll);
+}
+
 test('pity ladders: plain rare breaks at 100, banner pity claims the featured strip', () => {
   const w = loadGame();
   const G = w.GameState, Ga = w.Gacha, R = w.RACES;
+  // The epoch week: Cryst holds the Rare scroll.
+  pinBannerWeek(w, new Date(2026, 7, 25, 12));
 
   assert(Ga.PITY_LIMIT === 100, `plain pity limit is ${Ga.PITY_LIMIT}`);
   assert(Ga.BANNER_PITY_EVERY === 50, `banner pity every ${Ga.BANNER_PITY_EVERY}`);
@@ -2646,6 +2666,9 @@ test('keepers favourite themselves on arrival', () => {
 test('the wishlist: three slots, 2x weight in plain pulls, banners unaffected', () => {
   const w = loadGame();
   const G = w.GameState;
+  // Pinned to the epoch week for the same reason as the pity test
+  // above: the "not the bannered sect" assertions below name Cryst.
+  pinBannerWeek(w, new Date(2026, 7, 25, 12));
   const pool3 = Object.values(w.HEROES).filter((h) =>
     h.rarity === 3 && ['water', 'fire', 'wind'].includes(h.element));
   // Picks from outside whichever sect holds the Rare scroll today, so
