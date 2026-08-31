@@ -4942,9 +4942,9 @@ test("Ryn's kit: speed is the damage stat", () => {
     const one = A.execute(def.abilities[0], ryn, foes[0], b).filter((r) => r.kind === 'damage');
     const two = A.execute(def.abilities[1], ryn, foes[0], b).filter((r) => r.kind === 'damage');
     assert(one.length === 1 && two.length === 1, 'a single-target swing spread out');
-    assert(two[0].amount > one[0].amount, `140% (${two[0].amount}) did not beat 100% (${one[0].amount})`);
-    assert(Math.abs(two[0].amount / one[0].amount - 1.4) < 0.02,
-      `the two swings sit at ${(two[0].amount / one[0].amount).toFixed(2)}x, expected 1.4x`);
+    assert(two[0].amount > one[0].amount, `160% (${two[0].amount}) did not beat 105% (${one[0].amount})`);
+    assert(Math.abs(two[0].amount / one[0].amount - 1.60 / 1.05) < 0.02,
+      `the two swings sit at ${(two[0].amount / one[0].amount).toFixed(2)}x, expected ${(1.60 / 1.05).toFixed(2)}x`);
 
     const front = foes.filter((f) => f.slot.position === POSITION.FRONT);
     const swept = A.execute(def.abilities[2], ryn, null, b)
