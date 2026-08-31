@@ -366,7 +366,7 @@ const CATS = {
         icon: 'assets/icons/fc1028.png',
         description: 'One enemy: 165% ATK damage (ignores 25% DEF).',
         cooldown: 3, targeting: 'enemy', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 1.65, defIgnore: 0.25 }],
+        effects: [{ type: 'damage', mult: 1.65, ignoreDef: 0.25 }],
         levelUps: [
           { mult: 0.15 },
           { mult: 0.15 },

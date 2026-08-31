@@ -46,6 +46,7 @@ const RACES = (() => {
   ,
     'kiva', 'torra', 'nala', 'saffra', 'onyx', 'mei', 'boros', 'magnus', 'rajan',
     'soren', 'suri', 'caracall', 'damar', 'kira', 'bondo', 'aveline', 'tessa', 'lira',
+    'serin', 'lumir', 'celeste', 'ravi', 'cassian', 'bram', 'sunny', 'khema', 'helios',
   ]);
 
   const HUMANS = new Set([
@@ -268,9 +269,10 @@ const RACES = (() => {
     // rolls below three, and a sect the gacha cannot sell is a shelf
     // full of nothing.
     sunpulse: { id: 'sunpulse', name: 'Sunpulse', number: 16,
-                 race: 'cat', founding: true,
+                 race: 'cat',
                  shape: { 3: 4, 4: 3, 5: 2 },
-                 members: [] },
+                 members: ['serin', 'lumir', 'celeste', 'ravi', 'cassian',
+                           'bram', 'sunny', 'khema', 'helios'] },
     phoenixcourt: { id: 'phoenixcourt', name: 'Phoenix Court', number: 9,
                  shape: { 1: 1, 2: 2, 3: 3, 4: 2, 5: 1 },
                  members: ['korvid', 'kavit', 'flurry', 'barrington', 'stoddard',

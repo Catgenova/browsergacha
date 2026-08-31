@@ -266,7 +266,7 @@ const ZEPHYRCLAW = {
         icon: 'assets/icons/fc1142.png',
         description: 'One enemy: 200% ATK damage (ignores 25% DEF).',
         cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 2.00, defIgnore: 0.25 }],
+        effects: [{ type: 'damage', mult: 2.00, ignoreDef: 0.25 }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
@@ -701,7 +701,7 @@ const ZEPHYRCLAW = {
         icon: 'assets/icons/fc1162.png',
         description: 'One enemy: 240% ATK damage (ignores 25% DEF). Self: +15% turn meter.',
         cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 2.40, defIgnore: 0.25 }],
+        effects: [{ type: 'damage', mult: 2.40, ignoreDef: 0.25 }],
         selfEffects: [{ type: 'turnMeter', amount: 0.15 }],
         levelUps: [
           { mult: 0.20 },

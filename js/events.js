@@ -102,6 +102,7 @@ const Events = (() => {
       { id: 'nightflower_rateup', name: 'The Nightflowers', sect: 'nightflower' },
       { id: 'sunbrood_rateup', name: 'The Sunbrood', sect: 'sunbrood' },
       { id: 'hollowbone_rateup', name: 'The Hollowbone', sect: 'hollowbone' },
+      { id: 'sunpulse_rateup', name: 'The Sunpulse', sect: 'sunpulse' },
     ],
   };
   const BANNER_SCROLLS = Object.keys(BANNER_CYCLES);

@@ -279,7 +279,7 @@ const EMBERPRIDE = {
         icon: 'assets/icons/fc1110.png',
         description: 'One enemy: 210% ATK damage (ignores 20% DEF).',
         cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 2.10, defIgnore: 0.20 }],
+        effects: [{ type: 'damage', mult: 2.10, ignoreDef: 0.20 }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
@@ -708,7 +708,7 @@ const EMBERPRIDE = {
         icon: 'assets/icons/fc1130.png',
         description: 'One enemy: 230% ATK damage (+25% Crit Chance, ignores 20% DEF).',
         cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'fire_ball',
-        effects: [{ type: 'damage', mult: 2.30, critAdd: 0.25, defIgnore: 0.20 }],
+        effects: [{ type: 'damage', mult: 2.30, critAdd: 0.25, ignoreDef: 0.20 }],
         levelUps: [
           { mult: 0.20 },
           { cooldown: -1 },
