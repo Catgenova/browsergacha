@@ -3814,10 +3814,10 @@ Object.assign(HEROES, {
       {
         id: 'ryn_crosscut', name: 'Crosscut', 
         icon: 'assets/icons/fc1230.png',
-        description: 'One enemy: 100% ATK damage.',
+        description: 'One enemy: 105% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.00 },
+          { type: 'damage', mult: 1.05 },
         ],
         levelUps: [
           { mult: 0.1 },
@@ -3830,10 +3830,10 @@ Object.assign(HEROES, {
       {
         id: 'ryn_shear', name: 'Shear',
         icon: 'assets/icons/fc1231.png',
-        description: 'One enemy: 140% ATK damage.',
+        description: 'One enemy: 160% ATK damage.',
         cooldown: 4, targeting: 'enemy', animation: 'skill2', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.40 },
+          { type: 'damage', mult: 1.60 },
         ],
         levelUps: [
           { mult: 0.1 },
@@ -3847,10 +3847,10 @@ Object.assign(HEROES, {
       {
         id: 'ryn_scything_gale', name: 'Scything Gale',
         icon: 'assets/icons/fc1232.png',
-        description: 'Enemy front row: 130% ATK damage.',
+        description: 'Enemy front row: 145% ATK damage.',
         cooldown: 6, targeting: 'front-enemies', animation: 'skill3', impact: 'slash',
         effects: [
-          { type: 'damage', mult: 1.30 },
+          { type: 'damage', mult: 1.45 },
         ],
         levelUps: [
           { mult: 0.1 },

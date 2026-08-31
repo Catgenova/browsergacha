@@ -3350,9 +3350,9 @@ Object.assign(HEROES, {
         // targets, the back rank and the whole field; a rank the player
         // picks was the shape left over, and it is the one that suits a
         // hero standing in the middle with a line of sight to all of it.
-        description: 'One enemy and their row: 105% ATK damage.',
+        description: 'One enemy and their row: 120% ATK damage.',
         cooldown: 4, targeting: 'enemy-row', animation: 'idle', impact: 'strike',
-        effects: [{ type: 'damage', mult: 1.05 }],
+        effects: [{ type: 'damage', mult: 1.20 }],
         levelUps: [
           { mult: 0.1 },
           { mult: 0.1 },
@@ -3369,10 +3369,10 @@ Object.assign(HEROES, {
         // paid for every blessing the target is wearing and only then
         // takes them off, so the fat buffed tank is both the best target
         // and the one who stops being a problem afterwards.
-        description: 'One enemy: 180% ATK damage; 50% chance: removes 3 buffs.',
+        description: 'One enemy: 200% ATK damage; 50% chance: removes 3 buffs.',
         cooldown: 7, targeting: 'enemy', animation: 'idle', impact: 'slam',
         effects: [
-          { type: 'damage', mult: 1.80 },
+          { type: 'damage', mult: 2.00 },
           { type: 'stripBuffs', count: 3, chance: 0.5 },
         ],
         levelUps: [
