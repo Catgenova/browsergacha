@@ -51,29 +51,15 @@ const NIGHTBANE = {
     stats: { hp: 1250, atk: 200, def: 105, speed: 115 },
     tint: { body: '#5a3a7a', helm: '#7a4a9a', weapon: '#c8a86a', shield: '#3a2a4a' },
     sprite: {
-      displayH: 66, // 25% smaller than standard — the old art is a crouched pose
-      // STILL THE OLD BODY, on purpose. The new Nightbane appearance is
-      // named ("vexidle(1)") but not yet uploaded, and the suite --
-      // rightly -- refuses a strip that points at nothing. The retired
-      // human strips stay wired so she keeps fighting; swap this block
-      // for the nightbane sheet the day it lands.
+      displayH: 84,
+      // The new body: a lynx witch, delivered as "vexidle (1).png" --
+      // the space-and-paren name distinguishing it from the retired
+      // human strips still parked in assets/heroes/vex, on the same
+      // convention as Orr's "Orridle (1)". Referenced exactly as
+      // delivered, per the standing rule that uploaded art is never
+      // renamed.
       strips: {
-        idle:   { src: 'assets/heroes/vex/vexidle.png',  frames: 9,  fps: 4, loop: true },
-        idle2:  { src: 'assets/heroes/vex/vexidle1.png', frames: 9,  fps: 6, loop: false,
-                  variantOf: 'idle', every: [7, 14] },
-        idle3:  { src: 'assets/heroes/vex/vexidle2.png', frames: 9,  fps: 6, loop: false,
-                  variantOf: 'idle', every: [7, 14] },
-        idle4:  { src: 'assets/heroes/vex/vexidle3.png', frames: 16, fps: 6, loop: false,
-                  variantOf: 'idle', every: [7, 14] },
-        ready:  { src: 'assets/heroes/vex/vexready.png', frames: 9, fps: 6, loop: true },
-        attack: { src: 'assets/heroes/vex/vexskill1.png', frames: 9, fps: 10, loop: false,
-                  hitFrame: 6 },
-        cast:   { src: 'assets/heroes/vex/vexskill2.png', frames: 9, fps: 10, loop: false,
-                  hitFrame: 6 },
-        attack3: { src: 'assets/heroes/vex/vexskill3.png', frames: 9, fps: 10, loop: false,
-                   hitFrame: 8 },
-        death:  { src: 'assets/heroes/vex/vexdeath.png', frames: 8, fps: 6, loop: false,
-                  freeze: true },
+        idle: { src: 'assets/heroes/nightbane/vexidle (1).png', frames: 9, fps: 5, loop: true },
       },
     },
     abilities: [
@@ -155,9 +141,12 @@ const NIGHTBANE = {
     rarity: 3,
     stats: { hp: 1600, atk: 90, def: 130, speed: 104 },
     tint: { body: '#3a3444', helm: '#6a5a8a', weapon: '#8a7aa8', shield: '#241c30' },
-    // No sprite block yet: the sheet ('duskidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 88,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/duskidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'dusk_book_them', name: 'Book Them',
@@ -235,9 +224,12 @@ const NIGHTBANE = {
     rarity: 3,
     stats: { hp: 1180, atk: 168, def: 76, speed: 118 },
     tint: { body: '#44384a', helm: '#7a4a9a', weapon: '#c8a8e8', shield: '#241c30' },
-    // No sprite block yet: the sheet ('zethidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 80,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/zethidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'zeth_quick_cut', name: 'Quick Cut',
@@ -313,9 +305,12 @@ const NIGHTBANE = {
     rarity: 3,
     stats: { hp: 1250, atk: 120, def: 95, speed: 114 },
     tint: { body: '#2e2838', helm: '#6a5a8a', weapon: '#c8a8e8', shield: '#241c30' },
-    // No sprite block yet: the sheet ('nyxidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 78,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/nyxidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'nyx_shadow_pin', name: 'Shadow Pin',
@@ -402,9 +397,12 @@ const NIGHTBANE = {
     rarity: 3,
     stats: { hp: 1450, atk: 98, def: 100, speed: 108 },
     tint: { body: '#3a4038', helm: '#5a6a4a', weapon: '#8a9a6a', shield: '#242c20' },
-    // No sprite block yet: the sheet ('murkidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 80,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/murkidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'murk_mudball', name: 'Mudball',
@@ -486,9 +484,12 @@ const NIGHTBANE = {
     rarity: 4,
     stats: { hp: 1350, atk: 165, def: 95, speed: 113 },
     tint: { body: '#4a3a3a', helm: '#7a4a5a', weapon: '#c8a8b8', shield: '#2a1c20' },
-    // No sprite block yet: the sheet ('skaridle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 86,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/skaridle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'skar_rip', name: 'Flense',
@@ -569,9 +570,12 @@ const NIGHTBANE = {
     rarity: 4,
     stats: { hp: 1200, atk: 180, def: 78, speed: 115 },
     tint: { body: '#2a2a34', helm: '#5a5a7a', weapon: '#a8a8d8', shield: '#1a1a24' },
-    // No sprite block yet: the sheet ('noxidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 82,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/noxidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'nox_dusk_bolt', name: 'Dusk Bolt',
@@ -648,9 +652,12 @@ const NIGHTBANE = {
     rarity: 5,
     stats: { hp: 1500, atk: 120, def: 105, speed: 112 },
     tint: { body: '#38304a', helm: '#7a4a9a', weapon: '#c8a8e8', shield: '#241c30' },
-    // No sprite block yet: the sheet ('vesperidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 86,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/vesperidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'vesper_toll_the_hour', name: 'Toll the Hour',
@@ -742,9 +749,12 @@ const NIGHTBANE = {
     rarity: 5,
     stats: { hp: 1950, atk: 100, def: 150, speed: 102 },
     tint: { body: '#302838', helm: '#6a5a8a', weapon: '#8a7aa8', shield: '#1c1424' },
-    // No sprite block yet: the sheet ('drazanidle.png') has not
-    // been uploaded, so the procedural placeholder stands in
-    // (Noctelle precedent). Wire the strip when the art lands.
+    sprite: {
+      displayH: 96,
+      strips: {
+        idle: { src: 'assets/heroes/nightbane/drazanidle.png', frames: 9, fps: 5, loop: true },
+      },
+    },
     abilities: [
       {
         id: 'drazan_wardens_fist', name: "Warden's Fist",
