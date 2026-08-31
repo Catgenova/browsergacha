@@ -269,9 +269,12 @@ const NIGHTBANE = {
       {
         id: 'zeth_nightfall_edge', name: 'Blackout Rake',
         icon: 'assets/icons/fc1206.png',
-        description: 'One enemy: 195% ATK damage (ignores 20% DEF).',
+        // The assassin's chain, on Shrike's channel: a rake that closes
+        // a hunt hands its own cooldown straight back, so a fight full
+        // of wounded things is a fight where Zeth never stops.
+        description: 'One enemy: 180% ATK damage; a kill resets this cooldown.',
         cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 1.95, ignoreDef: 0.20 }],
+        effects: [{ type: 'damage', mult: 1.80, resetOnKill: true }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
@@ -617,16 +620,22 @@ const NIGHTBANE = {
       {
         id: 'nox_total_dark', name: 'Total Dark',
         icon: 'assets/icons/fc1222.png',
-        description: 'One enemy: 230% ATK damage (ignores 15% DEF).',
+        // The night takes: no armour trick here (Night Eye already
+        // pierces the afflicted) -- the big bolt reaches into what the
+        // target is wearing and keeps it.
+        description: 'One enemy: 200% ATK damage; 50% chance: steals 1 blessing.',
         cooldown: 6, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 2.30, ignoreDef: 0.15 }],
+        effects: [
+          { type: 'damage', mult: 2.00 },
+          { type: 'stealBuffs', count: 1, chance: 0.5 },
+        ],
         levelUps: [
           { mult: 0.20 },
+          { debuffChance: 0.2 },
           { cooldown: -1 },
-          { mult: 0.20 },
-          { mult: 0.20 },
+          { debuffChance: 0.2 },
           { cooldown: -1 },
-          { mult: 0.20 },
+          { debuffChance: 0.1 },
           { mult: 0.20 },
         ],
       },
@@ -779,19 +788,22 @@ const NIGHTBANE = {
       {
         id: 'drazan_doomgate', name: 'Doomgate',
         icon: 'assets/icons/fc1229.png',
-        description: 'Self: shield worth 135% DEF for 3 turns; draws enemy attacks for 2 turns.',
-        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
-        effects: [
-          { type: 'shield', defMult: 1.35, turns: 3 },
-          { type: 'taunt', turns: 2 },
-        ],
+        // The confiscating warden: the gate goes up and the contraband
+        // comes over it. Each steal is gated at 50 like every taking,
+        // and each blessing that crosses the wall is one the pride's
+        // strikers no longer have to hit through.
+        description: 'Enemy front row: 50% chance: steals 1 blessing. Self: shield worth ' +
+          '110% DEF for 3 turns.',
+        cooldown: 4, targeting: 'front-enemies', animation: 'idle', impact: 'shield_bubble',
+        effects: [{ type: 'stealBuffs', count: 1, chance: 0.5 }],
+        selfEffects: [{ type: 'shield', defMult: 1.10, turns: 3 }],
         levelUps: [
-          { mult: 0.15 },
-          { duration: 1 },
+          { debuffChance: 0.2 },
           { cooldown: -1 },
+          { debuffChance: 0.2 },
           { mult: 0.15 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { debuffChance: 0.1 },
         ],
       },
       {

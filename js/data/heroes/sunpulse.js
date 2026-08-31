@@ -235,16 +235,19 @@ const SUNPULSE = {
       {
         id: 'celeste_soft_morning', name: 'Soft Morning',
         icon: 'assets/icons/fc1173.png',
-        description: 'All allies: heals 8% of caster max HP.',
+        // A candle, not a bonfire: the whole party regrows a little at
+        // the start of each of their turns instead of taking one burst.
+        // Slow mending is her whole name.
+        description: 'All allies: regenerate 4% of caster max HP for 2 turns.',
         cooldown: 3, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'healHpPct', pct: 0.08 }],
+        effects: [{ type: 'hot', pct: 0.04, turns: 2 }],
         levelUps: [
-          { heal: 0.03 },
+          { heal: 0.02 },
           { cooldown: -1 },
-          { heal: 0.03 },
-          { heal: 0.03 },
+          { duration: 1 },
+          { heal: 0.02 },
           { cooldown: -1 },
-          { heal: 0.03 },
+          { heal: 0.02 },
         ],
       },
       {
@@ -410,13 +413,17 @@ const SUNPULSE = {
       {
         id: 'cassian_noonday_press', name: 'Noonday Press',
         icon: 'assets/icons/fc1181.png',
-        description: 'One enemy: 165% ATK damage (ignores 15% DEF).',
+        // Sword and board: the press comes in behind a raised guard,
+        // and the little ward is High Noon insurance -- a scratch that
+        // would have dimmed him lands on the shield instead.
+        description: 'One enemy: 150% ATK damage. Self: shield worth 12% max HP for 2 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'slash_effect',
-        effects: [{ type: 'damage', mult: 1.65, ignoreDef: 0.15 }],
+        effects: [{ type: 'damage', mult: 1.50 }],
+        selfEffects: [{ type: 'shield', pct: 0.12, turns: 2 }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { heal: 0.03 },
           { mult: 0.15 },
           { cooldown: -1 },
           { mult: 0.15 },
@@ -493,12 +500,12 @@ const SUNPULSE = {
       {
         id: 'bram_bar_the_way', name: 'Bar the Way',
         icon: 'assets/icons/fc1185.png',
-        description: 'Self: shield worth 120% DEF for 3 turns; draws enemy attacks for 2 turns.',
+        // No taunt, on purpose: Bram is the passive door. He does not
+        // call the blows -- Broad Shoulders shrugs off the ones that
+        // come anyway -- he simply cannot be opened while the bar holds.
+        description: 'Self: shield worth 130% DEF for 3 turns.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
-        effects: [
-          { type: 'shield', defMult: 1.20, turns: 3 },
-          { type: 'taunt', turns: 2 },
-        ],
+        effects: [{ type: 'shield', defMult: 1.30, turns: 3 }],
         levelUps: [
           { mult: 0.15 },
           { duration: 1 },
@@ -575,21 +582,22 @@ const SUNPULSE = {
         ],
       },
       {
-        id: 'sunny_rounds_of_cheer', name: 'Rounds of Cheer',
+        id: 'sunny_rounds_of_cheer', name: 'Too Much of a Good Thing',
         icon: 'assets/icons/fc1189.png',
-        description: 'All allies: heals 7% of caster max HP; removes 1 debuff.',
-        cooldown: 4, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [
-          { type: 'healHpPct', pct: 0.07 },
-          { type: 'cleanse', count: 1 },
-        ],
+        // Deliberate overheal: nobody needs thirty percent of Sunny's
+        // pool in one pour, which is the point -- under Sunlit Wards
+        // the spill hardens, and her hex keeps the ward a turn longer.
+        // The only mend in the game that WANTS a healthy target.
+        description: 'One ally: heals 30% of caster max HP.',
+        cooldown: 4, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'healHpPct', pct: 0.30 }],
         levelUps: [
-          { heal: 0.03 },
-          { cleanseCount: 1 },
+          { heal: 0.05 },
           { cooldown: -1 },
-          { heal: 0.03 },
+          { heal: 0.05 },
+          { heal: 0.05 },
           { cooldown: -1 },
-          { heal: 0.03 },
+          { heal: 0.05 },
         ],
       },
       {
@@ -684,20 +692,19 @@ const SUNPULSE = {
       {
         id: 'khema_daylight_court', name: 'Daylight Court',
         icon: 'assets/icons/fc1194.png',
-        description: 'All allies: heals 16% of caster max HP; removes 1 debuff.',
-        cooldown: 6, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [
-          { type: 'healHpPct', pct: 0.16 },
-          { type: 'cleanse', count: 1 },
-        ],
+        // The prides' only revive, and the 5-star light priest's
+        // missing piece: the court reconvenes whoever the night took.
+        description: 'One fallen ally: revives at 35% HP.',
+        cooldown: 6, targeting: 'dead-ally', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'revive', pct: 0.35 }],
         levelUps: [
           { heal: 0.05 },
-          { cleanseCount: 1 },
           { cooldown: -1 },
+          { heal: 0.05 },
           { heal: 0.05 },
           { cooldown: -1 },
           { heal: 0.05 },
-          { cleanseCount: 1 },
+          { heal: 0.05 },
         ],
       },
     ],
@@ -765,13 +772,16 @@ const SUNPULSE = {
       {
         id: 'helios_corona', name: 'Corona',
         icon: 'assets/icons/fc1197.png',
-        description: 'All enemies: 70% ATK damage.',
+        // The sun drinks what it burns: a tenth of every body seared
+        // comes back as his own light, which is what keeps Zenith lit
+        // through a fight where everything wants him scratched.
+        description: 'All enemies: 60% ATK damage; heals for 10% of the damage dealt.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'slash_slam',
-        effects: [{ type: 'damage', mult: 0.70 }],
+        effects: [{ type: 'damage', mult: 0.60, healDealt: { frac: 0.10 } }],
         levelUps: [
           { mult: 0.08 },
           { cooldown: -1 },
-          { mult: 0.08 },
+          { heal: 0.05 },
           { mult: 0.08 },
           { cooldown: -1 },
           { mult: 0.08 },

@@ -57,14 +57,18 @@ const ZEPHYRCLAW = {
       {
         id: 'soren_hold_fast', name: 'Hold Fast',
         icon: 'assets/icons/fc1132.png',
-        description: 'One enemy: 80% DEF damage.',
+        // A jab thrown from behind a raised staff: every swing re-sets
+        // the brace. Still one skill, still simple -- but it is HIS
+        // one skill, not Tiny's at smaller numbers.
+        description: 'One enemy: 70% DEF damage. Self: shield worth 5% max HP for 1 turn.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'punch',
-        effects: [{ type: 'damageDef', mult: 0.80 }],
+        effects: [{ type: 'damageDef', mult: 0.70 }],
+        selfEffects: [{ type: 'shield', pct: 0.05, turns: 1 }],
         levelUps: [
           { mult: 0.10 },
+          { heal: 0.02 },
           { mult: 0.10 },
-          { mult: 0.10 },
-          { mult: 0.10 },
+          { heal: 0.02 },
           { mult: 0.10 },
         ],
       },
@@ -118,16 +122,22 @@ const ZEPHYRCLAW = {
       {
         id: 'suri_wind_at_your_back', name: 'Wind at Your Back',
         icon: 'assets/icons/fc1135.png',
-        description: 'All allies: +10% SPD for 2 turns.',
-        cooldown: 4, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'buff', stat: 'speed', mult: 1.10, turns: 2 }],
+        // The soloist against Tessa's anthem: everything into ONE
+        // runner. Under Windfall at four claws the blessing also shoves
+        // on landing, on top of the push written here.
+        description: 'One ally: +25% SPD for 2 turns; +10% turn meter.',
+        cooldown: 4, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.25, turns: 2 },
+          { type: 'turnMeter', amount: 0.10 },
+        ],
         levelUps: [
           { buffPower: 0.05 },
           { cooldown: -1 },
-          { duration: 1 },
+          { meter: 0.03 },
           { buffPower: 0.05 },
           { cooldown: -1 },
-          { buffPower: 0.05 },
+          { duration: 1 },
         ],
       },
     ],
@@ -172,11 +182,15 @@ const ZEPHYRCLAW = {
     },
     abilities: [
       {
-        id: 'caracall_nudge', name: 'Nudge',
+        id: 'caracall_nudge', name: 'Both Paws',
         icon: 'assets/icons/fc1137.png',
-        description: 'One ally: +18% turn meter.',
-        cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'turnMeter', amount: 0.18 }],
+        // Never one paw: the push goes to the two allies in the worst
+        // shape, because they are the ones whose turns are furthest
+        // away in the ways that matter.
+        description: 'The 2 lowest-health allies: +12% turn meter.',
+        cooldown: 0, targeting: 'lowest-allies', targetCount: 2,
+        animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'turnMeter', amount: 0.12 }],
         levelUps: [
           { meter: 0.03 },
           { meter: 0.03 },
@@ -264,9 +278,11 @@ const ZEPHYRCLAW = {
       {
         id: 'damar_lance_of_the_gale', name: 'Lance of the Gale',
         icon: 'assets/icons/fc1142.png',
-        description: 'One enemy: 200% ATK damage (ignores 25% DEF).',
-        cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
-        effects: [{ type: 'damage', mult: 2.00, ignoreDef: 0.25 }],
+        // A lance does not stop at the first body: the target's whole
+        // row takes the skewer, armour notwithstanding.
+        description: "One enemy's row: 120% ATK damage (ignores 15% DEF).",
+        cooldown: 5, targeting: 'enemy-row', animation: 'idle', impact: 'horizonal_slash',
+        effects: [{ type: 'damage', mult: 1.20, ignoreDef: 0.15 }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
@@ -411,19 +427,19 @@ const ZEPHYRCLAW = {
       {
         id: 'bondo_windbreak', name: 'Windbreak',
         icon: 'assets/icons/fc1149.png',
-        description: 'Self: shield worth 115% DEF for 3 turns; draws enemy attacks for 2 turns.',
-        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
-        effects: [
-          { type: 'shield', defMult: 1.15, turns: 3 },
-          { type: 'taunt', turns: 2 },
-        ],
+        // A windbreak shelters what stands behind it: the wards go on
+        // the LINE, priced off Bondo's own hide -- the sect's giving
+        // verb, spent in armour instead of bar.
+        description: "Front-row allies: shield worth 60% of caster DEF for 2 turns.",
+        cooldown: 4, targeting: 'front-allies', animation: 'idle', impact: 'shield_bubble',
+        effects: [{ type: 'shield', defMult: 0.60, turns: 2 }],
         levelUps: [
-          { mult: 0.15 },
+          { mult: 0.10 },
           { cooldown: -1 },
           { duration: 1 },
-          { mult: 0.15 },
+          { mult: 0.10 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { mult: 0.10 },
         ],
       },
       {
@@ -505,19 +521,19 @@ const ZEPHYRCLAW = {
       {
         id: 'aveline_shepherds_wall', name: "Shepherd's Wall",
         icon: 'assets/icons/fc1153.png',
-        description: 'Self: shield worth 140% DEF for 3 turns; draws enemy attacks for 2 turns.',
-        cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
-        effects: [
-          { type: 'shield', defMult: 1.40, turns: 3 },
-          { type: 'taunt', turns: 2 },
-        ],
+        // She gathers the flock's blessings and stands in front of them:
+        // every boon her allies wear runs a turn longer, and she draws
+        // the blows meanwhile. The taunt stays; the shield went to the
+        // sect's blessing economy instead.
+        description: 'All allies: blessings last 1 turn longer. Self: draws enemy attacks for 2 turns.',
+        cooldown: 4, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
+        effects: [{ type: 'extendBuffs', turns: 1 }],
+        selfEffects: [{ type: 'taunt', turns: 2 }],
         levelUps: [
-          { mult: 0.15 },
           { duration: 1 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { duration: 1 },
           { cooldown: -1 },
-          { mult: 0.15 },
         ],
       },
       {
@@ -586,12 +602,15 @@ const ZEPHYRCLAW = {
       {
         id: 'tessa_quickstep', name: 'Light Feet',
         icon: 'assets/icons/fc1156.png',
-        description: 'One ally: +20% SPD for 2 turns.',
+        description: 'One ally: +15% SPD for 2 turns; removes 1 debuff.',
         cooldown: 0, targeting: 'ally', animation: 'idle', impact: 'heal_gold',
-        effects: [{ type: 'buff', stat: 'speed', mult: 1.20, turns: 2 }],
+        effects: [
+          { type: 'buff', stat: 'speed', mult: 1.15, turns: 2 },
+          { type: 'cleanse', count: 1 },
+        ],
         levelUps: [
           { buffPower: 0.05 },
-          { buffPower: 0.05 },
+          { cleanseCount: 1 },
           { duration: 1 },
           { buffPower: 0.05 },
           { buffPower: 0.05 },
