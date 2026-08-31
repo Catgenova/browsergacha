@@ -130,9 +130,9 @@ const NIGHTBANE = {
   },
 
   // ---- 3-star ------------------------------------------------------
-  // The jailor. Dusk is the sect's named theme in person: the front
-  // door of a prison, and the first hero in the game whose stuns ladder
-  // to certainty like any other gate.
+  // The jailor. Dusk swings a shackle the size of a door knocker on a
+  // haft: the sect's named theme in person, and the first hero in the
+  // game whose stuns ladder to certainty like any other gate.
   dusk: {
     id: 'dusk',
     element: 'dark',
@@ -149,10 +149,10 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'dusk_book_them', name: 'Book Them',
+        id: 'dusk_book_them', name: 'Clap in Irons',
         icon: 'assets/icons/fc1200.png',
         description: 'One enemy: 75% DEF damage.',
-        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'punch',
+        cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'slash_slam',
         effects: [{ type: 'damageDef', mult: 0.75 }],
         levelUps: [
           { mult: 0.10 },
@@ -213,14 +213,14 @@ const NIGHTBANE = {
     positional: POSITIONALS.den_door,
   },
 
-  // The knife. Zeth is the cheapest First Curse engine the sect owns:
-  // a cooldown-0 jab that hexes half the time on day one and every
-  // time once laddered.
+  // The claws. Zeth fights bare-pawed in clawed gauntlets, and he is
+  // the cheapest First Curse engine the sect owns: a cooldown-0 rake
+  // that hexes half the time on day one and every time once laddered.
   zeth: {
     id: 'zeth',
     element: 'dark',
     name: 'Zeth',
-    title: 'A Thin Blade in the Dark',
+    title: 'Claws You Never Hear',
     rarity: 3,
     stats: { hp: 1180, atk: 168, def: 76, speed: 118 },
     tint: { body: '#44384a', helm: '#7a4a9a', weapon: '#c8a8e8', shield: '#241c30' },
@@ -232,7 +232,7 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'zeth_quick_cut', name: 'Quick Cut',
+        id: 'zeth_quick_cut', name: 'Quick Rake',
         icon: 'assets/icons/fc1204.png',
         description: 'One enemy: 105% ATK damage; 50% chance: -10% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
@@ -267,7 +267,7 @@ const NIGHTBANE = {
         ],
       },
       {
-        id: 'zeth_nightfall_edge', name: 'Nightfall Edge',
+        id: 'zeth_nightfall_edge', name: 'Blackout Rake',
         icon: 'assets/icons/fc1206.png',
         description: 'One enemy: 195% ATK damage (ignores 20% DEF).',
         cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'horizonal_slash',
@@ -294,14 +294,15 @@ const NIGHTBANE = {
     positional: POSITIONALS.first_lunge,
   },
 
-  // The weaver of small hours. Nyx blesses her own and pins the other
-  // side, and her passive chips at whoever carries the most curses --
-  // pressure aimed by the whole sect's work.
+  // The scryer. Nyx carries a dark glass on a staff: she blesses her
+  // own, pins the other side, and her passive turns the mirror on
+  // whoever carries the most curses -- pressure aimed by the whole
+  // sect's work.
   nyx: {
     id: 'nyx',
     element: 'dark',
     name: 'Nyx',
-    title: 'Needle of the Small Hours',
+    title: 'The Glass That Looks Back',
     rarity: 3,
     stats: { hp: 1250, atk: 120, def: 95, speed: 114 },
     tint: { body: '#2e2838', helm: '#6a5a8a', weapon: '#c8a8e8', shield: '#241c30' },
@@ -313,7 +314,7 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'nyx_shadow_pin', name: 'Shadow Pin',
+        id: 'nyx_shadow_pin', name: 'Dark Glass',
         icon: 'assets/icons/fc1208.png',
         description: 'One enemy: 65% ATK damage; 50% chance: -10% DEF for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
@@ -364,9 +365,10 @@ const NIGHTBANE = {
     passive: {
       name: 'Small Hours',
       icon: 'assets/icons/fc1211.png',
-      // Aimed by the whole sect: whoever carries the most curses takes
-      // the needle. Through Abilities.strike, so the chip is mitigated
-      // like any blow, and it stays home when nobody is cursed.
+      // Aimed by the whole sect: whoever carries the most curses is the
+      // one the mirror finds. Through Abilities.strike, so the chip is
+      // mitigated like any blow, and it stays home when nobody is
+      // cursed.
       description: 'Start of each turn: the most-afflicted enemy takes 40% ATK damage.',
       hooks: {
         onTurnStart(unit, battle) {
@@ -379,7 +381,7 @@ const NIGHTBANE = {
             { crit: false });
           if (!r || !(r.amount > 0)) return null;
           return { label: 'Small Hours',
-            message: `${unit.name}'s needle finds ${cursed.name}.`,
+            message: `${unit.name}'s glass finds ${cursed.name}.`,
             floats: [{ target: cursed, text: `-${r.amount}`, color: '#c8a0e8' }] };
         },
       },
@@ -387,8 +389,10 @@ const NIGHTBANE = {
     positional: POSITIONALS.thermal_rise,
   },
 
-  // The bog. Murk slows the other side, mends his own, and drinks the
-  // dark whenever it splashes back across the line.
+  // The jug. Murk is an enormous tabby with a vessel of something
+  // best not asked about: he pours it at the other side, mends his own
+  // from the same pot, and drinks the dark whenever it splashes back
+  // across the line.
   murk: {
     id: 'murk',
     element: 'dark',
@@ -405,7 +409,7 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'murk_mudball', name: 'Mudball',
+        id: 'murk_mudball', name: 'Slop Jar',
         icon: 'assets/icons/fc1212.png',
         description: 'One enemy: 60% ATK damage; 50% chance: -10% SPD for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'water_ball',
@@ -474,8 +478,9 @@ const NIGHTBANE = {
   },
 
   // ---- 4-star ------------------------------------------------------
-  // The butcher. Skar cuts lines, not bodies: his cooldowns curse whole
-  // rows, which under the landing tiers is a row of paydays.
+  // The gauntlets. Skar wears three feet of steel claw on each paw and
+  // cuts lines, not bodies: his cooldowns curse whole rows, which under
+  // the landing tiers is a row of paydays.
   skar: {
     id: 'skar',
     element: 'dark',
@@ -492,7 +497,7 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'skar_rip', name: 'Flense',
+        id: 'skar_rip', name: 'Shred',
         icon: 'assets/icons/fc1216.png',
         description: 'One enemy: 115% ATK damage.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike',
@@ -641,14 +646,14 @@ const NIGHTBANE = {
   },
 
   // ---- 5-star ------------------------------------------------------
-  // The bell of the night office. Vesper is the giving half of the
-  // haunt: her curses are wide, and every one she lands rings an ally
-  // forward.
+  // The masquerade. Vesper carries a pair of masks and hands the whole
+  // battlefield a role: her curses are wide, and every one she lands
+  // cues an ally onto the stage.
   vesper: {
     id: 'vesper',
     element: 'dark',
     name: 'Vesper',
-    title: 'The Night Office',
+    title: 'Wears Every Face',
     rarity: 5,
     stats: { hp: 1500, atk: 120, def: 105, speed: 112 },
     tint: { body: '#38304a', helm: '#7a4a9a', weapon: '#c8a8e8', shield: '#241c30' },
@@ -660,7 +665,7 @@ const NIGHTBANE = {
     },
     abilities: [
       {
-        id: 'vesper_toll_the_hour', name: 'Toll the Hour',
+        id: 'vesper_toll_the_hour', name: 'Mask of Sorrow',
         icon: 'assets/icons/fc1224.png',
         description: 'One enemy: 70% ATK damage; 50% chance: -10% ATK for 2 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'idle', impact: 'strike_purple',
@@ -677,10 +682,11 @@ const NIGHTBANE = {
         ],
       },
       {
-        id: 'vesper_curfew', name: 'Curfew',
+        id: 'vesper_curfew', name: 'Masquerade',
         icon: 'assets/icons/fc1225.png',
-        // Seven landing rolls in one cast: the sect's widest single
-        // payday, and the skill that opens the Witching Hour by itself.
+        // Everyone wears her mask at once: seven landing rolls in one
+        // cast, the sect's widest single payday, and the skill that
+        // opens the Witching Hour by itself.
         description: 'All enemies: 50% chance: -10% ATK for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'strike_purple',
         effects: [{ type: 'debuff', chance: 0.5, stat: 'atk', mult: 0.90, turns: 2 }],
@@ -694,7 +700,7 @@ const NIGHTBANE = {
         ],
       },
       {
-        id: 'vesper_midnight_office', name: 'Midnight Office',
+        id: 'vesper_midnight_office', name: 'Intermission',
         icon: 'assets/icons/fc1226.png',
         description: 'All allies: +12% turn meter; removes 1 debuff.',
         cooldown: 5, targeting: 'all-allies', animation: 'idle', impact: 'heal_gold',
@@ -714,12 +720,12 @@ const NIGHTBANE = {
       },
     ],
     passive: {
-      name: 'Evensong',
+      name: 'Your Cue',
       icon: 'assets/icons/fc1227.png',
       // The sect's landing hook, spent outward: the pack pays HER for
-      // every curse, and Evensong passes a slice to whoever is closest
-      // to acting. Booked as a real gift, so the bought turn credits
-      // back.
+      // every curse, and the cue sends a slice to whoever is closest to
+      // taking the stage. Booked as a real gift, so the bought turn
+      // credits back.
       description: 'When Vesper lands a debuff: the readiest other ally gains 5% turn meter.',
       hooks: {
         onDebuffLanded(unit, { battle } = {}) {
