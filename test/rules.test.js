@@ -2306,7 +2306,8 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
     'gulldigger_rateup', 'phoenixcourt_rateup', 'razorwings_rateup',
     'stillwater_rateup', 'emberpride_rateup', 'zephyrclaw_rateup'];
   const TEMPORAL_WHEEL = ['reverence_rateup', 'nightflower_rateup',
-    'sunbrood_rateup', 'hollowbone_rateup', 'sunpulse_rateup'];
+    'sunbrood_rateup', 'hollowbone_rateup', 'sunpulse_rateup',
+    'nightbane_rateup'];
   assert(E.BANNER_CYCLES.rare.length === RARE_WHEEL.length &&
     E.BANNER_CYCLES.temporal.length === TEMPORAL_WHEEL.length,
     'a wheel grew or shrank without this test being told');
@@ -2360,7 +2361,11 @@ test('summon banners: both scrolls rotate one sect a week, wrapping forever', ()
   // the Temporal wheel runs five now and bounces a week later.
   assert(temporal(2026, 8, 21) === 'sunpulse_rateup' && temporal(2026, 8, 27) === 'sunpulse_rateup',
     'the Sunpulse did not hold their whole week');
-  assert(temporal(2026, 8, 28) === 'reverence_rateup',
+  // The Nightbane took the next appended seat: the Temporal wheel runs
+  // six now and bounces a week later again.
+  assert(temporal(2026, 8, 28) === 'nightbane_rateup' && temporal(2026, 9, 4) === 'nightbane_rateup',
+    'the Nightbane did not hold their whole week');
+  assert(temporal(2026, 9, 5) === 'reverence_rateup',
     'the Temporal wheel did not bounce back to Reverence');
 
   // The window a banner reports is the week it actually holds, and its
@@ -15949,6 +15954,61 @@ test('the Nightbane pack pays the curse: first, every, and the witching hour', (
     cat.turnMeter = 0;
     cat.passives.forEach((p) => p.hooks.onTurnStart(cat, battle));
     assert(cat.turnMeter === 0, `an empty field still paid ${cat.turnMeter}`);
+  } finally { Battle.active = prev; }
+});
+
+test('a stun is a debuff: laddered to certainty, sourced, and paying the coven', () => {
+  // Two engine gaps fixed for the first laddered stuns (Dusk): the
+  // stun gate never read debuffChance rungs, and the stun status
+  // carried no source -- so a stun could not reach the certainty its
+  // card promised, and never paid anything that reads who laid an
+  // affliction.
+  const battle = makeBattle();
+  const prev = Battle.active;
+  Battle.active = battle;
+  try {
+    const jailor = place(battle, DUMMIES.rat_brawler, TEAM.PLAYER, 0);
+    const foe = place(battle, DUMMIES.rat_knight, TEAM.ENEMY, 0);
+    foe.resistance = 0;
+    jailor.gearAccuracy = 10;
+
+    // The gate reads the ladder: a 50% stun with +0.5 of debuffChance
+    // is a certainty, however the dice fall.
+    jailor.skillBonusFor = () => ({ debuffChance: 0.5 });
+    g.seed(3);
+    let landed = 0;
+    for (let i = 0; i < 30; i++) {
+      foe.statusEffects = [];
+      const r = Abilities.applyEffect({ type: 'stun', chance: 0.5, turns: 1 },
+        jailor, foe, 1);
+      if (r && r.kind === 'stun') landed++;
+    }
+    g.unseed();
+    assert(landed === 30,
+      `a fully laddered stun landed ${landed}/30 -- the gate is not reading rungs`);
+
+    // And the status is SOURCED, so the landing hooks see it: wearing
+    // Nightbane's 2pc, the stun pays first curse.
+    const PACK = RACES.SECT_PARTY_BONUSES.nightbane;
+    jailor.passives = [PACK.find((t) => t.count === 2)].map((t) =>
+      ({ name: t.name, hooks: t.hooks }));
+    delete jailor.skillBonusFor;
+    foe.statusEffects = [];
+    jailor.turnMeter = 0;
+    g.seed(4);
+    let r2 = null;
+    for (let i = 0; i < 20 && (!r2 || r2.kind !== 'stun'); i++) {
+      foe.statusEffects = [];
+      jailor.turnMeter = 0;
+      r2 = Abilities.applyEffect({ type: 'stun', chance: 0.5, turns: 1 }, jailor, foe, 1);
+    }
+    g.unseed();
+    assert(r2 && r2.kind === 'stun', 'no stun landed in 20 tries at 50%');
+    const fx = foe.statusEffects.find((x) => x.stat === 'stun');
+    assert(fx && fx.source === jailor, 'the stun status carries no source');
+    assert(Math.abs(jailor.turnMeter - CONFIG.TURN_METER_MAX * 0.10) < 1,
+      `a stun on a clean enemy paid ${jailor.turnMeter}; the landing hook is ` +
+      'blind to stuns');
   } finally { Battle.active = prev; }
 });
 

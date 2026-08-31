@@ -26,6 +26,7 @@ const FILES = [
   'js/data/heroes/emberpride.js',
   'js/data/heroes/zephyrclaw.js',
   'js/data/heroes/sunpulse.js',
+  'js/data/heroes/nightbane.js',
   'js/data/summons.js', 'js/data/dumplings.js',
   'js/data/balance.js', 'js/data/enemies.js',
   'js/data/campaign.js', 'js/data/bosses.js', 'js/data/elemental_bosses.js', 'js/data/dungeons.js', 'js/quests.js', 'js/state.js',
