@@ -129,13 +129,16 @@ const EMBERPRIDE = {
       {
         id: 'torra_overhead_wreck', name: 'Overhead Wreck',
         icon: 'assets/icons/fc1103.png',
-        description: 'One enemy: 195% ATK damage.',
+        // The swing charges the swinger: Emberpride's verb written into
+        // her own kit, not just the pack's.
+        description: 'One enemy: 195% ATK damage. Self: +10% turn meter.',
         cooldown: 3, targeting: 'enemy', animation: 'idle', impact: 'slash_slam',
         effects: [{ type: 'damage', mult: 1.95 }],
+        selfEffects: [{ type: 'turnMeter', amount: 0.10 }],
         levelUps: [
           { mult: 0.15 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { meter: 0.03 },
           { mult: 0.15 },
           { cooldown: -1 },
           { mult: 0.15 },
@@ -189,19 +192,22 @@ const EMBERPRIDE = {
       {
         id: 'nala_stand_over', name: 'Stand Over',
         icon: 'assets/icons/fc1106.png',
-        description: 'Self: shield worth 110% DEF for 3 turns; draws enemy attacks for 2 turns.',
+        // The bodyguard, not the taunt: Lin's blocker stance, planted by
+        // a mother instead of a spearman. She takes the hits aimed at
+        // her row and closes her own wounds to keep standing there.
+        description: 'Self: takes the hits aimed at front-row allies for 2 turns; heals 10% max HP.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
         effects: [
-          { type: 'shield', defMult: 1.10, turns: 3 },
-          { type: 'taunt', turns: 2 },
+          { type: 'buff', stat: 'blocker', turns: 2 },
+          { type: 'healHpPct', pct: 0.10 },
         ],
         levelUps: [
-          { mult: 0.15 },
+          { heal: 0.05 },
           { cooldown: -1 },
           { duration: 1 },
-          { mult: 0.15 },
+          { heal: 0.05 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { heal: 0.05 },
         ],
       },
     ],
@@ -434,20 +440,24 @@ const EMBERPRIDE = {
       {
         id: 'mei_burn_bright_again', name: 'Burn Bright Again',
         icon: 'assets/icons/fc1118.png',
-        description: 'One ally: heals 150% ATK; removes 2 debuffs.',
+        // The rekindling: the burst closes the wound and the coals keep
+        // it closed. The regrowth ticks are heal events, so under
+        // Healer's-Reward-style hooks and the fire pack a mend that
+        // keeps mending keeps paying.
+        description: 'One ally: heals 120% ATK; regenerates 5% of caster max HP for 2 turns.',
         cooldown: 5, targeting: 'lowest-ally', animation: 'idle', impact: 'heal_gold',
         effects: [
-          { type: 'heal', mult: 1.50 },
-          { type: 'cleanse', count: 2 },
+          { type: 'heal', mult: 1.20 },
+          { type: 'hot', pct: 0.05, turns: 2 },
         ],
         levelUps: [
           { mult: 0.15 },
-          { cleanseCount: 1 },
+          { heal: 0.02 },
           { cooldown: -1 },
           { mult: 0.15 },
           { cooldown: -1 },
-          { mult: 0.15 },
-          { cleanseCount: 1 },
+          { duration: 1 },
+          { heal: 0.02 },
         ],
       },
     ],
@@ -589,27 +599,30 @@ const EMBERPRIDE = {
       {
         id: 'magnus_hold_the_gate', name: 'Shut the Gate',
         icon: 'assets/icons/fc1125.png',
-        description: 'Self: shield worth 125% DEF for 3 turns; draws enemy attacks for 2 turns.',
+        // No shield, on purpose: Magnus is the punish tank. He draws
+        // the blows onto raw hide and lets Claw Back answer them --
+        // the DEF buff is the whole of his cover.
+        description: 'Self: draws enemy attacks for 2 turns; +25% DEF for 2 turns.',
         cooldown: 4, targeting: 'self', animation: 'idle', impact: 'shield_bubble',
         effects: [
-          { type: 'shield', defMult: 1.25, turns: 3 },
           { type: 'taunt', turns: 2 },
+          { type: 'buff', stat: 'def', mult: 1.25, turns: 2 },
         ],
         levelUps: [
-          { mult: 0.15 },
+          { buffPower: 0.05 },
           { duration: 1 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { buffPower: 0.05 },
           { cooldown: -1 },
-          { mult: 0.15 },
+          { buffPower: 0.05 },
         ],
       },
       {
         id: 'magnus_break_the_charge', name: 'Break the Charge',
         icon: 'assets/icons/fc1126.png',
-        description: 'Enemy front row: 115% DEF damage.',
-        cooldown: 5, targeting: 'front-enemies', animation: 'idle', impact: 'slash_slam',
-        effects: [{ type: 'damageDef', mult: 1.15 }],
+        description: 'One enemy: 160% DEF damage (ignores 20% DEF).',
+        cooldown: 5, targeting: 'enemy', animation: 'idle', impact: 'slash_slam',
+        effects: [{ type: 'damageDef', mult: 1.60, ignoreDef: 0.20 }],
         levelUps: [
           { mult: 0.10 },
           { cooldown: -1 },
