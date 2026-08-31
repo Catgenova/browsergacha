@@ -1384,6 +1384,10 @@ class Unit {
         return true;
       }
     }
+    // Whether the target already carried an affliction, read BEFORE
+    // this one lands: a hook paid for cursing the clean (Nightbane's
+    // 2pc) must not see the curse that is asking.
+    const wasAfflicted = Unit.isDebuff(e) ? this.isDebuffed() : false;
     this.statusEffects.push(e);
     // A hostile status landing rings through the victim's OWN side:
     // passives that answer their team's misfortune (Ilyra's Kindly
@@ -1420,6 +1424,26 @@ class Unit {
         for (const p of (ally.hookSources ? ally.hookSources() : [])) {
           const hook = p.hooks && p.hooks.onAllyDebuffed;
           if (hook) hook(ally, { victim: this, effect: e, battle });
+        }
+      }
+      // ...and back to WHOEVER LAID IT. onBurnLit generalized: a
+      // caster-side hook that fires once per affliction actually landed
+      // on the other team -- ability, dot, spread copy or passive
+      // alike, because they all pass through here. `wasAfflicted` is
+      // the victim's state before this landing, for tiers that pay
+      // extra for cursing the clean. A self-hex or an ally-laid mark
+      // has no cross-team source and pays nothing. Inside the ring
+      // guard, so a hook that answers by afflicting cannot loop.
+      const src = e.source;
+      if (src && src.alive && src.team !== this.team && src.hookSources) {
+        for (const p of src.hookSources()) {
+          const hook = p.hooks && p.hooks.onDebuffLanded;
+          if (hook) {
+            const r = hook(src, { victim: this, effect: e, wasAfflicted, battle });
+            if (r && r.floats && battle.addFloatingText) {
+              r.floats.forEach((f) => battle.addFloatingText(f.target, f.text, f.color));
+            }
+          }
         }
       }
     } finally { Unit.debuffRinging = false; }

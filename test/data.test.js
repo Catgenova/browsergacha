@@ -331,6 +331,9 @@ test('every sect holds one race, once each, with its number', () => {
     // Temporal scroll never rolls below three.
     sunpulse: { number: 16, race: 'cat',
       members: ['serin', 'lumir', 'celeste', 'ravi', 'cassian', 'bram', 'sunny', 'khema', 'helios'] },
+    // The dark cats, FOUNDING: the haunting verb of the pride pentad,
+    // declared on both sides like every founding order before it.
+    nightbane: { number: 17, race: 'cat', founding: true, members: [] },
   };
   assert(Object.keys(RACES.SECTS).sort().join() === Object.keys(expected).sort().join(),
     `sects are ${Object.keys(RACES.SECTS).join(', ')}`);
