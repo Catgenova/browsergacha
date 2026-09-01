@@ -1050,6 +1050,17 @@ test('no effect carries a key the engine does not read', () => {
         if ('defIgnore' in e) {
           problems.push(`${h.id}/${a.name}: defIgnore is a dead key; the engine reads ignoreDef`);
         }
+        // The forge was flat (`per`) and is now a percentage (`pct`), so
+        // a stray `per` would price a raise at nothing at all.
+        if (e.type === 'atkPerDebuff') {
+          if ('per' in e) {
+            problems.push(`${h.id}/${a.name}: per is a dead key on atkPerDebuff; the engine reads pct`);
+          }
+          if (!(e.pct > 0 && e.pct < 1) || !(e.cap > 0 && e.cap <= 1)) {
+            problems.push(`${h.id}/${a.name}: atkPerDebuff pct/cap must be fractions, ` +
+              `got ${e.pct}/${e.cap}`);
+          }
+        }
       }
     }
   }
@@ -1504,8 +1515,10 @@ test('every swept skill obeys the level-up rules', () => {
       // stat rather than into statusEffects, and Abilities reads
       // `lad.buffPower` off it exactly as it does off an ordinary buff.
       // The rule is "a rung must have something to act on", not "a rung
-      // must point at a status effect".
-      const BLESSING = new Set(['buff', 'raise']);
+      // must point at a status effect". `atkPerDebuff` is the same
+      // thing on a condition -- it spends through raiseAtk and ladders
+      // on the same rung.
+      const BLESSING = new Set(['buff', 'raise', 'atkPerDebuff']);
       if (lad.buffPower && !all.some((e) => BLESSING.has(e.type))) {
         problems.push(`${where}: buffPower rungs but no buff`);
       }

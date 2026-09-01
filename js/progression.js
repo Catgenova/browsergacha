@@ -400,7 +400,7 @@ const Progression = (() => {
           break;
         }
         case 'atkPerDebuff':
-          add('ATK per fire lit', e.per, e.per + g('per'), 'n');
+          add('ATK per fire lit', e.pct, e.pct + g('buffPower'), 'pct');
           break;
         case 'bubble': {
           const t = e.turns === undefined ? 2 : e.turns;

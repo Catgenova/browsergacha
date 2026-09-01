@@ -2321,16 +2321,16 @@ Object.assign(HEROES, {
       {
         id: 'lucian_stoke_the_forge', name: 'Stoke the Forge',
         icon: 'assets/icons/fc1026.png',
-        description: 'Self: permanent +75 ATK for every burn on the enemy team, up to +1000 this battle.',
+        description: 'Self: permanent +10% ATK for every burn on the enemy team, up to +50% this battle.',
         cooldown: 4, targeting: 'self', animation: 'skill2',
         effects: [
-          { type: 'atkPerDebuff', flavor: 'burn', per: 75, cap: 1000 },
+          { type: 'atkPerDebuff', flavor: 'burn', pct: 0.10, cap: 0.50 },
         ],
         levelUps: [
-          { per: 10 },
-          { per: 10 },
-          { per: 10 },
-          { per: 10 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
+          { buffPower: 0.05 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],

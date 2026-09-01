@@ -1266,26 +1266,34 @@ const Abilities = (() => {
           flavor: effect.flavor || null, fires: 1 + spread };
       }
       case 'atkPerDebuff': {
-        // Forge heat (Lucian): permanent flat ATK for each enemy
-        // carrying the named DoT flavor right now, banked up to a
-        // per-battle cap — the fight itself is the fuel.
+        // Forge heat (Lucian): a permanent ATK raise, as a PERCENTAGE of
+        // the statline he walked in with, for each enemy carrying the
+        // named DoT flavor right now — the fight itself is the fuel.
+        //
+        // It was flat once, and flat is what was wrong with it: +75 ATK
+        // is 8% of a level-30 Lucian and 1% of a level-100 one, so the
+        // signature engine of a 5-star quietly evaporated over exactly
+        // the levels a player spends getting him there. A percentage is
+        // worth the same at every level.
+        //
+        // Through raiseAtk, the same plumbing Nestora's gift and Rajan's
+        // Cannon Heat spend from: it compounds against the base rather
+        // than itself, cannot be stripped, survives a revive, and shares
+        // ONE permanent-raise budget per unit — so a Lucian already fed
+        // from outside caps out sooner, on purpose.
         const b = currentBattle ||
           (typeof Battle !== 'undefined' ? Battle.active : null);
         const foes = b
           ? b.livingUnits().filter((u) => u.team !== caster.team) : [];
         const count = foes.filter((u) => u.statusEffects.some((fx) =>
           fx.kind === 'dot' && fx.flavor === effect.flavor)).length;
-        const banked = caster.forgeBanked || 0;
-        // A `per` rung raises how much ATK each burning enemy is worth.
+        // A `buffPower` rung raises what each burning enemy is worth,
+        // the same rung the `raise` effect ladders on.
         const forgeLad = caster.skillBonusFor ? caster.skillBonusFor(currentAbility) : {};
-        const perHead = effect.per + (forgeLad.per || 0);
-        const gain = Math.max(0, Math.min(effect.cap - banked, count * perHead));
-        if (gain > 0) {
-          caster.forgeBanked = banked + gain;
-          caster.baseAtk += gain;
-        }
+        const perHead = effect.pct + (forgeLad.buffPower || 0);
+        const gain = raiseAtk(caster, count * perHead, effect.cap);
         return { kind: 'forge', target: caster, amount: gain, count,
-          banked: caster.forgeBanked || 0, cap: effect.cap };
+          banked: caster.raisedAtk || 0, cap: effect.cap };
       }
       case 'spendPouch': {
         // Everything Balmor has been given, given back. A per-battle
