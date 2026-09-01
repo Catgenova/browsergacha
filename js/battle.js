@@ -802,12 +802,14 @@ class Battle {
             cls);
         }
       } else if (res.kind === 'forge') {
-        // Lucian's forge heat: permanent flat ATK off the burning field.
+        // Lucian's forge heat: a permanent ATK raise, priced as a
+        // percentage of the statline he walked in with.
+        const pct = (n) => `${Math.round(n * 100)}%`;
         if (res.amount > 0) {
-          this.addFloatingText(res.target, `ATK +${res.amount}`, '#ff9a5a');
+          this.addFloatingText(res.target, `ATK +${pct(res.amount)}`, '#ff9a5a');
           this.log(`${res.target.name} draws heat from ${res.count} burning ` +
-            `enem${res.count === 1 ? 'y' : 'ies'} — ATK up ${res.amount} for the fight ` +
-            `(${res.banked}/${res.cap} banked).`, cls);
+            `enem${res.count === 1 ? 'y' : 'ies'} — ATK up ${pct(res.amount)} for the fight ` +
+            `(${pct(res.banked)}/${pct(res.cap)} banked).`, cls);
         } else {
           this.log(res.count === 0
             ? `${res.target.name} finds no fires to draw from.`

@@ -3405,18 +3405,28 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
     `burn reads ${burn && burn.amount} for ${burn && burn.turns} turns`);
   assert(foeA.burning() && !foeB.burning(), 'burning() misreads the field');
 
-  // Stoke the Forge: +75 flat ATK per burning enemy, banked to 1000.
+  // Stoke the Forge: +10% ATK per burning enemy, banked to +50%. The
+  // raise is a PERCENTAGE of the statline he walked in with, so it is
+  // worth the same at level 30 and level 100 -- the flat +75 it
+  // replaced was 8% of the first and 1% of the second.
   const atk0 = lucian.baseAtk;
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  assert(lucian.baseAtk === atk0 + 75 && lucian.forgeBanked === 75,
-    `one fire banked ${lucian.forgeBanked}`);
-  lucian.forgeBanked = 990;
+  assert(lucian.baseAtk === Math.round(atk0 * 1.10) && Math.abs(lucian.raisedAtk - 0.10) < 1e-9,
+    `one fire banked ${lucian.raisedAtk} for ${lucian.baseAtk} (from ${atk0})`);
+  // Growth compounds against the ORIGINAL base, not against itself.
+  lucian.raisedAtk = 0.45;
+  lucian.baseAtk = Math.round(atk0 * 1.45);
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  // The first cast banked 75; this one only has 10 of headroom left.
-  assert(lucian.baseAtk === atk0 + 85 && lucian.forgeBanked === 1000,
-    'the cap leaked');
+  // One fire is worth 10, but only 5 points of headroom are left.
+  assert(lucian.baseAtk === Math.round(atk0 * 1.50) && Math.abs(lucian.raisedAtk - 0.50) < 1e-9,
+    `the cap leaked: ${lucian.raisedAtk} banked`);
   A.execute(lucian.abilities[1].def, lucian, lucian, battle);
-  assert(lucian.baseAtk === atk0 + 85, 'a full forge kept gaining');
+  assert(lucian.baseAtk === Math.round(atk0 * 1.50), 'a full forge kept gaining');
+
+  // The forge is not a blessing: nothing on the field can strip it, and
+  // it is still there on the other side of a death.
+  assert(!lucian.statusEffects.some((fx) => fx.stat === 'atk' && fx.kind === 'buff'),
+    'the forge became a strippable buff');
 
   // By Firelight: his turn opens at +30% ATK while anything burns, and
   // cold once the fires are out.
