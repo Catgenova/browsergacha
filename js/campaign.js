@@ -425,10 +425,26 @@ const Campaign = (() => {
   // a branch pays a Rare, and the chapter holder pays a Temporal — the
   // Dark/Light currency, and the campaign's whole reason to exist.
   //
-  // Scrolls only. Gear belongs to the boss ladder, which is farmable for
-  // the set you actually want; a one-off piece from a node you can never
-  // re-clear is a worse version of that and muddies what the campaign is
-  // for.
+  // Scrolls on the road; the holder also hands over his wardrobe.
+  //
+  // Rank-and-file nodes pay scrolls only, because a one-off piece from a
+  // node you can never re-clear is a worse version of the boss ladder,
+  // which is farmable for the set you actually want. A CHAPTER HOLDER is
+  // the exception, and a deliberate one: killing the Rat King pays a
+  // complete eight-piece Rat set, the Dragon pays Dragon, and so on down
+  // the nine. It is the one moment in the game that hands over a whole
+  // wardrobe instead of a slot, which is what makes finishing a chapter
+  // feel like taking something off a body rather than ticking a node.
+  //
+  // Epic, not Legendary: every set bonus the set has, four substats a
+  // piece, and a Lv-75 ceiling to grow into -- a foundation the boss
+  // ladder is still worth farming to beat, rather than a finished build
+  // that ends the hunt for that set.
+  //
+  // The set comes off the BOSS's own `gearSet`, the same field the boss
+  // ladder and the compendium read, so the chapter never has to name a
+  // set twice and cannot drift out of step with what its holder drops.
+  //
   // Each tier keeps its own first clear, and pays the tier multiplier:
   // an Expert holder is three Temporal Scrolls, not one.
   function firstClearBonus(nodeObj, tierId = 'normal') {
@@ -436,11 +452,22 @@ const Campaign = (() => {
     const paid = (kind, n) => ({ [kind]: n * t.reward });
     const label = t.id === 'normal' ? '' : ` (${t.label})`;
     if (nodeObj.type === 'boss') {
+      const ch = chapterFor(nodeObj.id);
+      const boss = typeof BOSSES !== 'undefined' ? BOSSES[ch.boss] : null;
+      const setId = (boss && boss.gearSet) || null;
       return {
         scrolls: paid('temporal', 1),
         // The hunt and boss gates are opened once, by the Normal clear.
         // Re-announcing them on every tier would be noise about nothing.
         unlocks: t.id === 'normal',
+        // The wardrobe is paid once per chapter, on the same Normal
+        // clear, for the same reason: a tier cannot be reached without
+        // first felling the holder below it (see tierUnlocked), so
+        // Normal is always the clear that happens first, and gating
+        // here is what stops one chapter paying out three whole sets.
+        gear: (t.id === 'normal' && setId)
+          ? { set: setId, rarity: 'epic', slots: Gear.SLOTS.length }
+          : null,
         label: `Chapter cleared${label}`,
       };
     }

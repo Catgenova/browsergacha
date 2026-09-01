@@ -367,6 +367,27 @@ const Gear = (() => {
     return piece;
   }
 
+  // A COMPLETE set: one piece per slot, at a rarity the caller names
+  // rather than rolls. The campaign hands one of these over when a
+  // chapter holder goes down, which is the only thing in the game that
+  // grants a whole wardrobe at once -- everywhere else you farm the
+  // slots you are missing and curse the drop table.
+  //
+  // Deterministic in COVERAGE and rarity, random in mains and subs: the
+  // player is guaranteed all eight slots and every set bonus the set
+  // has, and still has a piece worth reading. Level 1 and +0, so it is
+  // a foundation to build on rather than a finished build handed over.
+  function fullSet(setId, rarity = 'epic') {
+    if (!SETS[setId]) return [];
+    const grade = RARITIES[rarity] ? rarity : 'epic';
+    return SLOTS.map((slot) => {
+      const piece = { set: setId, slot, main: rollMain(slot),
+        rarity: grade, level: 1, plus: 0, subs: [] };
+      for (let i = 0; i < RARITIES[grade].maxSubs; i++) rollSub(piece);
+      return piece;
+    });
+  }
+
   // ---- Leveling (Whetstones) ----
   function maxLevel(piece) { return RARITIES[piece.rarity].maxLevel; }
   // Superlinear: early levels stay cheap, high levels get expensive
@@ -535,7 +556,7 @@ const Gear = (() => {
   return {
     SLOTS, SLOT_LABELS, SETS, RARITIES, RARITY_ORDER, MAX_PLUS,
     MAIN_POOLS, MAIN_STATS, rollMain,
-    baseStat, drop, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
+    baseStat, drop, fullSet, maxLevel, polishCost, arcanaCost, enchantSuccessRate, applyEnchant,
     rollSub, boostSub,
     icon, pieceName, describe, statText, subLabel, aggregate, applyToStats, scoreFor,
   };

@@ -825,6 +825,63 @@ test('campaign difficulty rises across and within chapters', () => {
   assert(problems.length === 0, problems.slice(0, 5).join(' | '));
 });
 
+test("felling a chapter holder pays that holder's own full eight-piece Epic set", () => {
+  const { CAMPAIGN, Campaign, Gear, BOSSES } = g;
+  const problems = [];
+  const setsPaid = new Set();
+  for (const ch of CAMPAIGN.CHAPTERS) {
+    const boss = Campaign.bossNode(ch);
+    const bonus = Campaign.firstClearBonus(boss, 'normal');
+    const want = BOSSES[ch.boss] && BOSSES[ch.boss].gearSet;
+    if (!want) { problems.push(`${ch.id}: holder ${ch.boss} names no gearSet`); continue; }
+    if (!bonus.gear) { problems.push(`${ch.id}: no set on the holder`); continue; }
+    // The set is the HOLDER's own, read off the boss rather than a
+    // second table that could drift: Rat King pays Rat, Dragon Dragon.
+    if (bonus.gear.set !== want) {
+      problems.push(`${ch.id}: pays ${bonus.gear.set}, holder drops ${want}`);
+    }
+    if (bonus.gear.rarity !== 'epic') {
+      problems.push(`${ch.id}: pays ${bonus.gear.rarity}, wanted epic`);
+    }
+    if (bonus.gear.slots !== Gear.SLOTS.length) {
+      problems.push(`${ch.id}: promises ${bonus.gear.slots} pieces of ${Gear.SLOTS.length}`);
+    }
+    setsPaid.add(bonus.gear.set);
+
+    // Paid ONCE per chapter. A higher tier cannot be reached without
+    // felling the holder below it, so gating on Normal is what stops one
+    // chapter paying out three whole wardrobes.
+    for (const tierId of Campaign.TIER_IDS.slice(1)) {
+      if (Campaign.firstClearBonus(boss, tierId).gear) {
+        problems.push(`${ch.id}: pays a second set on ${tierId}`);
+      }
+    }
+  }
+  assert(problems.length === 0, problems.slice(0, 6).join(' | '));
+  assert(setsPaid.size === CAMPAIGN.CHAPTERS.length,
+    `${CAMPAIGN.CHAPTERS.length} chapters share only ${setsPaid.size} sets between them`);
+
+  // And what is promised is what is built: one piece per slot, no slot
+  // twice, every piece Epic with an Epic's four substats, level 1 and +0
+  // so it is a foundation rather than a finished build.
+  const pieces = Gear.fullSet('rat', 'epic');
+  assert(pieces.length === Gear.SLOTS.length, `fullSet built ${pieces.length} pieces`);
+  assert(new Set(pieces.map((p) => p.slot)).size === Gear.SLOTS.length,
+    'fullSet doubled up a slot and left another empty');
+  for (const p of pieces) {
+    assert(p.set === 'rat' && p.rarity === 'epic' && p.level === 1 && p.plus === 0,
+      `a piece came out ${p.rarity} ${p.set} Lv${p.level} +${p.plus}`);
+    assert(p.subs.length === Gear.RARITIES.epic.maxSubs,
+      `a piece carries ${p.subs.length} substats, wanted ${Gear.RARITIES.epic.maxSubs}`);
+    assert(p.main, 'a piece has no main stat');
+  }
+  // Every set bonus the set has is reachable, which is the point of
+  // being handed all eight rather than six.
+  const deepest = Math.max(...Gear.SETS.rat.bonuses.map((b) => b.pieces));
+  assert(pieces.length >= deepest,
+    `a full set is ${pieces.length} pieces but Rat's last bonus needs ${deepest}`);
+});
+
 test('every campaign node pays a first-clear scroll, graded by node type', () => {
   const { CAMPAIGN, Campaign } = g;
   const WANT = { normal: 'common', elite: 'rare', boss: 'temporal' };
@@ -846,8 +903,15 @@ test('every campaign node pays a first-clear scroll, graded by node type', () =>
         problems.push(`${n.id}: ${want} scroll count is ${scrolls[want]}`);
       }
       if (!bonus.label) problems.push(`${n.id}: first-clear bonus has no label`);
-      // Gear is the boss ladder's business — the campaign pays scrolls.
-      if (bonus.gear) problems.push(`${n.id}: still offers gear`);
+      // Gear on the road is still the boss ladder's business: a one-off
+      // piece from a node you can never re-clear is a worse version of a
+      // farmable set. The CHAPTER HOLDER is the deliberate exception,
+      // and pays a whole wardrobe rather than a slot.
+      if (n.type === 'boss') {
+        if (!bonus.gear) problems.push(`${n.id}: the holder pays no set`);
+      } else if (bonus.gear) {
+        problems.push(`${n.id}: a ${n.type} node is handing out gear`);
+      }
     }
   }
   assert(problems.length === 0, problems.slice(0, 6).join(' | '));
