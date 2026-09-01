@@ -896,11 +896,11 @@ Object.assign(HEROES, {
       {
         id: 'shield_bell', name: 'Shield Bell',
         icon: 'assets/icons/fc1045.png',
-        description: 'Enemy front row: 65% DEF damage; 50% chance: 20% ATK per turn for 3 turns.',
+        description: 'Enemy front row: 65% DEF damage; 50% chance: 3% of target max HP per turn for 3 turns.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damageDef', mult: 0.65 },
-          { type: 'dot', pct: 0.20, turns: 3, chance: 0.5, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 3, chance: 0.5, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.2 },
@@ -998,17 +998,17 @@ Object.assign(HEROES, {
       {
         id: 'cinder_in_the_wound', name: 'Cinder in the Wound',
         icon: 'assets/icons/fc819.png',
-        description: 'One enemy: 130% ATK damage; 50% chance: 30% ATK per turn for 3 turns.',
+        description: 'One enemy: 130% ATK damage; 50% chance: 3% of target max HP per turn for 3 turns.',
         cooldown: 4, targeting: 'enemy', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.3 },
-          { type: 'dot', pct: 0.30, turns: 3, chance: 0.5, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 3, chance: 0.5, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.2 },
           { debuffChance: 0.2 },
           { debuffChance: 0.1 },
-          { debuffPower: 0.05 },
+          { debuffPower: 0.01 },
           { cooldown: -1 },
           { cooldown: -1 },
         ],
@@ -1065,11 +1065,11 @@ Object.assign(HEROES, {
       {
         id: 'brandwork', name: 'Brandwork',
         icon: 'assets/icons/fc1045.png',
-        description: 'Enemy front row: 75% ATK damage; 50% chance: 15% ATK per turn for 2 turns.',
+        description: 'Enemy front row: 75% ATK damage; 50% chance: 3% of target max HP per turn for 2 turns.',
         cooldown: 0, targeting: 'front-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.75 },
-          { type: 'dot', pct: 0.15, turns: 2, chance: 0.5, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, chance: 0.5, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.2 },
@@ -1176,11 +1176,11 @@ Object.assign(HEROES, {
       {
         id: 'the_whole_line', name: 'The Whole Line',
         icon: 'assets/icons/fc1050.png',
-        description: 'Enemy back row: 105% ATK damage; 50% chance: 20% ATK per turn for 3 turns.',
+        description: 'Enemy back row: 105% ATK damage; 50% chance: 3% of target max HP per turn for 3 turns.',
         cooldown: 7, targeting: 'back-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 1.05 },
-          { type: 'dot', pct: 0.20, turns: 3, chance: 0.5, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 3, chance: 0.5, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.2 },
@@ -1222,17 +1222,17 @@ Object.assign(HEROES, {
       {
         id: 'swing_the_censer', name: 'Swing the Censer',
         icon: 'assets/icons/fc823.png',
-        description: 'All enemies: 60% ATK damage; 50% chance: 15% ATK per turn for 2 turns.',
+        description: 'All enemies: 60% ATK damage; 50% chance: 3% of target max HP per turn for 2 turns.',
         cooldown: 0, targeting: 'all-enemies', animation: 'idle', impact: 'strike',
         effects: [
           { type: 'damage', mult: 0.6 },
-          { type: 'dot', pct: 0.15, turns: 2, chance: 0.5, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, chance: 0.5, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.2 },
           { debuffChance: 0.2 },
           { debuffChance: 0.1 },
-          { debuffPower: 0.05 },
+          { debuffPower: 0.01 },
           { mult: 0.1 },
         ],
       },

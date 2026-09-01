@@ -2304,11 +2304,11 @@ Object.assign(HEROES, {
       {
         id: 'lucian_cinder_lash', name: 'Cinder Lash',
         icon: 'assets/icons/fc1025.png',
-        description: 'One enemy: 125% ATK damage; 50% chance: 4% of target max HP per turn for 3 turns.',
+        description: 'One enemy: 125% ATK damage; 50% chance: 3% of target max HP per turn for 3 turns.',
         cooldown: 0, targeting: 'enemy', animation: 'attack', impact: 'slash',
         effects: [
           { type: 'damage', mult: 1.25 },
-          { type: 'dot', chance: 0.5, targetHpPct: 0.04, turns: 3, flavor: 'burn' },
+          { type: 'dot', chance: 0.5, targetHpPct: 0.03, turns: 3, flavor: 'burn' },
         ],
         levelUps: [
           { mult: 0.1 },

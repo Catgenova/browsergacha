@@ -1253,9 +1253,12 @@ const Abilities = (() => {
         }
         // A caster can be paid for the moment something catches
         // (Stoddard hears the smoke go up). Fired on the LANDING only,
-        // so a resisted or missed application pays nothing.
+        // so a resisted or missed application pays nothing -- and only
+        // for FIRE. The card says "whenever an enemy catches fire", and
+        // without the flavor gate it paid for every poison and bleed in
+        // the game too, which is a different sentence.
         for (const p of (caster.hookSources ? caster.hookSources() : [])) {
-          if (p.hooks && p.hooks.onBurnLit) {
+          if (effect.flavor === 'burn' && p.hooks && p.hooks.onBurnLit) {
             caster.turnMeter += CONFIG.TURN_METER_MAX * p.hooks.onBurnLit;
             if (currentBattle && currentBattle.addFloatingText) {
               currentBattle.addFloatingText(caster, '\u25b2', '#e8903a');

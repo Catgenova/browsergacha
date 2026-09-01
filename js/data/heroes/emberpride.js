@@ -701,11 +701,11 @@ const EMBERPRIDE = {
       {
         id: 'rajan_suppressing_fire', name: 'Suppressing Fire',
         icon: 'assets/icons/fc1129.png',
-        description: 'All enemies: 60% ATK damage; 50% chance: burns for 25% ATK for 2 turns.',
+        description: 'All enemies: 60% ATK damage; 50% chance: burns for 3% of target max HP for 2 turns.',
         cooldown: 4, targeting: 'all-enemies', animation: 'idle', impact: 'fire_ball',
         effects: [
           { type: 'damage', mult: 0.60 },
-          { type: 'dot', pct: 0.25, turns: 2, chance: 0.50, flavor: 'burn' },
+          { type: 'dot', targetHpPct: 0.03, turns: 2, chance: 0.50, flavor: 'burn' },
         ],
         levelUps: [
           { debuffChance: 0.25 },

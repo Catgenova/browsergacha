@@ -1036,6 +1036,50 @@ test('the action-bar ledger books to the hero who moved the bar', () => {
     `${ally.apTaken} taken, ${ally.apGiven} given`);
 });
 
+test('every burn in the game ticks the same 3% of the victim, never the caster ATK', () => {
+  // Fire used to be priced two different ways at once: six burns off
+  // the CASTER's attack (0.15 / 0.20 / 0.25 / 0.30) and five off the
+  // VICTIM's pool (0.03 / 0.04). Two heroes throwing "a burn" set
+  // fires that differed by a factor of four, and which one was better
+  // depended on whose statline you read. One number, one payer: the
+  // burn eats 3% of what it is burning, wherever it came from.
+  //
+  // The victim's pool is the right payer for the flavor -- a fire is
+  // as big as the thing alight -- and it is what makes the Firetroupe
+  // oil slick (a burn ticks DOUBLE on the oiled) worth the same to
+  // every burner in the sect instead of only to the one with the
+  // biggest ATK.
+  const BURN_TICK = 0.03;
+  const problems = [];
+  let found = 0;
+  for (const h of Object.values(g.HEROES)) {
+    for (const a of h.abilities || []) {
+      for (const e of [...(a.effects || []), ...(a.selfEffects || [])]) {
+        if (e.type !== 'dot' || e.flavor !== 'burn') continue;
+        found++;
+        const where = `${h.id}/${a.name}`;
+        if (e.pct !== undefined) {
+          problems.push(`${where}: burn priced off caster ATK (pct ${e.pct})`);
+        }
+        if (e.targetHpPct !== BURN_TICK) {
+          problems.push(`${where}: burn ticks ${e.targetHpPct}, wanted ${BURN_TICK}`);
+        }
+        // A severity rung on an HP-priced tick moves in small steps:
+        // the ATK-priced step (0.05) would take a 3% burn to 8% on one
+        // rung, nearly tripling it.
+        for (const rung of a.levelUps || []) {
+          if (rung.debuffPower !== undefined && rung.debuffPower > 0.01) {
+            problems.push(`${where}: debuffPower rung of ${rung.debuffPower} on a ` +
+              `3% burn -- HP-priced ticks ladder at 0.01`);
+          }
+        }
+      }
+    }
+  }
+  assert(found >= 10, `only ${found} burns found; the sweep is not seeing the roster`);
+  assert(problems.length === 0, problems.slice(0, 6).join(' | '));
+});
+
 test('no effect carries a key the engine does not read', () => {
   // Five skills shipped with `defIgnore` while strike reads
   // `ignoreDef`: the cards said "(ignores 25% DEF)" and the blows
