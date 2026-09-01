@@ -3393,7 +3393,7 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
     f.dodgeChance = () => 0;
   }
 
-  // Cinder Lash: damage plus a burn ticking exactly 4% of the VICTIM's
+  // Cinder Lash: damage plus a burn ticking exactly 3% of the VICTIM's
   // max HP (rats carry no resistance, so the land roll is certain).
   // The burn also rolls the 50% application gate now, so the skill is
   // maxed -- at which point it is certain again.
@@ -3401,7 +3401,7 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
   A.execute(lucian.abilities[0].def, lucian, foeA, battle);
   const burn = foeA.statusEffects.find((fx) => fx.kind === 'dot' && fx.flavor === 'burn');
   assert(burn, 'the burn failed to land');
-  assert(burn.amount === Math.round(foeA.maxHp * 0.04) && burn.turns === 3,
+  assert(burn.amount === Math.round(foeA.maxHp * 0.03) && burn.turns === 3,
     `burn reads ${burn && burn.amount} for ${burn && burn.turns} turns`);
   assert(foeA.burning() && !foeB.burning(), 'burning() misreads the field');
 
@@ -3454,6 +3454,36 @@ test("Lucian's kit: the burn, the forge, the ricochet, and firelight", () => {
     lucian, foeA, 1);
   assert(solo.length === 30 && solo.every((r) => r.target === foeA),
     'a lone enemy escaped the ricochet');
+});
+
+test('the smoke only carries for fire: onBurnLit pays on burns, not on every poison', () => {
+  const w = loadGame();
+  const { HEROES: H, Abilities: A, Unit: U, TEAM: T, Battle: B, CONFIG: C } = w;
+  const battle = new B();
+  battle.autoMode = true;
+  const stod = new U(H.stoddard, T.PLAYER, { level: 30, stars: 5 });
+  const foe = new U(DUMMIES.rat_knight, T.ENEMY, { level: 30, stars: 3 });
+  battle.placeUnit(stod, 4);
+  battle.placeUnit(foe, 1);
+  foe.hp = foe.maxHp = 10 ** 6;
+  foe.hookSources = () => [];
+  foe.dodgeChance = () => 0;
+  assert(H.stoddard.passive.hooks.onBurnLit === 0.05, 'the censer stopped paying 5%');
+
+  // A fire pays him.
+  stod.turnMeter = 0;
+  A.applyEffect({ type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'burn' },
+    stod, foe, 1, battle);
+  const litPaid = stod.turnMeter;
+  assert(Math.abs(litPaid - C.TURN_METER_MAX * 0.05) < 1e-6,
+    `a burn paid ${litPaid}, wanted ${C.TURN_METER_MAX * 0.05}`);
+
+  // A poison is not a fire, and his card does not mention poison. This
+  // read every DoT before the flavor gate went in.
+  stod.turnMeter = 0;
+  A.applyEffect({ type: 'dot', targetHpPct: 0.03, turns: 2, flavor: 'poison' },
+    stod, foe, 1, battle);
+  assert(stod.turnMeter === 0, `a poison paid the censer ${stod.turnMeter}`);
 });
 
 test("Eli's sigils drain meters and the Quickening grants a real extra turn", () => {
