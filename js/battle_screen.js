@@ -1044,6 +1044,17 @@ class BattleScreen {
                 sub.push(`${bonus.label}: ${n}× ${icon}`);
               }
             }
+            // The holder's own wardrobe, stripped off the body: one
+            // piece in every slot, so the set is wearable the moment
+            // the chapter ends rather than after a farm.
+            if (bonus.gear) {
+              const pieces = Gear.fullSet(bonus.gear.set, bonus.gear.rarity);
+              for (const piece of pieces) GameState.addGear(piece);
+              const setName = Gear.SETS[bonus.gear.set].name;
+              const grade = Gear.RARITIES[bonus.gear.rarity].name;
+              sub.push(`🎁 ${BOSSES[ch.boss].name}'s hoard: a full ${pieces.length}-piece ` +
+                `${grade} ${setName} set — one for every slot.`);
+            }
             if (bonus.unlocks) {
               sub.push(`The ${CONFIG.LOCATION_NAMES[ch.location]} opens for hunting, ` +
                 `and the ${BOSSES[ch.boss].name} will now take challengers.`);

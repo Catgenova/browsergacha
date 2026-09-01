@@ -235,6 +235,12 @@ class CampaignScreen {
         bonusBits.push(`${n}× ${ICON[kind] || kind}`);
       }
     }
+    // Same rule as the scrolls: read off the bonus, so the holder's
+    // wardrobe cannot be granted and left invisible here.
+    if (bonus.gear && Gear.SETS[bonus.gear.set]) {
+      bonusBits.push(`a full ${bonus.gear.slots}-piece ` +
+        `${Gear.RARITIES[bonus.gear.rarity].name} ${Gear.SETS[bonus.gear.set].name} set`);
+    }
     if (bonus.unlocks) {
       bonusBits.push(`the ${CONFIG.LOCATION_NAMES[ch.location]} hunt and the ` +
         `${BOSSES[ch.boss] ? BOSSES[ch.boss].name : ch.boss} boss`);
